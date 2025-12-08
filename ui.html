@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    /* --- 基础变量 --- */
+    :root {
+      --sidebar-w: 110px;
+      --sidebar-w-mini: 48px;
+      --bg: #F8F9FA;
+      --primary: #1890FF;
+    }
+    
+    body { 
+      font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: var(--bg); color: #333; 
+      height: 100vh; width: 100vw; overflow: hidden; user-select: none; box-sizing: border-box;
+    }
+    .container { display: flex; width: 100%; height: 100%; }
+    
+    /* 左侧导航 */
+    .sidebar {
+      width: var(--sidebar-w); background: #fff; border-right: 1px solid #e0e0e0;
+      display: flex; flex-direction: column; height: 100%; 
+      transition: width 0.2s ease; z-index: 10; flex-shrink: 0;
+    }
+    .nav-scroll { flex: 1; overflow-y: auto; padding-top: 12px; min-height: 0; }
+    .nav-scroll::-webkit-scrollbar { width: 0; } 
+
+    .nav-item {
+      display: flex; align-items: center; padding: 10px 14px; margin-bottom: 2px;
+      cursor: pointer; color: #666; transition: all 0.2s;
+      border-left: 3px solid transparent; gap: 10px;
+    }
+    .nav-item:hover { background: #f0f7ff; color: var(--primary); }
+    .nav-item.active { background: #e6f7ff; color: var(--primary); border-left-color: var(--primary); font-weight: 600; }
+    .nav-icon { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
+    .nav-text { font-size: 12px; white-space: nowrap; }
+
+    /* 底部按钮区 */
+    .sidebar-footer { padding: 12px; border-top: 1px solid #eee; background: #fff; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px;}
+    
+    /* 通用按钮样式 */
+    .footer-btn {
+      width: 100%; padding: 6px 0; border: 1px solid #eee; background: #fff; 
+      border-radius: 6px; color: #666; font-size: 11px; cursor: pointer; text-align: center;
+      transition: all 0.2s; box-sizing: border-box;
+    }
+    .footer-btn:hover { border-color: #ccc; color: #333; background: #f9f9f9; }
+    /* 语言按钮特殊样式 */
+    .lang-btn { font-family: monospace; font-weight: 600; color: #888; }
+    .lang-btn:hover { color: var(--primary); border-color: #bae7ff; background: #e6f7ff; }
+
+    /* 右侧内容 */
+    .main-content { flex: 1; display: flex; flex-direction: column; height: 100%; position: relative; min-width: 0; }
+    .header { padding: 12px 16px; flex-shrink: 0; }
+    .search-box {
+      width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px;
+      background: #fff; font-size: 12px; outline: none; box-sizing: border-box;
+    }
+    .search-box:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(24,144,255,0.1); }
+
+    .content-scroll { flex: 1; overflow-y: auto; padding: 0 16px 16px 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+
+    /* 卡片 */
+    .card {
+      border-radius: 8px; padding: 14px; cursor: pointer;
+      border: 1px solid transparent; 
+      transition: all 0.15s; display: flex; flex-direction: column; gap: 6px;
+      position: relative; overflow: hidden;
+    }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .card:active { transform: scale(0.98); }
+
+    /* 主题色 */
+    .theme-orange { background: #FFF7E6; color: #D46B08; border: 1px solid rgba(212, 107, 8, 0.1); }
+    .theme-blue { background: #E6F7FF; color: #096DD9; border: 1px solid rgba(9, 109, 217, 0.1); }
+    .theme-purple { background: #F9F0FF; color: #531DAB; border: 1px solid rgba(83, 29, 171, 0.1); }
+    .theme-green { background: #F6FFED; color: #389E0D; border: 1px solid rgba(56, 158, 13, 0.1); }
+    .theme-pink { background: #FFF0F6; color: #C41D7F; border: 1px solid rgba(196, 29, 127, 0.1); }
+
+    .card-title { font-weight: 700; font-size: 13px; display: flex; justify-content: space-between; }
+    .card-desc { font-size: 11px; opacity: 0.8; line-height: 1.3; }
+    .star-icon { font-size: 14px; line-height: 1; }
+
+    /* 全局悬停 Tooltip (详细说明) */
+    #tooltip-box {
+      position: fixed; display: none; z-index: 999;
+      background: rgba(0,0,0,0.85); color: #fff; 
+      padding: 10px 12px; border-radius: 6px; font-size: 12px; line-height: 1.5;
+      width: 200px; backdrop-filter: blur(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      pointer-events: none; /* 让鼠标穿透，不影响点击 */
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* 缺省页 */
+    .empty-state {
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      height: 100%; text-align: center; color: #aaa; padding-top: 40px;
+    }
+    .empty-icon { width: 48px; height: 48px; margin-bottom: 10px; opacity: 0.5; }
+
+    /* 拖拽 */
+    .resize-handle {
+      position: absolute; bottom: 0; right: 0; width: 16px; height: 16px; cursor: nwse-resize; z-index: 100;
+    }
+    .resize-handle::after {
+      content: ''; position: absolute; bottom: 4px; right: 4px; width: 8px; height: 8px;
+      border-right: 2px solid #ccc; border-bottom: 2px solid #ccc;
+    }
+    .resize-handle:hover::after { border-color: #999; }
+
+    /* 迷你模式 */
+    body.mini-mode .sidebar { width: var(--sidebar-w-mini); }
+    body.mini-mode .nav-text, body.mini-mode .search-box, body.mini-mode .card-desc, body.mini-mode .star-icon { display: none; }
+    body.mini-mode .nav-item { justify-content: center; padding: 12px 0; }
+    body.mini-mode .nav-icon { width: 20px; height: 20px; }
+    body.mini-mode .footer-btn { padding: 6px 0; font-size: 10px; border:none; color: #999; }
+    /* 迷你模式下隐藏语言切换，或者显示简写，这里选择隐藏以保持简洁 */
+    body.mini-mode .lang-btn { display: none; }
+    
+    body.mini-mode .header { padding: 8px; }
+    body.mini-mode .content-scroll { padding: 0 8px 8px 8px; }
+    body.mini-mode .grid { grid-template-columns: 1fr; gap: 8px; }
+    body.mini-mode .card { padding: 10px 12px; flex-direction: row; align-items: center; justify-content: space-between; }
+    body.mini-mode .card-title { font-size: 12px; margin-bottom: 0; }
+  </style>
+</head>
+<body>
+  
+  <!-- 全局 Tooltip 容器 -->
+  <div id="tooltip-box"></div>
+
+  <div class="container">
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+      <div class="nav-scroll">
+        <div class="nav-item active" onclick="switchGroup('simple', this)" data-key="nav_simple">
+          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg><span class="nav-text">简易工具</span>
+        </div>
+        <div class="nav-item" onclick="switchGroup('select', this)" data-key="nav_select"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M1 9h2V7H1v2zm0 4h2v-2H1v2zm0-8h2V3c-1.1 0-2 .9-2 2zm8 16h2v-2H9v2zm-8-4h2v-2H1v2zm2 4v-2H1c0 1.1.9 2 2 2zM21 3h-8v6h10V5c0-1.1-.9-2-2-2zm0 14h2v-2h-2v2zm2-6h-2v2h2v-2zM9 21h2v-2H9v2zm2-18H9v2h2V3zM13 21h2v-2h-2v2z"/></svg><span class="nav-text">选择工具</span></div>
+        <div class="nav-item" onclick="switchGroup('layout', this)" data-key="nav_layout"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg><span class="nav-text">布局工具</span></div>
+        <div class="nav-item" onclick="switchGroup('text', this)" data-key="nav_text"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M5 17h14v-2H5v2zm0-4h14v-2H5v2zm0-8v2h14V5H5z"/></svg><span class="nav-text">字体工具</span></div>
+        <div class="nav-item" onclick="switchGroup('shape', this)" data-key="nav_shape"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg><span class="nav-text">形状工具</span></div>
+        <div class="nav-item" onclick="switchGroup('effect', this)" data-key="nav_effect"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M7.5 5.6L10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-8.88 5.62l-3.32-1.66-1.66-3.32-1.66 3.32-3.32 1.66 3.32 1.66 1.66 3.32 1.66-3.32 3.32-1.66z"/></svg><span class="nav-text">效果工具</span></div>
+        <div class="nav-item" onclick="switchGroup('color', this)" data-key="nav_color"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg><span class="nav-text">颜色工具</span></div>
+      </div>
+      <div class="sidebar-footer">
+        <div class="footer-btn lang-btn" onclick="toggleLang()">中 / En</div>
+        <div class="footer-btn" id="modeBtn" onclick="toggleMode()" data-key="btn_switch">切换</div>
+      </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+      <div class="header">
+        <input type="text" class="search-box" placeholder="搜索功能..." id="searchInput">
+      </div>
+      <div class="content-scroll">
+        <div class="grid" id="toolPanel">
+          
+          <!-- [橙色] 形状 -->
+          <div class="card theme-orange" onclick="run('to-frame')" data-key="to_frame">
+            <div class="card-title">To Frame</div>
+            <div class="card-desc"></div>
+          </div>
+          <div class="card theme-orange" onclick="run('to-rect')" data-key="to_rect">
+            <div class="card-title">To Rectangle</div>
+            <div class="card-desc"></div>
+          </div>
+
+          <!-- [粉色] 文本 -->
+          <div class="card theme-pink" onclick="run('split-text')" data-key="split_text">
+            <div class="card-title">Split Text</div>
+            <div class="card-desc"></div>
+          </div>
+          <div class="card theme-pink" onclick="run('join-text')" data-key="join_text">
+            <div class="card-title">Join Text <span class="star-icon">☆</span></div>
+            <div class="card-desc"></div>
+          </div>
+
+          <!-- [蓝色] 布局 -->
+          <div class="card theme-blue" onclick="run('remove-al')" data-key="remove_al">
+            <div class="card-title">Remove AL</div>
+            <div class="card-desc"></div>
+          </div>
+          
+          <!-- [紫色] 层级 -->
+          <div class="card theme-purple" onclick="run('up-one')" data-key="up_one">
+            <div class="card-title">Up One Level</div>
+            <div class="card-desc"></div>
+          </div>
+          <div class="card theme-purple" onclick="run('up-all')" data-key="up_all">
+            <div class="card-title">Up All Level</div>
+            <div class="card-desc"></div>
+          </div>
+          <div class="card theme-purple" onclick="run('rename-content')" data-key="rename_content">
+            <div class="card-title">Rename Content <span class="star-icon">☆</span></div>
+            <div class="card-desc"></div>
+          </div>
+
+          <!-- [绿色] 整理 -->
+          <div class="card theme-green" onclick="run('sort-layers')" data-key="sort_layers">
+            <div class="card-title">Sort Layers <span class="star-icon">☆</span></div>
+            <div class="card-desc"></div>
+          </div>
+          <div class="card theme-green" onclick="run('ungroup-all')" data-key="ungroup_all">
+            <div class="card-title">Ungroup All</div>
+            <div class="card-desc"></div>
+          </div>
+          <div class="card theme-green" onclick="run('unlock-all')" data-key="unlock_all">
+            <div class="card-title">Unlock All</div>
+            <div class="card-desc"></div>
+          </div>
+
+        </div>
+
+        <div id="emptyPanel" class="empty-state">
+          <svg class="empty-icon" viewBox="0 0 24 24" fill="#ccc"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          <div class="empty-text" data-key="empty_title"></div>
+          <div style="font-size:11px; margin-top:4px;" data-key="empty_desc"></div>
+        </div>
+      </div>
+      <div class="resize-handle" id="resizeHandle"></div>
+    </div>
+  </div>
+
+  <script>
+    // --- 国际化数据字典 ---
+    const i18n = {
+      zh: {
+        nav_simple: "简易工具", nav_select: "选择工具", nav_layout: "布局工具",
+        nav_text: "字体工具", nav_shape: "形状工具", nav_effect: "效果工具", nav_color: "颜色工具",
+        btn_switch: "切换",
+        btn_lang: "中 / En",
+        search_ph: "搜索功能...",
+        empty_title: "功能开发中",
+        empty_desc: "敬请期待...",
+        
+        // 格式：key: [标题, 简介, 详细Tooltip, 成功提示]
+        to_frame: ["To Frame", "形状转Frame并继承样式", "将选中的矩形/圆形等智能转换为Frame，并保留原有的填充、描边、圆角和旋转角度。", "已转换为 Frame"],
+        to_rect: ["To Rectangle", "Frame扁平化为矩形", "将选中的Frame或Group降维成普通矩形，保留视觉样式的同时丢弃容器属性。", "已转换为矩形"],
+        split_text: ["Split Text", "按行拆分文本 (10px间距)", "将多行文本段落按换行符拆分为独立的文本层，并自动保持 10px 的垂直间距。", "文本已拆分"],
+        join_text: ["Join Text", "多行文本合并为一个", "将选中的多个文本图层按视觉位置排序，合并为一个多行文本框。", "文本已合并"],
+        remove_al: ["Remove AL", "移除Auto Layout", "递归移除选中图层及其内部所有子层级的 Auto Layout 属性，恢复为普通 Frame。", "已移除自动布局"],
+        up_one: ["Up One Level", "图层向上提一级", "将选中图层从当前父级中移出，放入上一级容器中。", "图层已上移"],
+        up_all: ["Up All Level", "图层提至最外层", "将选中图层直接移动到页面的最顶层（Root）。", "已提至最外层"],
+        rename_content: ["Rename Content", "按文本内容重命名图层", "自动将文本层或包含文本的 Frame 重命名为其内容，方便图层管理。", "图层已重命名"],
+        sort_layers: ["Sort Layers", "按视觉坐标排序图层", "根据画布上的 X/Y 坐标，重新排列图层列表顺序，修复 Auto Layout 顺序错乱问题。", "图层已排序"],
+        ungroup_all: ["Ungroup All", "解散内部所有组", "递归查找并解散选中元素内部所有的 Group，只保留 Frame 结构，减少层级嵌套。", "已解散内部组"],
+        unlock_all: ["Unlock All", "解锁内部所有图层", "一键解锁选中元素内部所有被锁定的图层，方便批量编辑。", "已全部解锁"]
+      },
+      en: {
+        nav_simple: "Simple", nav_select: "Select", nav_layout: "Layout",
+        nav_text: "Text", nav_shape: "Shape", nav_effect: "Effect", nav_color: "Color",
+        btn_switch: "Mode",
+        btn_lang: "中 / En",
+        search_ph: "Search...",
+        empty_title: "Coming Soon",
+        empty_desc: "Under development...",
+
+        to_frame: ["To Frame", "Convert Shape to Frame", "Convert selected shapes to Frames while preserving fills, strokes, corners and rotation.", "Converted to Frame"],
+        to_rect: ["To Rectangle", "Flatten Frame to Rect", "Convert Frames/Groups into simple Rectangles, preserving visual styles but removing container properties.", "Converted to Rect"],
+        split_text: ["Split Text", "Split lines (10px gap)", "Split multi-line text into separate text layers per line, arranged with 10px spacing.", "Text Split"],
+        join_text: ["Join Text", "Merge text layers", "Merge selected text layers into a single multi-line text box, sorted by visual position.", "Text Joined"],
+        remove_al: ["Remove AL", "Remove Auto Layout", "Recursively remove Auto Layout from selected layers and all nested children.", "Auto Layout Removed"],
+        up_one: ["Up One Level", "Lift layer up one level", "Move selected layers out of their current parent into the grandparent container.", "Layer Moved Up"],
+        up_all: ["Up All Level", "Lift to Top Level", "Move selected layers directly to the Page root level.", "Moved to Top"],
+        rename_content: ["Rename Content", "Rename to Content", "Rename layers based on their text content for better organization.", "Layers Renamed"],
+        sort_layers: ["Sort Layers", "Sort by Position", "Reorder layers in the sidebar based on their visual X/Y position on the canvas.", "Layers Sorted"],
+        ungroup_all: ["Ungroup All", "Ungroup all nested", "Recursively find and ungroup all Groups within selection, keeping Frames intact.", "Groups Ungrouped"],
+        unlock_all: ["Unlock All", "Unlock nested layers", "Unlock all locked layers within the selection recursively.", "Unlocked All"]
+      }
+    };
+
+    let curLang = 'zh'; // 默认中文
+
+    // 初始化语言
+    updateLanguage();
+
+    function toggleLang() {
+      curLang = curLang === 'zh' ? 'en' : 'zh';
+      updateLanguage();
+    }
+
+    function updateLanguage() {
+      const t = i18n[curLang];
+      
+      // 更新导航
+      document.querySelectorAll('.nav-item').forEach(el => {
+        const k = el.getAttribute('data-key');
+        if(k && t[k]) el.querySelector('.nav-text').innerText = t[k];
+      });
+
+      // 更新按钮和输入框
+      document.getElementById('modeBtn').innerText = t.btn_switch;
+      document.getElementById('searchInput').placeholder = t.search_ph;
+      document.querySelector('[data-key="empty_title"]').innerText = t.empty_title;
+      document.querySelector('[data-key="empty_desc"]').innerText = t.empty_desc;
+
+      // 更新卡片内容 (标题、简介)
+      document.querySelectorAll('.card').forEach(el => {
+        const k = el.getAttribute('data-key');
+        if(k && t[k]) {
+          el.querySelector('.card-title').childNodes[0].textContent = t[k][0] + " "; // 保留icon
+          el.querySelector('.card-desc').innerText = t[k][1];
+        }
+      });
+    }
+
+    // --- 核心逻辑 ---
+    function run(type) {
+      // 发送消息时带上当前语言的提示文案，以便 code.ts 直接使用
+      const t = i18n[curLang];
+      // 找到对应 key
+      const card = document.querySelector(`.card[onclick*="${type}"]`);
+      const key = card ? card.getAttribute('data-key') : null;
+      const msg = (key && t[key]) ? t[key][3] : "Done";
+
+      parent.postMessage({ pluginMessage: { type: type, successMsg: msg } }, '*'); 
+    }
+
+    function switchGroup(group, el) {
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+      el.classList.add('active');
+      const toolPanel = document.getElementById('toolPanel');
+      const emptyPanel = document.getElementById('emptyPanel');
+      const searchBox = document.getElementById('searchInput');
+      if (group === 'simple') {
+        toolPanel.style.display = 'grid'; emptyPanel.style.display = 'none';
+        searchBox.disabled = false;
+      } else {
+        toolPanel.style.display = 'none'; emptyPanel.style.display = 'flex';
+        searchBox.disabled = true;
+      }
+    }
+
+    function toggleMode() {
+      document.body.classList.toggle('mini-mode');
+      const isMini = document.body.classList.contains('mini-mode');
+      const btn = document.getElementById('modeBtn');
+      // 迷你模式下文字可能需要简化，这里复用
+      
+      parent.postMessage({ pluginMessage: { type: 'resize-window', width: isMini ? 170 : 460, height: isMini ? 340 : 540 } }, '*');
+    }
+
+    // 搜索
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      const val = e.target.value.toLowerCase();
+      const cards = document.querySelectorAll('.card');
+      if(document.getElementById('toolPanel').style.display !== 'none'){
+        cards.forEach(card => {
+          // 搜索匹配中英文标题
+          const key = card.getAttribute('data-key');
+          const zhTitle = i18n.zh[key][0].toLowerCase();
+          const enTitle = i18n.en[key][0].toLowerCase();
+          const visible = zhTitle.includes(val) || enTitle.includes(val);
+          card.style.display = visible ? 'flex' : 'none';
+        });
+      }
+    });
+
+    // --- Tooltip 悬停逻辑 ---
+    const tooltip = document.getElementById('tooltip-box');
+    const cards = document.querySelectorAll('.card');
+
+    cards.forEach(card => {
+      card.addEventListener('mouseenter', (e) => {
+        // 迷你模式不显示
+        if(document.body.classList.contains('mini-mode')) return;
+
+        const key = card.getAttribute('data-key');
+        if(!key) return;
+        
+        // 获取详细 Tooltip 内容
+        const desc = i18n[curLang][key][2]; 
+        tooltip.innerText = desc;
+        tooltip.style.display = 'block';
+        
+        // 初始位置
+        moveTooltip(e);
+      });
+
+      card.addEventListener('mousemove', (e) => {
+        if(document.body.classList.contains('mini-mode')) return;
+        moveTooltip(e);
+      });
+
+      card.addEventListener('mouseleave', () => {
+        tooltip.style.display = 'none';
+      });
+    });
+
+    function moveTooltip(e) {
+      // 简单的跟随鼠标，稍微偏移
+      const x = e.clientX + 15; 
+      const y = e.clientY + 15;
+      
+      // 防止溢出边界处理
+      const rect = tooltip.getBoundingClientRect();
+      const winW = window.innerWidth;
+      const winH = window.innerHeight;
+
+      let finalX = x;
+      let finalY = y;
+
+      if (x + rect.width > winW) finalX = e.clientX - rect.width - 10;
+      if (y + rect.height > winH) finalY = e.clientY - rect.height - 10;
+
+      tooltip.style.left = finalX + 'px';
+      tooltip.style.top = finalY + 'px';
+    }
+
+    // Drag
+    const handle = document.getElementById('resizeHandle');
+    let isDragging = false;
+    handle.onmousedown = (e) => { isDragging = true; handle.setPointerCapture(e.pointerId); };
+    window.onmousemove = (e) => {
+      if (!isDragging) return;
+      parent.postMessage({ pluginMessage: { type: 'resize-drag', width: Math.max(170, e.clientX+5), height: Math.max(200, e.clientY+5) } }, '*');
+    };
+    window.onmouseup = () => { isDragging = false; };
+  </script>
+</body>
+</html>
