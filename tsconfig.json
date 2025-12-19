@@ -23,8 +23,10 @@
     "typeRoots": [
       "./node_modules/@types",
       "./node_modules/@figma"
-    ]
+    ],
+    "rootDir": ".",
+    "outDir": "."
   },
-  "include": ["src/**/*.ts", "code.ts", "vite.config.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["code.ts"],
+  "exclude": ["node_modules", "dist", "src"]
 }

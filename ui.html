@@ -4,7 +4,7 @@
   <style>
     /* --- 基础变量 --- */
     :root {
-      --sidebar-w: 110px;
+      --sidebar-w: 124px;
       --sidebar-w-mini: 48px;
       --bg: #F8F9FA;
       --primary: #1890FF;
@@ -26,9 +26,11 @@
     .nav-scroll::-webkit-scrollbar { width: 0; } 
 
     .nav-item {
-      display: flex; align-items: center; padding: 10px 14px; margin-bottom: 2px;
+      display: flex; align-items: center; padding: 16px 8px; margin-bottom: 2px;
       cursor: pointer; color: #666; transition: all 0.2s;
-      border-left: 3px solid transparent; gap: 10px;
+      border-left: 2px solid transparent; gap: 2px;
+      justify-content: flex-start;
+      gap: 10px;
     }
     .nav-item:hover { background: #f0f7ff; color: var(--primary); }
     .nav-item.active { background: #e6f7ff; color: var(--primary); border-left-color: var(--primary); font-weight: 600; }
@@ -58,7 +60,7 @@
     }
     .search-box:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(24,144,255,0.1); }
 
-    .content-scroll { flex: 1; overflow-y: auto; padding: 0 16px 16px 16px; }
+    .content-scroll { flex: 1; overflow-y: auto; padding: 0 16px 0px 16px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
 
     /* 卡片 */
@@ -79,7 +81,7 @@
     .theme-pink { background: #FFF0F6; color: #C41D7F; border: 1px solid rgba(196, 29, 127, 0.1); }
 
     .card-title { font-weight: 700; font-size: 13px; display: flex; justify-content: space-between; }
-    .card-desc { font-size: 11px; opacity: 0.8; line-height: 1.3; }
+    .card-desc { font-size: 11px; opacity: 0.8; line-height: 1.3; display: none;}
     .star-icon { font-size: 14px; line-height: 1; }
 
     /* 全局悬停 Tooltip (详细说明) */
@@ -100,6 +102,7 @@
     }
     .empty-icon { width: 48px; height: 48px; margin-bottom: 10px; opacity: 0.5; }
 
+
     /* 拖拽 */
     .resize-handle {
       position: absolute; bottom: 0; right: 0; width: 16px; height: 16px; cursor: nwse-resize; z-index: 100;
@@ -109,6 +112,49 @@
       border-right: 2px solid #ccc; border-bottom: 2px solid #ccc;
     }
     .resize-handle:hover::after { border-color: #999; }
+
+    /* 选择工具面板 */
+    #selectionPanel { display: none; flex-direction: column; gap: 20px; }
+    
+    .section-title { font-size: 12px; font-weight: 600; color: #333; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;}
+    
+    /* 胶囊开关 */
+    .toggle-switch { display: flex; background: #eee; border-radius: 4px; padding: 2px; cursor: pointer; font-size: 10px; }
+    .toggle-switch span { padding: 2px 8px; border-radius: 3px; color: #999; transition: 0.2s; }
+    .toggle-switch.include .s-in { background: #fff; color: var(--primary); font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .toggle-switch.exclude .s-ex { background: #fff; color: var(--danger); font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+
+    .btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-btn {
+      padding: 5px 9px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9;
+      font-size: 11px; color: #555; cursor: pointer; transition: all 0.1s;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .filter-btn:hover { border-color: #bbb; background: #eee; }
+    .filter-btn.active { background: #444; color: #fff; border-color: #444; }
+    .filter-btn.all-btn.active { background: #E6F7FF; color: var(--primary); border-color: var(--primary); }
+
+    /* 属性行 */
+    .prop-list { display: flex; flex-direction: column; gap: 8px; }
+    .prop-row { display: flex; gap: 6px; align-items: center; }
+    .prop-select { flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 11px; outline: none; background: #fff; }
+    .prop-input { width: 60px; padding: 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 11px; outline: none; }
+    .prop-op { width: 50px; flex: none; padding: 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 11px; }
+    .prop-remove { color: #999; cursor: pointer; padding: 4px; font-size: 14px;}
+    .prop-remove:hover { color: var(--danger); }
+    .add-prop-btn { color: var(--primary); font-size: 18px; cursor: pointer; font-weight: bold;}
+
+    .fixed-action {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 16px; background: #fff; border-top: 1px solid #eee;
+      display: none; justify-content: flex-end; z-index: 20;
+    }
+    .primary-btn {
+      background: var(--primary); color: #fff; border: none; padding: 10px 24px;
+      border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer;
+      width: 100%; transition: all 0.2s;
+    }
+    .primary-btn:hover { background: #40a9ff; }
 
     /* 迷你模式 */
     body.mini-mode .sidebar { width: var(--sidebar-w-mini); }
@@ -124,6 +170,158 @@
     body.mini-mode .grid { grid-template-columns: 1fr; gap: 8px; }
     body.mini-mode .card { padding: 10px 12px; flex-direction: row; align-items: center; justify-content: space-between; }
     body.mini-mode .card-title { font-size: 12px; margin-bottom: 0; }
+
+    /* --- 新增样式：面板边距调整 --- */
+    #selectionPanel, #textPanel {
+      padding-top: 16px !important; /* 增加顶部边距 */
+    }
+
+    /* --- 新增样式：导航栏增强 --- */
+    
+    .nav-left {
+      display: flex; align-items: center; gap: 10px; /* 包裹原有的图标和文字 */
+    }
+    .nav-meta {
+      display: flex; align-items: center; gap: 6px; font-size: 10px;
+      margin-left: auto; /* 确保数量和红点靠右对齐 */
+    }
+    .count-badge {
+      background: #f0f0f0; color: #999; padding: 1px 6px; border-radius: 10px;
+    }
+    .red-dot {
+      width: 6px; height: 6px; background: #FF4D4F; border-radius: 50%; display: none;
+    }
+    .nav-item.has-new .red-dot { display: block; } /* 有新功能时显示红点 */
+
+    /* --- 新增样式：新功能高亮 --- */
+    .card.is-new {
+      border: 1px solid #FF4D4F !important;
+      background: #fff1f0 !important;
+      position: relative;
+    }
+    .card.is-new::after {
+      content: 'NEW'; position: absolute; top: 0; right: 0;
+      background: #FF4D4F; color: #fff; font-size: 8px; 
+      padding: 1px 4px; border-bottom-left-radius: 6px; font-weight: bold;
+    }
+    /* --- 迷你模式修正 --- */
+    body.mini-mode .nav-meta {
+      display: none !important; /* 隐藏右侧的数量和红点 */
+    }
+    
+    body.mini-mode .nav-left {
+      justify-content: center; /* 确保左侧图标居中 */
+      width: 100%;
+    }
+
+
+    /* === PPT 仪表盘新样式 === */
+    #pptPanel {
+      display: none; 
+      flex-direction: column; 
+      height: 100%; 
+      background: #fff; 
+      position: relative; 
+      margin: 0 -16px -12px -16px;
+      width: calc(100% + 32px);
+    }
+
+    /* 顶部仪表盘 */
+    .ppt-dashboard { padding: 16px; background: #fff; border-bottom: 1px solid #f0f0f0; flex-shrink: 0; z-index: 2; }
+    
+    .ppt-tips { background: #fffbe6; border: 1px solid #ffe58f; border-radius: 6px; padding: 10px; font-size: 11px; color: #d48806; line-height: 1.5; margin-bottom: 12px; }
+    .ppt-tips ul { margin: 0; padding-left: 16px; }
+    .ppt-tips li { margin-bottom: 4px; }
+
+    /* 一键按钮 */
+    .btn-auto-run { width: 100%; border: none; cursor: pointer; border-radius: 8px; background: linear-gradient(135deg, #1890FF 0%, #096DD9 100%); color: #fff; font-size: 14px; font-weight: 600; padding: 12px; box-shadow: 0 4px 12px rgba(24,144,255,0.3); transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-auto-run:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(24,144,255,0.4); }
+    .btn-auto-run:disabled { background: #d9d9d9; box-shadow: none; cursor: not-allowed; }
+
+    /* 全屏 Loading 遮罩 */
+    .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.98); z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; }
+    .loading-overlay.active { display: flex; }
+    .spinner { width: 40px; height: 40px; border: 4px solid #e6f7ff; border-top: 4px solid #1890FF; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+    .loading-text { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px; }
+    .loading-sub { font-size: 12px; color: #666; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* 步骤卡片 */
+    .ppt-content-area { 
+      flex: 1; 
+      overflow-y: auto; 
+      overflow-x: hidden; /*禁止横向滚动*/
+      padding: 16px; /* 减少内边距 */
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: flex-start; 
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .ppt-step { 
+      background: #fff; 
+      border: 1px solid #f0f0f0; 
+      border-radius: 12px; 
+      padding: 20px 16px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02); 
+      display: none; 
+      flex-direction: column; 
+      align-items: center; 
+      text-align: center; 
+      width: 100%; 
+      box-sizing: border-box; /*关键：防止内边距影响宽度*/
+      margin-top: 20px; 
+    }
+    .ppt-step.active { display: flex; animation: slideUp 0.3s ease-out; }
+    .ppt-icon { font-size: 32px; width: 56px; height: 56px; margin-bottom: 12px; background: #f7f9fc; border: 1px solid #d6e4ff; color: #1890FF; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .ppt-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; color: #333; }
+    .ppt-desc { font-size: 13px; color: #888; margin-bottom: 16px; line-height: 1.5;}
+    .ppt-status { font-size: 12px; color: #999; font-family: monospace; background: #f5f5f5; padding: 4px 10px; border-radius: 10px; }
+    
+    .ppt-footer { 
+      height: 56px; 
+      border-top: 1px solid #eee; 
+      display: flex; 
+      background: #fff; 
+      flex-shrink: 0; }
+    .ppt-footer button { border: none; background: #fff; cursor: pointer; font-size: 13px; font-weight: 500; transition: background 0.2s; }
+    .ppt-footer button:hover { background: #f5f5f5; }
+    .ppt-footer .primary-btn { background: #fff; color: #1890FF; border-left: 1px solid #eee; border-radius: 0px; }
+    
+    .ppt-progress-track { height: 4px; background: #f0f0f0; width: 100%; margin-top: auto; }
+    .ppt-progress-fill { height: 100%; background: #52c41a; width: 0%; transition: width 0.3s; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    /* 手动下载按钮美化 */
+    .btn-manual-dl {
+      margin-top: 12px;
+      padding: 8px 16px;
+      background: #f0f7ff; /* 极浅的蓝色背景 */
+      border: 1px solid #bae7ff; /* 浅蓝色边框 */
+      color: #1890FF; /* 主题色文字 */
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    
+    .btn-manual-dl:hover {
+      background: #e6f7ff;
+      border-color: #91d5ff;
+      color: #096DD9;
+      transform: translateY(-1px);
+    }
+    
+    .btn-manual-dl:active {
+      transform: scale(0.98);
+      background: #bae7ff;
+    }
+  
   </style>
 </head>
 <body>
@@ -135,30 +333,36 @@
     <!-- 侧边栏 -->
     <div class="sidebar">
       <div class="nav-scroll">
-        <div class="nav-item active" onclick="switchGroup('simple', this)" data-key="nav_simple">
-          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg><span class="nav-text">简易工具</span>
+        <!-- 简易工具 --><div class="nav-item active" onclick="switchGroup('simple', this)" data-key="nav_simple"><svg class="nav-icon" viewBox="0 0 1024 1024"><path d="M500.026 449.352v0.01l502.89 178.769c16.88 6.272 25.31 24.039 18.982 39.72-2.942 7.942-9.033 14.36-16.87 17.776l-190.822 84.68c-14.723 6.235-26.434 17.846-32.686 32.406l-81.185 191.315c-6.318 15.681-25.301 23.005-41.116 16.733-8.43-3.137-14.758-10.46-17.918-18.818l-181.344-502.87a30.323 30.323 0 0 1 1.014-23.808c3.574-7.477 10.052-13.214 17.969-15.913 6.319-3.136 13.702-3.136 21.086 0zM415 11c228.646 0 414 185.354 414 414 0 35.996-4.594 70.92-13.228 104.215l-82.546-29.343c5.636-24.044 8.616-49.11 8.616-74.872C741.842 244.49 595.51 98.158 415 98.158S88.158 244.49 88.158 425 234.49 751.842 415 751.842c35.807 0 70.27-5.758 102.512-16.399l29.584 82.036C505.61 831.436 461.189 839 415 839 186.354 839 1 653.646 1 425S186.354 11 415 11z m-0.5 174C546.772 185 654 292.228 654 424.5c0 15.518-1.476 30.691-4.295 45.387l-180.239-64.072v-0.011c-9.657-4.102-19.314-4.102-27.579 0-10.354 3.53-18.827 11.033-23.5 20.812a39.659 39.659 0 0 0-1.525 30.604l0.198 0.534 70.305 194.96C464.39 660.044 439.907 664 414.5 664 282.228 664 175 556.772 175 424.5S282.228 185 414.5 185z" fill="currentColor"></path></svg><span class="nav-text">简易工具</span></div>
+        <!-- 选择工具 --><div class="nav-item" onclick="switchGroup('select', this)" data-key="nav_select"><svg class="nav-icon" viewBox="0 0 1024 1024"><path d="M307.2 68.266667h170.666667v102.4H307.2v-102.4z m409.6 0H546.133333v102.4h170.666667v-102.4z m-409.6 887.466666h170.666667v-102.4H307.2v102.4z m-136.533333-887.466666c-56.746667 0-102.4 45.653333-102.4 102.4v68.266666h102.4v-34.133333c0-18.773333 15.36-34.133333 34.133333-34.133333h34.133333v-102.4h-68.266666z m0 238.933333h-102.4v170.666667h102.4v-170.666667z m-102.4 409.6h102.4v-170.666667h-102.4v170.666667z m102.4 102.4v-34.133333h-102.4v68.266666c0 56.746667 45.653333 102.4 102.4 102.4h68.266666v-102.4h-34.133333c-18.773333 0-34.133333-15.36-34.133333-34.133333z m682.666666-614.4v34.133333h102.4v-68.266666c0-56.746667-45.653333-102.4-102.4-102.4h-68.266666v102.4h34.133333c18.773333 0 34.133333 15.36 34.133333 34.133333z m0 273.066667h102.4v-170.666667h-102.4v170.666667z m87.466667 390.4l-104.106667-104.106667 119.04-47.786667-375.466666-136.533333 136.533333 375.466667 47.786667-119.04 104.106666 104.106666c20.053333 20.053333 52.48 20.053333 72.533334 0 19.626667-19.626667 19.626667-52.053333-0.426667-72.106666z" fill="currentColor"></path></svg><span class="nav-text">选择工具</span></div>
+        <!-- 布局工具 --><div class="nav-item" onclick="switchGroup('layout', this)" data-key="nav_layout"><svg class="nav-icon" viewBox="0 0 1024 1024"><path d="M921.6 76.8H102.4a102.4 102.4 0 0 0-102.4 102.4v665.6a102.4 102.4 0 0 0 102.4 102.4h819.2a102.4 102.4 0 0 0 102.4-102.4v-665.6a102.4 102.4 0 0 0-102.4-102.4z m0 102.4v204.8H102.4v-204.8z m-819.2 307.2h204.8v358.4H102.4z m307.2 358.4v-358.4h512v358.4z" fill="currentColor"></path></svg><span class="nav-text">布局工具</span></div>
+        <!-- 样式工具 --><div class="nav-item" onclick="switchGroup('style', this)" data-key="nav_style_tools"><svg class="nav-icon" viewBox="0 0 1027 1024"><path d="M513.53765 0.20344c-374.842982 0-513.53765 326.925969-513.53765 510.219407s133.361777 513.53765 502.595348 513.53765c0 0 91.844234 1.659122 91.844234-80.901931S553.040546 886.92495 553.040546 827.473092a79.005792 79.005792 0 0 1 61.229489-85.879297c19.751448 0 150.111005 9.875724 222.914844-18.171332A296.824762 296.824762 0 0 0 1027.0753 454.289231 500.185671 500.185671 0 0 0 513.53765 0.20344zM200.437695 512.081969A89.19754 89.19754 0 1 1 289.595732 422.923932a89.158037 89.158037 0 0 1-89.158037 89.158037z m168.242835-220.623676a89.158037 89.158037 0 1 1 89.158037-89.158036 89.158037 89.158037 0 0 1-89.158037 89.158036z m286.000968 0a89.158037 89.158037 0 1 1 89.158037-89.158036 89.19754 89.19754 0 0 1-89.158037 89.158036z m169.783448 220.623676a89.19754 89.19754 0 1 1 89.19754-89.158037 89.19754 89.19754 0 0 1-89.19754 89.158037z" fill="currentColor"></path></svg><span class="nav-text">样式工具</span></div>
+        <!-- 文字工具 --><div class="nav-item" onclick="switchGroup('text', this)" data-key="nav_text"><svg class="nav-icon" viewBox="0 0 1024 1024"><path d="M32 0 972.651987 0 972.651987 316.651576 931.05337 316.651576C931.05337 316.651576 851.664627 123.301587 757.99696 106.426488 664.326945 89.551388 599.217138 101.163665 599.217138 101.163665L598.048275 908.460659C598.048275 908.460659 624.046382 963.027206 666.957181 966.897965L761.948781 966.897965 761.948781 1022.63337 242.777214 1022.63337 244.09057 965.511776 327.28898 964.19607C327.28898 964.19607 389.765027 944.689555 389.765027 899.258944 389.765027 853.896474 391.083083 107.668185 391.083083 107.668185 391.083083 107.668185 288.327649 93.496156 234.939369 106.496972 181.625097 119.427304 87.881073 197.297106 73.598618 311.462763L32 312.778468 32 0 32 0 32 0Z" fill="currentColor"></path></svg><span class="nav-text">文字工具</span></div>
+        <!-- PPT 工具入口 -->
+        <div class="nav-item" onclick="switchGroup('ppt', this)" data-key="nav_ppt">
+          <svg class="nav-icon" viewBox="0 0 1024 1024" fill="currentColor" >
+            <path d="M938.652 1023.94H213.341a85.409 85.409 0 0 1-85.348-85.348v-106.61H42.645A42.704 42.704 0 0 1 0.001 789.036V426.682a42.704 42.704 0 0 1 42.644-42.644h85.348V85.348A85.409 85.409 0 0 1 213.341 0h530.04L1023.94 282.427v656.526a85.409 85.409 0 0 1-85.288 84.987z m-746.874-192.019v106.67a21.322 21.322 0 0 0 21.322 21.322h725.552a21.382 21.382 0 0 0 21.382-21.322V308.808l-10.059-10.18h-126.487a98.118 98.118 0 0 1-98.057-97.997V72.64l-8.673-8.613H213.341a21.322 21.322 0 0 0-21.322 21.322v298.69h639.962a42.704 42.704 0 0 1 42.644 42.644V789.036a42.704 42.704 0 0 1-42.644 42.644z m367.835-367.414v33.61h86.433V722.78h39.03V498.418H770.967v-33.61z m-212.136 0V722.78h39.392v-100.406h66.857c61.617 0 92.877-26.622 92.877-79.145s-31.019-78.301-92.155-78.301z m-232.013 0V722.78h39.392v-100.406h66.857c61.617 0 92.877-26.622 92.877-79.145s-31.019-78.301-92.155-78.301z m335.912 124.258H387.11v-90.348h64.267a67.158 67.158 0 0 1 42.162 10.842 39.03 39.03 0 0 1 13.793 33.97 43.005 43.005 0 0 1-13.371 34.694 68.122 68.122 0 0 1-42.584 10.842z m-232.013 0H155.097v-90.348h64.267a67.158 67.158 0 0 1 42.162 10.842 39.03 39.03 0 0 1 13.793 33.97 43.005 43.005 0 0 1-13.371 34.694 68.122 68.122 0 0 1-42.584 10.842z"></path>
+            
+          </svg>
+          <span class="nav-text">PPT Master</span>
         </div>
-        <div class="nav-item" onclick="switchGroup('select', this)" data-key="nav_select"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M1 9h2V7H1v2zm0 4h2v-2H1v2zm0-8h2V3c-1.1 0-2 .9-2 2zm8 16h2v-2H9v2zm-8-4h2v-2H1v2zm2 4v-2H1c0 1.1.9 2 2 2zM21 3h-8v6h10V5c0-1.1-.9-2-2-2zm0 14h2v-2h-2v2zm2-6h-2v2h2v-2zM9 21h2v-2H9v2zm2-18H9v2h2V3zM13 21h2v-2h-2v2z"/></svg><span class="nav-text">选择工具</span></div>
-        <div class="nav-item" onclick="switchGroup('layout', this)" data-key="nav_layout"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg><span class="nav-text">布局工具</span></div>
-        <div class="nav-item" onclick="switchGroup('text', this)" data-key="nav_text"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M5 17h14v-2H5v2zm0-4h14v-2H5v2zm0-8v2h14V5H5z"/></svg><span class="nav-text">字体工具</span></div>
-        <div class="nav-item" onclick="switchGroup('shape', this)" data-key="nav_shape"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg><span class="nav-text">形状工具</span></div>
-        <div class="nav-item" onclick="switchGroup('effect', this)" data-key="nav_effect"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M7.5 5.6L10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-8.88 5.62l-3.32-1.66-1.66-3.32-1.66 3.32-3.32 1.66 3.32 1.66 1.66 3.32 1.66-3.32 3.32-1.66z"/></svg><span class="nav-text">效果工具</span></div>
-        <div class="nav-item" onclick="switchGroup('color', this)" data-key="nav_color"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg><span class="nav-text">颜色工具</span></div>
       </div>
       <div class="sidebar-footer">
-        <div class="footer-btn lang-btn" onclick="toggleLang()">中 / En</div>
+        <div class="footer-btn lang-btn" onclick="toggleLang()">中/EN</div>
         <div class="footer-btn" id="modeBtn" onclick="toggleMode()" data-key="btn_switch">切换</div>
       </div>
     </div>
 
     <!-- 主内容区 -->
     <div class="main-content">
-      <div class="header">
+      <div class="header" id="mainHeader">
         <input type="text" class="search-box" placeholder="搜索功能..." id="searchInput">
       </div>
       <div class="content-scroll">
+        <!-- 简易工具 -->
         <div class="grid" id="toolPanel">
           
+          <!-- 简易工具面板 -->
           <!-- [橙色] 形状 -->
           <div class="card theme-orange" onclick="run('to-frame')" data-key="to_frame">
             <div class="card-title">To Frame</div>
@@ -175,13 +379,17 @@
             <div class="card-desc"></div>
           </div>
           <div class="card theme-pink" onclick="run('join-text')" data-key="join_text">
-            <div class="card-title">Join Text <span class="star-icon">☆</span></div>
+            <div class="card-title">Join Text</div>
             <div class="card-desc"></div>
           </div>
 
           <!-- [蓝色] 布局 -->
           <div class="card theme-blue" onclick="run('remove-al')" data-key="remove_al">
             <div class="card-title">Remove AL</div>
+            <div class="card-desc"></div>
+          </div>
+          <div class="card theme-blue" onclick="run('add-al-wrapper')" data-key="add_al_wrapper">
+            <div class="card-title">Add AL Wrapper</div>
             <div class="card-desc"></div>
           </div>
           
@@ -194,16 +402,8 @@
             <div class="card-title">Up All Level</div>
             <div class="card-desc"></div>
           </div>
-          <div class="card theme-purple" onclick="run('rename-content')" data-key="rename_content">
-            <div class="card-title">Rename Content <span class="star-icon">☆</span></div>
-            <div class="card-desc"></div>
-          </div>
-
+          
           <!-- [绿色] 整理 -->
-          <div class="card theme-green" onclick="run('sort-layers')" data-key="sort_layers">
-            <div class="card-title">Sort Layers <span class="star-icon">☆</span></div>
-            <div class="card-desc"></div>
-          </div>
           <div class="card theme-green" onclick="run('ungroup-all')" data-key="ungroup_all">
             <div class="card-title">Ungroup All</div>
             <div class="card-desc"></div>
@@ -212,14 +412,249 @@
             <div class="card-title">Unlock All</div>
             <div class="card-desc"></div>
           </div>
+          <div class="card theme-orange" onclick="run('swap-fs')" data-key="swap_fs">
+            <div class="card-title">Swap Fill/Stroke</div>
+            <div class="card-desc"></div>
+          </div>
+          <div class="card theme-orange" onclick="run('reset-image')" data-key="reset_image">
+            <div class="card-title">Reset Image</div>
+            <div class="card-desc"></div>
+          </div>
+          
+          <!-- [新增工具卡片] -->
+          <div class="card theme-pink" onclick="run('sort-layers')" data-key="sort_layers">
+            <div class="card-title">Sort Layers</div>
+            <div class="card-desc"></div>
+          </div>
+          <div class="card theme-pink" onclick="run('rename-content')" data-key="rename_content">
+            <div class="card-title">Rename Content</div>
+            <div class="card-desc"></div>
+          </div>
+          <div class="card theme-blue" onclick="run('detach-all')" data-key="detach_all">
+            <div class="card-title">Detach All</div>
+            <div class="card-desc"></div>
+          </div>
+          <div class="card theme-blue" onclick="run('remove-hidden')" data-key="remove_hidden">
+            <div class="card-title">Clean Hidden</div>
+            <div class="card-desc"></div>
+          </div>
+          <div class="card theme-purple" onclick="run('select-text')" data-key="select_text">
+            <div class="card-title">Select All Text</div>
+            <div class="card-desc"></div>
+          </div>
+          <div class="card theme-purple" onclick="run('pixel-perfect')" data-key="pixel_perfect">
+            <div class="card-title">Pixel Perfect</div>
+            <div class="card-desc"></div>
+          </div>
 
         </div>
+        <!-- 样式工具 -->
+        <div class="grid" id="stylePanel" style="display: none;">
+          <!-- 工具一：一键创建样式 -->
+          <div class="card theme-pink" onclick="run('create-styles')" data-key="create_styles">
+            <div class="card-title">Create Styles</div>
+            <div class="card-desc"></div> <!-- 描述已隐藏，保留结构 -->
+          </div>
+          <!-- 工具二：一键匹配 -->
+          <div class="card theme-pink" onclick="run('match-styles')" data-key="match_styles">
+            <div class="card-title">Match Styles</div>
+            <div class="card-desc"></div>
+          </div>
+        </div>
+        <!-- 选择工具 -->
+        <div id="selectionPanel">
+          <!-- 范围 -->
+          <div>
+            <div class="section-title">查找范围</div>
+            <div class="btn-group" id="scopeGroup">
+              <div class="filter-btn active" data-val="inside" onclick="toggleSingle(this, 'scopeGroup')">内在元素</div>
+              <div class="filter-btn" data-val="sibling" onclick="toggleSingle(this, 'scopeGroup')">同级</div>
+              <div class="filter-btn" data-val="children" onclick="toggleSingle(this, 'scopeGroup')">子级</div>
+              <div class="filter-btn" data-val="descendants" onclick="toggleSingle(this, 'scopeGroup')">子孙元素</div>
+            </div>
+          </div>
+          <!-- 名称 -->
+          <div>
+             <div class="section-title">名称</div>
+             <div style="display:flex; gap:8px">
+               <input type="text" class="search-box" id="filterNameInput" placeholder="输入名称">
+               
+               <!-- 新增：拾取按钮 -->
+               <div style="padding:6px 8px; border:1px solid #ddd; border-radius:6px; cursor:pointer; background:#fff; display:flex; align-items:center;" onclick="fetchName()" title="拾取选中图层名称">
+                 <svg style="width:16px; height:16px; fill:#666;" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+               </div>
 
+               <div style="padding:8px; border:1px solid #ddd; border-radius:6px; cursor:pointer;" id="caseBtn" onclick="this.classList.toggle('active')">Aa</div>
+             </div>
+          </div>
+          <!-- 类型 -->
+          <div>
+            <div class="section-title"><span>类型</span><div class="toggle-switch include" id="typeLogic" onclick="toggleLogic(this)"><span class="s-in">包含</span><span class="s-ex">不包含</span></div></div>
+            <div class="btn-group" id="typeGroup">
+              <div class="filter-btn all-btn active" onclick="clearGroup('typeGroup', this)">全部类型</div>
+              <div class="filter-btn" data-val="COMPONENT" onclick="toggleMulti(this)">❖ 组件</div>
+              <div class="filter-btn" data-val="INSTANCE" onclick="toggleMulti(this)">◇ 实例</div>
+              <div class="filter-btn" data-val="FRAME" onclick="toggleMulti(this)"># 画板</div>
+              <div class="filter-btn" data-val="AUTOLAYOUT" onclick="toggleMulti(this)">[] 自动布局</div>
+              <div class="filter-btn" data-val="GROUP" onclick="toggleMulti(this)">:: 组</div>
+              <div class="filter-btn" data-val="TEXT" onclick="toggleMulti(this)">T 文本</div>
+              <div class="filter-btn" data-val="IMAGE" onclick="toggleMulti(this)">Img 图片</div>
+              <div class="filter-btn" data-val="RECTANGLE" onclick="toggleMulti(this)">☐ 矩形</div>
+              <div class="filter-btn" data-val="VECTOR" onclick="toggleMulti(this)">✎ 钢笔</div>
+              <div class="filter-btn" data-val="ELLIPSE" onclick="toggleMulti(this)">○ 椭圆</div>
+              <div class="filter-btn" data-val="LINE" onclick="toggleMulti(this)">/ 直线</div>
+              <div class="filter-btn" data-val="STAR" onclick="toggleMulti(this)">☆ 星形</div>
+              <div class="filter-btn" data-val="POLYGON" onclick="toggleMulti(this)">△ 多边形</div>
+              <div class="filter-btn" data-val="SLICE" onclick="toggleMulti(this)">:: 切片</div>
+              <div class="filter-btn" data-val="CONNECTOR" onclick="toggleMulti(this)">↝ 连接线</div>
+              <div class="filter-btn" data-val="STICKY" onclick="toggleMulti(this)">[] 便签</div>
+            </div>
+          </div>
+          <!-- 状态 -->
+          <div>
+            <div class="section-title"><span>状态</span><div class="toggle-switch include" id="stateLogic" onclick="toggleLogic(this)"><span class="s-in">包含</span><span class="s-ex">不包含</span></div></div>
+            <div class="btn-group" id="stateGroup">
+              <div class="filter-btn all-btn active" onclick="clearGroup('stateGroup', this)">全部状态</div>
+              <div class="filter-btn" data-val="hidden" onclick="toggleMulti(this)">隐形</div>
+              <div class="filter-btn" data-val="locked" onclick="toggleMulti(this)">锁定</div>
+              <div class="filter-btn" data-val="no-fill" onclick="toggleMulti(this)">无填充</div>
+              <div class="filter-btn" data-val="no-stroke" onclick="toggleMulti(this)">无描边</div>
+              <div class="filter-btn" data-val="clip" onclick="toggleMulti(this)">裁剪内容</div>
+              <div class="filter-btn" data-val="no-children" onclick="toggleMulti(this)">无子级</div>
+            </div>
+          </div>
+          <!-- 属性 -->
+          <div>
+             <div class="section-title"><span>属性</span><span class="add-prop-btn" onclick="addPropRow()">+</span></div>
+             <div class="prop-list" id="propList"></div>
+          </div>
+        </div>
+        <!-- 布局工具 -->
+        <div class="grid" id="layoutPanel" style="display: none;">
+          <div class="card theme-blue" onclick="run('swap-positions')" data-key="swap_positions">
+            <div class="card-title">Swap Positions</div>
+            <div class="card-desc"></div>
+          </div>
+        </div>
+        <!-- 文字工具 -->
+        <div id="textPanel" style="display: none; flex-direction: column; gap: 12px;">
+          <!-- 查找替换区 -->
+          <div style="background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #eee;">
+            <div class="section-title" style="margin-bottom:10px;">查找与替换 (Find & Replace)</div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <input type="text" id="findInput" class="search-box" placeholder="查找内容，注意区分大小写 (Find)">
+              <input type="text" id="repInput" class="search-box" placeholder="替换为 (Replace)">
+              <button class="primary-btn" style="margin-top:4px;" onclick="runReplace()">执行替换 (Replace All)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PPT 工具面板 (向导模式) -->
+        <!-- PPT 工具面板 (仪表盘 + 向导模式) -->
+        <!-- PPT 工具面板 (仪表盘 + 向导模式 + Loading) -->
+        <div id="pptPanel">
+          
+          <!-- 全屏 Loading 遮罩 -->
+          <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+            <div class="loading-text" id="loadingTitle">正在处理中...</div>
+            <div class="loading-sub" id="loadingMsg">请耐心等待，不要关闭插件</div>
+            <div class="lading-warn">⚠️ 请勿操作 Figma 画布，以免中断</div>
+          </div>
+
+          <!-- 顶部仪表盘 -->
+          <div class="ppt-dashboard">
+            <div class="ppt-tips">
+              <b>💕 导出说明：</b>
+              <ul>
+                <li>请先复制当前Page复制为副本，Page名称必须带有“副本”或“copy”字样，例如：<b>年终报告-副本</b></li>
+                <li>混合路径、蒙版、图层/背景模糊、三角形五角星及特殊形状、曲线、折线，PPT无法识别，请将类似难以在PPT中编辑的图层各自编组批量重命名为<b>p_img</b>，插件会统一转化为 .png 格式导出，后续在PPT中替换。</li>
+                <li>建议 Figma 画板尺寸设为 <b>1920x1080</b>，导出时默认勾选缩放，此时刚好对应PPT默认的16:9，且文件不大</li>
+                <li>初次使用建议先尝试 <b>[分步执行]</b>，熟悉转化流程。</li>
+                <li>为防止崩溃，图片仅导出占位符，请下载资源包后<b>手动替换</b>。</li>
+                <li>点击重置按钮，可重新开始，但不会帮您复原设计稿，你需要手动撤回<b>ctrl+z</b>,不撤回也不影响，反正前三步执行的都一样哈哈</li>
+              </ul>
+            </div>
+            <button class="btn-auto-run" id="btnAutoRun" onclick="startAutoRun()">
+              <span>🚀 一键全自动导出 PPT</span>
+            </button>
+          </div>
+
+          <!-- 步骤内容区 -->
+          <div class="ppt-content-area">
+            <!-- Step 1 -->
+            <div class="ppt-step active" id="pptStep1">
+              <div class="ppt-icon">🧹</div>
+              <div class="ppt-title">1. 全局清洗</div>
+              <div class="ppt-desc">解锁图层、移除隐藏项、解绑组件。<br><span style="color:#faad14">⚠️ 必须在副本中操作！</span></div>
+              <div class="ppt-status" id="status1">等待执行</div>
+            </div>
+            <!-- Step 2 -->
+            <div class="ppt-step" id="pptStep2">
+              <div class="ppt-icon">🖼️</div>
+              <div class="ppt-title">2. 图标栅格化</div>
+              <div class="ppt-desc">将矢量图标和 p_img 组转换为高清位图，<br>防止 PPT 显示错乱。</div>
+              <div class="ppt-status" id="status2">等待执行</div>
+            </div>
+            <!-- Step 3 -->
+            <div class="ppt-step" id="pptStep3">
+              <div class="ppt-icon">📑</div>
+              <div class="ppt-title">3. 深度扁平化</div>
+              <div class="ppt-desc">消除所有分组和嵌套，<br>修复层级遮挡问题。</div>
+              <div class="ppt-status" id="status3">等待执行</div>
+            </div>
+            <!-- Step 4 -->
+            <div class="ppt-step" id="pptStep4">
+              <div class="ppt-icon">📊</div>
+              <div class="ppt-title">4. 生成 PPT 结构</div>
+              <div class="ppt-desc">提取布局信息，生成 .pptx 文件。<br>图片将显示为占位符框。</div>
+              <label style="font-size:12px; display:block; margin-bottom:10px;"><input type="checkbox" id="pptScale" checked> 缩放至 16:9 (960x540)</label>
+              <div class="ppt-status" id="status4">等待执行</div>
+            </div>
+            <!-- Step 5 -->
+            <div class="ppt-step" id="pptStep5">
+              <div class="ppt-icon">📦</div>
+              <div class="ppt-title">5. 导出资源包</div>
+              <div class="ppt-desc">打包下载图片资源 (.zip)，<br>供手动替换。</div>
+              <div class="ppt-status" id="status5">等待执行</div>
+            </div>
+            <!-- 完成页 -->
+            <!-- 完成页 -->
+            <div class="ppt-step" id="pptStep6">
+              <div class="ppt-icon" style="background:#f6ffed; color:#52c41a; border-color:#b7eb8f;">🎉</div>
+              <div class="ppt-title">全部完成</div>
+              <div class="ppt-desc">
+                文件已生成。<br>请解压资源包并替换 PPT 中的占位符。
+              </div>
+              
+              <!-- 新增：手动下载兜底按钮 -->
+              <button class="btn-manual-dl" onclick="generateAssetsZip()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                📦 没收到文件？点此手动下载
+              </button>
+              
+              <div style="font-size:10px; color:#999; margin-top:16px;">如需重新导出，请点击重置</div>
+            </div>
+          </div>
+
+          <!-- 底部操作栏 -->
+          <div class="ppt-progress-track"><div class="ppt-progress-fill" id="pptProgBar"></div></div>
+          <div class="ppt-footer">
+            <button style="width: 30%; color:#999;" onclick="resetPPT()">↺ 重置</button>
+            <button class="primary-btn" style="width: 70%;" id="pptActionBtn" onclick="runCurrentPPTStep()">分步执行 Step 1</button>
+          </div>
+        </div>
+
+        <!-- 空状态页面 -->
         <div id="emptyPanel" class="empty-state">
           <svg class="empty-icon" viewBox="0 0 24 24" fill="#ccc"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
           <div class="empty-text" data-key="empty_title"></div>
           <div style="font-size:11px; margin-top:4px;" data-key="empty_desc"></div>
         </div>
+      </div>
+      
+      <div class="fixed-action" id="selectionFooter">
+        <button class="primary-btn" onclick="runFilter()">查找并选择</button>
       </div>
       <div class="resize-handle" id="resizeHandle"></div>
     </div>
@@ -229,47 +664,77 @@
     // --- 国际化数据字典 ---
     const i18n = {
       zh: {
-        nav_simple: "简易工具", nav_select: "选择工具", nav_layout: "布局工具",
-        nav_text: "字体工具", nav_shape: "形状工具", nav_effect: "效果工具", nav_color: "颜色工具",
+        nav_simple: "简易工具", 
+        nav_select: "选择工具", 
+        nav_layout: "布局工具",
+        nav_text: "文字工具", // 修改这一项
+        nav_style_tools: "样式工具",
+        nav_ppt: "导出PPT",
         btn_switch: "切换",
-        btn_lang: "中 / En",
+        btn_lang: "中/EN",
         search_ph: "搜索功能...",
         empty_title: "功能开发中",
         empty_desc: "敬请期待...",
         
+        
         // 格式：key: [标题, 简介, 详细Tooltip, 成功提示]
-        to_frame: ["To Frame", "形状转Frame并继承样式", "将选中的矩形/圆形等智能转换为Frame，并保留原有的填充、描边、圆角和旋转角度。", "已转换为 Frame"],
-        to_rect: ["To Rectangle", "Frame扁平化为矩形", "将选中的Frame或Group降维成普通矩形，保留视觉样式的同时丢弃容器属性。", "已转换为矩形"],
-        split_text: ["Split Text", "按行拆分文本 (10px间距)", "将多行文本段落按换行符拆分为独立的文本层，并自动保持 10px 的垂直间距。", "文本已拆分"],
-        join_text: ["Join Text", "多行文本合并为一个", "将选中的多个文本图层按视觉位置排序，合并为一个多行文本框。", "文本已合并"],
-        remove_al: ["Remove AL", "移除Auto Layout", "递归移除选中图层及其内部所有子层级的 Auto Layout 属性，恢复为普通 Frame。", "已移除自动布局"],
+        pixel_perfect: ["像素取整", "像素取整对齐", "将选中图层的 X、Y 坐标及宽高强制四舍五入为整数，消除小数杂边。", "已像素对齐"],
+        swap_positions: ["交换位置", "交换位置", "非AutoLayout模式下交换选中的两个图层的 X/Y 坐标，保持图层层级不变。", "位置已交换"],
+        create_styles: ["生成样式", "一键生成样式", "将选中图层的颜色、文本、效果转为本地样式。如果重名，底部会提示冲突。", "检查样式完成"],
+        match_styles: ["匹配样式", "匹配本地样式", "将选中图层及其子级的颜色、文本、效果与本地样式库绑定。", "已完成样式匹配"],
+        to_frame: ["矩转框", "形状转Frame并继承样式", "将选中的矩形转换为Frame，保留原有的填充、描边、圆角和旋转角度。", "已转换为 Frame"],
+        to_rect: ["框转矩", "Frame扁平化为矩形", "将选中的Frame或Group降维成普通矩形，保留视觉样式的同时丢弃容器属性。", "已转换为矩形"],
+        split_text: ["段落行拆", "按行拆分文本", "将多行文本段落按换行符拆分为独立的文本层", "文本已拆分"],
+        join_text: ["文本合并", "多行文本合并为一个", "将选中的多个文本图层按视觉位置排序，合并为一个多行文本框。", "文本已合并"],
+        remove_al: ["移除自动布局", "移除Auto Layout", "移除选中图层及其内部所有子层级的 Auto Layout 属性，恢复为普通 Frame。", "已移除自动布局"],
+        add_al_wrapper: ["添加自动布局", "支持给多个图层批量添加自动布局", "给选中图层外分别添加一层自动布局Frame。", "已添加自动布局外套"],
         up_one: ["Up One Level", "图层向上提一级", "将选中图层从当前父级中移出，放入上一级容器中。", "图层已上移"],
-        up_all: ["Up All Level", "图层提至最外层", "将选中图层直接移动到页面的最顶层（Root）。", "已提至最外层"],
-        rename_content: ["Rename Content", "按文本内容重命名图层", "自动将文本层或包含文本的 Frame 重命名为其内容，方便图层管理。", "图层已重命名"],
-        sort_layers: ["Sort Layers", "按视觉坐标排序图层", "根据画布上的 X/Y 坐标，重新排列图层列表顺序，修复 Auto Layout 顺序错乱问题。", "图层已排序"],
+        up_all: ["Up All Levels", "图层提至最外层", "将选中图层直接移动到页面的最顶层（Root）。", "已提至最外层"],
+        rename_content: ["按内容重命名", "按文本内容重命名图层", "自动将文本层或包含文本的 Frame 重命名为其内容，方便图层管理。", "图层已重命名"],
+        sort_layers: ["按视觉排序", "按视觉坐标排序图层", "根据画布上的 X/Y 坐标，重新排列图层列表顺序，修复 Auto Layout 顺序错乱问题。", "图层已排序"],
         ungroup_all: ["Ungroup All", "解散内部所有组", "递归查找并解散选中元素内部所有的 Group，只保留 Frame 结构，减少层级嵌套。", "已解散内部组"],
-        unlock_all: ["Unlock All", "解锁内部所有图层", "一键解锁选中元素内部所有被锁定的图层，方便批量编辑。", "已全部解锁"]
+        unlock_all: ["Unlock All", "解锁内部所有图层", "一键解锁选中元素内部所有被锁定的图层，方便批量编辑。", "已全部解锁"],
+        swap_fs: ["交换填充描边", "交换填充描边", "互换填充色与描边色。", "已交换填充描边"],
+        reset_image: ["重置图片比例", "重置图片比例", "恢复图片原始宽高比。", "已重置图片比例"],
+        select_text: ["选中所有文本", "选中所有文本", "在当前范围内查找并选中所有文本图层。", "已选中所有文本"],
+        detach_all: ["解绑所有实例", "解绑选中图层下实例", "解绑选中图层下所有嵌套的实例。", "已解绑所有实例"],
+        remove_hidden: ["删除隐藏图层", "删除所选图层下隐藏图层", "递归删除所选图层下所有'闭眼'的不可见图层。", "已删除隐藏图层"]
       },
       en: {
-        nav_simple: "Simple", nav_select: "Select", nav_layout: "Layout",
-        nav_text: "Text", nav_shape: "Shape", nav_effect: "Effect", nav_color: "Color",
+        nav_simple: "Simple", 
+        nav_select: "Select", 
+        nav_layout: "Layout",
+        nav_text: "Text", 
+        nav_style_tools: "Style",
+        nav_ppt: "Ex-PPT",
         btn_switch: "Mode",
-        btn_lang: "中 / En",
+        btn_lang: "中/EN",
         search_ph: "Search...",
         empty_title: "Coming Soon",
         empty_desc: "Under development...",
-
+        
+        pixel_perfect: ["Pixel Perfect", "Round to Pixel", "Round X, Y, Width, Height to nearest integers.", "Pixel Perfected"],
+        swap_positions: ["Swap Positions", "Swap Locations", "Swap X/Y coordinates of exactly two selected layers.", "Positions Swapped"],
+        create_styles: ["Create Styles", "Generate Styles", "Convert properties to local styles based on layer name. Detects conflicts.", "Styles Checked"],
+        match_styles: ["Match Styles", "Match Styles", "Scan selection and bind raw properties to local styles if values match exactly.", "Styles Matched"],
         to_frame: ["To Frame", "Convert Shape to Frame", "Convert selected shapes to Frames while preserving fills, strokes, corners and rotation.", "Converted to Frame"],
         to_rect: ["To Rectangle", "Flatten Frame to Rect", "Convert Frames/Groups into simple Rectangles, preserving visual styles but removing container properties.", "Converted to Rect"],
         split_text: ["Split Text", "Split lines (10px gap)", "Split multi-line text into separate text layers per line, arranged with 10px spacing.", "Text Split"],
         join_text: ["Join Text", "Merge text layers", "Merge selected text layers into a single multi-line text box, sorted by visual position.", "Text Joined"],
         remove_al: ["Remove AL", "Remove Auto Layout", "Recursively remove Auto Layout from selected layers and all nested children.", "Auto Layout Removed"],
+        add_al_wrapper: ["Add AL Wrapper", "Add Auto Layout Wrapper", "Add vertical Auto Layout Frame around selected layers.", "Auto Layout Wrapped"],
         up_one: ["Up One Level", "Lift layer up one level", "Move selected layers out of their current parent into the grandparent container.", "Layer Moved Up"],
         up_all: ["Up All Level", "Lift to Top Level", "Move selected layers directly to the Page root level.", "Moved to Top"],
-        rename_content: ["Rename Content", "Rename to Content", "Rename layers based on their text content for better organization.", "Layers Renamed"],
+        rename_content: ["Rename to Content", "Rename to Content", "Rename layers based on their text content for better organization.", "Layers Renamed"],
         sort_layers: ["Sort Layers", "Sort by Position", "Reorder layers in the sidebar based on their visual X/Y position on the canvas.", "Layers Sorted"],
         ungroup_all: ["Ungroup All", "Ungroup all nested", "Recursively find and ungroup all Groups within selection, keeping Frames intact.", "Groups Ungrouped"],
-        unlock_all: ["Unlock All", "Unlock nested layers", "Unlock all locked layers within the selection recursively.", "Unlocked All"]
+        unlock_all: ["Unlock All", "Unlock nested layers", "Unlock all locked layers within the selection recursively.", "Unlocked All"],
+        swap_fs: ["Swap Fill/Stroke", "Swap Fill and Stroke", "Swap fill and stroke colors.", "Fills and Strokes Swapped"],
+        reset_image: ["Reset Image", "Reset Image Ratio", "Restore original image aspect ratio.", "Image Ratio Reset"],
+        select_text: ["Select All Text", "Select All Text", "Find and select all text layers in current scope.", "All Text Selected"],
+        detach_all: ["Detach All Instance", "Detach All Instance", "Detach all nested Instances.", "All Instance Detached"],
+        remove_hidden: ["Clean Hidden", "Remove Hidden Layers", "Recursively delete all invisible 'closed eye' layers.", "Hidden Layers Removed"]
+        
       }
     };
 
@@ -320,18 +785,63 @@
       parent.postMessage({ pluginMessage: { type: type, successMsg: msg } }, '*'); 
     }
 
+    function runReplace() {
+      const findText = document.getElementById('findInput').value;
+      const repText = document.getElementById('repInput').value;
+      if (!findText) return;
+      
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'find-replace', 
+          findText: findText, 
+          replaceText: repText 
+        } 
+      }, '*');
+    }
+
     function switchGroup(group, el) {
       document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
       el.classList.add('active');
-      const toolPanel = document.getElementById('toolPanel');
-      const emptyPanel = document.getElementById('emptyPanel');
+      
+      const ids = ['toolPanel', 'stylePanel', 'selectionPanel', 'selectionFooter', 'emptyPanel', 'layoutPanel', 'textPanel', 'pptPanel'];
+      const map = {
+        'simple': ['toolPanel'],
+        'style':  ['stylePanel'],
+        'select': ['selectionPanel', 'selectionFooter'],
+        'layout': ['layoutPanel'], // 新增
+        'text':   ['textPanel'],   // 新增
+        'ppt':    ['pptPanel'],  // <--- A步骤：这是你要添加的！！
+      };
+      
+      // 1. 隐藏所有
+      ids.forEach(id => {
+        const div = document.getElementById(id);
+        if(div) div.style.display = 'none';
+      });
+      
       const searchBox = document.getElementById('searchInput');
-      if (group === 'simple') {
-        toolPanel.style.display = 'grid'; emptyPanel.style.display = 'none';
-        searchBox.disabled = false;
+      const mainHeader = document.getElementById('mainHeader');
+      
+      // 2. 显示目标
+      if (map[group]) {
+        map[group].forEach(id => {
+          const div = document.getElementById(id);
+          if(div) div.style.display = (id === 'toolPanel' || id === 'stylePanel' || id === 'layoutPanel') ? 'grid' : 'flex';
+        });
+        
+        // 头部搜索框仅在 Grid 类型的面板显示，选择和文字工具不需要
+        if (group === 'simple' || group === 'style' || group === 'layout') {
+          searchBox.disabled = false;
+          mainHeader.style.display = 'block';
+        } else {
+          searchBox.disabled = true;
+          mainHeader.style.display = 'none';
+        }
       } else {
-        toolPanel.style.display = 'none'; emptyPanel.style.display = 'flex';
+        // 未开发页面
+        document.getElementById('emptyPanel').style.display = 'flex';
         searchBox.disabled = true;
+        mainHeader.style.display = 'none';
       }
     }
 
@@ -411,15 +921,720 @@
       tooltip.style.top = finalY + 'px';
     }
 
+    // 选择工具相关函数
+    function toggleSingle(el, gid) { 
+      document.querySelectorAll(`#${gid} .filter-btn`).forEach(b => b.classList.remove('active')); 
+      el.classList.add('active'); 
+    }
+    
+    function toggleMulti(el) { 
+      el.classList.toggle('active'); 
+      el.parentElement.querySelector('.all-btn').classList.remove('active'); 
+    }
+    
+    function clearGroup(gid, el) { 
+      document.querySelectorAll(`#${gid} .filter-btn`).forEach(b => b.classList.remove('active')); 
+      el.classList.add('active'); 
+    }
+    
+    function toggleLogic(el) {
+      el.classList.toggle('include'); 
+      el.classList.toggle('exclude');
+    }
+
+    // 添加属性行
+    function addPropRow() {
+      const div = document.createElement('div'); 
+      div.className = 'prop-row';
+      div.innerHTML = `
+        <select class="prop-select p-key">
+          <optgroup label="图层 Layer">
+            <option value="name">图层名称 (Name)</option>
+            <option value="opacity">图层透明度 (Opacity)</option>
+            <option value="visible">可见性 (Visible)</option>
+            <option value="rotation">旋转 (Rotation)</option>
+          </optgroup>
+          <optgroup label="位置与尺寸 Bounds">
+            <option value="width">宽度 (Width)</option>
+            <option value="height">高度 (Height)</option>
+            <option value="x">X 坐标</option>
+            <option value="y">Y 坐标</option>
+          </optgroup>
+          <optgroup label="填充 Fills">
+            <option value="fillCount">填充数量</option>
+            <option value="fillOpacity">填充透明度</option>
+          </optgroup>
+          <optgroup label="描边 Strokes">
+            <option value="strokeCount">描边数量</option>
+            <option value="strokeWeight">描边粗细</option>
+            <option value="strokeAlign">描边对齐 (0内,1中,2外)</option>
+          </optgroup>
+          <optgroup label="文本 Text">
+            <option value="characters">文本内容</option>
+            <option value="fontSize">字号</option>
+            <option value="letterSpacing">字间距</option>
+            <option value="lineHeight">行高</option>
+          </optgroup>
+          <optgroup label="自动布局 AutoLayout">
+            <option value="itemSpacing">子元素间距</option>
+            <option value="paddingLeft">左边距</option>
+            <option value="paddingRight">右边距</option>
+            <option value="paddingTop">上边距</option>
+            <option value="paddingBottom">下边距</option>
+          </optgroup>
+          <optgroup label="组件 Component">
+            <option value="description">组件描述</option>
+          </optgroup>
+          <optgroup label="圆角 Radius">
+            <option value="cornerRadius">圆角大小</option>
+          </optgroup>
+        </select>
+        <select class="prop-op" style="width:50px"><option value="=">=</option><option value=">">></option><option value="<"><</option><option value="!=">≠</option><option value="has">含</option></select>
+        <input type="text" class="prop-input p-val" placeholder="值">
+        <div class="prop-remove" onclick="this.parentElement.remove()">×</div>
+      `;
+      document.getElementById('propList').appendChild(div);
+    }
+    
+    // 默认添加一行属性
+    addPropRow();
+
+    // 运行筛选
+    function runFilter() {
+      const scope = document.querySelector('#scopeGroup .active').getAttribute('data-val');
+      const name = document.getElementById('filterNameInput').value;
+      const types = Array.from(document.querySelectorAll('#typeGroup .active:not(.all-btn)')).map(b => b.getAttribute('data-val'));
+      const typeLogic = document.getElementById('typeLogic').classList.contains('include') ? 'include' : 'exclude';
+      const states = Array.from(document.querySelectorAll('#stateGroup .active:not(.all-btn)')).map(b => b.getAttribute('data-val'));
+      const stateLogic = document.getElementById('stateLogic').classList.contains('include') ? 'include' : 'exclude';
+      
+      const props = [];
+      document.querySelectorAll('.prop-row').forEach(row => {
+        const valRaw = row.querySelector('.p-val').value;
+        const op = row.querySelector('.prop-op').value;
+        const key = row.querySelector('.p-key').value;
+        const valNum = parseFloat(valRaw);
+        props.push({ key, op, val: isNaN(valNum) ? valRaw : valNum });
+      });
+
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'find-and-select', 
+          filters: { 
+            scope, 
+            name: {val: name}, 
+            types: {vals: types, logic: typeLogic}, 
+            states: {vals: states, logic: stateLogic}, 
+            props 
+          } 
+        } 
+      }, '*');
+    }
+    function fetchName() {
+      parent.postMessage({ pluginMessage: { type: 'fetch-selection-name' } }, '*');
+    }
     // Drag
     const handle = document.getElementById('resizeHandle');
     let isDragging = false;
-    handle.onmousedown = (e) => { isDragging = true; handle.setPointerCapture(e.pointerId); };
+    handle.onpointerdown = (e) => { isDragging = true; handle.setPointerCapture(e.pointerId); };
     window.onmousemove = (e) => {
       if (!isDragging) return;
       parent.postMessage({ pluginMessage: { type: 'resize-drag', width: Math.max(170, e.clientX+5), height: Math.max(200, e.clientY+5) } }, '*');
     };
     window.onmouseup = () => { isDragging = false; };
+    // 监听来自 code.ts 的消息
+    // ... (前面的函数) ...
+
+    // 5. 监听消息
+    // 确保整个脚本里只有这一个监听器！
+    window.onmessage = (event) => { // 使用 onmessage 覆盖，防止 addEventListener 重复叠加
+      const msg = event.data.pluginMessage;
+      if (!msg) return;
+      if (!msg.type.startsWith('ppt-') && !msg.type.startsWith('step-')) return;
+
+      const loadMsg = document.getElementById('loadingMsg');
+      const statusEl = document.getElementById('status' + pptStepIndex);
+
+      try {
+        // ... (中间的判断逻辑保持不变) ...
+        
+        // 重点检查：Step Done 的逻辑
+        if (msg.type === 'step-done' && msg.step === pptStepIndex) {
+          if(statusEl) statusEl.innerText = "✅ 执行成功";
+          
+          if (pptStepIndex === 4) {
+            // ...
+            setTimeout(() => generatePPT({ slides: pptSlidesCache }, scale), 50);
+          }
+          if (pptStepIndex === 5) {
+            // ...
+            setTimeout(() => generateAssetsZip(), 1000);
+          }
+
+          pptState = 'done';
+          
+          // 自动流程：加锁防止双重触发
+          if (isAutoRunning) {
+            if (pptStepIndex < 6) {
+              setTimeout(() => runCurrentPPTStep(), 800);
+            } else {
+              isAutoRunning = false;
+            }
+          }
+          updatePPTUI();
+        }
+        
+        // ... (后面的错误处理保持不变) ...
+      } catch (e) { console.error(e); }
+    };
+    
+    // --- 新增功能：自动统计与新功能高亮系统 ---
+
+    // 1. 配置：定义哪些功能的 key 是“新功能”
+    // 只要这里有 NEW_FEATURES 中的 key，就会被标记为新功能，直到用户点击该导航
+    const NEW_FEATURES = ['pixel_perfect', 'swap_positions', 'match_styles', 'nav_ppt'];
+    
+    let readFeatures = new Set();
+
+    // 2. 初始化导航 UI (自动加角标容器，避免手动改 HTML)
+    function initNavigationUI() {
+      document.querySelectorAll('.nav-item').forEach(item => {
+        
+        if (!item.querySelector('.nav-left')) {
+          const svg = item.querySelector('svg');
+          const span = item.querySelector('.nav-text');
+
+          if(svg && span){
+            // 创建左侧容器
+            const leftDiv = document.createElement('div');
+            leftDiv.className = 'nav-left';
+            item.appendChild(leftDiv);
+            leftDiv.appendChild(svg);
+            leftDiv.appendChild(span);
+            
+            // 创建右侧信息容器 (数量 + 红点)
+            const metaDiv = document.createElement('div');
+            metaDiv.className = 'nav-meta';
+            metaDiv.innerHTML = `<span class="count-badge" style="display: none;">0</span><div class="red-dot"></div>`;
+            item.appendChild(metaDiv);
+          }
+        }
+      });
+      updateCountsAndStatus();
+    }
+
+    // 3. 计算数量并标记红点
+    function updateCountsAndStatus() {
+      // 定义各分类的数量计算逻辑
+      const counts = {
+        'nav_simple': document.querySelectorAll('#toolPanel .card').length,
+        'nav_layout': document.querySelectorAll('#layoutPanel .card').length,
+        'nav_style_tools': document.querySelectorAll('#stylePanel .card').length,
+        // 单功能面板，设为 null 表示不统计数量
+        'nav_select': null,
+        'nav_text': null,
+        'nav_ppt': 1, 
+      };
+
+      // 遍历导航项更新 UI
+      document.querySelectorAll('.nav-item').forEach(item => {
+        const key = item.getAttribute('data-key');
+        const badge = item.querySelector('.count-badge');
+        const dot = item.querySelector('.red-dot');
+        
+        // A. 更新数量(大于1才显示)
+        const count = counts[key];
+        if (count && count > 1) {
+          badge.innerText = count;
+          badge.style.display = 'inline-block';
+        } else {
+          badge.style.display = 'none';
+        }
+
+        // B. 检查该分类下是否有新功能
+        let hasNew = false;
+
+        // 情况1：导航分类下有新功能
+        if (NEW_FEATURES.includes(key) && !ReadFeatures.has(key)) {
+          hasNew = true;
+        }
+        
+        // 情况2：模块内有新卡片
+        if (!hasNew){
+          const map = {
+            'nav_simple': 'toolPanel',
+            'nav_layout': 'layoutPanel',
+            'nav_style_tools': 'stylePanel'
+          };
+          const panelId = map[key];
+          if (panelId){
+            const panel = document.getElementById(panelId);
+            if (panel) {
+              // 检查该面板内是否有 NEW_FEATURES 中的卡片
+              const newcard = Array.from(panel.querySelectorAll('.card')).filter(card => {
+                const k = card.getAttribute('data-key');
+                return NEW_FEATURES.includes(k) && !ReadFeatures.has(k);
+              });
+              if (newcard.length > 0) hasNew = true;
+            }
+          }
+        }
+
+        if (hasNew) {
+          item.classList.add('has-new');
+          dot.style.display = 'block';
+        } else {
+          item.classList.remove('has-new');
+          dot.style.display = 'none';
+        }
+      });
+    }
+    // 4.执行初始化
+    initNavigationUI();
+
+
+    // 5. 劫持 switchGroup 函数以处理“消除高亮”逻辑
+    // 保存原始函数
+    const originalSwitchGroup = switchGroup;
+    
+    // 重写函数
+    window.switchGroup = function(group, el) {
+      // 执行原始逻辑
+      if (typeof originalSwitchGroup === 'function') {
+        originalSwitchGroup(group, el);
+      }
+
+      const key = el.getAttribute('data-key');
+      
+      // 1. 标记该大类已读 (使用修复后的小写变量名)
+      readFeatures.add(key);
+      
+      // 2. 标记内部所有新功能卡片为已读
+      const map = { 'nav_simple': 'toolPanel', 'nav_layout': 'layoutPanel', 'nav_style_tools': 'stylePanel' };
+      const panelId = map[key];
+      if (panelId) {
+          const panel = document.getElementById(panelId);
+          if (panel) {
+              panel.querySelectorAll('.card').forEach(card => {
+                  const k = card.getAttribute('data-key');
+                  if (NEW_FEATURES.includes(k)) {
+                    readFeatures.add(k);
+                  }
+                  card.classList.remove('is-new');
+              });
+          }
+      }
+      // 重新计算数量和红点状态
+      updateCountsAndStatus();
+    };
+    
+    // === PPT 工具逻辑 (全自动 + 向导版) ===
+    // === PPT 工具逻辑 (全自动 + Loading + 性能优化 + 死循环修复) ===
+    
+    let pptStepIndex = 1; 
+    let pptState = 'idle'; 
+    let pptSlidesCache = [];
+    let pptIncomingSlide = null;
+    let pptZip = null;
+    let isAutoRunning = false; 
+    let isUIUpdatePending = false; // UI 节流标记
+
+    // 1. 刷新界面显示 (含 Loading 遮罩)
+    function updatePPTUI() {
+      const overlay = document.getElementById('loadingOverlay');
+      const loadTitle = document.getElementById('loadingTitle');
+      const loadMsg = document.getElementById('loadingMsg');
+
+      // 控制遮罩显隐
+      if (pptState === 'processing') {
+        if(overlay) overlay.classList.add('active');
+        // 根据步骤显示不同文案
+        const texts = [
+          "正在清洗图层...", "正在栅格化图标...", "正在深度扁平化...", 
+          "正在提取 PPT 数据...", "正在打包图片资源..."
+        ];
+        if(loadTitle) loadTitle.innerText = texts[pptStepIndex - 1] || "正在处理...";
+        
+        if(pptStepIndex === 4) {
+           if(loadMsg) loadMsg.innerText = "图层较多时耗时较长，请保持耐心...";
+        } else {
+           if(loadMsg) loadMsg.innerText = "正在分析设计稿结构...";
+        }
+      } else {
+        if(overlay) overlay.classList.remove('active');
+      }
+
+      // 步骤卡片显隐
+      for (let i = 1; i <= 6; i++) {
+        const el = document.getElementById('pptStep' + i);
+        if(el) el.classList.toggle('active', i === pptStepIndex);
+      }
+      
+      const prog = document.getElementById('pptProgBar');
+      if(prog) prog.style.width = ((pptStepIndex - 1) / 5 * 100) + '%';
+
+      // 按钮状态逻辑
+      const btn = document.getElementById('pptActionBtn');
+      const autoBtn = document.getElementById('btnAutoRun');
+      if (!btn) return;
+
+      if (isAutoRunning) {
+        autoBtn.innerHTML = "⏳ 自动运行中..."; 
+        autoBtn.disabled = true;
+        btn.disabled = true; 
+        btn.innerText = "🤖 接管中...";
+      } else {
+        autoBtn.innerHTML = "<span>🚀 一键全自动导出 PPT</span>";
+        autoBtn.disabled = false;
+        
+        if (pptStepIndex === 6) {
+          btn.innerText = "已完成";
+          btn.disabled = true;
+        } else if (pptState === 'done') {
+          btn.innerText = "下一步 →";
+          btn.disabled = false;
+          btn.style.color = '#52c41a'; // 绿色
+        } else {
+          btn.innerText = `分步执行 Step ${pptStepIndex}`;
+          btn.disabled = false;
+          btn.style.color = '#1890FF'; // 蓝色
+        }
+      }
+    }
+
+    // 2. 一键全自动入口
+    function startAutoRun() {
+      if(!confirm("⚠️ 确定要全自动执行吗？\n请确保当前是【副本】页面，且已选中要导出的画板。")) return;
+      
+      // 重置状态
+      pptStepIndex = 1;
+      pptState = 'idle';
+      pptSlidesCache = [];
+      isAutoRunning = true;
+      
+      updatePPTUI();
+      runCurrentPPTStep();
+    }
+
+    // 3. 手动/自动 执行入口 (含死循环修复)
+    // 3. 手动/自动 执行入口 (清理后的版本)
+    function runCurrentPPTStep() {
+      // 防止在第6步继续执行
+      if (pptStepIndex === 6) {
+        isAutoRunning = false;
+        updatePPTUI();
+        return;
+      }
+
+      if (pptState === 'done') {
+        // 点击“下一步”
+        pptStepIndex++;
+        pptState = 'idle';
+        updatePPTUI();
+        
+        // 自动模式：延时触发
+        if (isAutoRunning) {
+          if (pptStepIndex === 6) {
+             isAutoRunning = false;
+             updatePPTUI();
+             return;
+          }
+          setTimeout(() => runCurrentPPTStep(), 1000); 
+        }
+      } else {
+        // 点击“执行”
+        const scale = document.getElementById('pptScale') ? document.getElementById('pptScale').checked : true;
+        // === 修改：在 Step 4 就初始化 ZIP 和缓存 ===
+        if (pptStepIndex === 4) { 
+          pptSlidesCache = []; 
+          pptIncomingSlide = null; 
+          pptZip = new JSZip(); // 提前创建 ZIP 实例
+        }
+        
+
+        pptState = 'processing';
+        updatePPTUI(); 
+
+        parent.postMessage({ 
+          pluginMessage: { type: 'ppt-step-' + pptStepIndex, config: { scale: scale } } 
+        }, '*');
+        
+        // ❌ 注意：这里千万不要再写 window.addEventListener 了！！！
+      }
+    }
+
+    // 4. 重置
+    function resetPPT() {
+      if (!confirm("确定要重新开始吗？")) return;
+      pptStepIndex = 1;
+      pptState = 'idle';
+      pptSlidesCache = [];
+      isAutoRunning = false;
+      
+      for(let i=1; i<=5; i++) {
+        const s = document.getElementById('status'+i);
+        if(s) s.innerText = "等待执行";
+      }
+      updatePPTUI();
+    }
+
+    // 5. 监听消息 (核心：UI防卡顿 + 流程控制)，有问题，删掉了
+ 
+    // 6. 生成 PPT (最新版：圆角/阴影/透明度/字号)
+    function generatePPT(data, doScale) {
+      if (!data.slides || data.slides.length === 0) { alert("没有数据"); return; }
+      const pptx = new PptxGenJS();
+      const firstSlide = data.slides[0];
+      const ratio = doScale ? 0.5 : 1;
+      const layoutWidth = (firstSlide.width * ratio) / 96;
+      const layoutHeight = (firstSlide.height * ratio) / 96;
+
+      pptx.defineLayout({ name: 'FigmaFrame', width: layoutWidth, height: layoutHeight });
+      pptx.layout = 'FigmaFrame';
+
+      data.slides.forEach(slideData => {
+        const slide = pptx.addSlide();
+        
+        slideData.elements.forEach(el => {
+          // 绝对中心定位反推坐标
+          const w = (el.w * ratio) / 96;
+          const h = (el.h * ratio) / 96;
+          const cx = (el.cx * ratio) / 96;
+          const cy = (el.cy * ratio) / 96;
+          const x = cx - (w / 2);
+          const y = cy - (h / 2);
+
+          const opts = { x:x, y:y, w:w, h:h };
+          
+          if (el.rotation) opts.rotate = -el.rotation;
+
+          let pptTransparency = 0;
+          if (el.opacity !== undefined && el.opacity < 1) pptTransparency = (1 - el.opacity) * 100;
+          const fillTrans = (el.fillAlpha !== undefined && el.fillAlpha < 1) ? (1 - el.fillAlpha) * 100 : 0;
+          const strokeTrans = (el.strokeAlpha !== undefined && el.strokeAlpha < 1) ? (1 - el.strokeAlpha) * 100 : 0;
+
+          if (el.strokeColor) {
+            opts.line = { color: el.strokeColor, width: (el.strokeWeight || 1) * ratio, transparency: strokeTrans };
+          }
+
+          if (el.shadow) {
+            const dist = Math.sqrt(el.shadow.x**2 + el.shadow.y**2) * ratio;
+            let angle = Math.atan2(el.shadow.y, el.shadow.x) * (180 / Math.PI);
+            if (angle < 0) angle += 360; 
+            opts.shadow = { type: 'outer', color: el.shadow.color, opacity: el.shadow.opacity, blur: (el.shadow.blur * ratio * 0.75), offset: dist / 0.75, angle: angle };
+          }
+
+          // A. 直线
+          if (el.type === 'line') {
+            let pptDash = 'solid';
+            if (el.dashPattern && el.dashPattern.length > 0) {
+               const [d, g] = el.dashPattern;
+               if (d<=2 && g<=2) pptDash = 'dot'; else if (d>10) pptDash = 'lgDash'; else pptDash = 'dash';
+            }
+            const lineOpts = {
+              x:x, y:y, w:w, h:h, rotate: opts.rotate || 0,
+              line: { color: el.strokeColor, width: (el.strokeWeight || 1)*ratio, transparency: strokeTrans, dashType: pptDash, beginArrowType: el.headArrow || 'none', endArrowType: el.tailArrow || 'none' }
+            };
+            slide.addShape(pptx.ShapeType.line, lineOpts);
+          }
+          // B. 文本
+          else if (el.type === 'text') {
+            opts.fontSize = Math.round((el.fontSize || 12) * ratio * 0.75);
+            opts.margin = 0; 
+            if (el.lineSpacing) opts.lineSpacing = el.lineSpacing;
+            if (el.fontFace) opts.fontFace = el.fontFace;
+            if (el.isBold) opts.bold = true;
+            opts.color = el.color || '000000';
+            opts.transparency = fillTrans;
+            opts.valign = el.valign || 'top';
+            opts.wrap = true;
+            slide.addText(el.text, opts);
+          } 
+          // C. 矩形
+          else if (el.type === 'rect') {
+            if (el.color) opts.fill = { color: el.color, transparency: fillTrans };
+            else opts.fill = { color: 'FFFFFF', transparency: 100 };
+            
+            let shapeType = pptx.ShapeType.rect;
+            if (el.cornerRadius > 0) {
+                shapeType = pptx.ShapeType.roundRect;
+                const minSide = Math.min(el.w, el.h);
+                if (minSide > 0) opts.rectRadius = Math.min(el.cornerRadius / minSide, 0.5);
+            }
+            slide.addShape(shapeType, opts);
+          }
+          // D. 占位符
+          else if (el.type === 'placeholder') {
+            const boxOpts = { 
+                x:x, y:y, w:w, h:h, rotate: opts.rotate,
+                fill: { color: 'F5F5F5', transparency: fillTrans }, 
+                line: null 
+            };
+            let phShape = pptx.ShapeType.rect;
+            if (el.cornerRadius > 0) {
+                phShape = pptx.ShapeType.roundRect;
+                const minSide = Math.min(el.w, el.h);
+                if (minSide > 0) boxOpts.rectRadius = Math.min(el.cornerRadius / minSide, 0.5);
+            }
+            slide.addShape(phShape, boxOpts);
+            slide.addText(el.imageName || 'IMG', { 
+              x:x, y:y, w:w, h:h, rotate: opts.rotate,
+              fontSize: 10, color: '999999', align: 'center', valign: 'middle',
+              fontFace: 'Arial', wrap: false, margin: 0, transparency: fillTrans
+            });
+          }
+        });
+      });
+      // === 关键修改：不再直接下载，而是存入 ZIP ===
+      // pptx.writeFile({ fileName: "Figma-Export.pptx" }); // ❌ 删掉这行
+      
+      // ✅ 改为写入 Blob 并存入 zip
+      pptx.write("blob").then((blob) => {
+        if (pptZip) {
+          pptZip.file("Figma_Presentation.pptx", blob);
+          console.log("PPT 已成功打包进 ZIP");
+        }
+      }).catch(err => {
+        console.error("PPT 生成失败", err);
+        alert("PPT 生成失败，请重试");
+      });
+    }
+
+    // 7. 生成 ZIP (防拦截)
+    // 7. 生成 ZIP (防拦截增强版)
+    // isAuto: true 代表流程自动触发，false 代表用户点击按钮触发
+    function generateAssetsZip(isAuto = false) {
+      if (!pptZip) {
+        if (!isAuto) alert("资源包数据为空，请重新运行导出流程。");
+        return;
+      }
+      
+      const doDownload = () => {
+        pptZip.generateAsync({ type: "blob" }).then(function(content) {
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(content);
+          link.download = "Figma_Export_Package.zip";
+          link.click();
+          
+        });
+      };
+
+      if (isAuto) {
+        // 自动触发：延时 2500ms，避开浏览器拦截
+        setTimeout(doDownload, 1000);
+      } else {
+        // 手动点击：立即下载 (浏览器绝对放行)
+        doDownload();
+      }
+    }
+
+
+    // =================================================
+    // 8. 全局消息监听 (放在所有函数外面，只执行一次！)
+    // =================================================
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (!msg) return;
+      
+      // 过滤掉非 PPT 的消息 (比如其他工具的 resize 消息)
+      if (!msg.type.startsWith('ppt-') && !msg.type.startsWith('step-')) return;
+
+      const loadMsg = document.getElementById('loadingMsg');
+      const statusEl = document.getElementById('status' + pptStepIndex);
+
+      try {
+        // --- 实时进度 (Step 4 & 5) ---
+        if (msg.type === 'ppt-init-total') {
+           if(loadMsg) loadMsg.innerText = `准备处理共 ${msg.count} 个画板...`;
+        }
+        else if (msg.type === 'ppt-start-slide') {
+          // 只有当我们在 Step 4 时才处理 slide 数据，防止 Step 5 的排序再次触发
+          if (pptStepIndex === 4) {
+            pptIncomingSlide = { width: msg.width, height: msg.height, elements: [] };
+            if (!isUIUpdatePending) {
+              isUIUpdatePending = true;
+              requestAnimationFrame(() => {
+                if(loadMsg) loadMsg.innerText = `正在解析第 ${msg.index + 1} 页...`;
+                isUIUpdatePending = false;
+              });
+            }
+          }
+        }
+        else if (msg.type === 'ppt-element-batch') {
+          if (pptIncomingSlide && Array.isArray(msg.data)) {
+            pptIncomingSlide.elements.push(...msg.data);
+          }
+        }
+        else if (msg.type === 'ppt-end-slide') {
+          if (pptIncomingSlide) {
+            pptSlidesCache.push(pptIncomingSlide);
+            pptIncomingSlide = null;
+          }
+        }
+        else if (msg.type === 'ppt-asset-chunk') {
+          if (pptZip) {
+            pptZip.file(msg.fileName, msg.data);
+            if (!isUIUpdatePending) {
+              isUIUpdatePending = true;
+              requestAnimationFrame(() => {
+                if(loadMsg) loadMsg.innerText = `正在压缩: ${msg.fileName}`;
+                isUIUpdatePending = false;
+              });
+            }
+          }
+        }
+
+        // --- 步骤完成 ---
+        // 关键判断：收到的 step-done 必须匹配当前的 pptStepIndex
+        // 这能防止 Step 3 的延迟消息误触 Step 4
+        else if (msg.type === 'step-done' && msg.step === pptStepIndex) {
+          if(statusEl) statusEl.innerText = "✅ 执行成功";
+          
+          if (pptStepIndex === 4) {
+            if(loadMsg) loadMsg.innerText = "数据提取完成，生成 PPT...";
+            const scale = document.getElementById('pptScale').checked;
+            setTimeout(() => generatePPT({ slides: pptSlidesCache }, scale), 50);
+          }
+          if (pptStepIndex === 5) {
+            if(loadMsg) loadMsg.innerText = "资源打包完成，准备下载...";
+            generateAssetsZip(true); 
+          }
+
+          pptState = 'done';
+          
+          // 自动流程流转
+          if (isAutoRunning) {
+            if (pptStepIndex < 6) {
+              setTimeout(() => runCurrentPPTStep(), 800);
+            } else {
+              isAutoRunning = false;
+            }
+          }
+          updatePPTUI();
+        }
+
+        // --- 错误处理 ---
+        else if (msg.type === 'step-error') {
+          pptState = 'idle';
+          isAutoRunning = false;
+          alert("执行出错，请重试。");
+          updatePPTUI();
+        }
+      } catch (e) {
+        console.error(e);
+        isAutoRunning = false;
+        pptState = 'idle';
+        updatePPTUI();
+      }
+    };
+
+    
+
+
   </script>
+  <!-- B步骤：引入外部 PPT 库 -->
+  <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
 </body>
 </html>

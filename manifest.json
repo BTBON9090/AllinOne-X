@@ -1,9 +1,9 @@
 {
-  "name": "AllinOne",
+  "name": "AllinOne-git",
   "id": "1579115225697225019",
   "api": "1.0.0",
-  "main": "dist/code.js",
-  "ui": "dist/index.html",
+  "main": "code.js",
+  "ui": "ui.html",
   "capabilities": [],
   "enableProposedApi": false,
   "documentAccess": "dynamic-page",
@@ -11,9 +11,11 @@
     "figma",
     "figjam"
   ],
+  
   "networkAccess": {
     "allowedDomains": [
-      "none"
+      "https://cdn.jsdelivr.net",
+      "https://cdnjs.cloudflare.com" 
     ]
   }
 }
