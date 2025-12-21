@@ -795,6 +795,239 @@ figma.ui.onmessage = async (msg) => {
       break;
     }
 
+    // --- Variant Refiner (命名清洗功能) ---
+    // --- Variant Refiner (后端逻辑 - 深度检查版) ---
+    // --- Variant Refiner (Enhanced) ---
+    // --- Variant Refiner (Smart Grouping V2) --- //
+    case 'lint-variants': {
+        const cfg = msg.config; 
+        const targets = [];
+        
+        // 1. Determine Scope
+        let scopeNodes;
+        if (cfg.scope === 'page') {
+            scopeNodes = figma.currentPage.children;
+        } else {
+            scopeNodes = figma.currentPage.selection;
+        }
+        // 如果是选中模式且没选东西，直接返回空结果 (防止全页误扫或报错)
+        if (cfg.scope === 'selection' && scopeNodes.length === 0) {
+            figma.notify("请先选择要查找的图层");
+            figma.ui.postMessage({ type: 'lint-results', data: [] });
+            return;
+        }
+
+        // Recursive Collection
+        const collectTargets = (nodes) => {
+            for (const node of nodes) {
+                if (node.type === 'COMPONENT_SET' || node.type === 'COMPONENT') {
+                    targets.push(node);
+                }
+                if ('children' in node) collectTargets(node.children);
+            }
+        };
+        collectTargets(scopeNodes);
+
+        const results = [];
+
+        // Helper: Name Converter
+        const convertName = (str, style, keepEmoji, removeId) => {
+            let s = str;
+            if (removeId) s = s.replace(/#\d+:\d+$/, '').trim();
+            let emojiPrefix = "";
+            if (keepEmoji) {
+                const match = s.match(/^(\p{Emoji_Presentation}|\p{Extended_Pictographic}|[\u2000-\u3300]|[\uF000-\uF0FF])+\s*/u);
+                if (match) { emojiPrefix = match[0].trim(); s = s.replace(match[0], ''); }
+            }
+            if (cfg.trim) s = s.trim();
+            
+            const words = s.match(/[A-Z]?[a-z]+|[0-9]+|[A-Z]+|[\u4e00-\u9fa5]+/g);
+            let newVal = s;
+            if (words && words.length > 0) {
+                const lowerWords = words.map(w => w.toLowerCase());
+                switch (style) {
+                    case 'camelCase': newVal = lowerWords.map((w, i) => i === 0 ? w : w.charAt(0).toUpperCase() + w.slice(1)).join(''); break;
+                    case 'PascalCase': newVal = lowerWords.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(''); break;
+                    case 'snake_case': newVal = lowerWords.join('_'); break;
+                    case 'kebab-case': newVal = lowerWords.join('-'); break;
+                    case 'UPPER': newVal = lowerWords.join(' ').toUpperCase(); break;
+                    case 'lower': newVal = lowerWords.join(' ').toLowerCase(); break;
+                }
+            }
+            if (keepEmoji && emojiPrefix) {
+                const sep = (style === 'snake_case' ? '_' : (style === 'kebab-case' ? '-' : ' '));
+                newVal = emojiPrefix + sep + newVal;
+            }
+            return { changed: newVal !== str, val: newVal };
+        };
+
+        // Helper: Regex Replace
+        const tryReplace = (str, regex, rText) => {
+            if (typeof str !== 'string' || !str) return { changed: false, val: str };
+            if (regex.test(str)) {
+                const newVal = str.replace(regex, rText || '');
+                return { changed: newVal !== str, val: newVal };
+            }
+            return { changed: false, val: str };
+        };
+
+        // Build Find Regex
+        let findRegex = null;
+        if (cfg.mode === 'find') {
+            try {
+                const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                let pat = escape(cfg.findText);
+                if (cfg.wholeWord) pat = `\\b${pat}\\b`;
+                findRegex = new RegExp(pat, cfg.caseSensitive ? 'g' : 'gi');
+            } catch(e) {}
+        }
+
+        // 2. Traversal & Grouping Logic
+        for (const node of targets) {
+            try {
+                // --- A. Component Set (Container Name) ---
+                if (node.type === 'COMPONENT_SET') {
+                    // Decide grouping info
+                    const groupId = node.id;
+                    const groupName = node.name;
+
+                    // Lint/Find Name
+                    let res = { changed: false, val: node.name };
+                    if (cfg.mode === 'lint') res = convertName(node.name, cfg.style, cfg.emoji, cfg.removeId);
+                    else if (findRegex && cfg.targets.includes('propName')) res = tryReplace(node.name, findRegex, cfg.replaceText);
+
+                    if (res.changed) {
+                        results.push({
+                            id: node.id,
+                            groupId: groupId,        // 🔴 聚合关键：用自身 ID 做组 ID
+                            groupName: groupName,    // 🔴 聚合关键：用自身名字做组名
+                            type: 'COMPONENT_SET',
+                            targetType: 'Name',      // 分类：组件名
+                            layerName: node.name,
+                            oldVal: node.name,
+                            newVal: res.val
+                        });
+                    }
+                } 
+                
+                // --- B. Component (Variant or Independent) ---
+                else if (node.type === 'COMPONENT') {
+                    const isVariant = node.parent && node.parent.type === 'COMPONENT_SET';
+                    
+                    // 🔴 聚合关键逻辑：
+                    // 如果是变体，groupId = 父级组件集 ID，groupName = 父级组件集名字
+                    // 如果是独立组件，groupId = 自身 ID
+                    const groupId = isVariant ? node.parent.id : node.id;
+                    const groupName = isVariant ? node.parent.name : node.name;
+                    const iconType = isVariant ? 'COMPONENT_SET' : 'COMPONENT'; // 变体归类到 Set 图标下
+
+                    // 1. Check Name (Independent only, or if user forces it)
+                    if (!isVariant) {
+                        let res = { changed: false, val: node.name };
+                        if (cfg.mode === 'lint') res = convertName(node.name, cfg.style, cfg.emoji, cfg.removeId);
+                        else if (findRegex && cfg.targets.includes('propName')) res = tryReplace(node.name, findRegex, cfg.replaceText);
+
+                        if (res.changed) {
+                            results.push({
+                                id: node.id,
+                                groupId: groupId,
+                                groupName: groupName,
+                                type: iconType,
+                                targetType: 'Name', // 分类：组件名
+                                layerName: node.name,
+                                oldVal: node.name,
+                                newVal: res.val
+                            });
+                        }
+                    }
+
+                    // 2. Check Variants Values (Prop=Val)
+                    if (isVariant) {
+                         const rawName = node.name;
+                         const props = rawName.split(',').map(p => p.trim());
+                         let hasChange = false;
+                         
+                         const newProps = props.map(pair => {
+                             const parts = pair.split('=');
+                             if (parts.length < 2) return pair;
+                             const key = parts[0].trim();
+                             const val = parts[1].trim();
+                             
+                             let resVal = { changed: false, val: val };
+                             
+                             // 检查 Value
+                             if (cfg.mode === 'lint') resVal = convertName(val, cfg.style, cfg.emoji, false);
+                             else if (findRegex && cfg.targets.includes('propValue')) resVal = tryReplace(val, findRegex, cfg.replaceText);
+                             
+                             if (resVal.changed) { hasChange = true; return `${key}=${resVal.val}`; }
+                             return pair;
+                         });
+                         
+                         if (hasChange) {
+                             results.push({
+                                 id: node.id,
+                                 groupId: groupId,        // 归并到父级
+                                 groupName: groupName,    // 显示父级名字
+                                 type: iconType,
+                                 targetType: 'Variant Value', // 分类：属性值
+                                 layerName: node.name,    // 具体的变体属性串
+                                 oldVal: rawName,
+                                 newVal: newProps.join(', ')
+                             });
+                         }
+                    }
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        figma.ui.postMessage({ type: 'lint-results', data: results });
+        break;
+    }
+
+    case 'fix-variants': {
+        const items = msg.items;
+        let count = 0;
+        
+        // 必须使用 for...of 循环来支持 await
+        for (const item of items) {
+            try {
+                // 🔴 关键修复：使用 await figma.getNodeByIdAsync
+                // 旧代码: const node = figma.getNodeById(item.id);
+                const node = await figma.getNodeByIdAsync(item.id); 
+                
+                if (node) {
+                    node.name = item.newVal;
+                    count++;
+                }
+            } catch (err) {
+                console.error("修复图层失败:", item.id, err);
+            }
+        }
+        figma.notify(`✨ 已成功修复 ${count} 项命名`);
+        break;
+    }
+
+    case 'locate-node': {
+        try {
+            // 🔴 关键修复：使用 await figma.getNodeByIdAsync
+            // 旧代码: const node = figma.getNodeById(msg.id);
+            const node = await figma.getNodeByIdAsync(msg.id);
+            
+            if (node) {
+                // 选中该节点
+                figma.currentPage.selection = [node as SceneNode];
+                // 滚动并缩放到视图中心
+                figma.viewport.scrollAndZoomIntoView([node]);
+                figma.notify("已定位到组件");
+            } else {
+                figma.notify("找不到该组件，可能已被删除");
+            }
+        } catch (err) {
+            console.error("定位失败:", err);
+        }
+        break;
+    }
+
     // --- UI Resize ---
     case 'resize-drag':
     case 'resize-window':

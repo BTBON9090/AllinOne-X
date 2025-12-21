@@ -8,70 +8,82 @@
       --sidebar-w-mini: 48px;
       --bg: #F8F9FA;
       --primary: #1890FF;
+      --danger: #FF4D4F;
+      --success: #52C41A;
+      --border: #e5e5e5;
     }
+
+    /* { box-sizing: border-box; } /* 全局盒模型 */
     
     body { 
-      font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: var(--bg); color: #333; 
-      height: 100vh; width: 100vw; overflow: hidden; user-select: none; box-sizing: border-box;
+      font-family: 'Inter', sans-serif; margin: 0; padding: 0;  /* 移除默认边距 */
+      background: var(--bg); color: #333; height: 100vh; width: 100vw;  /* 固定尺寸 */
+      overflow: hidden; user-select: none; box-sizing: border-box; /* 包含内边距和边框 */
     }
+    /* 容器布局 */
     .container { display: flex; width: 100%; height: 100%; }
     
     /* 左侧导航 */
     .sidebar {
-      width: var(--sidebar-w); background: #fff; border-right: 1px solid #e0e0e0;
-      display: flex; flex-direction: column; height: 100%; 
+      width: var(--sidebar-w); background: #fff; border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; height: 100%; /* 垂直布局 */
+      flex-shrink: 0; z-index: 10; /* 不压缩宽度，保持固定宽度 */
       transition: width 0.2s ease; z-index: 10; flex-shrink: 0;
     }
+    /* 导航滚动区域 */
     .nav-scroll { flex: 1; overflow-y: auto; padding-top: 12px; min-height: 0; }
     .nav-scroll::-webkit-scrollbar { width: 0; } 
-
+    /* 导航项 */
     .nav-item {
-      display: flex; align-items: center; padding: 16px 8px; margin-bottom: 2px;
-      cursor: pointer; color: #666; transition: all 0.2s;
-      border-left: 2px solid transparent; gap: 2px;
-      justify-content: flex-start;
-      gap: 10px;
+      display: flex; align-items: center; padding: 16px 8px; margin-bottom: 1px; /* 增加垂直间距 */
+      cursor: pointer; color: #666; transition: all 0.2s; /* 平滑过渡 */
+      border-left: 2px solid transparent; /* 左侧边框，默认透明 */
+      gap: 2px; /* 数字与文本间距 */
+      position: relative; /* 相对定位，用于图标定位 */
+      
     }
     .nav-item:hover { background: #f0f7ff; color: var(--primary); }
     .nav-item.active { background: #e6f7ff; color: var(--primary); border-left-color: var(--primary); font-weight: 600; }
-    .nav-icon { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
+    .nav-icon { width: 18px; height: 18px; fill:currentColor; flex-shrink: 0; }
     .nav-text { font-size: 12px; white-space: nowrap; }
 
-    /* 底部按钮区 */
-    .sidebar-footer { padding: 12px; border-top: 1px solid #eee; background: #fff; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px;}
+    /* 侧边栏底部按钮区 */
+    .sidebar-footer { padding: 12px; border-top: 1px solid var(--border); background: #fff; display: flex; flex-direction: column; gap: 8px;}
     
     /* 通用按钮样式 */
     .footer-btn {
-      width: 100%; padding: 6px 0; border: 1px solid #eee; background: #fff; 
+      width: 100%; padding: 6px 0; border: 1px solid var(--border); background: #fff; 
       border-radius: 6px; color: #666; font-size: 11px; cursor: pointer; text-align: center;
-      transition: all 0.2s; box-sizing: border-box;
+      transition: all 0.2s; 
+      box-sizing: border-box; 
     }
     .footer-btn:hover { border-color: #ccc; color: #333; background: #f9f9f9; }
+    
     /* 语言按钮特殊样式 */
-    .lang-btn { font-family: monospace; font-weight: 600; color: #888; }
+    .lang-btn { font-family: monospace; font-weight: 600; color: var(--primary); }
     .lang-btn:hover { color: var(--primary); border-color: #bae7ff; background: #e6f7ff; }
 
     /* 右侧内容 */
     .main-content { flex: 1; display: flex; flex-direction: column; height: 100%; position: relative; min-width: 0; }
-    .header { padding: 12px 16px; flex-shrink: 0; }
+    .header { padding: 12px 16px; flex-shrink: 0;}
     .search-box {
       width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px;
-      background: #fff; font-size: 12px; outline: none; box-sizing: border-box;
+      background: #fff; font-size: 12px; outline: none; transition: border 0.2s; /* 搜索框聚焦时边框颜色变化 */
+      box-sizing: border-box;
     }
     .search-box:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(24,144,255,0.1); }
-
-    .content-scroll { flex: 1; overflow-y: auto; padding: 0 16px 0px 16px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
-
-    /* 卡片 */
+    /* 内容滚动区域 */
+    .content-scroll { flex: 1; overflow-y: auto; position: relative;}
+    /* 网格卡片布局，Simple/Style/Layout */
+    .grid { padding: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr )); gap: 10px; }
     .card {
-      border-radius: 8px; padding: 14px; cursor: pointer;
-      border: 1px solid transparent; 
-      transition: all 0.15s; display: flex; flex-direction: column; gap: 6px;
-      position: relative; overflow: hidden;
+      border-radius: 8px; padding: 14px; cursor: pointer; /* 卡片点击反馈 */ border: 1px solid transparent; 
+      transition: all 0.15s; display: flex; flex-direction: column; gap: 6px; position: relative; 
     }
     .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    .card:active { transform: scale(0.98); }
+    .card-title {font-weight: 700;font-size: 13px;display: flex;justify-content: space-between; align-items: center;} /* 卡片标题 */
+    .card-desc {font-size: 11px; opacity: 0.8; line-height: 1.3; display: none;} /* 卡片描述 */
+    .card:active { transform: scale(0.98); } /* 卡片点击缩放 */
 
     /* 主题色 */
     .theme-orange { background: #FFF7E6; color: #D46B08; border: 1px solid rgba(212, 107, 8, 0.1); }
@@ -79,11 +91,7 @@
     .theme-purple { background: #F9F0FF; color: #531DAB; border: 1px solid rgba(83, 29, 171, 0.1); }
     .theme-green { background: #F6FFED; color: #389E0D; border: 1px solid rgba(56, 158, 13, 0.1); }
     .theme-pink { background: #FFF0F6; color: #C41D7F; border: 1px solid rgba(196, 29, 127, 0.1); }
-
-    .card-title { font-weight: 700; font-size: 13px; display: flex; justify-content: space-between; }
-    .card-desc { font-size: 11px; opacity: 0.8; line-height: 1.3; display: none;}
-    .star-icon { font-size: 14px; line-height: 1; }
-
+    
     /* 全局悬停 Tooltip (详细说明) */
     #tooltip-box {
       position: fixed; display: none; z-index: 999;
@@ -173,7 +181,7 @@
 
     /* --- 新增样式：面板边距调整 --- */
     #selectionPanel, #textPanel {
-      padding-top: 16px !important; /* 增加顶部边距 */
+      padding: 16px; /* 保持与其他面板一致的边距 */
     }
 
     /* --- 新增样式：导航栏增强 --- */
@@ -182,26 +190,26 @@
       display: flex; align-items: center; gap: 10px; /* 包裹原有的图标和文字 */
     }
     .nav-meta {
-      display: flex; align-items: center; gap: 6px; font-size: 10px;
+      display: flex; align-items: center; gap: 4px; font-size: 9px;
       margin-left: auto; /* 确保数量和红点靠右对齐 */
     }
     .count-badge {
       background: #f0f0f0; color: #999; padding: 1px 6px; border-radius: 10px;
     }
     .red-dot {
-      width: 6px; height: 6px; background: #FF4D4F; border-radius: 50%; display: none;
+      width: 6px; height: 6px; background: var(--danger); border-radius: 50%; display: none;
     }
     .nav-item.has-new .red-dot { display: block; } /* 有新功能时显示红点 */
 
     /* --- 新增样式：新功能高亮 --- */
     .card.is-new {
-      border: 1px solid #FF4D4F !important;
+      border: 1px solid var(--danger) !important;
       background: #fff1f0 !important;
       position: relative;
     }
     .card.is-new::after {
       content: 'NEW'; position: absolute; top: 0; right: 0;
-      background: #FF4D4F; color: #fff; font-size: 8px; 
+      background: var(--danger); color: #fff; font-size: 8px; 
       padding: 1px 4px; border-bottom-left-radius: 6px; font-weight: bold;
     }
     /* --- 迷你模式修正 --- */
@@ -222,16 +230,15 @@
       height: 100%; 
       background: #fff; 
       position: relative; 
-      margin: 0 -16px -12px -16px;
-      width: calc(100% + 32px);
+      width: calc(100%);
     }
 
     /* 顶部仪表盘 */
     .ppt-dashboard { padding: 16px; background: #fff; border-bottom: 1px solid #f0f0f0; flex-shrink: 0; z-index: 2; }
     
-    .ppt-tips { background: #fffbe6; border: 1px solid #ffe58f; border-radius: 6px; padding: 10px; font-size: 11px; color: #d48806; line-height: 1.5; margin-bottom: 12px; }
+    .ppt-tips { background: #fffbe6; border: 1px solid #ffe58f; border-radius: 8px; padding: 8px; font-size: 11px; color: #d48806; line-height: 1.5; margin-bottom: 8px; }
     .ppt-tips ul { margin: 0; padding-left: 16px; }
-    .ppt-tips li { margin-bottom: 4px; }
+    .ppt-tips li { margin-bottom: 2px; }
 
     /* 一键按钮 */
     .btn-auto-run { width: 100%; border: none; cursor: pointer; border-radius: 8px; background: linear-gradient(135deg, #1890FF 0%, #096DD9 100%); color: #fff; font-size: 14px; font-weight: 600; padding: 12px; box-shadow: 0 4px 12px rgba(24,144,255,0.3); transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
@@ -262,8 +269,8 @@
     .ppt-step { 
       background: #fff; 
       border: 1px solid #f0f0f0; 
-      border-radius: 12px; 
-      padding: 20px 16px; 
+      border-radius: 8px; 
+      padding: 16px; 
       box-shadow: 0 4px 12px rgba(0,0,0,0.02); 
       display: none; 
       flex-direction: column; 
@@ -271,10 +278,10 @@
       text-align: center; 
       width: 100%; 
       box-sizing: border-box; /*关键：防止内边距影响宽度*/
-      margin-top: 20px; 
+      margin-top: 0px; 
     }
     .ppt-step.active { display: flex; animation: slideUp 0.3s ease-out; }
-    .ppt-icon { font-size: 32px; width: 56px; height: 56px; margin-bottom: 12px; background: #f7f9fc; border: 1px solid #d6e4ff; color: #1890FF; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .ppt-icon { font-size: 24px; width: 48px; height: 48px; margin-bottom: 12px; background: #f7f9fc; border: 1px solid #d6e4ff; color: #1890FF; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
     .ppt-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; color: #333; }
     .ppt-desc { font-size: 13px; color: #888; margin-bottom: 16px; line-height: 1.5;}
     .ppt-status { font-size: 12px; color: #999; font-family: monospace; background: #f5f5f5; padding: 4px 10px; border-radius: 10px; }
@@ -285,16 +292,17 @@
       display: flex; 
       background: #fff; 
       flex-shrink: 0; }
-    .ppt-footer button { border: none; background: #fff; cursor: pointer; font-size: 13px; font-weight: 500; transition: background 0.2s; }
+    .ppt-footer button { border: none; background: #fff; cursor: pointer; font-size: 13px; font-weight: 700; transition: background 0.2s; }
     .ppt-footer button:hover { background: #f5f5f5; }
     .ppt-footer .primary-btn { background: #fff; color: #1890FF; border-left: 1px solid #eee; border-radius: 0px; }
     
-    .ppt-progress-track { height: 4px; background: #f0f0f0; width: 100%; margin-top: auto; }
+    .ppt-progress-track { height: 6px; background: #f0f0f0; width: 100%; margin-top: auto; }
     .ppt-progress-fill { height: 100%; background: #52c41a; width: 0%; transition: width 0.3s; }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } } /* 卡片 slideUp 动画 */
     
     /* 手动下载按钮美化 */
     .btn-manual-dl {
+      width: 100%;
       margin-top: 12px;
       padding: 8px 16px;
       background: #f0f7ff; /* 极浅的蓝色背景 */
@@ -302,26 +310,321 @@
       color: #1890FF; /* 主题色文字 */
       border-radius: 6px;
       font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
+      font-weight: 600;
+      /* 水平居中 */
+      justify-content: center;
+      cursor: pointer; /* 鼠标悬停时显示为手型 */
       display: inline-flex;
       align-items: center;
       gap: 6px;
       transition: all 0.2s;
     }
     
-    .btn-manual-dl:hover {
-      background: #e6f7ff;
-      border-color: #91d5ff;
-      color: #096DD9;
-      transform: translateY(-1px);
-    }
-    
-    .btn-manual-dl:active {
-      transform: scale(0.98);
-      background: #bae7ff;
-    }
-  
+    .btn-manual-dl:hover {background: #e6f7ff; border-color: #91d5ff; color: #096DD9; transform: translateY(-1px);}
+    /* 点击时缩放效果 */
+    .btn-manual-dl:active { transform: scale(0.98); background: #bae7ff;}
+
+
+
+    /* =========================================
+   Refiner 4.0 完整样式表 (Structured & Optimized)
+   ========================================= */
+
+/* --- 1. 基础布局与容器 --- */
+
+/* 面板主容器 (强制垂直布局) */
+#refinerPanel {
+  display: none; /* JS控制显示 */
+  flex-direction: column !important;
+  height: 100%;
+  width: 100%;
+  background: #fff;
+  overflow: hidden;
+}
+
+/* 滚动内容区 (配置页 & 列表页通用) */
+.refiner-config { 
+  padding: 16px; 
+  flex: 1; 
+  overflow-y: auto; 
+  background: #fff; 
+}
+
+.res-list { 
+  flex: 1; 
+  overflow-y: auto; 
+  padding: 0; 
+  background: #f8f9fa; /* 列表背景微灰，区分层级 */
+}
+
+/* --- 2. 顶部 Tab 导航 --- */
+.refiner-tabs { 
+  display: flex; 
+  background: #fff; 
+  padding: 4px 16px 0; 
+  border-bottom: 1px solid #eee; 
+  flex-shrink: 0; 
+  gap: 16px; 
+}
+
+.refiner-tab-item { 
+  flex: 1; 
+  display: flex; 
+  justify-content: center;
+  padding: 10px 4px; 
+  font-size: 14px; 
+  font-weight: 500; 
+  color: #555; 
+  cursor: pointer;
+  border-bottom: 2px solid transparent; 
+  transition: all 0.2s;
+}
+
+.refiner-tab-item:hover { color: #333; }
+.refiner-tab-item.active { 
+  color: #1890FF; 
+  border-bottom-color: #1890FF; 
+  font-weight: 600; 
+}
+
+.refiner-tab-content { 
+  flex: 1; 
+  display: none; 
+  flex-direction: column; 
+  overflow: hidden; 
+  background: #F8F9FA; 
+}
+.refiner-tab-content.active { display: flex; }
+
+/* --- 3. 配置页控件 (Radio/Checkbox/Button) --- */
+
+/* 分组标题 */
+.config-group { margin-bottom: 20px; }
+.config-label { 
+  display: block; font-size: 12px; font-weight: 600; color: #333; margin-bottom: 8px; 
+}
+
+/* 单选网格 */
+.radio-grid { 
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; 
+}
+.radio-item {
+  display: flex; align-items: center; justify-content: center;
+  padding: 8px 4px; border: 1px solid #e0e0e0; border-radius: 6px;
+  font-size: 12px; color: #555; cursor: pointer; 
+  background: #fff; transition: all 0.2s; user-select: none;
+}
+.radio-item:hover { background: #f9f9f9; border-color: #ccc; }
+.radio-item.active { 
+  background: #e6f7ff; border-color: #1890FF; color: #1890FF; font-weight: 600; 
+}
+
+/* 复选框行 */
+.checkbox-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+  font-size: 12px; color: #555; cursor: pointer; user-select: none;
+}
+.checkbox-row:hover { color: #333; }
+.checkbox-row input { accent-color: #1890FF; width: 14px; height: 14px; }
+
+/* 主操作按钮 (开始检查) */
+.btn-start-lint {
+  width: 100%; padding: 8px; background: #1890FF; color: #fff;
+  border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
+  cursor: pointer; margin-top: 10px; transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.2);
+}
+.btn-start-lint:hover { background: #40a9ff; transform: translateY(-1px); }
+.btn-start-lint:active { transform: translateY(0); }
+
+/* --- 4. 查找替换面板 (顶部控制区) --- */
+.find-controls {  
+  background: #fff; border-bottom: 1px solid #eee; flex-shrink: 0;
+  transition: all 0.3s ease; overflow: hidden;
+}
+.find-expanded { 
+  display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; 
+  opacity: 1; max-height: 300px; 
+}
+.find-collapsed { display: none; padding: 0; opacity: 0; max-height: 0; }
+
+/* 折叠后的摘要条 */
+.find-summary-bar {
+  display: none; align-items: center; justify-content: space-between;
+  padding: 8px 16px; background: #F0F7FF; border-bottom: 1px solid #BAE7FF; cursor: pointer;
+}
+.find-summary-bar.visible { display: flex; }
+.summary-text { font-size: 12px; color: #1890FF; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+
+/* 范围选择条 */
+.scope-segment { 
+  display: flex; background: #f0f0f0; border-radius: 6px; padding: 2px; width: fit-content; 
+}
+.scope-option {
+  padding: 4px 12px; font-size: 11px; color: #666; cursor: pointer; 
+  border-radius: 4px; transition: all 0.2s; user-select: none;
+}
+.scope-option.active { 
+  background: #fff; color: #333; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
+}
+
+/* 增强型输入框 */
+.input-group-icon { position: relative; display: flex; align-items: center; }
+.input-group-icon input { 
+  width: 100%; padding: 8px 30px; /* 留出左右图标位置 */
+  border: 1px solid #d9d9d9; border-radius: 6px; font-size: 12px; outline: none; transition: all 0.2s;
+}
+.input-group-icon input:focus { border-color: #1890FF; box-shadow: 0 0 0 2px rgba(24,144,255,0.1); }
+.icon-prefix { position: absolute; left: 8px; color: #999; pointer-events: none; display: flex; }
+.icon-suffix-group { position: absolute; right: 6px; display: flex; gap: 4px; }
+
+/* 后缀小图标按钮 (Aa, ab) */
+.icon-toggle {
+  width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+  border-radius: 3px; cursor: pointer; color: #999; font-size: 10px; font-weight: bold; 
+  font-family: monospace; border: 1px solid transparent;
+}
+.icon-toggle:hover { background: #f0f0f0; color: #666; }
+.icon-toggle.active { background: #E6F7FF; color: #1890FF; border-color: #BAE7FF; }
+
+/* Filter Chips (Prop Name/Value) */
+.filter-chips-row { display: flex; gap: 8px; align-items: center; margin-top: 2px; }
+.chip-check { 
+  flex: 1; display: flex; justify-content: center; align-items: center; gap: 4px; 
+  cursor: pointer; font-size: 11px; color: #555; padding: 6px 8px; 
+  border-radius: 20px; border: 1px solid #eee; background: #fff; transition: all 0.2s; 
+}
+.chip-check:hover { background: #f5f5f5; }
+.chip-check.active { 
+  background: #E6F7FF; border-color: #1890FF; color: #1890FF; font-weight: 500; 
+}
+.chip-check input { display: none; }
+
+/* --- 5. 结果列表树 (核心层级优化) --- */
+
+/* 列表头部 (全选栏) */
+.res-header {
+  background: #fff; padding: 8px 12px; border-bottom: 1px solid #eee; 
+  display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+}
+.header-left { display: flex; align-items: center; gap: 8px; }
+.header-cb { accent-color: #1890FF; cursor: pointer; transform: scale(1.1); }
+
+/* Level 1: 组件容器 */
+.comp-group { 
+  background: #fff; border-bottom: 1px solid #f0f0f0; 
+}
+.comp-header {
+  padding: 8px 12px; display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; transition: background 0.1s;
+}
+.comp-header:hover { background: #f9f9f9; }
+.comp-info { 
+  display: flex; align-items: center; gap: 6px; 
+  font-size: 12px; color: #9747FF; font-weight: 600; overflow: hidden; 
+}
+.comp-arrow { color: #9e9e9e; font-size: 10px; width: 10px; transition: transform 0.2s; display: inline-block; }
+.comp-group.expanded .comp-arrow { transform: rotate(90deg); }/* 展开时旋转箭头 */
+
+
+
+.comp-details { display: none; }
+.comp-group.expanded .comp-details { display: block; padding-bottom: 4px; }
+
+/* Level 2: 分类标题 (新增层级样式) */
+.detail-category {
+  font-size: 11px; font-weight: 600; color: #555;
+  background: #fdfdfd; border-top: 1px solid #f5f5f5;
+  padding: 6px 12px 6px 16px; /* 左侧缩进，对齐 Level 1 文字 */
+  display: flex; align-items: center; gap: 6px;
+}
+/* 数量统计徽标 */
+.cat-count {
+  background: #f0f0f0; color: #686868; font-size: 10px;
+  padding: 0 5px; border-radius: 4px; font-weight: normal;
+}
+
+/* Level 3: 具体修改项 */
+.diff-item {
+  display: flex; align-items: center; 
+  padding: 6px 12px 6px 26px; /* 大幅缩进，体现层级 */
+  font-size: 11px; border-top: 1px dashed #fafafa; position: relative; gap: 6px;
+}
+.diff-item:hover { background: #f0f7ff; }
+.diff-item.fixed-success { background: #f6ffed; } /* 修复成功后的淡绿背景 */
+
+/* 文本展示优化 */
+.txt-wrapper { flex: 1; display: flex; align-items: center; overflow: hidden; cursor: pointer; }
+.txt-old { color: #999; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.txt-arrow { color: #00008B; margin: 0 10px; font-size: 12px; flex-shrink: 0; font-weight: bold; }
+.txt-new { color: #10B981; font-weight: 600; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 定位按钮 */
+.btn-locate { 
+  color: #ccc; padding: 4px; border-radius: 4px; display: flex; opacity: 0; transition: all 0.2s; 
+}
+.comp-header:hover .btn-locate, .txt-wrapper:hover ~ .btn-locate { opacity: 1; } /* 父级Hover时显示 */
+.btn-locate:hover { color: #1890FF; background: #e6f7ff; opacity: 1; }
+
+/* --- 6. 底部、状态页与弹窗 --- */
+
+/* 底部操作栏 */
+.res-footer { 
+  padding: 12px 16px; background: #fff; border-top: 1px solid #eee; 
+  display: flex; gap: 12px; flex-shrink: 0; 
+}
+.btn-act { 
+  flex: 1; padding: 9px; border-radius: 6px; font-size: 12px; font-weight: 500; 
+  cursor: pointer; border: 1px solid #ddd; background: #fff; color: #333; transition: all 0.2s; 
+}
+.btn-act:hover { background: #f5f5f5; border-color: #ccc; }
+.btn-act:disabled { opacity: 0.5; cursor: not-allowed; background: #f5f5f5; }
+.btn-act.primary { background: #1890FF; color: #fff; border-color: #1890FF; }
+.btn-act.primary:hover { background: #40a9ff; border-color: #40a9ff; }
+
+/* 空状态 */
+.empty-state-refiner { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  justify-content: center; 
+  height: 100%; 
+  width: 100%;
+  padding: 16px; 
+  text-align: center; 
+  box-sizing: border-box;
+}
+/* --- 图标容器 --- */
+.empty-state-refiner .es-icon {
+  font-size: 32px; /* 放大 Icon (如果是 emoji) */
+  line-height: 1;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.empty-state-refiner .es-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.empty-state-refiner .es-text {
+  font-size: 13px; /* 缩小文字 */
+  color: #555555;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* 修复成功反馈页 (Overlay) */
+.success-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: #fff; z-index: 10; display: none; flex-direction: column;
+  align-items: center; justify-content: center; padding: 20px; text-align: center;
+}
+.success-icon { font-size: 32px; margin-bottom: 16px; color: #52c41a; }
+.success-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px; }
+.success-desc { font-size: 12px; color: #666; margin-bottom: 16px; line-height: 1.5; }
+
   </style>
 </head>
 <body>
@@ -345,6 +648,13 @@
             
           </svg>
           <span class="nav-text">PPT Master</span>
+        </div>
+        <!-- Refiner 工具 -->
+        <div class="nav-item" onclick="switchGroup('refiner', this)" data-key="nav_refiner">
+          <svg class="nav-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+            <path d="M677.7 793.9h-70.6c-17.2 0-31.1 13.9-31.1 31.1v103.8c0 17.2 13.9 31.1 31.1 31.1h70.6c17.2 0 31.1-13.9 31.1-31.1V825.1c0-17.2-13.9-31.2-31.1-31.2zM928.9 793.9h-70.6c-17.2 0-31.1 13.9-31.1 31.1v103.8c0 17.2 13.9 31.1 31.1 31.1h70.6c17.2 0 31.1-13.9 31.1-31.1V825.1c0-17.2-13.9-31.2-31.1-31.2zM431.4 65.7H95.1C77.9 65.7 64 79.6 64 96.8v103.8c0 17.2 13.9 31.1 31.1 31.1h70.6c17.2 0 31.1 13.9 31.1 31.1v499.9c0 17.2-13.9 31.1-31.1 31.1H95.1c-17.2 0-31.1 13.9-31.1 31.1v103.8c0 17.2 13.9 31.1 31.1 31.1h336.3c17.2 0 31.1-13.9 31.1-31.1V825.1c0-17.2-13.9-31.1-31.1-31.1h-70.6c-17.2 0-31.1-13.9-31.1-31.1v-500c0-17.2 13.9-31.1 31.1-31.1h70.6c17.2 0 31.1-13.9 31.1-31.1V96.8c0-17.2-13.9-31.1-31.1-31.1z"></path>
+          </svg>
+          <span class="nav-text">Variant Refiner</span>
         </div>
       </div>
       <div class="sidebar-footer">
@@ -465,68 +775,78 @@
         <div id="selectionPanel">
           <!-- 范围 -->
           <div>
-            <div class="section-title">查找范围</div>
+            <div class="section-title" data-key="sel_scope">查找范围</div>
             <div class="btn-group" id="scopeGroup">
-              <div class="filter-btn active" data-val="inside" onclick="toggleSingle(this, 'scopeGroup')">内在元素</div>
-              <div class="filter-btn" data-val="sibling" onclick="toggleSingle(this, 'scopeGroup')">同级</div>
-              <div class="filter-btn" data-val="children" onclick="toggleSingle(this, 'scopeGroup')">子级</div>
-              <div class="filter-btn" data-val="descendants" onclick="toggleSingle(this, 'scopeGroup')">子孙元素</div>
+              <div class="filter-btn active" data-val="inside" onclick="toggleSingle(this, 'scopeGroup')" data-key="sel_scope_in">内在元素</div>
+              <div class="filter-btn" data-val="sibling" onclick="toggleSingle(this, 'scopeGroup')" data-key="sel_scope_sib">同级</div>
+              <div class="filter-btn" data-val="children" onclick="toggleSingle(this, 'scopeGroup')" data-key="sel_scope_child">子级</div>
+              <div class="filter-btn" data-val="descendants" onclick="toggleSingle(this, 'scopeGroup')" data-key="sel_scope_desc">子孙元素</div>
             </div>
           </div>
           <!-- 名称 -->
           <div>
-             <div class="section-title">名称</div>
-             <div style="display:flex; gap:8px">
-               <input type="text" class="search-box" id="filterNameInput" placeholder="输入名称">
-               
-               <!-- 新增：拾取按钮 -->
-               <div style="padding:6px 8px; border:1px solid #ddd; border-radius:6px; cursor:pointer; background:#fff; display:flex; align-items:center;" onclick="fetchName()" title="拾取选中图层名称">
-                 <svg style="width:16px; height:16px; fill:#666;" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-               </div>
-
-               <div style="padding:8px; border:1px solid #ddd; border-radius:6px; cursor:pointer;" id="caseBtn" onclick="this.classList.toggle('active')">Aa</div>
-             </div>
+            <div class="section-title" data-key="sel_title_name">名称</div>
+            <div style="display:flex; gap:8px">
+              <input type="text" class="search-box" id="filterNameInput" placeholder="输入名称" data-key="sel_ph_name">
+              <!-- ...保持拾取按钮不变... -->
+              <div style="padding:6px 8px; border:1px solid #ddd; border-radius:6px; cursor:pointer; background:#fff; display:flex; align-items:center;" onclick="fetchName()" title="拾取选中图层名称">
+                <svg style="width:16px; height:16px; fill:#666;" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+              </div>
+              <div style="padding:8px; border:1px solid #ddd; border-radius:6px; cursor:pointer;" id="caseBtn" onclick="this.classList.toggle('active')">Aa</div>
+            </div>
           </div>
           <!-- 类型 -->
           <div>
-            <div class="section-title"><span>类型</span><div class="toggle-switch include" id="typeLogic" onclick="toggleLogic(this)"><span class="s-in">包含</span><span class="s-ex">不包含</span></div></div>
+            <div class="section-title">
+              <span data-key="sel_title_type">类型</span>
+              <div class="toggle-switch include" id="typeLogic" onclick="toggleLogic(this)">
+                <span class="s-in" data-key="logic_in">包含</span>
+                <span class="s-ex" data-key="logic_ex">不包含</span>
+              </div>
+            </div>
             <div class="btn-group" id="typeGroup">
-              <div class="filter-btn all-btn active" onclick="clearGroup('typeGroup', this)">全部类型</div>
-              <div class="filter-btn" data-val="COMPONENT" onclick="toggleMulti(this)">❖ 组件</div>
-              <div class="filter-btn" data-val="INSTANCE" onclick="toggleMulti(this)">◇ 实例</div>
-              <div class="filter-btn" data-val="FRAME" onclick="toggleMulti(this)"># 画板</div>
-              <div class="filter-btn" data-val="AUTOLAYOUT" onclick="toggleMulti(this)">[] 自动布局</div>
-              <div class="filter-btn" data-val="GROUP" onclick="toggleMulti(this)">:: 组</div>
-              <div class="filter-btn" data-val="TEXT" onclick="toggleMulti(this)">T 文本</div>
-              <div class="filter-btn" data-val="IMAGE" onclick="toggleMulti(this)">Img 图片</div>
-              <div class="filter-btn" data-val="RECTANGLE" onclick="toggleMulti(this)">☐ 矩形</div>
-              <div class="filter-btn" data-val="VECTOR" onclick="toggleMulti(this)">✎ 钢笔</div>
-              <div class="filter-btn" data-val="ELLIPSE" onclick="toggleMulti(this)">○ 椭圆</div>
-              <div class="filter-btn" data-val="LINE" onclick="toggleMulti(this)">/ 直线</div>
-              <div class="filter-btn" data-val="STAR" onclick="toggleMulti(this)">☆ 星形</div>
-              <div class="filter-btn" data-val="POLYGON" onclick="toggleMulti(this)">△ 多边形</div>
-              <div class="filter-btn" data-val="SLICE" onclick="toggleMulti(this)">:: 切片</div>
-              <div class="filter-btn" data-val="CONNECTOR" onclick="toggleMulti(this)">↝ 连接线</div>
-              <div class="filter-btn" data-val="STICKY" onclick="toggleMulti(this)">[] 便签</div>
+              <div class="filter-btn all-btn active" onclick="clearGroup('typeGroup', this)" data-key="sel_type_all">全部类型</div>
+              <div class="filter-btn" data-val="COMPONENT" onclick="toggleMulti(this)" data-key="sel_t_comp">❖ 组件</div>
+              <div class="filter-btn" data-val="INSTANCE" onclick="toggleMulti(this)" data-key="sel_t_inst">◇ 实例</div>
+              <div class="filter-btn" data-val="FRAME" onclick="toggleMulti(this)" data-key="sel_t_frame"># 画板</div>
+              <div class="filter-btn" data-val="AUTOLAYOUT" onclick="toggleMulti(this)" data-key="sel_t_auto">[] 自动布局</div>
+              <div class="filter-btn" data-val="GROUP" onclick="toggleMulti(this)" data-key="sel_t_group">:: 组</div>
+              <div class="filter-btn" data-val="TEXT" onclick="toggleMulti(this)" data-key="sel_t_text">T 文本</div>
+              <div class="filter-btn" data-val="IMAGE" onclick="toggleMulti(this)" data-key="sel_t_img">Img 图片</div>
+              <div class="filter-btn" data-val="RECTANGLE" onclick="toggleMulti(this)" data-key="sel_t_rect">☐ 矩形</div>
+              <div class="filter-btn" data-val="VECTOR" onclick="toggleMulti(this)" data-key="sel_t_vect">✎ 钢笔</div>
+              <div class="filter-btn" data-val="ELLIPSE" onclick="toggleMulti(this)" data-key="sel_t_ell">○ 椭圆</div>
+              <div class="filter-btn" data-val="LINE" onclick="toggleMulti(this)" data-key="sel_t_line">/ 直线</div>
             </div>
           </div>
           <!-- 状态 -->
           <div>
-            <div class="section-title"><span>状态</span><div class="toggle-switch include" id="stateLogic" onclick="toggleLogic(this)"><span class="s-in">包含</span><span class="s-ex">不包含</span></div></div>
+            <div class="section-title">
+              <span data-key="sel_title_state">状态</span>
+              <div class="toggle-switch include" id="stateLogic" onclick="toggleLogic(this)">
+                <span class="s-in" data-key="logic_in">包含</span>
+                <span class="s-ex" data-key="logic_ex">不包含</span>
+              </div>
+            </div>
             <div class="btn-group" id="stateGroup">
-              <div class="filter-btn all-btn active" onclick="clearGroup('stateGroup', this)">全部状态</div>
-              <div class="filter-btn" data-val="hidden" onclick="toggleMulti(this)">隐形</div>
-              <div class="filter-btn" data-val="locked" onclick="toggleMulti(this)">锁定</div>
-              <div class="filter-btn" data-val="no-fill" onclick="toggleMulti(this)">无填充</div>
-              <div class="filter-btn" data-val="no-stroke" onclick="toggleMulti(this)">无描边</div>
-              <div class="filter-btn" data-val="clip" onclick="toggleMulti(this)">裁剪内容</div>
-              <div class="filter-btn" data-val="no-children" onclick="toggleMulti(this)">无子级</div>
+              <div class="filter-btn all-btn active" onclick="clearGroup('stateGroup', this)" data-key="sel_state_all">全部状态</div>
+              <div class="filter-btn" data-val="hidden" onclick="toggleMulti(this)" data-key="sel_s_hidden">隐形</div>
+              <div class="filter-btn" data-val="locked" onclick="toggleMulti(this)" data-key="sel_s_lock">锁定</div>
+              <div class="filter-btn" data-val="no-fill" onclick="toggleMulti(this)" data-key="sel_s_nofill">无填充</div>
+              <div class="filter-btn" data-val="no-stroke" onclick="toggleMulti(this)" data-key="sel_s_nostroke">无描边</div>
+              <div class="filter-btn" data-val="clip" onclick="toggleMulti(this)" data-key="sel_s_clip">裁剪内容</div>
+              <div class="filter-btn" data-val="no-children" onclick="toggleMulti(this)" data-key="sel_s_nochild">无子级</div>
             </div>
           </div>
           <!-- 属性 -->
           <div>
-             <div class="section-title"><span>属性</span><span class="add-prop-btn" onclick="addPropRow()">+</span></div>
-             <div class="prop-list" id="propList"></div>
+            <div class="section-title"><span data-key="sel_title_prop">属性</span><span class="add-prop-btn" onclick="addPropRow()">+</span></div>
+            <div class="prop-list" id="propList"></div>
+            <!-- 注意：JS 生成的属性行里的 placeholder 也要改，见后面 JS 部分 -->
+          </div>
+          <!-- 选择工具页脚 -->
+          <div class="fixed-action" id="selectionFooter">
+            <button class="primary-btn" onclick="runFilter()" data-key="sel_btn_exec">查找并选择</button>
           </div>
         </div>
         <!-- 布局工具 -->
@@ -540,43 +860,44 @@
         <div id="textPanel" style="display: none; flex-direction: column; gap: 12px;">
           <!-- 查找替换区 -->
           <div style="background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #eee;">
-            <div class="section-title" style="margin-bottom:10px;">查找与替换 (Find & Replace)</div>
+            <div class="section-title" style="margin-bottom:10px;" data-key="txt_title_find">查找与替换</div>
             <div style="display:flex; flex-direction:column; gap:8px;">
-              <input type="text" id="findInput" class="search-box" placeholder="查找内容，注意区分大小写 (Find)">
-              <input type="text" id="repInput" class="search-box" placeholder="替换为 (Replace)">
-              <button class="primary-btn" style="margin-top:4px;" onclick="runReplace()">执行替换 (Replace All)</button>
+              <input type="text" id="findInput" class="search-box" placeholder="查找内容，注意区分大小写 (Find)" data-key="txt_ph_find">
+              <input type="text" id="repInput" class="search-box" placeholder="替换为 (Replace)" data-key="txt_ph_rep">
+              <button class="primary-btn" style="margin-top:4px;" onclick="runReplace()" data-key="txt_btn_exec">执行替换</button>
             </div>
           </div>
         </div>
-
-        <!-- PPT 工具面板 (向导模式) -->
-        <!-- PPT 工具面板 (仪表盘 + 向导模式) -->
-        <!-- PPT 工具面板 (仪表盘 + 向导模式 + Loading) -->
+        
+        <!-- PPT 工具面板 -->
         <div id="pptPanel">
-          
-          <!-- 全屏 Loading 遮罩 -->
+          <!-- Loading 遮罩保持不变... -->
           <div class="loading-overlay" id="loadingOverlay">
             <div class="spinner"></div>
-            <div class="loading-text" id="loadingTitle">正在处理中...</div>
-            <div class="loading-sub" id="loadingMsg">请耐心等待，不要关闭插件</div>
-            <div class="lading-warn">⚠️ 请勿操作 Figma 画布，以免中断</div>
+            <!-- 🔴 关键：必须确保这两个 ID 存在 -->
+            <div class="loading-text" id="loadingTitle">Processing...</div>
+            <div class="loading-sub" id="loadingMsg">Please wait...</div>
           </div>
 
           <!-- 顶部仪表盘 -->
           <div class="ppt-dashboard">
             <div class="ppt-tips">
-              <b>💕 导出说明：</b>
+              <b data-key="ppt_tips_title">💕 导出说明：</b>
               <ul>
-                <li>请先复制当前Page复制为副本，Page名称必须带有“副本”或“copy”字样，例如：<b>年终报告-副本</b></li>
-                <li>混合路径、蒙版、图层/背景模糊、三角形五角星及特殊形状、曲线、折线，PPT无法识别，请将类似难以在PPT中编辑的图层各自编组批量重命名为<b>p_img</b>，插件会统一转化为 .png 格式导出，后续在PPT中替换。</li>
-                <li>建议 Figma 画板尺寸设为 <b>1920x1080</b>，导出时默认勾选缩放，此时刚好对应PPT默认的16:9，且文件不大</li>
-                <li>初次使用建议先尝试 <b>[分步执行]</b>，熟悉转化流程。</li>
-                <li>为防止崩溃，图片仅导出占位符，请下载资源包后<b>手动替换</b>。</li>
-                <li>点击重置按钮，可重新开始，但不会帮您复原设计稿，你需要手动撤回<b>ctrl+z</b>,不撤回也不影响，反正前三步执行的都一样哈哈</li>
+                <!-- 简单的给第一条加个 key 演示，建议把所有 li 都加上 -->
+                <li data-key="ppt_tip_1" data-key="ppt_tip_1">建议复制</li>
+                <li data-key="ppt_tip_2" data-key="ppt_tip_2">图片重命名为p_img</li>
+                <li data-key="ppt_tip_3" data-key="ppt_tip_3">建议尺寸</li>
+                <li data-key="ppt_tip_4" data-key="ppt_tip_4">建议初次分步操作</li>
+                <li data-key="ppt_tip_5" data-key="ppt_tip_5">图片导出占位符</li>
+                <li data-key="ppt_tip_6" data-key="ppt_tip_6">关于重置</li>
+
+
+                <!-- 其他 li 可以继续加 data-key="ppt_tip_4" 等 -->
               </ul>
             </div>
             <button class="btn-auto-run" id="btnAutoRun" onclick="startAutoRun()">
-              <span>🚀 一键全自动导出 PPT</span>
+              <span data-key="ppt_btn_auto">🚀 一键全自动导出 PPT</span>
             </button>
           </div>
 
@@ -585,64 +906,237 @@
             <!-- Step 1 -->
             <div class="ppt-step active" id="pptStep1">
               <div class="ppt-icon">🧹</div>
-              <div class="ppt-title">1. 全局清洗</div>
-              <div class="ppt-desc">解锁图层、移除隐藏项、解绑组件。<br><span style="color:#faad14">⚠️ 必须在副本中操作！</span></div>
-              <div class="ppt-status" id="status1">等待执行</div>
+              <div class="ppt-title" data-key="ppt_step1_t">1. 全局清洗</div>
+              <div class="ppt-desc" data-key="ppt_step1_d">解锁图层、移除隐藏项、解绑组件。</div>
+              <div class="ppt-status" id="status1" data-key="ppt_stat_wait">等待执行</div>
             </div>
             <!-- Step 2 -->
             <div class="ppt-step" id="pptStep2">
               <div class="ppt-icon">🖼️</div>
-              <div class="ppt-title">2. 图标栅格化</div>
-              <div class="ppt-desc">将矢量图标和 p_img 组转换为高清位图，<br>防止 PPT 显示错乱。</div>
+              <div class="ppt-title" data-key="ppt_step2_t">2. 图标栅格化</div>
+              <div class="ppt-desc" data-key="ppt_step2_d">将矢量图标和 p_img 组转换为高清位图。</div>
               <div class="ppt-status" id="status2">等待执行</div>
             </div>
             <!-- Step 3 -->
             <div class="ppt-step" id="pptStep3">
               <div class="ppt-icon">📑</div>
-              <div class="ppt-title">3. 深度扁平化</div>
-              <div class="ppt-desc">消除所有分组和嵌套，<br>修复层级遮挡问题。</div>
+              <div class="ppt-title" data-key="ppt_step3_t">3. 深度扁平化</div>
+              <div class="ppt-desc" data-key="ppt_step3_d">消除所有分组和嵌套，修复层级遮挡。</div>
               <div class="ppt-status" id="status3">等待执行</div>
             </div>
             <!-- Step 4 -->
             <div class="ppt-step" id="pptStep4">
               <div class="ppt-icon">📊</div>
-              <div class="ppt-title">4. 生成 PPT 结构</div>
-              <div class="ppt-desc">提取布局信息，生成 .pptx 文件。<br>图片将显示为占位符框。</div>
-              <label style="font-size:12px; display:block; margin-bottom:10px;"><input type="checkbox" id="pptScale" checked> 缩放至 16:9 (960x540)</label>
+              <div class="ppt-title" data-key="ppt_step4_t">4. 生成 PPT 结构</div>
+              <div class="ppt-desc" data-key="ppt_step4_d">提取布局信息，生成 .pptx 文件。</div>
+              <label style="font-size:12px; display:block; margin-bottom:10px;">
+                  <input type="checkbox" id="pptScale" checked> 
+                  <span data-key="ppt_step4_scale">缩放至 16:9 (960x540)</span>
+              </label>
               <div class="ppt-status" id="status4">等待执行</div>
             </div>
             <!-- Step 5 -->
             <div class="ppt-step" id="pptStep5">
               <div class="ppt-icon">📦</div>
-              <div class="ppt-title">5. 导出资源包</div>
-              <div class="ppt-desc">打包下载图片资源 (.zip)，<br>供手动替换。</div>
+              <div class="ppt-title" data-key="ppt_step5_t">5. 导出资源包</div>
+              <div class="ppt-desc" data-key="ppt_step5_d">打包下载图片资源 (.zip)。</div>
               <div class="ppt-status" id="status5">等待执行</div>
             </div>
-            <!-- 完成页 -->
-            <!-- 完成页 -->
+            <!-- Step 6 -->
             <div class="ppt-step" id="pptStep6">
               <div class="ppt-icon" style="background:#f6ffed; color:#52c41a; border-color:#b7eb8f;">🎉</div>
-              <div class="ppt-title">全部完成</div>
-              <div class="ppt-desc">
-                文件已生成。<br>请解压资源包并替换 PPT 中的占位符。
-              </div>
+              <div class="ppt-title" data-key="ppt_step6_t">全部完成</div>
+              <div class="ppt-desc" data-key="ppt_step6_d">文件已生成，请下载。</div>
               
-              <!-- 新增：手动下载兜底按钮 -->
               <button class="btn-manual-dl" onclick="generateAssetsZip()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                📦 没收到文件？点此手动下载
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span data-key="ppt_btn_manual">📦 没收到文件？点此手动下载</span>
               </button>
-              
-              <div style="font-size:10px; color:#999; margin-top:16px;">如需重新导出，请点击重置</div>
             </div>
           </div>
 
           <!-- 底部操作栏 -->
           <div class="ppt-progress-track"><div class="ppt-progress-fill" id="pptProgBar"></div></div>
           <div class="ppt-footer">
-            <button style="width: 30%; color:#999;" onclick="resetPPT()">↺ 重置</button>
-            <button class="primary-btn" style="width: 70%;" id="pptActionBtn" onclick="runCurrentPPTStep()">分步执行 Step 1</button>
+            <button style="width: 30%; color:#999;" onclick="resetPPT()" data-key="ppt_btn_reset">↺ 重置</button>
+            <button class="primary-btn" style="width: 70%;" id="pptActionBtn" onclick="runCurrentPPTStep()" data-key="ppt_btn_run">分步执行 STEP 1</button>
           </div>
+        </div>
+        
+        <!-- Variant Refiner 面板 (新结构) -->
+        <div id="refinerPanel">
+  
+          <!-- 顶部 Tab -->
+          <div class="refiner-tabs">
+            <div class="refiner-tab-item active" onclick="switchRefinerTab('lint')" data-key="ref_tab_lint">智能检查 (Lint)</div>
+            <div class="refiner-tab-item" onclick="switchRefinerTab('find')" data-key="ref_tab_find">查找替换 (Find)</div>
+          </div>
+
+          <!-- Tab 1: 智能检查 (Lint) -->
+          <div id="tabLint" class="refiner-tab-content active">
+            <!-- 配置区 (Config) -->
+            <div id="lintConfig" class="refiner-config" style="padding: 16px; background:#fff; flex:1; overflow-y:auto;">
+              <div class="config-group">
+                <label class="config-label" data-key="lbl_scope">检查范围</label>
+                <div class="radio-grid">
+                  <div class="radio-item active" data-value="selection" onclick="selectRadio(this, 'scope', 'selection')" data-key="scope_sel">选中图层</div>
+                  <div class="radio-item" data-value="page" onclick="selectRadio(this, 'scope', 'page')" data-key="scope_page">当前页面</div>
+                </div>
+              </div>
+              <div class="config-group">
+                <label class="config-label" data-key="lbl_case">命名风格</label>
+                <div class="radio-grid" style="grid-template-columns: 1fr 1fr;">
+                  <div class="radio-item active" data-value="camelCase" onclick="selectRadio(this, 'case', 'camelCase')" >camelCase</div>
+                  <div class="radio-item" data-value="PascalCase" onclick="selectRadio(this, 'case', 'PascalCase')" >PascalCase</div>
+                  <div class="radio-item" data-value="snake_case" onclick="selectRadio(this, 'case', 'snake_case')" >snake_case</div>
+                  <div class="radio-item" data-value="kebab-case" onclick="selectRadio(this, 'case', 'kebab-case')" >kebab-case</div>
+                  <div class="radio-item" data-value="UPPER" onclick="selectRadio(this, 'case', 'UPPER')" >UPPER CASE</div>
+                  <div class="radio-item" data-value="lower" onclick="selectRadio(this, 'case', 'lower')" >lowercase</div>
+                </div>
+              </div>
+              <div class="config-group">
+                <label class="config-label" data-key="lbl_opt">清洗选项</label>
+                
+                <!-- 🔴 修复点：给文字加上 span 和 data-key -->
+                <label class="checkbox-row">
+                  <input type="checkbox" id="opt_trim" checked> 
+                  <span data-key="opt_trim">去除首尾空格</span>
+                </label>
+                
+                <label class="checkbox-row">
+                  <input type="checkbox" id="opt_emoji" checked> 
+                  <span data-key="opt_emoji">保留 Emoji</span>
+                </label>
+                
+                <label class="checkbox-row">
+                  <input type="checkbox" id="opt_id" checked> 
+                  <span data-key="opt_id">移除 Figma ID</span>
+                </label>
+              </div>
+              <button class="btn-start-lint" onclick="startRefinerLint()" data-key="btn_start_check">开始检查</button>
+            </div>
+
+            <!-- 结果列表区 (Lint Results) -->
+            <div id="lintResultsWrapper" style="display:none; flex-direction:column; height:100%;">
+              <div class="res-header">
+                <div class="header-left">
+                  <!-- 全选按钮 -->
+                  <input type="checkbox" id="lintSelectAll" class="header-cb" checked onclick="toggleSelectAll('lint', this.checked)">
+                  <span style="font-size:12px; font-weight:600;"><span data-key="res_title">检查结果</span> (<span id="lintCount">0</span>)</span>
+                </div>
+                <button class="btn-reset" onclick="resetLintUI()" data-key="btn_reset">↺ 重置</button>
+              </div>
+              
+              <div id="lintList" class="res-list"></div>
+              
+              <!-- 空状态 -->
+              <div id="lintEmpty" class="empty-state-refiner" style="display:none; padding-top: 40px;">
+                <div class="success-icon">🎉</div>
+                <div class="success-title" data-key="empty_perfect_title">完美！</div>
+                <div class="success-desc" data-key="empty_perfect_desc">未发现命名问题</div>
+                <button class="btn-manual-dl" style="margin-top:12px; width: 100px; padding: 8px 24px;" 
+                onclick="resetLintUI()"><span data-key="ref_btn_back">返回</span></button>
+              </div>
+
+              <div class="res-footer" id="lintFooter">
+                <button class="btn-act primary" onclick="fixRefiner('checked')">修复选中项</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: 查找替换 (Find & Replace) -->
+          <!-- Tab 2: 查找替换 (Find & Replace) -->
+          <!-- Tab 2: 查找替换 (Find & Replace) -->
+          <div id="tabFind" class="refiner-tab-content">
+            
+            <!-- A. 顶部控制区 (可折叠) -->
+            <div class="find-controls">
+                <!-- 展开状态 -->
+                <div id="findControlsExpanded" class="find-expanded">
+                    <!-- 范围选择 -->
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <div class="scope-segment">
+                            <!-- 按钮 1：选中图层 (默认高亮 active) -->
+                            <!-- 修改点：ID 改为 fScopeSel，参数改为 'selection' -->
+                            <div class="scope-option active" id="fScopeSel" onclick="toggleFindScope('selection')" data-key="ref_scope_sel_short">选中</div>
+                            
+                            <!-- 按钮 2：当前页面 -->
+                            <!-- 修改点：ID 改为 fScopePage，参数改为 'page' -->
+                            <div class="scope-option" id="fScopePage" onclick="toggleFindScope('page')" data-key="ref_scope_page_short">当前页</div>
+                        </div>
+                        <!-- 右侧的状态文字保持不变 -->
+                        <div style="font-size:10px; color:#999;" id="findStatus" data-key="ref_status_ready">Ready</div>
+                    </div>
+                    <!-- 输入框组 -->
+                    <div class="input-group-icon">
+                        <div class="icon-prefix"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>
+                        <input type="text" id="inpFind" placeholder="Search variants..." data-key="ref_ph_find">
+                        <div class="icon-suffix-group">
+                          <div class="icon-toggle" id="btnCase" onclick="this.classList.toggle('active')" title="Aa">Aa</div>
+                          <div class="icon-toggle" id="btnWhole" onclick="this.classList.toggle('active')" title="ab">ab</div>
+                        </div>
+                    </div>
+                    <div class="input-group-icon">
+                        <div class="icon-prefix" style="color:#1890FF;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></div>
+                        <input type="text" id="inpRep" placeholder="Replace with..." data-key="ref_ph_rep">
+                    </div>
+                    <!-- 查找范围选择 -->
+                    <div class="filter-chips-row">
+                        <div class="chip-check active" onclick="toggleChip(this)" data-target="propName" data-key="ref_chip_pname">Prop Name</div>
+                        <div class="chip-check active" onclick="toggleChip(this)" data-target="propValue" data-key="ref_chip_pval">Prop Value</div>
+                    </div>
+                    <!-- 查找按钮 -->
+                    <button class="btn-start-lint" style="margin-top:8px;" onclick="startFindRefiner()" data-key="ref_btn_find_preview">查找并预览</button>
+                    <div style="text-align:center; padding-top:8px; cursor:pointer; color:#999;" onclick="toggleFindHeader(false)">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                    </div>
+                  </div>
+
+                <!-- 折叠后的摘要条 -->
+                <div id="findSummaryBar" class="find-summary-bar" onclick="toggleFindHeader(true)">
+                    <div class="summary-text">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        <span id="findSummaryText">Searching...</span>
+                    </div>
+                    <div style="font-size:11px; color:#666; text-decoration:underline;">Edit</div>
+                </div>
+            </div>
+
+            <!-- B. 结果反馈区 -->
+            <div id="findResultsWrapper" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+                <!-- 头部 (带全选) -->
+                <div class="res-header" id="findListHeader" style="display:none;">
+                    <div class="header-left">
+                        <input type="checkbox" id="findSelectAll" class="header-cb" checked onclick="toggleSelectAll('find', this.checked)">
+                        <span style="font-size:12px; font-weight:600;"><span data-key="res_title">Result</span> (<span id="findCount">0</span>)</span>
+                    </div>
+                </div>
+
+                <div id="findList" class="res-list">
+                    <div class="empty-state-refiner">
+                        <div class="es-icon">🔍</div>
+                        <div class="es-text" data-key="ref_empty_find_init">输入关键词预览修改效果</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 底部按钮 -->
+            <div class="res-footer" id="findFooter">
+              <button class="btn-act primary" id="btnRepChecked" disabled onclick="fixRefiner('checked')">Replace Selected</button>
+            </div>
+          </div>
+
+          <!-- 公用：修复成功反馈页 -->
+          <div id="successResultView" class="success-overlay">
+              <div class="success-icon">✅</div>
+              <div class="success-title">修复成功 (Fixed)</div>
+              <div class="success-desc">
+                  本次共修复 <b id="successCount" style="color:#333;">0</b> 项。<br>
+                  点击继续，返回列表处理剩余项。
+              </div>
+              <button class="btn-start-lint" style="width:120px;" onclick="continueAfterFix()">继续 (Continue)</button>
+          </div>
+
         </div>
 
         <!-- 空状态页面 -->
@@ -653,9 +1147,7 @@
         </div>
       </div>
       
-      <div class="fixed-action" id="selectionFooter">
-        <button class="primary-btn" onclick="runFilter()">查找并选择</button>
-      </div>
+      <!-- 窗口调整器 -->
       <div class="resize-handle" id="resizeHandle"></div>
     </div>
   </div>
@@ -667,7 +1159,7 @@
         nav_simple: "简易工具", 
         nav_select: "选择工具", 
         nav_layout: "布局工具",
-        nav_text: "文字工具", // 修改这一项
+        nav_text: "文字工具", 
         nav_style_tools: "样式工具",
         nav_ppt: "导出PPT",
         btn_switch: "切换",
@@ -676,7 +1168,147 @@
         empty_title: "功能开发中",
         empty_desc: "敬请期待...",
         
+        // --- Refiner 相关 ---
+        nav_refiner: "组件清洗",
+        lbl_scope: "检查范围",
+        scope_sel: "选中图层",
+        scope_page: "当前页面",
+        lbl_case: "目标命名风格",
+        lbl_opt: "清洗选项",
+        opt_trim: "🔲 移除首尾空格",
+        opt_emoji: "😜 保留 Emoji 表情",
+        opt_id: "✳️ 移除内部 ID (#21:3)",
+        lbl_replace: "查找与替换 (可选)",
+        btn_start_check: "开始检查",
+        res_title: "检查结果",
+        btn_reset: "重置配置",
+        empty_perfect_title: "太棒了",
+        empty_perfect_desc: "未发现不规范的命名",
+        btn_fix_sel: "修复选中项",
+        btn_fix_all: "修复全部",
+        // Refiner 新增补充 (Tab & Find)
+        ref_tab_lint: "智能检查",
+        ref_tab_find: "查找替换",
+        ref_scope_sel_short: "选中图层",
+        ref_scope_page_short: "当前页面", // Find面板用简写
+        ref_scope_all_short: "全文件",
+        ref_status_ready: "就绪",
+        ref_status_searching: "搜索中...",
+        ref_status_done: "完成",
         
+        ref_chip_pname: "属性名 (Name)",
+        ref_chip_pval: "属性值 (Value)",
+        
+        ref_ph_find: "查找内容...",
+        ref_ph_rep: "替换为...",
+        
+        ref_empty_find_init: "输入关键词预览修改效果",
+        ref_empty_find_none: "未找到匹配项",
+        
+        ref_btn_rep: "替换",
+        ref_btn_rep_all: "全部替换",
+        
+        ref_msg_scan: "正在扫描...",
+        ref_msg_analyze: "正在分析图层...",
+        ref_err_no_input: "请输入查找内容",
+        ref_err_no_target: "请选择至少一个搜索目标",
+        ref_err_no_fix: "未选择需要修复的项",
+        ref_btn_find_preview: "查找并预览", // Tab2 的按钮
+
+        ref_btn_replace_checked: "替换选中项",
+        ref_success_title: "修复成功",
+        ref_success_desc_1: "本次共修复",
+        ref_success_desc_2: "项",
+        ref_success_btn: "继续处理剩余项",
+
+        ref_status_searching_prefix: "查找：",
+        ref_btn_edit: "编辑",
+
+        ref_chip_pname_title: "组件名",
+        ref_chip_prop_key_title: "属性名",
+        ref_chip_prop_val_title: "属性值",
+
+        ref_btn_back: "返回",
+        ref_btn_continue: "好的，继续",
+
+        
+        // --- 选择工具 (Selection) ---
+        sel_title_scope: "查找范围",
+        sel_scope_in: "内在元素",
+        sel_scope_sib: "同级",
+        sel_scope_child: "子级",
+        sel_scope_desc: "子孙元素",
+        sel_title_name: "名称",
+        sel_ph_name: "输入名称", 
+        sel_title_type: "类型",
+        logic_in: "包含",
+        logic_ex: "不包含",
+        sel_type_all: "全部类型",
+        sel_t_comp: "❖ 组件",
+        sel_t_inst: "◇ 实例",
+        sel_t_frame: "# 画板",
+        sel_t_auto: "[] 自动布局",
+        sel_t_group: ":: 组",
+        sel_t_text: "T 文本",
+        sel_t_img: "Img 图片",
+        sel_t_rect: "☐ 矩形",
+        sel_t_vect: "✎ 钢笔",
+        sel_t_ell: "○ 椭圆",
+        sel_t_line: "/ 直线",
+        sel_title_state: "状态",
+        sel_state_all: "全部状态",
+        sel_s_hidden: "隐形",
+        sel_s_lock: "锁定",
+        sel_s_nofill: "无填充",
+        sel_s_nostroke: "无描边",
+        sel_s_clip: "裁剪内容",
+        sel_s_nochild: "无子级",
+        sel_title_prop: "属性",
+        sel_ph_val: "值", 
+        sel_btn_exec: "查找并选择",
+
+        // --- 文本工具 ---
+        txt_title_find: "查找与替换",
+        txt_ph_find: "查找内容，注意区分大小写...",
+        txt_ph_rep: "替换为...",
+        txt_btn_exec: "执行替换",
+
+        // --- 导出 PPT ---
+        ppt_tips_title: "💕 导出说明：",
+        ppt_tip_1: "❗️必须将当前Page副本名称中加入 “副本” 或 “copy” 字样",
+        ppt_tip_2: "❗️混合路径、蒙版、模糊图层、N角星、特殊形状、曲线、折线等复杂图层PPT无法识别，且难以在PPT中编辑，需将该类图层各自编组重命名为\"p_img\"。",
+        ppt_tip_3: "为防崩溃，图片仅导出占位符，请下载资源包手动替换。",
+        ppt_tip_4: "初次使用建议先尝试 [分步执行]，熟悉转化流程。",
+        ppt_tip_5: "Figma 1920x1080 画板对应 PPT 16:9 画布，导出时默认勾选缩小 0.5 倍，避免 PPT 过大。",
+        ppt_tip_6: "重置按钮只重置插件，复原设计稿使用 ctrl+z 。",
+        
+        ppt_btn_auto: "🚀 一键自动导出 PPT",
+        
+        ppt_step1_t: "1. 全局清洗",
+        ppt_step1_d: "解锁图层、移除隐藏项、解绑实例",
+        ppt_step2_t: "2. 图标图形栅格化",
+        ppt_step2_d: "将复杂矢量图形和 p_img 图层转换为 PNG 素材",
+        ppt_step3_t: "3. 深度扁平化",
+        ppt_step3_d: "消除所有分组嵌套和不可见Frame，修复遮挡",
+        ppt_step4_t: "4. 生成 PPT 结构",
+        ppt_step4_d: "提取布局信息，生成 .pptx 文件",
+        ppt_step4_scale: "缩放至 16:9 (960x540)",
+        ppt_step5_t: "5. 导出资源包",
+        ppt_step5_d: "打包下载图片资源 (.zip)",
+        ppt_step6_t: "全部完成",
+        ppt_step6_d: "文件已生成，请下载",
+        
+        ppt_btn_manual: "📦 没收到？点此手动下载",
+        ppt_btn_reset: "🌀 重置",
+        ppt_stat_wait: "等待执行",
+        ppt_stat_done: "✅ 执行成功",
+        ppt_btn_next: "下一步 →",
+        ppt_btn_done: "已完成",
+        ppt_btn_run: "分步执行 STEP ",  // <--- 注意这里，之前少了逗号
+
+        // ---refiner工具---- //
+        btn_back: "返回配置",
+  
         // 格式：key: [标题, 简介, 详细Tooltip, 成功提示]
         pixel_perfect: ["像素取整", "像素取整对齐", "将选中图层的 X、Y 坐标及宽高强制四舍五入为整数，消除小数杂边。", "已像素对齐"],
         swap_positions: ["交换位置", "交换位置", "非AutoLayout模式下交换选中的两个图层的 X/Y 坐标，保持图层层级不变。", "位置已交换"],
@@ -713,6 +1345,148 @@
         empty_title: "Coming Soon",
         empty_desc: "Under development...",
         
+        // --- Refiner Related ---
+        nav_refiner: "ComRefiner",
+        lbl_scope: "Scope",
+        scope_sel: "Selection",
+        scope_page: "Current Page",
+        lbl_case: "Naming Case",
+        lbl_opt: "Options",
+        opt_trim: "🔲 Trim Whitespace",
+        opt_emoji: "😜 Keep Emojis",
+        opt_id: "✳️ Remove ID (#123)",
+        lbl_replace: "Find & Replace (Optional)",
+        btn_start_check: "Start Check",
+        res_title: "Results",
+        btn_reset: "Reset Config",
+        empty_perfect_title: "Perfect!",
+        empty_perfect_desc: "No issues found",
+        btn_fix_sel: "Fix Selected",
+        btn_fix_all: "Fix All",
+        // Refiner Supplement
+        ref_tab_lint: "Lint",
+        ref_tab_find: "Find & Replace",
+        ref_scope_sel_short: "Selection",
+        ref_scope_page_short: "Current Page",
+        ref_scope_all_short: "All Pages",
+        ref_status_ready: "Ready",
+        ref_status_searching: "Searching...",
+        ref_status_done: "Done",
+        
+        ref_chip_pname: "Prop Name",
+        ref_chip_pval: "Prop Value",
+        
+        ref_ph_find: "Find text...",
+        ref_ph_rep: "Replace with...",
+        
+        ref_empty_find_init: "Enter text to preview changes",
+        ref_empty_find_none: "No matches found",
+        
+        ref_btn_rep: "Replace",
+        ref_btn_rep_all: "Replace All",
+        
+        ref_msg_scan: "Scanning...",
+        ref_msg_analyze: "Analyzing layers...",
+        ref_err_no_input: "Please enter text to find",
+        ref_err_no_target: "Select at least one target",
+        ref_err_no_fix: "No items selected",
+        ref_btn_find_preview: "Find & Preview",
+
+        ref_btn_replace_checked: "Replace Selected",
+        ref_success_title: "Success",
+        ref_success_desc_1: "Fixed",
+        ref_success_desc_2: "items",
+        ref_success_btn: "Continue",
+
+        ref_status_searching_prefix: "Search:",
+        ref_btn_edit: "Edit",
+
+        ref_chip_pname_title: "Comp Name",
+        ref_chip_prop_key_title: "Prop Name",
+        ref_chip_prop_val_title: "Prop Value",
+
+        ref_btn_back: "Back",
+        ref_btn_continue: "OK, Continue",
+        
+        // --- 1. Selection Tools ---
+        sel_title_scope: "Search Scope",
+        sel_scope_in: "Inside",
+        sel_scope_sib: "Siblings",
+        sel_scope_child: "Children",
+        sel_scope_desc: "Descendants",
+        sel_title_name: "Name",
+        sel_ph_name: "Input Name...",
+        sel_title_type: "Type",
+        logic_in: "Include",
+        logic_ex: "Exclude",
+        sel_type_all: "All Types",
+        sel_t_comp: "❖ Component",
+        sel_t_inst: "◇ Instance",
+        sel_t_frame: "# Frame",
+        sel_t_auto: "[] AutoLayout",
+        sel_t_group: ":: Group",
+        sel_t_text: "T Text",
+        sel_t_img: "Img Image",
+        sel_t_rect: "☐ Rectangle",
+        sel_t_vect: "✎ Vector",
+        sel_t_ell: "○ Ellipse",
+        sel_t_line: "/ Line",
+        sel_title_state: "State",
+        sel_state_all: "All States",
+        sel_s_hidden: "Hidden",
+        sel_s_lock: "Locked",
+        sel_s_nofill: "No Fill",
+        sel_s_nostroke: "No Stroke",
+        sel_s_clip: "Clip Content",
+        sel_s_nochild: "No Children",
+        sel_title_prop: "Properties",
+        sel_ph_val: "Value",
+        sel_btn_exec: "Find & Select",
+
+        // --- 2. Text Tools ---
+        txt_title_find: "Find & Replace",
+        txt_ph_find: "Find text (case sensitive)...",
+        txt_ph_rep: "Replace with...",
+        txt_btn_exec: "Replace All",
+
+        // --- 3. PPT Master ---
+        ppt_tips_title: "💕 Export Guide:",
+        ppt_tip_1: "Duplicate page first. Name must include \"copy\" for safety.",
+        ppt_tip_2: "Rename complex layers (Mixed paths,masks,layer/background blur,triangles,stars,special shapes,curves,polylines) to \"p_img\" to export as PNGs",
+        ppt_tip_3: "Use 1920x1080 frame. Fits PPT 16:9 perfectly.",
+        ppt_tip_4: "First time? Try [Step-by-Step] mode.",
+        ppt_tip_5: "Images export as placeholders. Replace manually using the asset pack.",
+        ppt_tip_6: "Reset restarts the plugin, not the design. Use Ctrl+Z to undo canvas changes.",
+        ppt_btn_auto: "🚀 Auto Export PPT",
+        
+        // Steps
+        ppt_step1_t: "1. Global Clean",
+        ppt_step1_d: "Unlock, remove hidden, detach instances",
+        ppt_step2_t: "2. Rasterize Icons",
+        ppt_step2_d: "Convert vectors to PNG",
+        ppt_step3_t: "3. Flatten Layers",
+        ppt_step3_d: "Ungroup all nested groups",
+        ppt_step4_t: "4. Generate PPT",
+        ppt_step4_d: "Extract layout & generate .pptx",
+        ppt_step4_scale: "Scale to 16:9 (960x540)",
+        ppt_step5_t: "5. Export Assets",
+        ppt_step5_d: "Zip and download images",
+        ppt_step6_t: "All Done",
+        ppt_step6_d: "File generated. Please download",
+        
+        ppt_btn_manual: "📦 Manual Download",
+        ppt_btn_reset: "🌀 Reset",
+        // Status (used in JS)
+        ppt_stat_wait: "Waiting",
+        ppt_stat_done: "✅ Success",
+        ppt_btn_next: "Next →",
+        ppt_btn_done: "Completed",
+        ppt_btn_run: "RUN STEP ", // <--- 注意这里，之前少了逗号
+
+        // ---refiner工具---- //
+        btn_back: "Back to Config",
+        
+        // Tools
         pixel_perfect: ["Pixel Perfect", "Round to Pixel", "Round X, Y, Width, Height to nearest integers.", "Pixel Perfected"],
         swap_positions: ["Swap Positions", "Swap Locations", "Swap X/Y coordinates of exactly two selected layers.", "Positions Swapped"],
         create_styles: ["Create Styles", "Generate Styles", "Convert properties to local styles based on layer name. Detects conflicts.", "Styles Checked"],
@@ -724,7 +1498,7 @@
         remove_al: ["Remove AL", "Remove Auto Layout", "Recursively remove Auto Layout from selected layers and all nested children.", "Auto Layout Removed"],
         add_al_wrapper: ["Add AL Wrapper", "Add Auto Layout Wrapper", "Add vertical Auto Layout Frame around selected layers.", "Auto Layout Wrapped"],
         up_one: ["Up One Level", "Lift layer up one level", "Move selected layers out of their current parent into the grandparent container.", "Layer Moved Up"],
-        up_all: ["Up All Level", "Lift to Top Level", "Move selected layers directly to the Page root level.", "Moved to Top"],
+        up_all: ["Up All Levels", "Lift to Top Level", "Move selected layers directly to the Page root level.", "Moved to Top"],
         rename_content: ["Rename to Content", "Rename to Content", "Rename layers based on their text content for better organization.", "Layers Renamed"],
         sort_layers: ["Sort Layers", "Sort by Position", "Reorder layers in the sidebar based on their visual X/Y position on the canvas.", "Layers Sorted"],
         ungroup_all: ["Ungroup All", "Ungroup all nested", "Recursively find and ungroup all Groups within selection, keeping Frames intact.", "Groups Ungrouped"],
@@ -732,16 +1506,23 @@
         swap_fs: ["Swap Fill/Stroke", "Swap Fill and Stroke", "Swap fill and stroke colors.", "Fills and Strokes Swapped"],
         reset_image: ["Reset Image", "Reset Image Ratio", "Restore original image aspect ratio.", "Image Ratio Reset"],
         select_text: ["Select All Text", "Select All Text", "Find and select all text layers in current scope.", "All Text Selected"],
-        detach_all: ["Detach All Instance", "Detach All Instance", "Detach all nested Instances.", "All Instance Detached"],
+        detach_all: ["Detach All Instances", "Detach All Instances", "Detach all nested Instances.", "All Instances Detached"],
         remove_hidden: ["Clean Hidden", "Remove Hidden Layers", "Recursively delete all invisible 'closed eye' layers.", "Hidden Layers Removed"]
-        
       }
     };
-
+    
     let curLang = 'zh'; // 默认中文
 
     // 初始化语言
     updateLanguage();
+        // --- 新增功能：自动统计与新功能高亮系统 ---
+
+    // 1. 配置：定义哪些功能的 key 是“新功能”
+    // 只要这里有 NEW_FEATURES 中的 key，就会被标记为新功能，直到用户点击该导航
+    const NEW_FEATURES = ['pixel_perfect', 'swap_positions', 'match_styles', 'nav_ppt', 'nav_refiner'];
+    
+    let readFeatures = new Set();
+
 
     function toggleLang() {
       curLang = curLang === 'zh' ? 'en' : 'zh';
@@ -750,27 +1531,59 @@
 
     function updateLanguage() {
       const t = i18n[curLang];
-      
-      // 更新导航
-      document.querySelectorAll('.nav-item').forEach(el => {
-        const k = el.getAttribute('data-key');
-        if(k && t[k]) el.querySelector('.nav-text').innerText = t[k];
-      });
+      if (!t) return; // 安全检查
 
-      // 更新按钮和输入框
-      document.getElementById('modeBtn').innerText = t.btn_switch;
-      document.getElementById('searchInput').placeholder = t.search_ph;
-      document.querySelector('[data-key="empty_title"]').innerText = t.empty_title;
-      document.querySelector('[data-key="empty_desc"]').innerText = t.empty_desc;
-
-      // 更新卡片内容 (标题、简介)
-      document.querySelectorAll('.card').forEach(el => {
+      // 1. 通用更新：处理新加的 Refiner 界面及普通文本
+      // 筛选策略：找到有 data-key 属性，但【不是】导航项、【不是】卡片的元素
+      document.querySelectorAll('[data-key]:not(.nav-item):not(.card)').forEach(el => {
         const k = el.getAttribute('data-key');
-        if(k && t[k]) {
-          el.querySelector('.card-title').childNodes[0].textContent = t[k][0] + " "; // 保留icon
-          el.querySelector('.card-desc').innerText = t[k][1];
+        if (t[k]) {
+          // 如果是输入框，更新 placeholder
+          if (el.tagName === 'INPUT' && (el.type === 'text' || !el.type)) {
+            el.placeholder = t[k];
+          } 
+          // 普通文本元素 (Label, Span, Button, etc.)
+          else {
+            el.innerText = t[k];
+          }
         }
       });
+
+      // 2. 特殊处理：导航项 (Nav Item) - 必须保留 SVG 图标
+      document.querySelectorAll('.nav-item').forEach(el => {
+        const k = el.getAttribute('data-key');
+        // 只更新内部的 .nav-text，绝对不要动 el.innerText
+        const txtSpan = el.querySelector('.nav-text');
+        if(k && t[k] && txtSpan) {
+          txtSpan.innerText = t[k];
+        }
+      });
+
+      // 3. 特殊处理：工具卡片 (Card) - 必须处理数组数据
+      document.querySelectorAll('.card').forEach(el => {
+        const k = el.getAttribute('data-key');
+        // 检查 t[k] 是否存在且为数组 [标题, 简介, ...]
+        if(k && t[k] && Array.isArray(t[k])) {
+          const titleEl = el.querySelector('.card-title');
+          const descEl = el.querySelector('.card-desc');
+          
+          // 更新标题 (保留可能存在的图标，通常文本是第一个子节点)
+          if (titleEl && titleEl.childNodes.length > 0) {
+            // 只要替换文本节点，避免重写 HTML
+            titleEl.childNodes[0].textContent = t[k][0] + " "; 
+          }
+          // 更新简介
+          if (descEl) descEl.innerText = t[k][1];
+        }
+      });
+
+      // 4. 特殊处理：那些可能没有 data-key 的遗留 ID
+      // 如果你的 HTML 里这些元素已经加了 data-key，这部分其实可以删掉，但保留着最保险
+      const modeBtn = document.getElementById('modeBtn');
+      if(modeBtn && t.btn_switch) modeBtn.innerText = t.btn_switch;
+      
+      const searchInput = document.getElementById('searchInput');
+      if(searchInput && t.search_ph) searchInput.placeholder = t.search_ph;
     }
 
     // --- 核心逻辑 ---
@@ -803,7 +1616,17 @@
       document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
       el.classList.add('active');
       
-      const ids = ['toolPanel', 'stylePanel', 'selectionPanel', 'selectionFooter', 'emptyPanel', 'layoutPanel', 'textPanel', 'pptPanel'];
+      const ids = [
+        'toolPanel', 
+        'stylePanel', 
+        'selectionPanel', 
+        'selectionFooter', 
+        'emptyPanel', 
+        'layoutPanel', 
+        'textPanel', 
+        'pptPanel', 
+        'refinerPanel'
+      ];
       const map = {
         'simple': ['toolPanel'],
         'style':  ['stylePanel'],
@@ -811,6 +1634,7 @@
         'layout': ['layoutPanel'], // 新增
         'text':   ['textPanel'],   // 新增
         'ppt':    ['pptPanel'],  // <--- A步骤：这是你要添加的！！
+        'refiner': ['refinerPanel']
       };
       
       // 1. 隐藏所有
@@ -826,7 +1650,14 @@
       if (map[group]) {
         map[group].forEach(id => {
           const div = document.getElementById(id);
-          if(div) div.style.display = (id === 'toolPanel' || id === 'stylePanel' || id === 'layoutPanel') ? 'grid' : 'flex';
+          // 特殊处理：refinerPanel 保持 flex 布局
+          if(div){
+            if(id === 'refinerPanel') {
+              div.style.display = 'flex';
+            } else {
+              div.style.display = (id === 'toolPanel' || id === 'stylePanel' || id === 'layoutPanel') ? 'grid' : 'flex';
+            }
+          }
         });
         
         // 头部搜索框仅在 Grid 类型的面板显示，选择和文字工具不需要
@@ -1045,56 +1876,9 @@
     // 监听来自 code.ts 的消息
     // ... (前面的函数) ...
 
-    // 5. 监听消息
-    // 确保整个脚本里只有这一个监听器！
-    window.onmessage = (event) => { // 使用 onmessage 覆盖，防止 addEventListener 重复叠加
-      const msg = event.data.pluginMessage;
-      if (!msg) return;
-      if (!msg.type.startsWith('ppt-') && !msg.type.startsWith('step-')) return;
-
-      const loadMsg = document.getElementById('loadingMsg');
-      const statusEl = document.getElementById('status' + pptStepIndex);
-
-      try {
-        // ... (中间的判断逻辑保持不变) ...
-        
-        // 重点检查：Step Done 的逻辑
-        if (msg.type === 'step-done' && msg.step === pptStepIndex) {
-          if(statusEl) statusEl.innerText = "✅ 执行成功";
-          
-          if (pptStepIndex === 4) {
-            // ...
-            setTimeout(() => generatePPT({ slides: pptSlidesCache }, scale), 50);
-          }
-          if (pptStepIndex === 5) {
-            // ...
-            setTimeout(() => generateAssetsZip(), 1000);
-          }
-
-          pptState = 'done';
-          
-          // 自动流程：加锁防止双重触发
-          if (isAutoRunning) {
-            if (pptStepIndex < 6) {
-              setTimeout(() => runCurrentPPTStep(), 800);
-            } else {
-              isAutoRunning = false;
-            }
-          }
-          updatePPTUI();
-        }
-        
-        // ... (后面的错误处理保持不变) ...
-      } catch (e) { console.error(e); }
-    };
     
-    // --- 新增功能：自动统计与新功能高亮系统 ---
-
-    // 1. 配置：定义哪些功能的 key 是“新功能”
-    // 只要这里有 NEW_FEATURES 中的 key，就会被标记为新功能，直到用户点击该导航
-    const NEW_FEATURES = ['pixel_perfect', 'swap_positions', 'match_styles', 'nav_ppt'];
     
-    let readFeatures = new Set();
+
 
     // 2. 初始化导航 UI (自动加角标容器，避免手动改 HTML)
     function initNavigationUI() {
@@ -1134,6 +1918,7 @@
         'nav_select': null,
         'nav_text': null,
         'nav_ppt': 1, 
+        'nav_refiner': 1,
       };
 
       // 遍历导航项更新 UI
@@ -1155,7 +1940,7 @@
         let hasNew = false;
 
         // 情况1：导航分类下有新功能
-        if (NEW_FEATURES.includes(key) && !ReadFeatures.has(key)) {
+        if (NEW_FEATURES.includes(key) && !readFeatures.has(key)) {
           hasNew = true;
         }
         
@@ -1173,7 +1958,7 @@
               // 检查该面板内是否有 NEW_FEATURES 中的卡片
               const newcard = Array.from(panel.querySelectorAll('.card')).filter(card => {
                 const k = card.getAttribute('data-key');
-                return NEW_FEATURES.includes(k) && !ReadFeatures.has(k);
+                return NEW_FEATURES.includes(k) && !readFeatures.has(k);
               });
               if (newcard.length > 0) hasNew = true;
             }
@@ -1228,7 +2013,7 @@
       updateCountsAndStatus();
     };
     
-    // === PPT 工具逻辑 (全自动 + 向导版) ===
+    
     // === PPT 工具逻辑 (全自动 + Loading + 性能优化 + 死循环修复) ===
     
     let pptStepIndex = 1; 
@@ -1239,6 +2024,122 @@
     let isAutoRunning = false; 
     let isUIUpdatePending = false; // UI 节流标记
 
+
+
+    // ==========================================
+    // 统一的消息监听中心 (请确保全文件只有这一个 onmessage)
+    // ==========================================
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (!msg) return;
+
+      // PPT 工具消息处理 ---
+      // 如果消息是以 'ppt-' 或 'step-' 开头，交给 PPT 逻辑处理
+      if (msg.type.startsWith('ppt-') || msg.type.startsWith('step-')) {
+          handlePPTMessage(msg);
+          return;
+      }
+
+      // Refiner (命名清洗) 消息处理 ---
+      // 如果消息是 'lint-results'，交给 Refiner 渲染函数
+      if (msg.type === 'lint-results') {
+          console.log("Refiner Results:", msg.data);
+          renderRefinerResults(msg.data); 
+          return;
+      }
+
+      // 拾取名称消息 -- 其他通用消息 (例如获取图层名称) ---
+      if (msg.type === 'update-name-input') {
+          // 这里处理其他杂项功能，比如回填输入框
+          const nameInput = document.getElementById('filterNameInput');
+          if (nameInput) nameInput.value = msg.name;
+      }
+    };
+
+    // 处理 PPT 消息的独立函数 (从 onmessage 拆分出来)
+    function handlePPTMessage(msg) {
+      const loadMsg = document.getElementById('loadingMsg');
+      const statusEl = document.getElementById('status' + pptStepIndex);
+
+      try {
+          // 实时进度
+          if (msg.type === 'ppt-init-total') {
+              if(loadMsg) loadMsg.innerText = `准备处理共 ${msg.count} 个画板...`;
+          }
+          else if (msg.type === 'ppt-start-slide') {
+              if (pptStepIndex === 4) {
+                  pptIncomingSlide = { width: msg.width, height: msg.height, elements: [] };
+                  if (!isUIUpdatePending) {
+                      isUIUpdatePending = true;
+                      requestAnimationFrame(() => {
+                          if(loadMsg) loadMsg.innerText = `正在解析第 ${msg.index + 1} 页...`;
+                          isUIUpdatePending = false;
+                      });
+                  }
+              }
+          }
+          else if (msg.type === 'ppt-element-batch') {
+              if (pptIncomingSlide && Array.isArray(msg.data)) {
+                  pptIncomingSlide.elements.push(...msg.data);
+              }
+          }
+          else if (msg.type === 'ppt-end-slide') {
+              if (pptIncomingSlide) {
+                  pptSlidesCache.push(pptIncomingSlide);
+                  pptIncomingSlide = null;
+              }
+          }
+          else if (msg.type === 'ppt-asset-chunk') {
+              if (pptZip) {
+                  pptZip.file(msg.fileName, msg.data);
+                  if (!isUIUpdatePending) {
+                      isUIUpdatePending = true;
+                      requestAnimationFrame(() => {
+                          if(loadMsg) loadMsg.innerText = `正在压缩: ${msg.fileName}`;
+                          isUIUpdatePending = false;
+                      });
+                  }
+              }
+          }
+          // 步骤完成
+          else if (msg.type === 'step-done' && msg.step === pptStepIndex) {
+              if(statusEl) statusEl.innerText = "✅ 执行成功";
+              
+              if (pptStepIndex === 4) {
+                  if(loadMsg) loadMsg.innerText = "数据提取完成，生成 PPT...";
+                  const scale = document.getElementById('pptScale') ? document.getElementById('pptScale').checked : true;
+                  setTimeout(() => generatePPT({ slides: pptSlidesCache }, scale), 50);
+              }
+              if (pptStepIndex === 5) {
+                  if(loadMsg) loadMsg.innerText = "资源打包完成，准备下载...";
+                  generateAssetsZip(true); 
+              }
+
+              pptState = 'done';
+              if (isAutoRunning) {
+                  if (pptStepIndex < 6) {
+                      setTimeout(() => runCurrentPPTStep(), 800);
+                  } else {
+                      isAutoRunning = false;
+                  }
+              }
+              updatePPTUI();
+          }
+          // 错误处理
+          else if (msg.type === 'step-error') {
+              pptState = 'idle';
+              isAutoRunning = false;
+              alert("执行出错，请重试。");
+              updatePPTUI();
+          }
+      } catch (e) {
+          console.error("PPT Error:", e);
+          isAutoRunning = false;
+          pptState = 'idle';
+          updatePPTUI();
+      }
+    }
+
     // 1. 刷新界面显示 (含 Loading 遮罩)
     function updatePPTUI() {
       const overlay = document.getElementById('loadingOverlay');
@@ -1248,17 +2149,21 @@
       // 控制遮罩显隐
       if (pptState === 'processing') {
         if(overlay) overlay.classList.add('active');
-        // 根据步骤显示不同文案
-        const texts = [
-          "正在清洗图层...", "正在栅格化图标...", "正在深度扁平化...", 
-          "正在提取 PPT 数据...", "正在打包图片资源..."
-        ];
-        if(loadTitle) loadTitle.innerText = texts[pptStepIndex - 1] || "正在处理...";
+        // 动态获取当前步骤的标题作为 Loading 标题 (例如: "1. Global Clean")
+        const currentStepKey = 'ppt_step' + pptStepIndex + '_t';
+        if(loadTitle) loadTitle.innerText = (i18n[curLang][currentStepKey] || "Processing...") + "...";
         
-        if(pptStepIndex === 4) {
-           if(loadMsg) loadMsg.innerText = "图层较多时耗时较长，请保持耐心...";
-        } else {
-           if(loadMsg) loadMsg.innerText = "正在分析设计稿结构...";
+        // 副标题处理
+        if(loadMsg) {
+           if(pptStepIndex === 4) {
+              loadMsg.innerText = curLang === 'zh' 
+                ? "图层较多时耗时较长，请保持耐心..." 
+                : "Large files may take time, please wait...";
+           } else {
+              loadMsg.innerText = curLang === 'zh' 
+                ? "正在分析设计稿结构..." 
+                : "Analyzing design structure...";
+           }
         }
       } else {
         if(overlay) overlay.classList.remove('active');
@@ -1279,25 +2184,40 @@
       if (!btn) return;
 
       if (isAutoRunning) {
-        autoBtn.innerHTML = "⏳ 自动运行中..."; 
+        autoBtn.innerHTML = curLang === 'zh' ? "⏳ 自动运行中..." : "🚀 Auto Running..."; 
         autoBtn.disabled = true;
         btn.disabled = true; 
-        btn.innerText = "🤖 接管中...";
+        btn.innerText = curLang === 'zh' ? "🤖 接管中..." : "🤖 Processing...";
       } else {
-        autoBtn.innerHTML = "<span>🚀 一键全自动导出 PPT</span>";
+        autoBtn.innerHTML = `<span>${i18n[curLang].ppt_btn_auto}</span>`;
         autoBtn.disabled = false;
         
         if (pptStepIndex === 6) {
-          btn.innerText = "已完成";
+          btn.innerText = i18n[curLang].ppt_btn_done;
           btn.disabled = true;
         } else if (pptState === 'done') {
-          btn.innerText = "下一步 →";
+          btn.innerText = i18n[curLang].ppt_btn_next;
           btn.disabled = false;
           btn.style.color = '#52c41a'; // 绿色
         } else {
-          btn.innerText = `分步执行 Step ${pptStepIndex}`;
+          btn.innerText = i18n[curLang].ppt_btn_run + pptStepIndex;
           btn.disabled = false;
           btn.style.color = '#1890FF'; // 蓝色
+        }
+      }
+      // 更新每一步的小状态标签 (waiting/success)
+      for (let i = 1; i <= 5; i++) {
+        const s = document.getElementById('status' + i);
+        if(s) {
+          if (i < pptStepIndex || (i === pptStepIndex && pptState === 'done')) {
+            s.innerText = i18n[curLang].ppt_stat_done;
+            s.style.background = '#f6ffed';
+            s.style.color = '#52c41a';
+          } else {
+            s.innerText = i18n[curLang].ppt_stat_wait;
+            s.style.background = '#f5f5f5';
+            s.style.color = '#999';
+          }
         }
       }
     }
@@ -1373,7 +2293,7 @@
       
       for(let i=1; i<=5; i++) {
         const s = document.getElementById('status'+i);
-        if(s) s.innerText = "等待执行";
+        if(s) s.innerText = i18n[curLang].ppt_stat_wait;
       }
       updatePPTUI();
     }
@@ -1528,109 +2448,485 @@
       }
     }
 
+    // ==========================================
+    // Refiner 4.0 逻辑 (完整修复版)
+    // ==========================================
 
-    // =================================================
-    // 8. 全局消息监听 (放在所有函数外面，只执行一次！)
-    // =================================================
-    window.onmessage = (event) => {
-      const msg = event.data.pluginMessage;
-      if (!msg) return;
+    // --- 全局变量 ---
+    let refinerCache = []; // 存储当前列表的待修复数据
+    let findDebounceTimer = null;
+    let currentTab = 'lint'; // 'lint' | 'find'
+    let isFixConfirmationState = false; // 是否进入"修复完成确认"态
+
+    // --- 1. Tab 切换与初始化 ---
+    function switchRefinerTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.refiner-tab-item').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.refiner-tab-content').forEach(el => el.classList.remove('active'));
+        
+        const tabs = document.querySelectorAll('.refiner-tab-item');
+        const contents = document.querySelectorAll('.refiner-tab-content');
+        
+        if(tab === 'lint') {
+            tabs[0].classList.add('active');
+            contents[0].classList.add('active');
+        } else {
+            tabs[1].classList.add('active');
+            contents[1].classList.add('active');
+            // 切换到 Find Tab 时，如果没有输入，清空状态
+            if(document.getElementById('inpFind').value === '') {
+                refinerCache = [];
+                updateFindFooterState();
+            }
+        }
+    }
+
+    // --- 2. Lint (智能检查) 配置逻辑 ---
+    function selectRadio(el, groupName, value) {
+      const parent = el.closest('.radio-grid');
+      parent.querySelectorAll('.radio-item').forEach(i => i.classList.remove('active'));
+      el.classList.add('active');
+      el.dataset.value = value;
+    }
+
+    function startRefinerLint() {
+      const scopeEl = document.querySelector('#lintConfig .radio-item[onclick*="scope"].active');
+      const styleEl = document.querySelector('#lintConfig .radio-item[onclick*="case"].active');
       
-      // 过滤掉非 PPT 的消息 (比如其他工具的 resize 消息)
-      if (!msg.type.startsWith('ppt-') && !msg.type.startsWith('step-')) return;
+      const config = {
+        mode: 'lint',
+        scope: scopeEl ? scopeEl.dataset.value : 'selection',
+        style: styleEl ? styleEl.dataset.value : 'camelCase',
+        trim: document.getElementById('opt_trim').checked,
+        emoji: document.getElementById('opt_emoji').checked,
+        removeId: document.getElementById('opt_id').checked
+      };
 
-      const loadMsg = document.getElementById('loadingMsg');
-      const statusEl = document.getElementById('status' + pptStepIndex);
+      // 重置确认状态
+      isFixConfirmationState = false;
+      sendLintRequest(config);
+    }
 
-      try {
-        // --- 实时进度 (Step 4 & 5) ---
-        if (msg.type === 'ppt-init-total') {
-           if(loadMsg) loadMsg.innerText = `准备处理共 ${msg.count} 个画板...`;
-        }
-        else if (msg.type === 'ppt-start-slide') {
-          // 只有当我们在 Step 4 时才处理 slide 数据，防止 Step 5 的排序再次触发
-          if (pptStepIndex === 4) {
-            pptIncomingSlide = { width: msg.width, height: msg.height, elements: [] };
-            if (!isUIUpdatePending) {
-              isUIUpdatePending = true;
-              requestAnimationFrame(() => {
-                if(loadMsg) loadMsg.innerText = `正在解析第 ${msg.index + 1} 页...`;
-                isUIUpdatePending = false;
-              });
-            }
-          }
-        }
-        else if (msg.type === 'ppt-element-batch') {
-          if (pptIncomingSlide && Array.isArray(msg.data)) {
-            pptIncomingSlide.elements.push(...msg.data);
-          }
-        }
-        else if (msg.type === 'ppt-end-slide') {
-          if (pptIncomingSlide) {
-            pptSlidesCache.push(pptIncomingSlide);
-            pptIncomingSlide = null;
-          }
-        }
-        else if (msg.type === 'ppt-asset-chunk') {
-          if (pptZip) {
-            pptZip.file(msg.fileName, msg.data);
-            if (!isUIUpdatePending) {
-              isUIUpdatePending = true;
-              requestAnimationFrame(() => {
-                if(loadMsg) loadMsg.innerText = `正在压缩: ${msg.fileName}`;
-                isUIUpdatePending = false;
-              });
-            }
-          }
-        }
+    function resetLintUI() {
+        document.getElementById('lintConfig').style.display = 'block';
+        document.getElementById('lintResultsWrapper').style.display = 'none';
+        refinerCache = [];
+        isFixConfirmationState = false;
+    }
 
-        // --- 步骤完成 ---
-        // 关键判断：收到的 step-done 必须匹配当前的 pptStepIndex
-        // 这能防止 Step 3 的延迟消息误触 Step 4
-        else if (msg.type === 'step-done' && msg.step === pptStepIndex) {
-          if(statusEl) statusEl.innerText = "✅ 执行成功";
-          
-          if (pptStepIndex === 4) {
-            if(loadMsg) loadMsg.innerText = "数据提取完成，生成 PPT...";
-            const scale = document.getElementById('pptScale').checked;
-            setTimeout(() => generatePPT({ slides: pptSlidesCache }, scale), 50);
-          }
-          if (pptStepIndex === 5) {
-            if(loadMsg) loadMsg.innerText = "资源打包完成，准备下载...";
-            generateAssetsZip(true); 
-          }
-
-          pptState = 'done';
-          
-          // 自动流程流转
-          if (isAutoRunning) {
-            if (pptStepIndex < 6) {
-              setTimeout(() => runCurrentPPTStep(), 800);
-            } else {
-              isAutoRunning = false;
-            }
-          }
-          updatePPTUI();
+    // --- 3. Find (查找替换) 交互逻辑 ---
+    function toggleFindHeader(expand) {
+        const controls = document.getElementById('findControlsExpanded');
+        const summary = document.getElementById('findSummaryBar');
+        
+        if (expand) {
+            controls.style.display = 'flex';
+            summary.classList.remove('visible');
+        } else {
+            controls.style.display = 'none';
+            summary.classList.add('visible');
+            
+            const txt = document.getElementById('inpFind').value;
+            const searchLabel = i18n[curLang].ref_status_searching || "Search:";
+            document.getElementById('findSummaryText').innerHTML = `${searchLabel} "<b>${txt}</b>"`;
+            
+            const editBtn = document.querySelector('#findSummaryBar > div:last-child');
+            if(editBtn) editBtn.innerText = i18n[curLang].ref_btn_edit || "Edit";
         }
+    }
 
-        // --- 错误处理 ---
-        else if (msg.type === 'step-error') {
-          pptState = 'idle';
-          isAutoRunning = false;
-          alert("执行出错，请重试。");
-          updatePPTUI();
-        }
-      } catch (e) {
-        console.error(e);
-        isAutoRunning = false;
-        pptState = 'idle';
-        updatePPTUI();
-      }
-    };
-
+    function toggleSelectAll(scope, isChecked) {
+        const listId = scope === 'lint' ? 'lintList' : 'findList';
+        const checkboxes = document.querySelectorAll(`#${listId} .diff-cb`);
+        
+        checkboxes.forEach(cb => {
+            // 如果已经在确认态(蓝色icon)，则不允许操作 checkbox，或者是只操作未修复的
+            // 这里简单处理：全选只针对 checkbox 元素
+            cb.checked = isChecked;
+        });
+        
+        updateFindFooterState(); // 刷新底部按钮
+    }
     
+    // 【补全】更新选中数量与全选框状态
+    function updateSelectedCount() {
+        const listId = currentTab === 'lint' ? 'lintList' : 'findList';
+        const allCbs = document.querySelectorAll(`#${listId} .diff-cb`);
+        const checkedCbs = document.querySelectorAll(`#${listId} .diff-cb:checked`);
+        
+        const selectAllId = currentTab === 'lint' ? 'lintSelectAll' : 'findSelectAll';
+        const selectAllCb = document.getElementById(selectAllId);
+        
+        if(selectAllCb) {
+            selectAllCb.checked = (allCbs.length > 0 && allCbs.length === checkedCbs.length);
+            selectAllCb.indeterminate = (checkedCbs.length > 0 && checkedCbs.length < allCbs.length);
+        }
 
+        updateFindFooterState();
+    }
 
+    // 2.1 切换查找范围 (Selection / Page)
+    function toggleFindScope(val) {
+        document.querySelectorAll('.scope-option').forEach(el => el.classList.remove('active'));
+        
+        if(val === 'selection') {
+            document.getElementById('fScopeSel').classList.add('active');
+        } else {
+            document.getElementById('fScopePage').classList.add('active');
+        }
+        
+        debounceFind(); // 切换范围后立即触发查找
+    }
+
+    function toggleFindOpt(el) {
+        el.classList.toggle('active');
+        debounceFind();
+    }
+
+    function toggleChip(el) {
+        el.classList.toggle('active');
+        debounceFind();
+    }
+
+    function debounceFind() {
+        clearTimeout(findDebounceTimer);
+        findDebounceTimer = setTimeout(() => {
+            const queryElement = document.getElementById('inpFind');
+            // 防止元素不存在报错
+            if (!queryElement) return; 
+            
+            const query = queryElement.value;
+            
+            if(!query) {
+              const txt = (i18n && i18n[curLang]) ? i18n[curLang].ref_empty_find_init : 'Enter text to preview';
+              
+              // 初始状态 (普通放大镜)
+              const iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`;
+              
+              const listElement = document.getElementById('findList');
+              if (listElement) {
+                  listElement.innerHTML = `
+                    <div class="empty-state-refiner">
+                        <div class="es-icon">🔍</div>
+                        <div class="es-text">${txt}</div>
+                    </div>`;
+              }
+              
+              refinerCache = [];
+              isFixConfirmationState = false;
+              updateFindFooterState();
+              return;
+            }
+            startFindRefiner();
+        }, 400); 
+    }
+
+    // 2.4 触发查找 (Find) - 逻辑修正
+    function startFindRefiner() {
+        const findText = document.getElementById('inpFind').value;
+        if (!findText) return alert(i18n[curLang].ref_err_no_input || "请输入内容");
+
+        // 🔴 修正点：获取新的范围状态
+        const isSelection = document.getElementById('fScopeSel').classList.contains('active');
+        const scope = isSelection ? 'selection' : 'page';
+
+        const isCase = document.getElementById('btnCase').classList.contains('active');
+        const isWhole = document.getElementById('btnWhole').classList.contains('active');
+        
+        const targets = [];
+        document.querySelectorAll('.chip-check.active').forEach(el => targets.push(el.dataset.target));
+        if (targets.length === 0) return alert(i18n[curLang].ref_err_no_target || "请选择目标");
+
+        const config = {
+            mode: 'find',
+            scope: scope, // 传给后端 'selection' 或 'page'
+            findText: findText,
+            replaceText: document.getElementById('inpRep').value,
+            caseSensitive: isCase,
+            wholeWord: isWhole,
+            targets: targets
+        };
+        
+        toggleFindHeader(false);
+        sendLintRequest(config);
+    }
+
+    function sendLintRequest(config) {
+        const loadOverlay = document.getElementById('loadingOverlay');
+        if(loadOverlay) { 
+            loadOverlay.classList.add('active');
+            const titleEl = document.getElementById('loadingTitle');
+            const msgEl = document.getElementById('loadingMsg');
+            
+            const searchingTxt = (i18n && i18n[curLang]) ? i18n[curLang].ref_status_searching : "Searching...";
+            const scanTxt = (i18n && i18n[curLang]) ? i18n[curLang].ref_msg_scan : "Scanning...";
+            const analyzeTxt = (i18n && i18n[curLang]) ? i18n[curLang].ref_msg_analyze : "Analyzing...";
+
+            if (titleEl) titleEl.innerText = config.mode === 'find' ? searchingTxt : scanTxt;
+            if (msgEl) msgEl.innerText = analyzeTxt;
+        }
+        setTimeout(() => {
+          parent.postMessage({ pluginMessage: { type: 'lint-variants', config } }, '*');
+         }, 50);
+    }
+
+    // --- 4. 渲染与状态管理 ---
+    function renderRefinerResults(results) {
+        document.getElementById('loadingOverlay').classList.remove('active');
+        
+        refinerCache = results;
+
+        if (currentTab === 'lint') {
+            renderLintTab(results);
+        } else {
+            renderFindTab(results);
+        }
+    }
+
+    function renderLintTab(results) {
+        document.getElementById('lintConfig').style.display = 'none';
+        document.getElementById('lintResultsWrapper').style.display = 'flex';
+        
+        const container = document.getElementById('lintList');
+        // 安全更新计数
+        const countEl = document.getElementById('lintCount');
+        if(countEl) countEl.innerText = results.length;
+        
+        // 每次渲染重置全选框状态
+        const selectAllCb = document.getElementById('lintSelectAll');
+        if(selectAllCb) {
+            selectAllCb.checked = !isFixConfirmationState; // 如果在确认态，默认不全选（因为没 checkbox 了）
+            selectAllCb.disabled = isFixConfirmationState; // 确认态禁用全选
+        }
+
+        if (results.length === 0) {
+            document.getElementById('lintList').style.display = 'none';
+            document.getElementById('lintEmpty').style.display = 'flex';
+            document.getElementById('lintFooter').style.display = 'none';
+        } 
+        else {
+            document.getElementById('lintList').style.display = 'block';
+            document.getElementById('lintEmpty').style.display = 'none';
+            document.getElementById('lintFooter').style.display = 'flex';
+            renderTree(results, container);
+        }
+        updateFindFooterState(); // 渲染后更新按钮状态
+    }
+
+    function renderFindTab(results) {
+        const container = document.getElementById('findList');
+        const header = document.getElementById('findListHeader');
+        
+        const countEl = document.getElementById('findCount');
+        if(countEl) countEl.innerText = results.length;
+        
+        const selectAllCb = document.getElementById('findSelectAll');
+        if(selectAllCb) {
+            selectAllCb.checked = !isFixConfirmationState;
+            selectAllCb.disabled = isFixConfirmationState;
+        }
+
+        if (results.length === 0) {
+            header.style.display = 'none';
+            
+            // 无结果状态 (带斜杠的放大镜)
+            const txt = (i18n && i18n[curLang]) ? (i18n[curLang].ref_empty_find_none || 'No matches') : 'No matches';
+            
+            // 使用 es-icon 和 es-text 类
+            const iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="8" x2="14" y2="14"></line></svg>`;
+            
+            container.innerHTML = `
+                <div class="empty-state-refiner">
+                    <div class="es-icon">🤷‍♂️</div>
+                    <div class="es-text">${txt}
+                </div>`;
+        } else {
+            header.style.display = 'flex';
+            container.innerHTML = '';
+            renderTree(results, container);
+        }
+        updateFindFooterState();
+    }
+
+    // 【补全】底部按钮状态控制 (核心交互逻辑)
+    function updateFindFooterState() { 
+        // 根据当前 Tab 获取对应的按钮
+        const currentBtn = currentTab === 'lint' 
+            ? document.querySelector('#lintFooter button') 
+            : document.getElementById('btnRepChecked');
+        
+        if (!currentBtn) return;
+
+        if (isFixConfirmationState) {
+            // --- 确认态：显示“好的，继续” ---
+            currentBtn.disabled = false;
+            currentBtn.innerText = i18n[curLang].ref_btn_continue || "OK, Continue";
+            currentBtn.classList.add('primary');
+        } else {
+            // --- 正常态：显示“修复选中项 (N)” ---
+            const listId = currentTab === 'lint' ? 'lintList' : 'findList';
+            const checkedCount = document.querySelectorAll(`#${listId} .diff-cb:checked`).length;
+            
+            // 获取翻译
+            const txt = currentTab === 'lint' 
+                ? (i18n[curLang].btn_fix_sel || "Fix Selected") 
+                : (i18n[curLang].ref_btn_replace_checked || "Replace Selected");
+                
+            currentBtn.innerText = checkedCount > 0 ? `${txt} (${checkedCount})` : txt;
+            currentBtn.disabled = checkedCount === 0;
+            currentBtn.classList.add('primary');
+        }
+    }
+
+    // --- 树状渲染器 (V4: 完美聚合版) ---
+    function renderTree(items, container) {
+        container.innerHTML = '';
+        
+        // 1. 按 GroupID (组件集ID) 分组
+        const groups = {};
+        items.forEach((item, idx) => {
+            // 🔴 关键修改：使用 groupId 作为 Key
+            const gKey = item.groupId;
+            
+            if (!groups[gKey]) {
+                groups[gKey] = {
+                    name: item.groupName, // 直接使用后端传来的组名 (e.g. "Button Group")
+                    type: item.type,      // 图标类型
+                    items: []
+                };
+            }
+            item.originalIndex = idx; 
+            groups[gKey].items.push(item);
+        });
+
+        // 2. 渲染 DOM
+        Object.keys(groups).forEach(gKey => {
+            const group = groups[gKey];
+            const groupDiv = document.createElement('div');
+            groupDiv.className = 'comp-group expanded';
+            
+            // --- Level 1 Header: 组件集名称 ---
+            // 这里的 group.name 就是 "Input" 或 "Button"，不再是 "Input / Size=L"
+            const icon = group.type === 'COMPONENT_SET' ? '❖' : '◆';
+            groupDiv.innerHTML = `
+              <div class="comp-header" onclick="this.parentElement.classList.toggle('expanded')">
+                 <div class="comp-info">
+                    <span class="comp-arrow">▶</span>
+                    <span class="comp-icon">${icon}</span>
+                    <span title="${group.name}">${group.name}</span>
+                 </div>
+                 <!-- 定位按钮传 GroupID (通常是 Set 的 ID) -->
+                 <div class="btn-locate" onclick="locateNode('${gKey}', event)" title="Locate Component">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                 </div>
+              </div>
+            `;
+            
+            const details = document.createElement('div');
+            details.className = 'comp-details';
+
+            // --- Level 2: 数据分桶 (Name, Prop Name, Prop Value) ---
+            const buckets = { 'Name': [], 'Prop Name': [], 'Prop Value': [] };
+            
+            group.items.forEach(item => {
+                let cat = 'Prop Value';
+                if(item.targetType === 'Name' || item.targetType === 'Component' || item.targetType === 'Component Set') cat = 'Name';
+                else if(item.targetType === 'Variant Key') cat = 'Prop Name';
+                buckets[cat].push(item);
+            });
+
+            // 获取标题翻译
+            const t = i18n[curLang];
+            const catLabels = {
+                'Name': t.ref_chip_pname_title || "Comp Name",
+                'Prop Name': t.ref_chip_prop_key_title || "Prop Name",
+                'Prop Value': t.ref_chip_prop_val_title || "Prop Value"
+            };
+
+            // --- 依次渲染三个桶 ---
+            ['Name', 'Prop Name', 'Prop Value'].forEach(catKey => {
+                const subItems = buckets[catKey];
+                
+                if(subItems.length > 0) {
+                    // Level 2 Header
+                    const subHeader = document.createElement('div');
+                    subHeader.className = 'detail-category';
+                    subHeader.innerHTML = `<span>${catLabels[catKey]}</span> <span class="cat-count">${subItems.length}</span>`;
+                    details.appendChild(subHeader);
+
+                    // Level 3 List
+                    subItems.forEach(item => {
+                        const row = document.createElement('div');
+                        row.className = `diff-item ${item.isFixed ? 'fixed-success' : ''}`;
+                        
+                        const leftIcon = item.isFixed 
+                            ? `<span style="color:#1890FF; margin-right:8px; font-weight:bold;">✓</span>`
+                            : `<input type="checkbox" class="diff-cb" data-idx="${item.originalIndex}" checked onchange="updateSelectedCount()">`;
+
+                        // 简单的差异高亮：把长字符串截断
+                        // 真正的变体名在 item.layerName 里面，可以显示在 title 里
+                        const displayText = item.oldVal.length > 35 ? item.oldVal.substring(0,35)+'...' : item.oldVal;
+
+                        row.innerHTML = `
+                          ${leftIcon}
+                          <div class="txt-wrapper" onclick="locateNode('${item.id}', event)" title="${item.oldVal} -> ${item.newVal}">
+                            <span class="txt-old">${displayText}</span>
+                            <span class="txt-arrow">→</span>
+                            <span class="txt-new">${item.newVal}</span>
+                          </div>
+                        `;
+                        details.appendChild(row);
+                    });
+                }
+            });
+
+            groupDiv.appendChild(details);
+            container.appendChild(groupDiv);
+        });
+    }
+    
+    function locateNode(id, e) {
+        e.stopPropagation();
+        parent.postMessage({ pluginMessage: { type: 'locate-node', id: id } }, '*');
+    }
+
+    // --- 5. 核心：修复与中间状态流 (Workflow) ---
+    function fixRefiner(mode) { 
+        // A. 阶段二：清除已修复项 (点击了"好的，继续")
+        if (isFixConfirmationState) {
+            // 过滤掉 isFixed=true 的项
+            const remaining = refinerCache.filter(item => !item.isFixed);
+            refinerCache = remaining;
+            
+            // 退出确认态，重新渲染
+            isFixConfirmationState = false;
+            renderRefinerResults(refinerCache);
+            return;
+        }
+
+        // B. 阶段一：执行修复
+        const listId = currentTab === 'lint' ? 'lintList' : 'findList';
+        const checkedCbs = document.querySelectorAll(`#${listId} .diff-cb:checked`);
+        
+        if (checkedCbs.length === 0) return alert(i18n[curLang].ref_err_no_fix || "Please select items.");
+
+        const itemsToFix = [];
+        checkedCbs.forEach(cb => {
+            const idx = parseInt(cb.getAttribute('data-idx'));
+            if(refinerCache[idx]) itemsToFix.push(refinerCache[idx]);
+        });
+
+        // 1. 发送给后端
+        parent.postMessage({ pluginMessage: { type: 'fix-variants', items: itemsToFix } }, '*');
+
+        // 2. 标记本地数据为已修复
+        itemsToFix.forEach(item => item.isFixed = true);
+        
+        // 3. 进入确认态，并刷新列表 (显示对勾)
+        isFixConfirmationState = true;
+        renderRefinerResults(refinerCache);
+    }
+  
   </script>
   <!-- B步骤：引入外部 PPT 库 -->
   <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
