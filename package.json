@@ -1,0 +1,14 @@
+{
+  "name": "allinone-plugin",
+  "version": "1.0.0",
+  "description": "Figma All in One Plugin",
+  "main": "code.js",
+  "scripts": {
+    "build": "tsc code.ts --outFile code.js",
+    "watch": "tsc code.ts --outFile code.js --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@figma/plugin-typings": "*"
+  }
+}
