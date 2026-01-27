@@ -1104,6 +1104,193 @@
       .lbl-val  { background: #FFF7E6; color: #D46B08; }
       .st-text { font-size: 13px; color: #555; line-height: 1.6; text-align: justify; }
 
+      /* ========================
+        Smart Fill Panel Styles
+        ======================== */
+      .smart-tabs {
+        display: flex;
+        background: #fff;
+        border-bottom: 1px solid #eee;
+        padding: 0 16px;
+        gap: 20px;
+        flex-shrink: 0;
+      }
+      .smart-tab-item {
+        padding: 12px 0;
+        font-size: 13px;
+        font-weight: 500;
+        color: #666;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
+      }
+      .smart-tab-item.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+      }
+
+      .smart-content {
+        flex: 1;
+        display: none;
+        flex-direction: column;
+        overflow: hidden;
+        background: #F8F9FA;
+      }
+      .smart-content.active { display: flex; }
+
+      /* 基础列表 */
+      .smart-list-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 8px;
+      }
+      .smart-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #fff;
+        padding: 10px 12px;
+        margin-bottom: 6px;
+        border-radius: 6px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .smart-row:hover {
+        border-color: var(--primary);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      }
+      .smart-label {
+        font-size: 13px;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .smart-label .tag-custom {
+        font-size: 10px;
+        background: #e6f7ff;
+        color: var(--primary);
+        padding: 1px 4px;
+        border-radius: 4px;
+      }
+      .smart-setting-btn {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ccc;
+        border-radius: 4px;
+      }
+      .smart-setting-btn:hover {
+        background: #f0f0f0;
+        color: #666;
+      }
+
+      /* 底部操作栏 */
+      .smart-footer {
+        background: #fff;
+        padding: 12px;
+        border-top: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+      }
+      .smart-mode-check {
+        display: flex;
+        gap: 12px;
+      }
+      .check-item {
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      /* 子页面 (Settings / Custom Add) */
+      .sub-page {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: #fff;
+        z-index: 50;
+        display: none;
+        flex-direction: column;
+        transform: translateX(100%);
+        transition: transform 0.25s ease;
+      }
+      .sub-page.open {
+        transform: translateX(0);
+        display: flex;
+      }
+      .sub-header {
+        padding: 12px 16px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .btn-back-sub { cursor: pointer; padding: 4px; margin-left: -4px; }
+
+      /* AI 界面 */
+      .ai-container {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        box-sizing: border-box;
+      }
+      .ai-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .ai-textarea {
+        width: 100%;
+        height: 80px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 8px;
+        font-family: inherit;
+        font-size: 13px;
+        resize: none;
+        margin-bottom: 10px;
+      }
+      .ai-textarea:focus { border-color: var(--primary); outline: none; }
+      .ai-result-box {
+        flex: 1;
+        border: 1px solid #eee;
+        background: #fafafa;
+        border-radius: 8px;
+        padding: 8px;
+        overflow-y: auto;
+        margin-bottom: 12px;
+        font-size: 12px;
+        color: #555;
+        white-space: pre-wrap;
+      }
+      .ai-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .btn-ai-action {
+        padding: 8px;
+        border: 1px solid #ddd;
+        background: #fff;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .btn-ai-action:hover { border-color: var(--primary); color: var(--primary); }
+
   </style>
 </head>
 <body>
@@ -1129,6 +1316,12 @@
         <div class="nav-item" onclick="switchGroup('select', this)" data-key="nav_select">
           <svg class="nav-icon" viewBox="0 0 1024 1024"><path d="M307.2 68.266667h170.666667v102.4H307.2v-102.4z m409.6 0H546.133333v102.4h170.666667v-102.4z m-409.6 887.466666h170.666667v-102.4H307.2v102.4z m-136.533333-887.466666c-56.746667 0-102.4 45.653333-102.4 102.4v68.266666h102.4v-34.133333c0-18.773333 15.36-34.133333 34.133333-34.133333h34.133333v-102.4h-68.266666z m0 238.933333h-102.4v170.666667h102.4v-170.666667z m-102.4 409.6h102.4v-170.666667h-102.4v170.666667z m102.4 102.4v-34.133333h-102.4v68.266666c0 56.746667 45.653333 102.4 102.4 102.4h68.266666v-102.4h-34.133333c-18.773333 0-34.133333-15.36-34.133333-34.133333z m682.666666-614.4v34.133333h102.4v-68.266666c0-56.746667-45.653333-102.4-102.4-102.4h-68.266666v102.4h34.133333c18.773333 0 34.133333 15.36 34.133333 34.133333z m0 273.066667h102.4v-170.666667h-102.4v170.666667z m87.466667 390.4l-104.106667-104.106667 119.04-47.786667-375.466666-136.533333 136.533333 375.466667 47.786667-119.04 104.106666 104.106666c20.053333 20.053333 52.48 20.053333 72.533334 0 19.626667-19.626667 19.626667-52.053333-0.426667-72.106666z" fill="currentColor"></path></svg>
           <span class="nav-text">选择工具</span>
+        </div>
+
+        <!-- 智能填充 -->
+        <div class="nav-item" onclick="switchGroup('smartFill', this)" data-key="nav_smart">
+          <svg class="nav-icon" viewBox="0 0 1024 1024"><path d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zM144 72c-39.8 0-72 32.2-72 72v736c0 39.8 32.2 72 72 72h736c39.8 0 72-32.2 72-72V144c0-39.8-32.2-72-72-72H144z m460.5 540.3L486.2 468.6 367.9 612.3c-10.4 12.6-30.2 12.6-40.6 0-5.7-6.9-8.8-15.6-8.8-24.6 0-8.9 3.1-17.6 8.8-24.6l142.9-173.6c10.4-12.6 30.2-12.6 40.6 0l118.3 143.7 118.3-143.7c10.4-12.6 30.2-12.6 40.6 0 5.7 6.9 8.8 15.6 8.8 24.6 0 8.9-3.1 17.6-8.8 24.6L545.1 612.3c-10.4 12.7-30.2 12.7-40.6 0z" fill="currentColor"/></svg>
+          <span class="nav-text">智能填充</span>
         </div>
 
         <!-- 文字工具 -->
@@ -1170,7 +1363,9 @@
       </div>
       
       <div class="content-scroll">
+
         
+
         <!-- Panel 1: 简易工具 (Simple Tools) -->
         <div class="grid" id="toolPanel">
           <!-- 形状 -->
@@ -1201,8 +1396,6 @@
           <div class="card theme-green" onclick="run('match-styles')" data-key="match_styles"><div class="card-title">Match Styles</div><div class="card-desc"></div></div>
         
         </div>
-
-
 
         <!-- Panel 4: 选择工具 (Selection Tools - Redesigned) -->
         <div id="selectionPanel">
@@ -1784,6 +1977,143 @@
           </div>
         </div>
 
+        <!-- Panel 10: 智能填充 (Smart Fill) -->
+        <div id="smartFillPanel" style="display: none; flex-direction: column; height: 100%; background: #fff; position: relative; overflow: hidden;">
+          
+          <!-- 顶部 Tabs -->
+          <div class="smart-tabs">
+            <div class="smart-tab-item active" onclick="switchSmartTab('basic')" data-key="sf_tab_basic">基础填充</div>
+            <div class="smart-tab-item" onclick="switchSmartTab('ai')" data-key="sf_tab_ai">AI 生成</div>
+          </div>
+
+          <!-- Tab 1: 基础填充 -->
+          <div id="smartBasic" class="smart-content active">
+            <div class="smart-list-container" id="smartBasicList">
+              <!-- JS 动态生成列表项 -->
+            </div>
+            <div class="smart-footer">
+               <div class="smart-mode-check">
+                 <label class="check-item"><input type="checkbox" id="sfPrefix"> <span data-key="sf_prefix">加为前缀</span></label>
+                 <label class="check-item"><input type="checkbox" id="sfSuffix"> <span data-key="sf_suffix">加为后缀</span></label>
+               </div>
+               <button class="btn-action-small" onclick="openSubPage('pageAddCustom')" data-key="sf_btn_add_custom">+ 自定义</button>
+            </div>
+          </div>
+
+          <!-- Tab 2: AI 生成 -->
+          <div id="smartAI" class="smart-content">
+             <div class="ai-container">
+               <div class="ai-header-row">
+                 <span style="font-weight:600; font-size:13px;" data-key="sf_ai_title">AI 对话生成</span>
+                 <div class="icon-btn-square" onclick="openSubPage('pageAiConfig')" style="width:28px; height:28px;" title="配置模型">⚙️</div>
+               </div>
+               
+               <textarea class="ai-textarea" id="aiPrompt" placeholder="例：生成20个高档小区名称..."></textarea>
+               
+               <!-- 修改这里：将按钮放入一个 Flex 容器，并排显示 -->
+               <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                   <button class="primary-btn" id="btnAiGen" onclick="runAiGenerate()" style="flex: 1; margin-bottom: 0;">
+                      <span data-key="sf_btn_gen">生成内容</span>
+                   </button>
+                   <button class="btn-ai-action" onclick="clearAiInput()" style="width: auto; padding: 0 16px; border-color: #ddd; color: #666;" title="清空">
+                      🗑️
+                   </button>
+               </div>
+
+               <div class="ai-result-box" id="aiResultArea" placeholder="生成结果将显示在这里..."></div>
+               
+               <div class="ai-actions">
+                 <button class="btn-ai-action" onclick="applyAiFill('order')" data-key="sf_btn_seq">⬇ 顺序录入</button>
+                 <button class="btn-ai-action" onclick="applyAiFill('random')" data-key="sf_btn_rnd">🔀 随机录入</button>
+                 <button class="btn-ai-action" onclick="saveAiResultAsCustom()" style="grid-column: span 2;" data-key="sf_btn_save_list">💾 存为自定义列表</button>
+               </div>
+             </div>
+          </div>
+
+          <!-- 子页面 1: 添加自定义类型 -->
+          <div id="pageAddCustom" class="sub-page">
+            <div class="sub-header">
+              <span class="btn-back-sub" onclick="closeSubPage('pageAddCustom')">←</span>
+              <span data-key="sf_sub_add_title">添加自定义数据</span>
+            </div>
+            <div style="padding:16px; flex:1; display:flex; flex-direction:column; gap:10px;">
+              <input type="text" id="customTitle" class="search-box" placeholder="标题 (如: 部门列表)">
+              <textarea id="customContent" class="ai-textarea" style="flex:1;" placeholder="输入内容，每行一个..."></textarea>
+              <button class="primary-btn" onclick="saveCustomList()">保存</button>
+            </div>
+          </div>
+
+          <!-- 子页面 2: AI 配置 -->
+          <div id="pageAiConfig" class="sub-page">
+            <div class="sub-header">
+              <span class="btn-back-sub" onclick="closeSubPage('pageAiConfig')">←</span>
+              <span data-key="sf_sub_cfg_title">AI 模型配置</span>
+            </div>
+            <div style="padding:16px; display:flex; flex-direction:column; gap:12px;">
+              
+              <div>
+                <label class="config-label">服务商</label>
+                <select id="aiProvider" class="search-box" onchange="updateAiConfigDefaults()">
+                  <!-- 默认选中 GLM -->
+                  <option value="glm" selected>智谱 GLM (默认)</option>
+                  
+                  <option value="deepseek">DeepSeek</option>
+                  <option value="kimi">Kimi (Moonshot)</option>
+                  <option value="qwen">通义千问 (Qwen)</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="gemini">Google Gemini</option>
+                  <option value="claude">Anthropic Claude</option>
+                  <option value="grok">xAI Grok</option>
+                  <option value="ollama">Ollama (Local)</option>
+                  <option value="siliconflow">硅基流动 (SiliconFlow)</option>
+                  
+                  <option value="custom">Custom (自定义)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="config-label">API 地址 (Base URL)</label>
+                <input type="text" id="aiBaseUrl" class="search-box">
+              </div>
+
+              <div>
+                <label class="config-label">模型名称 (Model)</label>
+                <input type="text" id="aiModelName" class="search-box">
+              </div>
+
+              <div>
+                <label class="config-label">API Key</label>
+                <input type="password" id="aiKey" class="search-box" placeholder="sk-...">
+              </div>
+
+              <button class="primary-btn" onclick="saveAiConfig()" style="margin-top:10px;">保存配置</button>
+            </div>
+          </div>
+          
+           <!-- 子页面 3: 简单设置页 (用于基础类型的简单设置) -->
+          <div id="pageBasicSetting" class="sub-page">
+             <div class="sub-header">
+              <span class="btn-back-sub" onclick="closeSubPage('pageBasicSetting')">←</span>
+              <span id="basicSettingTitle">设置</span>
+            </div>
+            <div style="padding:16px;">
+               <p style="font-size:12px; color:#999;">当前仅支持“日期/时间”格式配置，其他类型暂无配置项。</p>
+               
+               <div id="settingDateOption" style="display:none; margin-top:10px;">
+                   <label class="config-label">日期格式</label>
+                   <select id="dateFormatSel" class="search-box">
+                       <option value="YYYY-MM-DD">2023-10-01 (YYYY-MM-DD)</option>
+                       <option value="YYYY/MM/DD">2023/10/01 (YYYY/MM/DD)</option>
+                       <option value="MM-DD">10-01 (MM-DD)</option>
+                       <option value="CN">2023年10月1日</option>
+                   </select>
+                   <button class="primary-btn" onclick="saveBasicSettings('date')" style="margin-top:10px; width:100%;">保存</button>
+               </div>
+            </div>
+          </div>
+
+        </div>
+
         <!-- Panel 9: 空状态 (Fallback) -->
         <div id="emptyPanel" class="empty-state">
           <svg class="empty-icon" viewBox="0 0 24 24" fill="#ccc"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
@@ -1806,6 +2136,21 @@
     // --- 国际化数据字典 ---
     const i18n = {
       zh: {
+
+        nav_smart: "智能填充",
+        sf_tab_basic: "基础填充",
+        sf_tab_ai: "AI 生成",
+        sf_prefix: "加为前缀",
+        sf_suffix: "加为后缀",
+        sf_btn_add_custom: "+ 自定义",
+        sf_ai_title: "AI 对话生成",
+        sf_btn_gen: "生成内容",
+        sf_btn_seq: "⬇ 顺序录入",
+        sf_btn_rnd: "🔀 随机录入",
+        sf_btn_save_list: "💾 存为自定义列表",
+        sf_sub_add_title: "添加自定义数据",
+        sf_sub_cfg_title: "AI 模型配置",
+        
         // =========================================
         // 1. 导航与通用 (Navigation & General)
         // =========================================
@@ -2094,6 +2439,20 @@
         match_styles: ["💅 匹配本地样式", "重新链接样式库", "扫描选中图层，将裸奔的颜色/字体属性与本地样式库重新绑定。", "已完成样式匹配"]
       },
       en: {
+        nav_smart: "Smart Fill",
+        sf_tab_basic: "Basic",
+        sf_tab_ai: "AI Gen",
+        sf_prefix: "Prefix",
+        sf_suffix: "Suffix",
+        sf_btn_add_custom: "+ Custom",
+        sf_ai_title: "AI Generation",
+        sf_btn_gen: "Generate",
+        sf_btn_seq: "⬇ Sequential",
+        sf_btn_rnd: "🔀 Random",
+        sf_btn_save_list: "💾 Save as List",
+        sf_sub_add_title: "Add Custom Data",
+        sf_sub_cfg_title: "AI Config",
+        
         // =========================================
         // 1. Navigation & General
         // =========================================
@@ -2377,6 +2736,7 @@
     // 初始化语言
     updateLanguage();
     
+  
     // =============================================================================
     // 2. 核心通信与工具函数 (Core & Utils)
     // =============================================================================
@@ -2501,6 +2861,7 @@
         'layout': ['layoutPanel'], // 新增
         'text':   ['textPanel'],   // 新增
         'ppt':    ['pptPanel'],  // <--- A步骤：这是你要添加的！！
+        'smartFill': ['smartFillPanel'], // 新增
         'refiner': ['refinerPanel'],
         'theory':  ['theoryPanel'] // <--- 新增
       };
@@ -3696,6 +4057,27 @@
           });
       }
 
+      // Smart Fill 消息处理
+      if (msg.type === 'selection-count-res') {
+          handleFillGeneration(msg.count);
+      }
+      if (msg.type === 'storage-loaded') {
+          if (msg.key === 'smart_custom_lists' && msg.value) {
+             customDataLists = msg.value;
+             renderBasicList();
+          }
+          if (msg.key === 'smart_ai_config' && msg.value) {
+             aiConfig = msg.value;
+             // 回填配置页
+             document.getElementById('aiProvider').value = aiConfig.provider;
+             document.getElementById('aiBaseUrl').value = aiConfig.baseUrl;
+             document.getElementById('aiModelName').value = aiConfig.model;
+             document.getElementById('aiKey').value = aiConfig.key;
+          }
+          if (msg.key === 'smart_date_format' && msg.value) {
+             dateFormat = msg.value;
+          }
+      }
     };
 
     // 处理 PPT 消息的独立函数 (从 onmessage 拆分出来)
@@ -5077,6 +5459,403 @@
         const selectedItems = textResultCache.filter(i => i._selected && !i._done);
         runTextReplaceCommon(selectedItems);
     }
+
+    // ==========================================
+    // Smart Fill 逻辑模块
+    // ==========================================
+    
+    // --- 数据源定义 ---
+    const basicDataTypes = [
+      { key: 'name_cn', label: '姓名 (中文)', gen: () => getRandomNameCN() },
+      { key: 'address', label: '地址', gen: () => getRandomAddress() },
+      { key: 'nickname', label: '网名', gen: () => getRandomNickname() },
+      { key: 'gender', label: '性别', gen: () => Math.random() > 0.5 ? '男' : '女' },
+      { key: 'number', label: '数字 (1-100)', gen: () => Math.floor(Math.random()*100).toString() },
+      { key: 'date', label: '日期', hasSetting: true, gen: () => getRandomDate() },
+      { key: 'time', label: '时间', gen: () => getRandomTime() },
+      { key: 'province', label: '省市区', gen: () => "浙江省杭州市西湖区" }, // 简化演示
+      { key: 'email', label: 'Email', gen: () => `user${Math.floor(Math.random()*1000)}@example.com` },
+      { key: 'idcard', label: '身份证', gen: () => "11010119900307" + Math.floor(Math.random()*10000) },
+      { key: 'company', label: '公司名称', gen: () => "未来科技" + Math.floor(Math.random()*100) + "有限公司" },
+      { key: 'bank', label: '银行卡号', gen: () => "622202" + Math.floor(Math.random()*100000000000) },
+      { key: 'website', label: '网站地址', gen: () => "www.example" + Math.floor(Math.random()*100) + ".com" },
+      { key: 'ip', label: 'IP地址', gen: () => `192.168.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}` },
+      { key: 'phone', label: '手机型号', gen: () => ["iPhone 15", "Samsung S24", "Xiaomi 14", "Huawei Mate 60"][Math.floor(Math.random()*4)] },
+      { key: 'news_title', label: '新闻标题', gen: () => "重磅！科技巨头发布最新AI模型，性能超越GPT-4" },
+      { key: 'lorem', label: '名人名言', gen: () => "Stay hungry, stay foolish." }
+    ];
+
+    let customDataLists = []; // 存储自定义列表 [{title: 'xxx', list: ['a','b']}]
+    // 默认配置改为 GLM
+    let aiConfig = { 
+        provider: 'glm', 
+        baseUrl: 'https://open.bigmodel.cn/api/paas/v4', 
+        model: 'glm-4-flash', 
+        key: '' 
+    };
+    let dateFormat = 'YYYY-MM-DD';
+
+    // --- 初始化 ---
+    function initSmartFill() {
+      renderBasicList();
+
+      // 1. 先把默认值填进去
+      document.getElementById('aiProvider').value = aiConfig.provider;
+      document.getElementById('aiBaseUrl').value = aiConfig.baseUrl;
+      document.getElementById('aiModelName').value = aiConfig.model;
+
+      // 2. 然后再请求保存的配置
+      postMsg('load-storage', { key: 'smart_custom_lists' });
+      postMsg('load-storage', { key: 'smart_ai_config' });
+      postMsg('load-storage', { key: 'smart_date_format' });
+    }
+
+    // 渲染列表
+    function renderBasicList() {
+      const container = document.getElementById('smartBasicList');
+      container.innerHTML = '';
+      
+      // 1. 预置类型
+      basicDataTypes.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'smart-row';
+        row.innerHTML = `
+           <div class="smart-label">${item.label}</div>
+           <div class="smart-setting-btn" onclick="openBasicSetting('${item.key}', event)">⚙️</div>
+        `;
+        row.onclick = (e) => { 
+           if(e.target.classList.contains('smart-setting-btn')) return;
+           runBasicFill(item.key); 
+        };
+        container.appendChild(row);
+      });
+
+      // 2. 自定义类型
+      customDataLists.forEach((item, index) => {
+        const row = document.createElement('div');
+        row.className = 'smart-row';
+        row.innerHTML = `
+           <div class="smart-label">${item.title} <span class="tag-custom">自定义</span></div>
+           <div class="smart-setting-btn" onclick="deleteCustomList(${index}, event)">🗑️</div>
+        `;
+        row.onclick = (e) => {
+           if(e.target.classList.contains('smart-setting-btn')) return;
+           runCustomFill(index);
+        };
+        container.appendChild(row);
+      });
+    }
+
+    // --- 填充执行逻辑 ---
+    function runBasicFill(key) {
+      // 1. 请求选中数量
+      // 为了简单，我们先不请求数量，直接让后端处理单次生成逻辑？
+      // 不，为了支持随机不重复，最好前端一次性生成
+      // 这里采用策略：先请求数量，再生成
+      
+      // 这里的逻辑稍微绕一下，通过 postMsg('get-selection-count')
+      // 然后在 onmessage 里处理生成逻辑。
+      // 为简化代码，我们先把“当前要执行的任务”存起来
+      window.pendingFillTask = { type: 'basic', key: key };
+      postMsg('get-selection-count');
+    }
+
+    function runCustomFill(index) {
+      window.pendingFillTask = { type: 'custom', index: index };
+      postMsg('get-selection-count');
+    }
+    
+    function applyAiFill(dist) {
+      const text = document.getElementById('aiResultArea').innerText;
+      if(!text.trim()) return alert("请先生成内容");
+      const list = text.split('\n').filter(s => s.trim());
+      
+      const modePrefix = document.getElementById('sfPrefix').checked; // AI 也可以复用前缀后缀逻辑? 需求没明说，但加上更好
+      const modeSuffix = document.getElementById('sfSuffix').checked;
+      let mode = 'replace';
+      if(modePrefix) mode = 'prefix';
+      if(modeSuffix) mode = 'suffix';
+
+      postMsg('smart-fill-exec', { 
+         dataList: list, 
+         mode: mode, 
+         distribution: dist 
+      });
+    }
+
+    // --- 收到后端消息回调 (在 window.onmessage 里补充) ---
+    // if (msg.type === 'selection-count-res') { handleFillGeneration(msg.count); }
+    // if (msg.type === 'storage-loaded') { ... }
+
+    function handleFillGeneration(count) {
+      if (!window.pendingFillTask) return;
+      const task = window.pendingFillTask;
+      const list = [];
+      
+      // 获取当前模式
+      const isPrefix = document.getElementById('sfPrefix').checked;
+      const isSuffix = document.getElementById('sfSuffix').checked;
+      let mode = 'replace';
+      if(isPrefix) mode = 'prefix';
+      else if(isSuffix) mode = 'suffix';
+
+      if (task.type === 'basic') {
+        const generator = basicDataTypes.find(t => t.key === task.key);
+        if (generator) {
+          for(let i=0; i<count; i++) list.push(generator.gen());
+        }
+      } else if (task.type === 'custom') {
+        const customData = customDataLists[task.index];
+        if (customData) {
+           // 自定义列表通常循环使用
+           for(let i=0; i<count; i++) list.push(customData.list[i % customData.list.length]);
+        }
+      }
+
+      postMsg('smart-fill-exec', {
+        dataList: list,
+        mode: mode,
+        distribution: 'order' // 基础填充默认顺序，如需随机可扩展UI
+      });
+      
+      window.pendingFillTask = null;
+    }
+
+    // --- 数据生成器 (Mock Generators) ---
+    function getRandomNameCN() {
+       const xing = "赵钱孙李周吴郑王冯陈褚卫蒋沈韩杨朱秦尤许何吕施张孔曹严华金魏陶姜".split('');
+       const ming = "伟刚勇毅俊峰强军平保东文辉力明永健世广志义兴良海山仁波宁".split('');
+       return xing[Math.floor(Math.random()*xing.length)] + ming[Math.floor(Math.random()*ming.length)];
+    }
+    function getRandomAddress() {
+       return ["北京市朝阳区建国路88号", "上海市浦东新区陆家嘴环路1号", "深圳市南山区科技园南区"][Math.floor(Math.random()*3)];
+    }
+    function getRandomNickname() {
+       return ["风清扬", "独孤求败", "快乐的小二", "User888", "DesignMaster"][Math.floor(Math.random()*5)];
+    }
+    function getRandomDate() {
+       const d = new Date();
+       d.setDate(d.getDate() - Math.floor(Math.random()*1000));
+       // 使用全局 dateFormat 格式化
+       const y = d.getFullYear();
+       const m = (d.getMonth()+1).toString().padStart(2,'0');
+       const day = d.getDate().toString().padStart(2,'0');
+       
+       if(dateFormat === 'YYYY/MM/DD') return `${y}/${m}/${day}`;
+       if(dateFormat === 'MM-DD') return `${m}-${day}`;
+       if(dateFormat === 'CN') return `${y}年${m}月${day}日`;
+       return `${y}-${m}-${day}`;
+    }
+    function getRandomTime() {
+       return `${Math.floor(Math.random()*24).toString().padStart(2,'0')}:${Math.floor(Math.random()*60).toString().padStart(2,'0')}`;
+    }
+
+    // --- 子页面导航 ---
+    function openSubPage(id) { document.getElementById(id).classList.add('open'); }
+    function closeSubPage(id) { document.getElementById(id).classList.remove('open'); }
+    
+    function switchSmartTab(tab) {
+      document.querySelectorAll('.smart-tab-item').forEach(el => el.classList.remove('active'));
+      document.querySelector(`[data-key="sf_tab_${tab}"]`).classList.add('active');
+      document.querySelectorAll('.smart-content').forEach(el => el.classList.remove('active'));
+      document.getElementById(tab === 'basic' ? 'smartBasic' : 'smartAI').classList.add('active');
+    }
+    
+    // --- 基础设置页逻辑 ---
+    function openBasicSetting(key, e) {
+      e.stopPropagation();
+      openSubPage('pageBasicSetting');
+      const title = basicDataTypes.find(t => t.key === key).label;
+      document.getElementById('basicSettingTitle').innerText = title + " 设置";
+      
+      // 仅 Date 支持设置演示
+      if (key === 'date') {
+        document.getElementById('settingDateOption').style.display = 'block';
+        document.getElementById('dateFormatSel').value = dateFormat;
+      } else {
+        document.getElementById('settingDateOption').style.display = 'none';
+      }
+    }
+    
+    function saveBasicSettings(type) {
+       if (type === 'date') {
+          dateFormat = document.getElementById('dateFormatSel').value;
+          postMsg('save-storage', { key: 'smart_date_format', value: dateFormat, notify: true });
+       }
+       closeSubPage('pageBasicSetting');
+    }
+
+    // --- 自定义列表逻辑 ---
+    function saveCustomList() {
+       const title = document.getElementById('customTitle').value;
+       const content = document.getElementById('customContent').value;
+       if(!title || !content) return alert("请填写标题和内容");
+       
+       const list = content.split('\n').filter(s => s.trim());
+       customDataLists.push({ title, list });
+       
+       postMsg('save-storage', { key: 'smart_custom_lists', value: customDataLists, notify: true });
+       renderBasicList();
+       closeSubPage('pageAddCustom');
+       // 清空
+       document.getElementById('customTitle').value = '';
+       document.getElementById('customContent').value = '';
+    }
+    
+    function deleteCustomList(index, e) {
+       e.stopPropagation();
+       if(confirm("确定删除这个列表吗？")) {
+         customDataLists.splice(index, 1);
+         postMsg('save-storage', { key: 'smart_custom_lists', value: customDataLists });
+         renderBasicList();
+       }
+    }
+
+    // --- AI 逻辑 ---
+    // 补全后的模型配置字典 (OpenAI 兼容格式)
+    const aiProviders = {
+      // 1. 智谱 AI (GLM) - 默认推荐
+      'glm': { 
+          url: 'https://open.bigmodel.cn/api/paas/v4', 
+          model: 'glm-4-flash' 
+      },
+      // 2. DeepSeek
+      'deepseek': { 
+          url: 'https://api.deepseek.com/v1', 
+          model: 'deepseek-chat' 
+      },
+      // 3. Kimi (Moonshot AI)
+      'kimi': { 
+          url: 'https://api.moonshot.cn/v1', 
+          model: 'moonshot-v1-8k' 
+      },
+      // 4. 通义千问 (Qwen / DashScope) - 需使用兼容端点
+      'qwen': { 
+          url: 'https://dashscope.aliyuncs.com/compatible-mode/v1', 
+          model: 'qwen-plus' 
+      },
+      // 5. OpenAI
+      'openai': { 
+          url: 'https://api.openai.com/v1', 
+          model: 'gpt-4o-mini' 
+      },
+      // 6. Google Gemini (OpenAI 兼容模式需特定网关，此处为通用格式)
+      'gemini': { 
+          url: 'https://generativelanguage.googleapis.com/v1beta/openai', 
+          model: 'gemini-1.5-flash' 
+      },
+      // 7. Anthropic Claude (通常需要中转，此处填常用中转格式，或官方API)
+      // 注意：Claude 原生API不兼容OpenAI格式，这里假设你使用类似 one-api 的中转
+      // 如果直连，地址通常不同。这里提供一个通用占位。
+      'claude': { 
+          url: 'https://api.anthropic.com/v1', 
+          model: 'claude-3-5-sonnet-20240620' 
+      },
+      // 8. xAI Grok
+      'grok': { 
+          url: 'https://api.x.ai/v1', 
+          model: 'grok-beta' 
+      },
+      // 9. Ollama (本地运行)
+      'ollama': { 
+          url: 'http://localhost:11434/v1', 
+          model: 'llama3' 
+      },
+      // 10. 硅基流动 (SiliconFlow) - 聚合了多种开源模型
+      'siliconflow': { 
+          url: 'https://api.siliconflow.cn/v1', 
+          model: 'Qwen/Qwen2.5-7B-Instruct' 
+      }
+    };
+
+    function updateAiConfigDefaults() {
+       const p = document.getElementById('aiProvider').value;
+       if (aiProviders[p]) {
+         document.getElementById('aiBaseUrl').value = aiProviders[p].url;
+         document.getElementById('aiModelName').value = aiProviders[p].model;
+       }
+    }
+
+    function saveAiConfig() {
+       aiConfig = {
+          provider: document.getElementById('aiProvider').value,
+          baseUrl: document.getElementById('aiBaseUrl').value,
+          model: document.getElementById('aiModelName').value,
+          key: document.getElementById('aiKey').value
+       };
+       postMsg('save-storage', { key: 'smart_ai_config', value: aiConfig, notify: true });
+       
+       // 显示成功后 3s 返回
+       const btn = event.target;
+       const originalText = btn.innerText;
+       btn.innerText = "配置成功 (3s)";
+       setTimeout(() => {
+          btn.innerText = originalText;
+          closeSubPage('pageAiConfig');
+       }, 3000);
+    }
+
+    async function runAiGenerate() {
+       const prompt = document.getElementById('aiPrompt').value;
+       if(!prompt) return alert("请输入提示词");
+       if(!aiConfig.key) return alert("请先配置 API Key");
+       
+       const btn = document.getElementById('btnAiGen');
+       btn.innerText = "生成中...";
+       btn.disabled = true;
+       
+       // 默认生成20个，如果用户没写数字
+       let finalPrompt = `请按要求生成以下内容，换行书写，不要再次出现与提示词相同或相似的内容或标题，直接开始陈列内容：${prompt}。`;
+       if (!prompt.match(/\d+/)) finalPrompt += " (生成20个)";
+       finalPrompt += " 请直接返回纯文本，每行一句，不要带任何项目符号，不要带Markdown，不要废话。";
+
+       try {
+         const res = await fetch(`${aiConfig.baseUrl}/chat/completions`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${aiConfig.key}`
+            },
+            body: JSON.stringify({
+              model: aiConfig.model,
+              messages: [{ role: "user", content: finalPrompt }]
+            })
+         });
+         
+         const data = await res.json();
+         if (data.error) throw new Error(data.error.message);
+         
+         const content = data.choices[0].message.content;
+         document.getElementById('aiResultArea').innerText = content;
+         
+       } catch(e) {
+         alert("AI 请求失败: " + e.message);
+       } finally {
+         btn.innerText = "生成内容";
+         btn.disabled = false;
+       }
+    }
+
+    // --- 新增：清空 AI 输入和结果 ---
+    function clearAiInput() {
+       document.getElementById('aiPrompt').value = '';
+       document.getElementById('aiResultArea').innerText = '';
+       // 可选：让输入框重新获得焦点
+       document.getElementById('aiPrompt').focus();
+    }
+    
+    function saveAiResultAsCustom() {
+       const text = document.getElementById('aiResultArea').innerText;
+       if(!text.trim()) return;
+       const prompt = document.getElementById('aiPrompt').value.substring(0, 10) + "...";
+       
+       customDataLists.push({ title: "AI: " + prompt, list: text.split('\n').filter(s=>s.trim()) });
+       postMsg('save-storage', { key: 'smart_custom_lists', value: customDataLists, notify: true });
+       renderBasicList();
+       alert("已保存到基础列表");
+    }
+
+    initSmartFill();
 
   </script>
   <!-- B步骤：引入外部 PPT 库 -->

@@ -79,6 +79,108 @@ figma.ui.onmessage = async (msg) => {
   switch (msg.type) {
     
     // ===========================
+    // H. 智能填充 (Smart Fill)
+    // ===========================
+
+    // 1. 获取选中图层数量 (用于前端生成对应数量的数据)
+    case 'get-selection-count': {
+      const textNodes = [];
+      const traverse = (n: any) => {
+        if (n.type === 'TEXT' && !n.removed && n.visible) textNodes.push(n);
+        if ('children' in n) n.children.forEach(traverse);
+      };
+      const scope = figma.currentPage.selection.length > 0 ? figma.currentPage.selection : [figma.currentPage];
+      scope.forEach(traverse);
+      
+      figma.ui.postMessage({ type: 'selection-count-res', count: textNodes.length });
+      break;
+    }
+
+    // 2. 执行填充
+    case 'smart-fill-exec': {
+      const { dataList, mode, distribution } = msg; 
+      // dataList: string[] - 待填充的内容数组
+      // mode: 'replace' | 'prefix' | 'suffix'
+      // distribution: 'order' (顺序) | 'random' (随机)
+
+      const textNodes: TextNode[] = [];
+      const traverse = (n: any) => {
+        if (n.type === 'TEXT' && !n.removed && n.visible) textNodes.push(n);
+        if ('children' in n) n.children.forEach(traverse);
+      };
+      // 优先处理选中项，没选中则不处理（防止误操作全页）
+      if (figma.currentPage.selection.length > 0) {
+        figma.currentPage.selection.forEach(traverse);
+      } else {
+        figma.notify("请先选择包含文本的图层");
+        return;
+      }
+
+      if (textNodes.length === 0) {
+        figma.notify("未找到文本图层");
+        return;
+      }
+
+      // 视觉排序 (从左到右，从上到下)
+      textNodes.sort((a, b) => {
+         const aAbs = a.absoluteBoundingBox || { x: a.x, y: a.y };
+         const bAbs = b.absoluteBoundingBox || { x: b.x, y: b.y };
+         if (Math.abs(aAbs.y - bAbs.y) > 10) return aAbs.y - bAbs.y;
+         return aAbs.x - bAbs.x;
+      });
+
+      let changeCount = 0;
+      
+      for (let i = 0; i < textNodes.length; i++) {
+        const node = textNodes[i];
+        try {
+          // 加载字体
+          await figma.loadFontAsync(node.fontName as FontName); // 简单处理，假设非混合字体
+          
+          // 获取填充内容
+          let textToFill = "";
+          if (distribution === 'random') {
+            textToFill = dataList[Math.floor(Math.random() * dataList.length)];
+          } else {
+            // 顺序循环
+            textToFill = dataList[i % dataList.length];
+          }
+          
+          // 根据模式应用
+          if (mode === 'prefix') {
+            node.characters = textToFill + node.characters;
+          } else if (mode === 'suffix') {
+            node.characters = node.characters + textToFill;
+          } else {
+            // replace
+            node.characters = textToFill;
+          }
+          changeCount++;
+        } catch (e) {
+          console.error("Fill error", e);
+        }
+      }
+      
+      figma.notify(`已填充 ${changeCount} 个文本`);
+      break;
+    }
+
+    // 3. 存储/读取配置 (ClientStorage)
+    case 'save-storage': {
+      await figma.clientStorage.setAsync(msg.key, msg.value);
+      if (msg.notify) figma.notify("配置已保存");
+      // 回传以确认更新
+      figma.ui.postMessage({ type: 'storage-saved', key: msg.key, value: msg.value });
+      break;
+    }
+    
+    case 'load-storage': {
+      const value = await figma.clientStorage.getAsync(msg.key);
+      figma.ui.postMessage({ type: 'storage-loaded', key: msg.key, value: value });
+      break;
+    }
+
+    // ===========================
     // A. 简易工具 (Simple Tools)
     // ===========================
 
