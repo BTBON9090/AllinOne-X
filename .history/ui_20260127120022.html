@@ -20,7 +20,7 @@
 
       *, *::before, *::after {
           box-sizing: border-box;
-      }
+      } /* 基础盒模型 */
 
       body {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -32,8 +32,9 @@
           width: 100vw;
           overflow: hidden;
           user-select: none;
-      }
+      } /* 全局禁用文本选择 */
 
+      /* 滚动条隐藏 */
       ::-webkit-scrollbar { width: 0; height: 0; }
 
       /* =========================================
@@ -60,6 +61,7 @@
           position: relative;
       }
 
+      /* 窗口拖拽手柄 */
       .resize-handle {
           position: absolute;
           bottom: 0;
@@ -120,9 +122,13 @@
       .nav-icon { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
       .nav-text { font-size: 12px; white-space: nowrap; }
 
+      /* 导航红点与计数 */
       .nav-meta { display: flex; align-items: center; gap: 4px; margin-left: auto; }
       .count-badge { background: #f0f0f0; color: #999; padding: 1px 6px; border-radius: 10px; font-size: 9px; }
-      
+      .red-dot { width: 6px; height: 6px; background: var(--danger); border-radius: 50%; display: none; }
+      .nav-item.has-new .red-dot { display: block; }
+
+      /* 侧边栏底部 */
       .sidebar-footer {
           padding: 12px;
           border-top: 1px solid var(--border);
@@ -148,22 +154,9 @@
       .lang-btn:hover { background: #e6f7ff; border-color: #bae7ff; }
 
       /* =========================================
-        4. 侧边栏折叠模式 (Icon Only Mode)
+        4. 公共 UI 组件 (Common Components)
         ========================================= */
-      body.mini-mode .sidebar { width: var(--sidebar-w-mini); }
-      body.mini-mode .nav-text, 
-      body.mini-mode .nav-meta, 
-      body.mini-mode .lang-btn { display: none; }
-      
-      body.mini-mode .nav-item { justify-content: center; padding: 16px 0; }
-      body.mini-mode .nav-left { justify-content: center; width: auto; }
-      body.mini-mode .nav-icon { width: 20px; height: 20px; margin: 0; }
-      
-      body.mini-mode .footer-btn { padding: 6px 0; font-size: 10px; border: none; color: #999; }
-
-      /* =========================================
-        5. 公共 UI 组件 (Common Components)
-        ========================================= */
+      /* 搜索框 */
       .header { padding: 12px 16px; flex-shrink: 0; }
       .search-box {
           width: 100%;
@@ -177,6 +170,7 @@
       }
       .search-box:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(24,144,255,0.1); }
 
+      /* 按钮 */
       .primary-btn {
           background: var(--primary);
           color: #fff;
@@ -191,9 +185,7 @@
       }
       .primary-btn:hover { background: var(--primary-hover); }
 
-      /* =========================================
-        6. 网格与卡片 (Grid & Cards)
-        ========================================= */
+      /* 网格与卡片 (Grid & Cards) */
       .grid {
           padding: 16px;
           display: grid;
@@ -213,35 +205,35 @@
       }
       .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
       .card:active { transform: scale(0.98); }
-      
-      .card-title { 
-          font-weight: 700; font-size: 13px; 
-          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-          display: block; width: 100%; margin-bottom: 0; 
-      }
+      .card-title { font-weight: 700; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
       .card-desc { font-size: 11px; opacity: 0.8; line-height: 1.3; display: none; }
 
+      /* 卡片主题色 */
       .theme-orange { background: #FFF7E6; color: #D46B08; border-color: rgba(212, 107, 8, 0.1); }
       .theme-blue   { background: #E6F7FF; color: #096DD9; border-color: rgba(9, 109, 217, 0.1); }
       .theme-purple { background: #F9F0FF; color: #531DAB; border-color: rgba(83, 29, 171, 0.1); }
       .theme-green  { background: #F6FFED; color: #389E0D; border-color: rgba(56, 158, 13, 0.1); }
       .theme-pink   { background: #FFF0F6; color: #C41D7F; border-color: rgba(196, 29, 127, 0.1); }
 
+      /* 新功能高亮 */
+      .card.is-new { border: 1px solid var(--danger) !important; background: #fff1f0 !important; }
+      .card.is-new::after {
+          content: 'NEW'; position: absolute; top: 0; right: 0;
+          background: var(--danger); color: #fff; font-size: 8px;
+          padding: 1px 4px; border-bottom-left-radius: 6px; font-weight: bold;
+      }
+
       /* Tooltip */
       #tooltip-box {
           position: fixed; display: none; z-index: 999;
-          background: rgba(0,0,0,0.9); color: #fff;
-          padding: 8px 12px; border-radius: 6px; font-size: 12px; line-height: 1.5;
-          width: 220px; backdrop-filter: blur(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-          pointer-events: none; animation: fadeIn 0.2s ease; text-align: left;
+          background: rgba(0,0,0,0.85); color: #fff;
+          padding: 10px 12px; border-radius: 6px; font-size: 12px; line-height: 1.5;
+          width: 200px; backdrop-filter: blur(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+          pointer-events: none; animation: fadeIn 0.2s ease;
       }
-      .tt-title {
-          font-weight: 700; font-size: 13px; margin-bottom: 4px; color: #fff;
-          display: block; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 4px;
-      }
-      .tt-desc { font-size: 12px; color: rgba(255, 255, 255, 0.6); line-height: 1.4; }
       @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
+      /* 缺省页 */
       .empty-state {
           display: none; flex-direction: column; align-items: center; justify-content: center;
           height: 100%; text-align: center; color: #aaa; padding-top: 40px;
@@ -249,423 +241,74 @@
       .empty-icon { width: 48px; height: 48px; margin-bottom: 10px; opacity: 0.5; }
 
       /* =========================================
-        7. 文字查找替换 (Text Find & Replace) - 最终完整版
+        5. 迷你模式 (Mini Mode)
         ========================================= */
+      body.mini-mode .sidebar { width: var(--sidebar-w-mini); }
+      body.mini-mode .nav-text, 
+      body.mini-mode .search-box, 
+      body.mini-mode .card-desc, 
+      body.mini-mode .nav-meta, 
+      body.mini-mode .lang-btn { display: none; }
       
-      /* 1. 主容器 (去边距) */
-      #textPanel {
-          padding: 0 !important;
-          background: var(--bg-body);
-          height: 100%;
-          display: none; /* JS控制显示 */
-          flex-direction: column;
-          overflow: hidden;
-      }
-
-      /* 2. 新版顶部功能栏 (可点击折叠) */
-      .text-panel-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 12px 16px;
-          background: #fff;
-          border-bottom: 1px solid #f0f0f0;
-          cursor: pointer;
-          transition: background 0.2s;
-          user-select: none;
-          flex-shrink: 0;
-      }
-      .text-panel-header:hover {
-          background: #fafafa;
-      }
-
-      /* 标题组 (箭头+文字) */
-      .header-title-group {
-          display: flex; align-items: center; gap: 6px;
-          font-size: 13px; font-weight: 600; color: #333;
-      }
-      .header-arrow {
-          width: 12px; height: 12px; transition: transform 0.3s ease; opacity: 0.6;
-      }
-      /* 展开状态：箭头旋转 */
-      .text-panel-header.expanded .header-arrow {
-          transform: rotate(180deg);
-      }
-      /* 搜索状态高亮文字 */
-      .search-status-text { color: var(--primary); font-weight: 600; }
-
-      /* 右侧按钮组 */
-      .header-actions { display: flex; gap: 8px; }
-
-      /* 顶部小按钮样式 */
-      .btn-action-small {
-          padding: 4px 10px; border-radius: 4px; font-size: 11px;
-          border: 1px solid transparent; cursor: pointer; transition: all 0.2s;
-          background: #f5f5f5; color: #666;
-      }
-      .btn-action-small:hover { background: #e6f7ff; color: var(--primary); }
+      body.mini-mode .nav-item { justify-content: center; padding: 12px 0; }
+      body.mini-mode .nav-left { justify-content: center; }
+      body.mini-mode .nav-icon { width: 20px; height: 20px; }
+      body.mini-mode .footer-btn { padding: 6px 0; font-size: 10px; border: none; color: #999; }
       
-      .btn-restore { background: #fff1f0; color: #ff4d4f; }
-      .btn-restore:hover { background: #ffccc7; color: #cf1322; }
+      body.mini-mode .header { padding: 8px; }
+      body.mini-mode .content-scroll { padding: 0; }
+      body.mini-mode .grid { grid-template-columns: 1fr; gap: 8px; padding: 8px; }
+      body.mini-mode .card { padding: 10px 12px; flex-direction: row; align-items: center; justify-content: space-between; }
+      body.mini-mode .card-title { font-size: 12px; margin-bottom: 0; }
 
-      /* 3. 配置内容容器 (用于折叠隐藏) */
-      #textControlsContent {
-          padding: 16px; background: #fff; border-bottom: 1px solid #eee;
-          display: block; /* 默认展开 */ width: 100%; box-sizing: border-box;
-      }
+      /* =========================================
+        6. 选择工具面板 (Selection Panel)
+        ========================================= */
+      #selectionPanel, #textPanel { padding: 16px; display: none; flex-direction: column; gap: 20px; }
+      .section-title { font-size: 12px; font-weight: 600; color: #333; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
 
-      /* 4. 范围选择器 */
-      .scope-segmented-control {
-          display: flex; width: 100%; background: #f5f5f5;
-          padding: 2px; border-radius: 6px; margin-bottom: 12px;
-      }
-      .scope-seg-item {
-          flex: 1; text-align: center; padding: 6px 0; font-size: 12px;
-          color: #666; cursor: pointer; border-radius: 4px;
-          white-space: nowrap; /* 防止换行 */
-      }
-      .scope-seg-item.active {
-          background: #fff; color: var(--primary);
-          box-shadow: 0 1px 2px rgba(0,0,0,0.1); font-weight: 600;
-      }
+      /* 开关 Toggle */
+      .toggle-switch { display: flex; background: #eee; border-radius: 4px; padding: 2px; cursor: pointer; font-size: 10px; }
+      .toggle-switch span { padding: 2px 8px; border-radius: 3px; color: #999; transition: 0.2s; }
+      .toggle-switch.include .s-in { background: #fff; color: var(--primary); font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+      .toggle-switch.exclude .s-ex { background: #fff; color: var(--danger); font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 
-      /* 5. 输入框 */
-      .modern-input-group { position: relative; margin-bottom: 8px; width: 100%; }
-      .modern-input-group input {
-          width: 100%; box-sizing: border-box;
-          padding: 8px 12px 8px 32px; border: 1px solid #e0e0e0;
-          border-radius: 6px; height: 36px;
+      /* 过滤按钮组 */
+      .btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
+      .filter-btn {
+          padding: 5px 9px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9;
+          font-size: 11px; color: #555; cursor: pointer; transition: all 0.1s;
+          display: flex; align-items: center; gap: 4px;
       }
-      .modern-input-group .m-icon {
-          position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-          color: #999; pointer-events: none; z-index: 1;
-      }
+      .filter-btn:hover { border-color: #bbb; background: #eee; }
+      .filter-btn.active { background: #444; color: #fff; border-color: #444; }
+      .filter-btn.all-btn.active { background: #E6F7FF; color: var(--primary); border-color: var(--primary); }
 
-      /* 6. 开始查找按钮 */
-      .btn-find-hero {
-          width: 100%; height: 36px; background: var(--primary); color: #fff;
-          border: none; border-radius: 6px; font-size: 13px; font-weight: 600;
-          cursor: pointer; display: flex; align-items: center; justify-content: center;
-          margin-top: 8px;
+      /* 属性行 */
+      .prop-list { display: flex; flex-direction: column; gap: 8px; }
+      .prop-row { display: flex; gap: 6px; align-items: center; }
+      .prop-select, .prop-input, .prop-op {
+          padding: 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 11px; outline: none; background: #fff;
       }
+      .prop-select { flex: 1; }
+      .prop-input { width: 60px; }
+      .prop-op { width: 50px; flex: none; }
+      .prop-remove { color: #999; cursor: pointer; padding: 4px; font-size: 14px; }
+      .prop-remove:hover { color: var(--danger); }
+      .add-prop-btn { color: var(--primary); font-size: 18px; cursor: pointer; font-weight: bold; }
 
-      /* 7. 结果列表项 (强制 Flex 布局) */
-      .text-result-row {
-          display: flex !important; align-items: center !important; justify-content: space-between;
-          padding: 10px 16px; background: #fff; border-bottom: 1px solid #f0f0f0;
-          width: 100%; box-sizing: border-box;
-      }
-      .text-result-row .row-cb {
-          margin: 0 12px 0 0 !important; cursor: pointer; flex-shrink: 0; width: 16px; height: 16px;
-      }
-      .text-row-content {
-          flex: 1; overflow: hidden; margin-right: 12px;
-          cursor: pointer; display: flex; align-items: center;
-      }
-      .text-preview-main {
-          font-size: 13px; color: #333; white-space: nowrap; overflow: hidden;
-          text-overflow: ellipsis; width: 100%; display: block;
-      }
-      .hl-text {
-          background: rgba(255, 214, 102, 0.4); color: #D46B08;
-          border-bottom: 2px solid #FFC53D; padding: 0 2px; font-weight: bold;
-      }
-      
-      /* 替换小按钮 */
-      .btn-row-replace {
-          padding: 4px 10px !important; background: #fff !important; border: 1px solid #ddd !important;
-          border-radius: 4px; font-size: 11px; color: #666; cursor: pointer;
-          white-space: nowrap; flex-shrink: 0; height: auto; line-height: normal; display: inline-block;
-      }
-      .btn-row-replace:hover {
-          background: #e6f7ff !important; color: #1890FF !important; border-color: #1890FF !important;
-      }
-
-      /* 状态样式 */
-      .text-result-row.is-highlighted {
-          background: #fff1f0 !important; border-left: 3px solid #ff4d4f;
-      }
-      .text-result-row.is-highlighted .text-preview-main { color: #cf1322; }
-      
-      .text-result-row.replaced {
-          background: #f5f5f5 !important; opacity: 0.6; pointer-events: none;
-      }
-      .text-result-row.replaced .text-preview-main { text-decoration: line-through; color: #999; }
-      .text-result-row.replaced .btn-row-replace { display: none; }
-
-      /* 8. 列表容器与底部 */
-      .text-list-header-bar {
-          display: flex; justify-content: space-between; align-items: center;
-          padding: 8px 16px; background: #fafafa; border-bottom: 1px solid #eee;
-          font-size: 12px; color: #666; flex-shrink: 0;
-      }
-      .text-list-container { flex: 1; overflow-y: auto; padding: 0; }
-      .text-fixed-footer {
-          background: #fff; padding: 12px 16px; border-top: 1px solid #eee; display: flex; z-index: 3; flex-shrink: 0;
+      .fixed-action {
+          position: absolute; bottom: 0; left: 0; right: 0;
+          padding: 16px; background: #fff; border-top: 1px solid #eee;
+          display: none; justify-content: flex-end; z-index: 20;
       }
 
       /* =========================================
-        8. 选择工具面板 (Selection Panel - Redesigned)
-        ========================================= */
-      #selectionPanel {
-          padding: 0 !important;
-          background: var(--bg-body);
-          height: 100%;
-          display: none; /* JS控制 */
-          flex-direction: column;
-          overflow: hidden;
-      }
-
-      /* 滚动区域 */
-      .selection-scroll-area {
-          flex: 1;
-          overflow-y: auto;
-          padding: 16px;
-          display: flex;
-          flex-direction: column;
-          gap: 24px;
-      }
-
-      /* 分组标题 */
-      .section-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 10px;
-      }
-      .section-title {
-          font-size: 13px;
-          font-weight: 700;
-          color: #333;
-          margin: 0; /* 覆盖旧样式 */
-      }
-
-      /* 范围选择器 (iOS Segmented Control) */
-      .scope-control {
-          display: flex;
-          gap: 4px !important; /* 关键：增加间距 */
-          padding: 0px;
-          border-radius: 0px;
-          width: 100%;
-          box-sizing: border-box;
-      }
-      .scope-btn {
-          flex: 1;
-          text-align: center;
-          padding: 6px 0;
-          font-size: 12px;
-          color: #666;
-          cursor: pointer;
-          border-radius: 6px;
-          transition: all 0.2s;
-          font-weight: 500;
-          margin: 0 !important; /* 清除默认 margin */
-          background: #00000008; /* 默认透明 */
-          border: 1px solid #0000000c;
-      }
-      .scope-btn.active {
-          background: #e6f7ff;
-          color: var(--primary);
-          font-weight: 600;
-          box-shadow: 0 2px 5px #188fff32;
-          border-color: var(--primary);
-      }
-
-      /* 名称输入行 */
-      .name-input-row {
-          display: flex;
-          gap: 8px;
-          align-items: center;
-      }
-      .name-input-wrapper {
-          flex: 1;
-          position: relative;
-          display: flex;
-          align-items: center; /* 垂直居中 */
-      }
-      .name-input {
-          width: 100%;
-          padding: 8px 12px 8px 30px;
-          border: 1px solid #e0e0e0;
-          border-radius: 6px;
-          height: 36px;
-          font-size: 13px;
-          background: #fff;
-      }
-      .name-input:focus { border-color: var(--primary); outline: none; }
-      .name-icon {
-        position: absolute;
-        left: 10px;
-        /* 移除 top, transform，改用 flex 自动对齐的补充或 top:0; bottom:0; margin:auto */
-        top: 0;
-        bottom: 0;
-        margin: auto;
-        height: 16px; /* 显式高度 */
-        width: 16px;
-        color: #999;
-        pointer-events: none;
-    }
-      
-      .icon-btn-square {
-          width: 36px; height: 36px;
-          border: 1px solid #e0e0e0;
-          background: #fff;
-          border-radius: 6px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          color: #666;
-          transition: all 0.2s;
-      }
-      .icon-btn-square:hover { border-color: var(--primary); color: var(--primary); background: #e6f7ff; }
-      .icon-btn-square.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-
-      /* 3. 清除按钮 (Clear Button) 样式 */
-      .btn-clear-input {
-          position: absolute;
-          right: 8px;
-          top: 0;
-          bottom: 0;
-          margin: auto;
-          width: 20px;
-          height: 20px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #ccc;
-          cursor: pointer;
-          font-size: 14px;
-          border-radius: 50%;
-          transition: all 0.2s;
-      }
-      .btn-clear-input:hover {
-          color: #999;
-          background: #f0f0f0;
-      }
-      /* 当输入框为空时隐藏清除按钮 (需JS配合) */
-      .btn-clear-input.hidden { display: none; }
-      
-      /* 标签云容器 */
-      .tag-cloud {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 4px;
-      }
-      /* 标签按钮 */
-      .filter-tag {
-          padding: 7px 6px;
-          background: #fff;
-          border: 1px solid #e0e0e0;
-          border-radius: 6px;
-          font-size: 12px;
-          color: #555;
-          cursor: pointer;
-          transition: all 0.15s;
-          display: flex;
-          align-items: center;
-          gap: 4px;
-      }
-      .filter-tag:hover { background: #fafafa; border-color: #ccc; }
-      .filter-tag.active {
-          background: #e6f7ff;
-          border-color: var(--primary);
-          color: var(--primary);
-          font-weight: 500;
-      }
-      /* "全部"按钮特殊样式 */
-      .filter-tag.all-tag.active {
-          background: #333;
-          border-color: #333;
-          color: #fff;
-      }
-
-      /* 开关 (包含/不包含) */
-      .mode-switch {
-          display: flex;
-          font-size: 11px;
-          background: #f0f0f0;
-          border-radius: 4px;
-          padding: 2px;
-          cursor: pointer;
-      }
-      .mode-switch span {
-          padding: 2px 8px;
-          border-radius: 3px;
-          color: #999;
-          transition: 0.2s;
-      }
-      .mode-switch.include .ms-in { background: #fff; color: var(--primary); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-      .mode-switch.exclude .ms-ex { background: #fff; color: var(--danger); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-
-      /* 属性行列表 */
-      .prop-list-container {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-      }
-      .prop-item {
-          display: flex;
-          gap: 8px;
-          align-items: center;
-          background: #fff;
-          padding: 8px;
-          border: 1px solid #eee;
-          border-radius: 8px;
-      }
-      .prop-select {
-          flex: 1;
-          height: 28px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          font-size: 12px;
-          padding-left: 4px;
-          background: #fff;
-      }
-      .prop-op {
-          width: 44px;
-          height: 28px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          font-size: 12px;
-          background: #f9f9f9;
-          text-align: center;
-      }
-      .prop-val-input {
-          width: 60px;
-          height: 28px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          font-size: 12px;
-          padding-left: 6px;
-      }
-      .prop-del-btn {
-          width: 20px; height: 20px;
-          display: flex; align-items: center; justify-content: center;
-          color: #999; cursor: pointer; border-radius: 50%;
-          font-size: 16px; line-height: 1;
-      }
-      .prop-del-btn:hover { background: #fff1f0; color: #ff4d4f; }
-
-      .add-prop-link {
-          font-size: 12px; color: var(--primary); cursor: pointer;
-          display: inline-flex; align-items: center; gap: 4px; font-weight: 600;
-      }
-      .add-prop-link:hover { text-decoration: underline; }
-
-      /* 底部固定操作栏 */
-      .selection-footer {
-          padding: 12px 16px;
-          background: #fff;
-          border-top: 1px solid #eee;
-          flex-shrink: 0;
-          z-index: 5;
-      }
-
-      /* =========================================
-        9. PPT Master 面板样式
+        7. PPT Master 面板样式
         ========================================= */
       #pptPanel { display: none; flex-direction: column; height: 100%; background: #fff; width: 100%; }
+
+      /* 顶部仪表盘 */
       .ppt-dashboard { padding: 16px; background: #fff; border-bottom: 1px solid #f0f0f0; flex-shrink: 0; z-index: 2; }
       .ppt-tips {
           background: #fffbe6; border: 1px solid #ffe58f; border-radius: 8px;
@@ -684,6 +327,7 @@
       .btn-auto-run:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(24,144,255,0.4); }
       .btn-auto-run:disabled { background: #d9d9d9; box-shadow: none; cursor: not-allowed; }
 
+      /* 步骤展示区 */
       .ppt-content-area {
           flex: 1; overflow-y: auto; overflow-x: hidden; padding: 16px;
           display: flex; flex-direction: column; align-items: center; width: 100%;
@@ -706,27 +350,45 @@
       .ppt-desc { font-size: 13px; color: #888; margin-bottom: 16px; line-height: 1.5; }
       .ppt-status { font-size: 12px; color: #999; font-family: monospace; background: #f5f5f5; padding: 4px 10px; border-radius: 10px; }
 
+      /* PPT 底部栏 */
       .ppt-footer {
-          height: 56px; border-top: 1px solid var(--border);
-          display: flex; background: var(--bg-white); flex-shrink: 0;
+          height: 56px;
+          border-top: 1px solid var(--border);
+          display: flex;
+          background: var(--bg-white);
+          flex-shrink: 0;
       }
       .ppt-footer button {
-          border: none; background: #fff; cursor: pointer; font-size: 13px; font-weight: 700; transition: background 0.2s;
+          border: none;
+          background: #fff;
+          cursor: pointer;
+          font-size: 13px;
+          font-weight: 700;
+          transition: background 0.2s;
       }
       .ppt-footer button:hover { background: #f5f5f5; }
-      .ppt-footer .primary-btn { background: #fff; color: var(--primary); border-left: 1px solid #eee; border-radius: 0; }
+      .ppt-footer .primary-btn {
+          background: #fff;
+          color: var(--primary);
+          border-left: 1px solid #eee;
+          border-radius: 0;
+      }
 
       .ppt-progress-track { height: 6px; background: #f0f0f0; width: 100%; margin-top: auto; }
       .ppt-progress-fill { height: 100%; background: var(--success); width: 0%; transition: width 0.3s; }
 
+      /* 手动下载按钮 */
       .btn-manual-dl {
           width: 100%; margin-top: 12px; padding: 8px 16px;
           background: #f0f7ff; border: 1px solid #bae7ff; color: var(--primary);
           border-radius: 6px; font-size: 12px; font-weight: 600;
-          justify-content: center; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;
+          justify-content: center; cursor: pointer; display: inline-flex;
+          align-items: center; gap: 6px; transition: all 0.2s;
       }
-      .btn-manual-dl:hover { background: #e6f7ff; border-color: #91d5ff; color: var(--primary-active); }
+      .btn-manual-dl:hover { background: #e6f7ff; border-color: #91d5ff; color: var(--primary-active); transform: translateY(-1px); }
+      .btn-manual-dl:active { transform: scale(0.98); background: #bae7ff; }
 
+      /* 全屏 Loading 遮罩 */
       .loading-overlay {
           position: absolute; top: 0; left: 0; width: 100%; height: 100%;
           background: rgba(255, 255, 255, 0.98); z-index: 100;
@@ -734,7 +396,8 @@
       }
       .loading-overlay.active { display: flex; }
       .spinner {
-          width: 40px; height: 40px; border: 4px solid #e6f7ff; border-top: 4px solid var(--primary);
+          width: 40px; height: 40px;
+          border: 4px solid #e6f7ff; border-top: 4px solid var(--primary);
           border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;
       }
       .loading-text { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px; }
@@ -742,30 +405,88 @@
       @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
       /* =========================================
-        10. Refiner (组件清洗) 面板样式
+        8. Refiner (组件清洗) 面板样式
         ========================================= */
-      #lintResultsWrapper, #findResultsWrapper {
-          display: none; flex-direction: column; overflow: hidden; height: 100%; overflow: hidden; /* 关键：禁止最外层滚动 */
+
+      /* --- 新增：Refiner 界面修复与优化 --- */
+      #lintResultsWrapper {
+          display: none; /* 默认隐藏，由JS控制显示 */
+          flex-direction: column;
+          height: 100%;
+          overflow: hidden;
       }
-      #findResultsWrapper { flex: 1; min-height: 0; }
+
+      #findResultsWrapper {
+          display: none; /* 默认隐藏，由JS控制显示 */
+          flex-direction: column;
+          flex: 1;
+          overflow: hidden;
+          min-height: 0; /* 关键：防止Flex子元素溢出 */
+      }
       .limit-warning {
           padding: 8px 12px; background: #fff7e6; color: #d48806; font-size: 11px;
           text-align: center; border-bottom: 1px solid #ffe58f; flex-shrink: 0;
       }
+      /* 让组件标题吸顶，列表滚动时标题不动 */
       .comp-header { position: sticky; top: 0; z-index: 5; }
 
-      .split-row { display: flex; gap: 12px; margin-top: 8px; }
-      .split-col { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-      .split-col .style-label, .style-label {
-          font-size: 11px; color: #666; margin-bottom: 6px; font-weight: 600;
-      }
-      .radio-grid { display: grid; gap: 8px; }
-      .split-col .radio-grid { grid-template-columns: 1fr; }
-      .lint-controls-wrapper { display: flex; flex-direction: column; height: 100%; overflow: visible; background: var(--bg-white); }
+      /* --- 新增：分栏布局样式 (用于分隔符和大小写并排) --- */
+    .split-row {
+      display: flex;
+      gap: 12px; /* 左右间距 */
+      margin-top: 8px;
+    }
+    .split-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0; /* 防止溢出 */
+    }
+    /* --- 新增：分栏内标签样式 --- */
+    .split-col .style-label {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    /* 修复格式(Format)字号过大问题 */
+    .style-label {
+      font-size: 11px; /* 强制统一为12px */
+      font-weight: 600;
+      color: #666;
+      margin-bottom: 6px;
+    }
+    
+    /* 优化 Radio Grid，使其更紧凑 */
+    .radio-grid {
+      display: grid;
+      gap: 8px;
+    }
+    /* 针对分栏内的单选按钮，强制单列显示 */
+    .split-col .radio-grid {
+      grid-template-columns: 1fr; /* 强制一列 */
+    }
+    
+    /* 修复配置区高度截断问题 */
+    .lint-controls-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: visible;
+      background: var(--bg-white);
+    }
 
-      #refinerPanel { display: none; flex-direction: column !important; height: 100%; width: 100%; background: #fff; overflow: hidden; }
+      /* ---- Refiner 界面布局 ---- */
+
+      #refinerPanel {
+          display: none; flex-direction: column !important;
+          height: 100%; width: 100%; background: #fff; overflow: hidden;
+      }
+
+      /* 顶部 Tab 导航 */
       .refiner-tabs {
-          display: flex; background: var(--bg-white); padding: 4px 16px 0; border-bottom: 1px solid #eee; flex-shrink: 0; gap: 16px;
+          display: flex; background: var(--bg-white); padding: 4px 16px 0;
+          border-bottom: 1px solid #eee; flex-shrink: 0; gap: 16px;
       }
       .refiner-tab-item {
           flex: 1; display: flex; justify-content: center; padding: 10px 4px;
@@ -774,59 +495,117 @@
       }
       .refiner-tab-item:hover { color: #333; }
       .refiner-tab-item.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
-      
-      .refiner-tab-content { flex: 1; display: none; flex-direction: column; overflow: hidden; background: var(--bg-body); height: 100%; }
+
+      .refiner-tab-content {
+          flex: 1; display: none; flex-direction: column;
+          overflow: hidden; background: var(--bg-body); height: 100%;
+      }
       .refiner-tab-content.active { display: flex; }
 
+      /* 配置区域 */
       .refiner-config { padding: 16px; flex: 1; overflow-y: auto; background: var(--bg-white); }
       .config-group { margin-bottom: 12px; border-bottom: 1px solid #f5f5f5; padding-bottom: 8px; }
       .config-group:last-child { border-bottom: none; }
       .config-label { display: block; font-size: 13px; font-weight: 700; color: #333; margin-bottom: 6px; }
-      .sub-label { font-size: 12px; font-weight: 600; color: #888; margin-bottom: 6px; margin-top: 4px;}
-      .style-section { display: flex; flex-direction: column; gap: 2px; }
-      .disabled-area { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
       
+      /* 子标签 */
+      .sub-label { font-size: 12px; font-weight: 600; color: #888; margin-bottom: 6px; margin-top: 4px;}
+      
+      /* 垂直排布 */
+      .style-section {display: flex; flex-direction: column; gap: 2px;}
+      /* 并列排布 */
+      .split-row { display: flex; gap: 12px;}
+      .split-col { flex: 1; min-width: 0;}
+      /* 禁用区域样式 */
+      .disabled-area { opacity: 0.5; pointer-events: none; filter: grayscale(1);/* 禁用鼠标交互 */ }
+      /* 查找替换区的checkbox */
       .find-options { display: flex; justify-content: center; margin: 10px 0 4px; }
       .checkbox-center { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #555; cursor: pointer; user-select: none; }
       .checkbox-center:hover { color: #333; }
       .checkbox-center input { margin: 0; }
-
+      /* 单选网格 */
       .radio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
       .radio-item {
           display: flex; align-items: center; justify-content: center;
           padding: 8px 4px; border: 1px solid #e0e0e0; border-radius: 6px;
-          font-size: 12px; color: #555; cursor: pointer; background: #fff; transition: all 0.2s; user-select: none;
+          font-size: 12px; color: #555; cursor: pointer;
+          background: #fff; transition: all 0.2s; user-select: none;
       }
       .radio-item:hover { background: #f9f9f9; border-color: #ccc; }
       .radio-item.active { background: #e6f7ff; border-color: var(--primary); color: var(--primary); font-weight: 600; }
       .radio-item.disabled { opacity: 0.5; pointer-events: none; background: #f5f5f5; border-color: #eee; color: #ccc; }
 
-      .checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 12px; color: #555; cursor: pointer; user-select: none; }
+      /* 复选框行 */
+      .checkbox-row {
+          display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+          font-size: 12px; color: #555; cursor: pointer; user-select: none;
+      }
       .checkbox-row:hover { color: #333; }
       .checkbox-row input { accent-color: var(--primary); width: 14px; height: 14px; }
 
+      /* 开始检查按钮 */
       .btn-start-lint {
           width: 100%; padding: 8px; background: var(--primary); color: #fff;
           border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
           cursor: pointer; margin-top: 10px; transition: all 0.2s;
-          box-shadow: 0 4px 12px rgba(24, 144, 255, 0.2); display: flex; align-items: center; justify-content: center; gap: 8px;
+          box-shadow: 0 4px 12px rgba(24, 144, 255, 0.2);
+          display: flex; align-items: center; justify-content: center; gap: 8px;
       }
       .btn-start-lint:hover { background: var(--primary-hover); transform: translateY(-1px); }
+      .btn-start-lint:active { transform: translateY(0); }
       .btn-start-lint.loading { background: #8FC9FF; pointer-events: none; cursor: wait; }
-      .btn-spinner { width: 14px; height: 14px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
+      
+      .btn-spinner {
+          width: 14px; height: 14px; border: 2px solid #fff; border-top-color: transparent;
+          border-radius: 50%; animation: spin 0.8s linear infinite; display: none;
+      }
       .btn-start-lint.loading .btn-spinner { display: block; }
 
-      .lint-controls-wrapper, .find-controls { background: var(--bg-white); border-bottom: 1px solid #eee; flex-shrink: 0; transition: all 0.3s ease; overflow: hidden; }
+      /* 折叠面板 (Lint/Find) */
+      .lint-controls-wrapper, .find-controls {
+          background: var(--bg-white); border-bottom: 1px solid #eee; flex-shrink: 0;
+          transition: all 0.3s ease; overflow: hidden;
+      }
       .lint-summary-bar, .find-summary-bar {
           display: none; align-items: center; justify-content: space-between;
           padding: 8px 16px; background: var(--bg-white); border-bottom: 1px solid #eee; cursor: pointer;
       }
       .lint-summary-bar:hover { background: #f9f9f9; }
       .lint-summary-bar.visible, .find-summary-bar.visible { display: flex; }
-      .find-expanded { display: flex; flex-direction: column; gap: 0px; padding: 12px 16px; opacity: 1; max-height: 300px; }
-      .find-summary-bar { display: flex; align-items: center; justify-content: space-between; background: #f0f7ff; border-bottom: 1px solid #bae7ff; padding: 8px 16px; cursor: pointer; flex-shrink: 0; font-size: 12px; font-weight: 500; }
-      .find-summary-bar:hover { background: #e6f7ff; }
       
+      /* Find 面板特殊样式 */
+      .find-expanded { display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; opacity: 1; max-height: 300px; }
+      .find-summary-bar { display: flex; align-items: center; justify-content: space-between; background: #f0f7ff; border-bottom: 1px solid #bae7ff; padding: 8px 16px; cursor: pointer; flex-shrink: 0; font-size: 12px; font-weight: 500;}
+      .find-summary-bar:hover { background: #e6f7ff; }
+      .summary-text { font-size: 12px; color: var(--primary); font-weight: 600; display: flex; align-items: center; gap: 6px; }
+
+      /* 范围选择条 */
+      .scope-segment { display: flex; background: #f0f0f0; border-radius: 6px; padding: 2px; width: fit-content; }
+      .scope-option {
+          padding: 4px 12px; font-size: 11px; color: #666; cursor: pointer;
+          border-radius: 4px; transition: all 0.2s; user-select: none;
+      }
+      .scope-option.active { background: #fff; color: #333; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+
+      /* 增强输入框 (带图标) */
+      .input-group-icon { position: relative; display: flex; align-items: center; }
+      .input-group-icon input {
+          width: 100%; padding: 8px 30px; /* 留出左右图标位置 */
+          border: 1px solid #d9d9d9; border-radius: 6px; font-size: 12px; outline: none; transition: all 0.2s;
+      }
+      .input-group-icon input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(24,144,255,0.1); }
+      .icon-prefix { position: absolute; left: 8px; color: #999; pointer-events: none; display: flex; }
+      .icon-suffix-group { position: absolute; right: 6px; display: flex; gap: 4px; }
+
+      /* 图标开关按钮 (Aa, ab) */
+      .icon-toggle {
+          width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+          border-radius: 3px; cursor: pointer; color: #999; font-size: 10px; font-weight: bold;
+          font-family: monospace; border: 1px solid transparent;}
+      .icon-toggle:hover { background: #f0f0f0; color: #666; }
+      .icon-toggle.active { background: #E6F7FF; color: var(--primary); border-color: #BAE7FF; }
+
+      /* Filter Chips (属性名/值过滤) */
       .filter-chips-row { display: flex; gap: 8px; align-items: center; margin-top: 2px; }
       .chip-check {
           flex: 1; display: flex; justify-content: center; align-items: center; gap: 4px;
@@ -837,71 +616,106 @@
       .chip-check.active { background: #E6F7FF; border-color: var(--primary); color: var(--primary); font-weight: 500; }
       .chip-check input { display: none; }
 
-      /* Refiner List Items */
+      /* =========================================
+        9. Refiner 结果列表树 (Results Tree)
+        ========================================= */
+      .res-list { flex: 1; overflow-y: auto; padding: 0; background: var(--bg-body); }
+
+      /* 列表头部 (全选栏) */
       .res-header {
-          background: var(--bg-white); padding: 8px 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+          background: var(--bg-white); padding: 8px 12px; border-bottom: 1px solid #eee;
+          display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
       }
       .header-left { display: flex; align-items: center; gap: 8px; }
       .header-cb { accent-color: var(--primary); cursor: pointer; transform: scale(1.1); }
       .btn-reset { border: none; background: transparent; color: #999; cursor: pointer; font-size: 11px; }
       .btn-reset:hover { color: var(--primary); }
 
+      /* Level 1: 组件容器 (Component Group) */
       .comp-group { background: var(--bg-white); border-bottom: 1px solid #f0f0f0; }
-      .comp-header { padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+      .comp-header {
+          padding: 8px 12px; display: flex; align-items: center; justify-content: space-between;
+          cursor: pointer; transition: background 0.1s;
+      }
       .comp-header:hover { background: #f9f9f9; }
-      .comp-info { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #9747FF; font-weight: 600; overflow: hidden; }
+      .comp-info {
+          display: flex; align-items: center; gap: 6px;
+          font-size: 12px; color: #9747FF; font-weight: 600; overflow: hidden;
+      }
       .comp-arrow { color: #9e9e9e; font-size: 10px; width: 10px; transition: transform 0.2s; display: inline-block; }
       .comp-group.expanded .comp-arrow { transform: rotate(90deg); }
+
       .comp-details { display: none; padding-bottom: 4px; }
       .comp-group.expanded .comp-details { display: block; }
 
+      /* Level 2: 分类标题 (Category) */
       .detail-category {
-          font-size: 11px; font-weight: 600; color: #555; background: #fdfdfd; border-top: 1px solid #f5f5f5;
-          padding: 6px 12px 6px 16px; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0;
+          font-size: 11px; font-weight: 600; color: #555;
+          background: #fdfdfd; border-top: 1px solid #f5f5f5;
+          padding: 6px 12px 6px 16px; /* 左侧缩进 */
+          border-top: 1px solid #f0f0f0;
+          border-bottom: 1px solid #f0f0f0;
           display: flex; align-items: center; gap: 6px;
       }
-      .detail-category:first-child {border-top: none; }
-      
+      .detail-category:first-child {border-top: none; }/* 第一个分类没有上边框 */
+      .cat-badge {
+          font-size: 9px; font-weight: normal;
+          padding: 1px 4px; border-radius: 4px;
+          background: #E6F7FF; color: var(--primary);
+      }
+
+      .cat-count {
+          background: #f0f0f0; color: #686868; font-size: 10px;
+          padding: 0 5px; border-radius: 4px; font-weight: normal;
+      }/* 分类数量 */
+
+      /* Level 3: 具体修改项 (Diff Item) */
       .diff-item {
-          display: flex; align-items: center; gap: 6px; padding: 6px 12px 6px 26px; font-size: 11px; border-top: 1px dashed #fafafa; position: relative;
+          display: flex; align-items: center; gap: 6px;
+          padding: 6px 12px 6px 26px; /* 大幅缩进 */
+          font-size: 11px; border-top: 1px dashed #fafafa; position: relative;
       }
       .diff-item:hover { background: #f0f7ff; }
       .diff-item.fixed-success { background: #f6ffed; }
 
+      /* 文本展示 (Old -> New) */
       .txt-wrapper { flex: 1; display: flex; align-items: center; overflow: hidden; cursor: pointer; }
       .txt-old { color: #999; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .txt-arrow { color: #00008B; margin: 0 10px; font-size: 12px; flex-shrink: 0; font-weight: bold; }
       .txt-new { color: #10B981; font-weight: 600; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+      /* 定位按钮 (Locate) */
       .btn-locate {
-          width: 24px; height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center;
-          cursor: pointer; border: 1px solid transparent; background: transparent;color: #999; opacity: 0; transition: all 0.2s;
+          width: 24px; height: 24px;
+          border-radius: 4px; display: flex;
+          align-items: center; justify-content: center;
+          cursor: pointer;
+          border: 1px solid transparent;
+          background: transparent;color: #999;
+          opacity: 0; transition: all 0.2s;
       }
-      .comp-header:hover .btn-locate, .diff-item:hover .btn-locate { opacity: 1; }
+      .comp-header:hover .btn-locate, 
+      .diff-item:hover .btn-locate { opacity: 1; }
       .btn-locate:hover { color: var(--primary); background: #e6f7ff; border-color: var(--primary); opacity: 1; }
 
-      /* 列表区域：占据剩余空间，并在内部滚动 */
-      .res-list {
-          flex: 1;             /* 关键：撑开高度 */
-          overflow-y: auto;    /* 关键：内部滚动 */
-          padding-bottom: 10px;
-          min-height: 0;       /* 防止 flex 子项溢出 */
+      /* =========================================
+        10. 底部与状态页 (Footer & States)
+        ========================================= */
+      /* 底部操作栏 */
+      .res-footer {
+          padding: 12px 16px; background: var(--bg-white); border-top: 1px solid #eee;
+          display: flex; gap: 12px; flex-shrink: 0;
       }
-
-      .res-footer { 
-        padding: 12px 16px; 
-        background: var(--bg-white); 
-        border-top: 1px solid #eee; 
-        display: flex; gap: 12px; 
-        flex-shrink: 0; 
-        z-index: 10;         /* 确保浮在列表上方（如果有阴影的话）*/
+      .btn-act {
+          flex: 1; padding: 9px; border-radius: 6px; font-size: 12px; font-weight: 500;
+          cursor: pointer; border: 1px solid #ddd; background: #fff; color: #333; transition: all 0.2s;
       }
-      .btn-act { flex: 1; padding: 9px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid #ddd; background: #fff; color: #333; transition: all 0.2s; }
       .btn-act:hover { background: #f5f5f5; border-color: #ccc; }
       .btn-act:disabled { opacity: 0.5; cursor: not-allowed; background: #f5f5f5; }
       .btn-act.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
       .btn-act.primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
 
+      /* 空状态 (Refiner) */
       .empty-state-refiner {
           display: flex; flex-direction: column; align-items: center; justify-content: center;
           height: 100%; width: 100%; padding: 16px; text-align: center;
@@ -909,200 +723,394 @@
       .empty-state-refiner .es-icon { font-size: 32px; line-height: 1; margin-bottom: 12px; }
       .empty-state-refiner .es-text { font-size: 13px; color: #555; font-weight: 400; line-height: 1.5; }
 
-      .success-state-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px; text-align: center; }
+      /* 成功状态 (Success State - Inline) */
+      .success-state-container {
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          height: 100%; padding: 20px; text-align: center;
+      }
       .success-emoji { font-size: 48px; margin-bottom: 16px; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+      @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+      /* 成功遮罩 (Success Overlay - Full Cover) */
       .success-overlay {
-          position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-white); z-index: 10;
-          display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;
+          position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+          background: var(--bg-white); z-index: 10;
+          display: none; flex-direction: column; align-items: center; justify-content: center;
+          padding: 20px; text-align: center;
       }
       .success-icon { font-size: 32px; margin-bottom: 16px; color: var(--success); }
       .success-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px; }
       .success-desc { font-size: 12px; color: #666; margin-bottom: 16px; line-height: 1.5; }
 
-      /* 2. 修复查找替换面板 UI 混乱 (Fixes Issue 3) */
-
-      /* 顶部范围切换器 */
-      .scope-segment {
-          display: flex;
-          background: #f5f5f5;
-          padding: 3px;
-          border-radius: 6px;
-          margin-bottom: 0px;
-          gap: 2px;
-          width: 100%;
-      }
-      .scope-option {
-          flex: 1;
-          text-align: center;
-          padding: 6px 0;
-          font-size: 12px;
-          color: #666;
-          cursor: pointer;
-          border-radius: 4px;
-          transition: all 0.2s;
-      }
-      .scope-option:hover {
-          background: rgba(255,255,255,0.5);
-      }
-      .scope-option.active {
-          background: #fff;
-          color: var(--primary); /* 使用全局变量蓝色 */
-          font-weight: 600;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-      }
-
-      /* 输入框组容器 */
-      .input-group-icon {
-          position: relative;
-          margin-bottom: 0px;
-          width: 100%;
-          display: flex;
-          align-items: center;
-      }
-
-      /* 输入框样式修正 */
-      .input-group-icon input {
-          width: 100%;
-          height: 36px;
-          padding: 0 60px 0 32px; /* 左侧留给图标，右侧留给Aa按钮 */
-          border: 1px solid #e0e0e0;
-          border-radius: 6px;
-          box-sizing: border-box;
-          font-size: 13px;
-          transition: border 0.2s;
-      }
-      .input-group-icon input:focus {
-          border-color: var(--primary);
-          outline: none;
-      }
-
-      /* 左侧图标 */
-      .icon-prefix {
-          position: absolute;
-          left: 10px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: #999;
-          pointer-events: none;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 16px; 
-          height: 16px;
-      }
-      .icon-prefix svg {
-          width: 100%;
-          height: 100%;
-      }
-
-      /* 右侧按钮组 (Aa, ab) */
-      .icon-suffix-group {
-          position: absolute;
-          right: 6px;
-          top: 50%;
-          transform: translateY(-50%);
-          display: flex;
-          gap: 2px;
-      }
-
-      /* 小开关按钮 */
-      .icon-toggle {
-          cursor: pointer;
-          width: 24px;
-          height: 24px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 4px;
-          font-size: 11px;
-          font-weight: 600;
-          color: #999;
-          border: 1px solid transparent;
-          transition: all 0.2s;
-          user-select: none;
-      }
-      .icon-toggle:hover {
-          background: #f0f0f0;
-          color: #666;
-      }
-      .icon-toggle.active {
-          background: #E6F7FF;
-          color: var(--primary);
-          border-color: #BAE7FF;
-      }
-
-      /* 修复下拉箭头 */
-      .find-expanded svg {
-          display: inline-block;
-          vertical-align: middle;
-      }
-
       /* =========================================
-        11. 设计理论面板 (Design Theory)
+        Design Theory Panel Styles
         ========================================= */
-      .theory-header { padding: 12px 16px 8px; background: #fff; border-bottom: 1px solid #f0f0f0; flex-shrink: 0; }
-      .theory-tags-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
-      .theory-tags-scroll::-webkit-scrollbar { display: none; }
+      .theory-header {
+        padding: 12px 16px 8px;
+        background: #fff;
+        border-bottom: 1px solid #f0f0f0;
+        flex-shrink: 0;
+      }
+      .theory-tags-scroll {
+        display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;
+      }
+      .theory-tags-scroll::-webkit-scrollbar { display: none; } /* 隐藏滚动条 */
       .t-tag {
-          padding: 4px 12px; border-radius: 14px; background: #f5f5f5; color: #666; font-size: 11px;
-          cursor: pointer; white-space: nowrap; transition: all 0.2s; border: 1px solid transparent;
+        padding: 4px 12px; border-radius: 14px; background: #f5f5f5; 
+        color: #666; font-size: 11px; cursor: pointer; white-space: nowrap; transition: all 0.2s;
+        border: 1px solid transparent;
       }
       .t-tag:hover { background: #e6f7ff; color: var(--primary); }
       .t-tag.active { background: #e6f7ff; color: var(--primary); border-color: #bae7ff; font-weight: 600; }
 
       .theory-list-container {
-          flex: 1; overflow-y: auto; padding: 16px; display: grid; grid-template-columns: 1fr; gap: 12px; align-content: start;
+        flex: 1; overflow-y: auto; padding: 16px;
+        display: grid; grid-template-columns: 1fr; gap: 12px; align-content: start;
       }
+
+      /* 理论卡片 - 有温度的设计 */
       .theory-card {
-          background: #fff; border: 1px solid #eaeaea; border-radius: 8px; padding: 14px;
-          cursor: pointer; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-          display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        background: #fff; border: 1px solid #eaeaea; border-radius: 8px;
+        padding: 14px; cursor: pointer; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        display: flex; align-items: flex-start; gap: 12px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
       }
-      .theory-card:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.06); border-color: var(--primary-hover); }
+      .theory-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+        border-color: var(--primary-hover);
+      }
       .t-card-icon {
-          width: 36px; height: 36px; background: #f9f9f9; border-radius: 8px;
-          display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
+        width: 36px; height: 36px; background: #f9f9f9; border-radius: 8px;
+        display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
       }
       .t-card-content { flex: 1; }
       .t-card-title { font-size: 13px; font-weight: 700; color: #333; margin-bottom: 4px; }
       .t-card-desc { font-size: 11px; color: #888; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-      /* Theory Detail */
-      .theory-detail-nav { padding: 10px 16px; border-bottom: 1px solid #eee; background: #fff; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+      /* 详情页样式 */
+      .theory-detail-nav {
+        padding: 10px 16px; border-bottom: 1px solid #eee; background: #fff;
+        display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+      }
       .btn-back-theory {
-          border: none; background: transparent; color: #666; font-size: 12px;
-          display: flex; align-items: center; gap: 4px; cursor: pointer; padding: 4px 8px; border-radius: 4px;
+        border: none; background: transparent; color: #666; font-size: 12px;
+        display: flex; align-items: center; gap: 4px; cursor: pointer; padding: 4px 8px; border-radius: 4px;
       }
       .btn-back-theory:hover { background: #f5f5f5; color: #333; }
       .detail-cat-badge { font-size: 10px; padding: 2px 6px; background: #f0f0f0; border-radius: 4px; color: #999; }
+
       .theory-article-scroll { flex: 1; overflow-y: auto; padding: 20px 24px 40px; }
       .theory-hero { text-align: center; margin-bottom: 24px; }
       .t-icon-large { font-size: 48px; margin-bottom: 12px; }
       .theory-hero h1 { font-size: 20px; color: #333; margin: 0 0 8px; }
       .t-subtitle { font-size: 13px; color: #888; margin: 0; }
 
-      /* Theory Detail Sub-items */
-      #theoryDetailDynamicContent { padding-bottom: 40px; }
+    
+
+      /* =========================================
+       Theory Detail Panel Styles (最终整合版)
+       ========================================= */
+      
+      /* --- 1. 骨架与导航 (必须保留) --- */
+      .theory-detail-nav {
+        padding: 10px 16px; border-bottom: 1px solid #eee; background: #fff;
+        display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+      }
+      .btn-back-theory {
+        border: none; background: transparent; color: #666; font-size: 12px;
+        display: flex; align-items: center; gap: 4px; cursor: pointer; padding: 4px 8px; border-radius: 4px;
+      }
+      .btn-back-theory:hover { background: #f5f5f5; color: #333; }
+      .detail-cat-badge { font-size: 10px; padding: 2px 6px; background: #f0f0f0; border-radius: 4px; color: #999; }
+
+      .theory-article-scroll { flex: 1; overflow-y: auto; padding: 20px 24px 40px; }
+      
+      /* --- 2. 顶部 Hero 区域 (必须保留) --- */
+      .theory-hero { text-align: center; margin-bottom: 24px; }
+      .t-icon-large { font-size: 48px; margin-bottom: 12px; }
+      .theory-hero h1 { font-size: 20px; color: #333; margin: 0 0 8px; }
+      .t-subtitle { font-size: 13px; color: #888; margin: 0; }
+
+      /* --- 3. 新增：子理论卡片样式 (替代了原来的 .t-section) --- */
+      /* 动态内容的容器 */
+      #theoryDetailDynamicContent {
+        padding-bottom: 40px;
+      }
+
+      /* 卡片主体 */
       .sub-theory-card {
-          background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 20px;
-          margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); position: relative;
-          overflow: hidden; transition: all 0.2s;
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.2s;
       }
-      .sub-theory-card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.06); transform: translateY(-2px); }
+      .sub-theory-card:hover {
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        transform: translateY(-2px);
+      }
+      /* 左侧装饰条 */
       .sub-theory-card::before {
-          content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--primary); opacity: 0.6;
+        content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+        background: var(--primary); opacity: 0.6;
       }
-      .st-title { font-size: 15px; font-weight: 700; color: #333; margin-bottom: 16px; padding-right: 30px; }
-      .st-index { font-family: 'Georgia', serif; font-size: 40px; color: #000; opacity: 0.04; position: absolute; right: 10px; top: -5px; pointer-events: none; }
+
+      /* 子标题 */
+      .st-title {
+        font-size: 15px; font-weight: 700; color: #333; margin-bottom: 16px;
+        padding-right: 30px; /* 防止盖住序号 */
+      }
+      /* 背景大序号 */
+      .st-index { 
+        font-family: 'Georgia', serif; font-size: 40px; color: #000; 
+        opacity: 0.04; position: absolute; right: 10px; top: -5px; pointer-events: none;
+      }
+
+      /* 内容板块 */
       .st-block { margin-bottom: 14px; }
       .st-block:last-child { margin-bottom: 0; }
+
+      /* 标签 (核心、案例、价值) */
       .st-label {
-          display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-bottom: 6px;
+        display: inline-block; font-size: 11px; font-weight: 700; 
+        padding: 2px 8px; border-radius: 4px; margin-bottom: 6px;
       }
       .lbl-core { background: #E6F7FF; color: #096DD9; }
       .lbl-case { background: #F6FFED; color: #389E0D; }
       .lbl-val  { background: #FFF7E6; color: #D46B08; }
-      .st-text { font-size: 13px; color: #555; line-height: 1.6; text-align: justify; }
+
+      /* 正文文本 */
+      .st-text {
+        font-size: 13px; color: #555; line-height: 1.6; text-align: justify;
+      }
+
+/* =========================================
+       Text Tool UI Redesign (Edge-to-Edge)
+       ========================================= */
+    
+    /* 1. 强制覆盖主容器内边距，实现通栏 */
+    #textPanel {
+      padding: 0 !important; /* 关键：去除四周间距 */
+      background: var(--bg-body);
+      height: 100%;
+      display: none; /* JS控制切换 */
+      flex-direction: column;
+    }
+
+    /* 2. 顶部配置区 (白色背景，底部投影) */
+    .text-config-header {
+      background: #fff;
+      padding: 16px;
+      border-bottom: 1px solid #eee;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+      flex-shrink: 0;
+      z-index: 2;
+    }
+
+    /* 范围选择器 (分段控件风格) */
+    .scope-segmented-control {
+      display: flex;
+      background: #f5f5f5;
+      padding: 2px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    .scope-seg-item {
+      flex: 1;
+      text-align: center;
+      padding: 6px 0;
+      font-size: 12px;
+      color: #666;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+    .scope-seg-item.active {
+      background: #fff;
+      color: var(--primary);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      font-weight: 600;
+    }
+
+    /* 输入框优化 */
+    .modern-input-group {
+      position: relative;
+      margin-bottom: 8px;
+    }
+    .modern-input-group input {
+      width: 100%;
+      padding: 8px 12px 8px 32px; /* 左侧留出图标位置 */
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 13px;
+      background: #fff;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+    .modern-input-group input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(24,144,255,0.1);
+      outline: none;
+    }
+    .modern-input-group .m-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #999;
+      pointer-events: none;
+    }
+
+    /* 查找按钮优化 */
+    .btn-find-hero {
+      width: 100%;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 9px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    .btn-find-hero:hover { background: var(--primary-hover); }
+    .btn-find-hero:active { transform: translateY(1px); }
+
+    /* 3. 结果列表区 */
+    .text-list-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0; /* 列表紧贴边缘 */
+    }
+    
+    /* 列表头部条 */
+    .text-list-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 16px;
+      background: #fafafa;
+      border-bottom: 1px solid #eee;
+      font-size: 12px;
+      color: #666;
+    }
+
+    /* 单个列表项 (通栏样式) */
+    .text-result-row {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      background: #fff;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background 0.1s;
+      cursor: pointer;
+    }
+    .text-result-row:hover {
+      background: #f6faff;
+    }
+    .text-result-row .row-cb {
+      margin-right: 12px;
+      cursor: pointer;
+    }
+    
+    /* 文本内容 */
+    .text-row-content {
+      flex: 1;
+      overflow: hidden;
+      margin-right: 8px;
+    }
+    .text-preview-main {
+      font-size: 13px;
+      color: #333;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.4;
+    }
+    /* 高亮样式 */
+    .hl-text {
+      background: rgba(255, 214, 102, 0.4);
+      color: #D46B08;
+      border-bottom: 2px solid #FFC53D;
+      padding: 0 1px;
+      border-radius: 2px;
+      font-weight: 600;
+    }
+
+    /* 单个替换按钮 (右侧悬浮) */
+    .btn-row-replace {
+      padding: 4px 8px;
+      background: #fff;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      font-size: 11px;
+      color: #666;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: all 0.2s;
+    }
+    .text-result-row:hover .btn-row-replace { opacity: 1; border-color: #d9d9d9; }
+    .btn-row-replace:hover {
+      background: #e6f7ff !important;
+      color: var(--primary) !important;
+      border-color: var(--primary) !important;
+    }
+
+    /* 4. 底部固定操作栏 */
+    .text-fixed-footer {
+      background: #fff;
+      padding: 12px 16px;
+      border-top: 1px solid #eee;
+      display: flex;
+      z-index: 3;
+    }
+
+    /* 已完成的行样式 */
+    .text-result-row.replaced {
+        background: #f5f5f5;
+        opacity: 0.6;
+        pointer-events: none; /* 禁止再次点击 */
+    }
+    .text-result-row.replaced .text-preview-main {
+        text-decoration: line-through; /* 删除线 */
+        color: #999;
+    }
+    .text-result-row.replaced .hl-text {
+        background: transparent;
+        color: #999;
+        border: none;
+    }
+    /* 隐藏替换按钮 */
+    .text-result-row.replaced .btn-row-replace {
+        display: none;
+    }
+    
+    /* 行处于高亮（变红）状态 */
+    .text-result-row.is-highlighted {
+        background: #fff1f0; /* 浅红色背景 */
+        border-left: 3px solid #ff4d4f;
+    }
+    .text-result-row.is-highlighted .text-preview-main {
+        color: #cf1322;
+    }
+
+    /* 调整原来的 reset 按钮样式，支持 flex 布局 */
+    #textSummaryBar {
+        display: flex; 
+        align-items: center; 
+        /* justify-content: space-between; (保持原有) */
+    }
 
   </style>
 </head>
@@ -1129,6 +1137,18 @@
         <div class="nav-item" onclick="switchGroup('select', this)" data-key="nav_select">
           <svg class="nav-icon" viewBox="0 0 1024 1024"><path d="M307.2 68.266667h170.666667v102.4H307.2v-102.4z m409.6 0H546.133333v102.4h170.666667v-102.4z m-409.6 887.466666h170.666667v-102.4H307.2v102.4z m-136.533333-887.466666c-56.746667 0-102.4 45.653333-102.4 102.4v68.266666h102.4v-34.133333c0-18.773333 15.36-34.133333 34.133333-34.133333h34.133333v-102.4h-68.266666z m0 238.933333h-102.4v170.666667h102.4v-170.666667z m-102.4 409.6h102.4v-170.666667h-102.4v170.666667z m102.4 102.4v-34.133333h-102.4v68.266666c0 56.746667 45.653333 102.4 102.4 102.4h68.266666v-102.4h-34.133333c-18.773333 0-34.133333-15.36-34.133333-34.133333z m682.666666-614.4v34.133333h102.4v-68.266666c0-56.746667-45.653333-102.4-102.4-102.4h-68.266666v102.4h34.133333c18.773333 0 34.133333 15.36 34.133333 34.133333z m0 273.066667h102.4v-170.666667h-102.4v170.666667z m87.466667 390.4l-104.106667-104.106667 119.04-47.786667-375.466666-136.533333 136.533333 375.466667 47.786667-119.04 104.106666 104.106666c20.053333 20.053333 52.48 20.053333 72.533334 0 19.626667-19.626667 19.626667-52.053333-0.426667-72.106666z" fill="currentColor"></path></svg>
           <span class="nav-text">选择工具</span>
+        </div>
+
+        <!-- 布局工具 -->
+        <div class="nav-item" onclick="switchGroup('layout', this)" data-key="nav_layout">
+          <svg class="nav-icon" viewBox="0 0 1024 1024"><path d="M921.6 76.8H102.4a102.4 102.4 0 0 0-102.4 102.4v665.6a102.4 102.4 0 0 0 102.4 102.4h819.2a102.4 102.4 0 0 0 102.4-102.4v-665.6a102.4 102.4 0 0 0-102.4-102.4z m0 102.4v204.8H102.4v-204.8z m-819.2 307.2h204.8v358.4H102.4z m307.2 358.4v-358.4h512v358.4z" fill="currentColor"></path></svg>
+          <span class="nav-text">布局工具</span>
+        </div>
+
+        <!-- 样式工具 -->
+        <div class="nav-item" onclick="switchGroup('style', this)" data-key="nav_style_tools">
+          <svg class="nav-icon" viewBox="0 0 1027 1024"><path d="M513.53765 0.20344c-374.842982 0-513.53765 326.925969-513.53765 510.219407s133.361777 513.53765 502.595348 513.53765c0 0 91.844234 1.659122 91.844234-80.901931S553.040546 886.92495 553.040546 827.473092a79.005792 79.005792 0 0 1 61.229489-85.879297c19.751448 0 150.111005 9.875724 222.914844-18.171332A296.824762 296.824762 0 0 0 1027.0753 454.289231 500.185671 500.185671 0 0 0 513.53765 0.20344zM200.437695 512.081969A89.19754 89.19754 0 1 1 289.595732 422.923932a89.158037 89.158037 0 0 1-89.158037 89.158037z m168.242835-220.623676a89.158037 89.158037 0 1 1 89.158037-89.158036 89.158037 89.158037 0 0 1-89.158037 89.158036z m286.000968 0a89.158037 89.158037 0 1 1 89.158037-89.158036 89.19754 89.19754 0 0 1-89.158037 89.158036z m169.783448 220.623676a89.19754 89.19754 0 1 1 89.19754-89.158037 89.19754 89.19754 0 0 1-89.19754 89.158037z" fill="currentColor"></path></svg>
+          <span class="nav-text">样式工具</span>
         </div>
 
         <!-- 文字工具 -->
@@ -1194,131 +1214,87 @@
           <div class="card theme-pink" onclick="run('rename-content')" data-key="rename_content"><div class="card-title">Rename Content</div><div class="card-desc"></div></div>
           <div class="card theme-blue" onclick="run('detach-all')" data-key="detach_all"><div class="card-title">Detach All</div><div class="card-desc"></div></div>
           <div class="card theme-blue" onclick="run('remove-hidden')" data-key="remove_hidden"><div class="card-title">Clean Hidden</div><div class="card-desc"></div></div>
+          <div class="card theme-purple" onclick="run('select-text')" data-key="select_text"><div class="card-title">Select All Text</div><div class="card-desc"></div></div>
           <div class="card theme-purple" onclick="run('pixel-perfect')" data-key="pixel_perfect"><div class="card-title">Pixel Perfect</div><div class="card-desc"></div></div>
-          <div class="card theme-purple" onclick="run('swap-positions')" data-key="swap_positions"><div class="card-title">Swap Positions</div><div class="card-desc"></div></div>
-          <!-- 样式工具 -->
-          <div class="card theme-green" onclick="run('create-styles')" data-key="create_styles"><div class="card-title">Create Styles</div><div class="card-desc"></div></div>
-          <div class="card theme-green" onclick="run('match-styles')" data-key="match_styles"><div class="card-title">Match Styles</div><div class="card-desc"></div></div>
-        
         </div>
 
+        <!-- Panel 2: 样式工具 (Style Tools) -->
+        <div class="grid" id="stylePanel" style="display: none;">
+          <div class="card theme-pink" onclick="run('create-styles')" data-key="create_styles"><div class="card-title">Create Styles</div><div class="card-desc"></div></div>
+          <div class="card theme-pink" onclick="run('match-styles')" data-key="match_styles"><div class="card-title">Match Styles</div><div class="card-desc"></div></div>
+        </div>
 
+        <!-- Panel 3: 布局工具 (Layout Tools) -->
+        <div class="grid" id="layoutPanel" style="display: none;">
+          <div class="card theme-blue" onclick="run('swap-positions')" data-key="swap_positions"><div class="card-title">Swap Positions</div><div class="card-desc"></div></div>
+        </div>
 
-        <!-- Panel 4: 选择工具 (Selection Tools - Redesigned) -->
-        <div id="selectionPanel">
-          <div class="selection-scroll-area">
-            
-            <!-- 1. 查找范围 -->
-            <div>
-              <div class="section-header"><span class="section-title" data-key="sel_title_scope">查找范围</span></div>
-              <div class="scope-control" id="scopeGroup">
-                  <!-- 1. 去掉 inside 的 active -->
-                  <div class="scope-btn" data-val="inside" onclick="toggleSingle(this, 'scopeGroup')" data-key="sel_scope_in">内在元素</div>
-                  
-                  <div class="scope-btn" data-val="sibling" onclick="toggleSingle(this, 'scopeGroup')" data-key="sel_scope_sib">同级</div>
-                  <div class="scope-btn" data-val="children" onclick="toggleSingle(this, 'scopeGroup')" data-key="sel_scope_child">子级</div>
-                  
-                  <!-- 2. 给 descendants 加上 active (改为默认) -->
-                  <div class="scope-btn active" data-val="descendants" onclick="toggleSingle(this, 'scopeGroup')" data-key="sel_scope_desc">子孙元素</div>
-              </div>
+        <!-- Panel 4: 选择工具 (Selection Tools) -->
+        <div id="selectionPanel" style="display: none;">
+          <!-- 范围 -->
+          <div>
+            <div class="section-title" data-key="sel_scope">查找范围</div>
+            <div class="btn-group" id="scopeGroup">
+              <div class="filter-btn active" data-val="inside" onclick="toggleSingle(this, 'scopeGroup')" data-key="sel_scope_in">内在元素</div>
+              <div class="filter-btn" data-val="sibling" onclick="toggleSingle(this, 'scopeGroup')" data-key="sel_scope_sib">同级</div>
+              <div class="filter-btn" data-val="children" onclick="toggleSingle(this, 'scopeGroup')" data-key="sel_scope_child">子级</div>
+              <div class="filter-btn" data-val="descendants" onclick="toggleSingle(this, 'scopeGroup')" data-key="sel_scope_desc">子孙元素</div>
             </div>
-
-            <!-- 2. 名称 (增加清除按钮) -->
-            <div>
-              <div class="section-header"><span class="section-title" data-key="sel_title_name">名称</span></div>
-              <div class="name-input-row">
-                <div class="name-input-wrapper">
-                  <svg class="name-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                  <input type="text" class="name-input" id="filterNameInput" placeholder="输入名称..." data-key="sel_ph_name" oninput="toggleClearBtn(this)">
-                  <!-- 新增：清除按钮 -->
-                  <div class="btn-clear-input hidden" id="nameClearBtn" onclick="clearNameInput()">✕</div>
-                </div>
-                <div class="icon-btn-square" onclick="fetchName()" title="拾取选中图层名称">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                </div>
-                <div class="icon-btn-square" id="caseBtn" onclick="this.classList.toggle('active')" title="区分大小写">Aa</div>
-              </div>
-            </div>
-
-            <!-- 3. 类型 (补充缺失项) -->
-            <div>
-              <div class="section-header">
-                <span class="section-title" data-key="sel_title_type">类型</span>
-                <div class="mode-switch include" id="typeLogic" onclick="toggleLogic(this)">
-                  <span class="ms-in" data-key="logic_in">包含</span><span class="ms-ex" data-key="logic_ex">排除</span>
-                </div>
-              </div>
-              <div class="tag-cloud" id="typeGroup">
-                <div class="filter-tag all-tag active" onclick="clearGroup('typeGroup', this)" data-key="sel_type_all">全部类型</div>
-                <!-- 基础 -->
-                <div class="filter-tag" data-val="FRAME" onclick="toggleMulti(this)" data-key="sel_t_frame"># 画板 (Frame)</div>
-                <div class="filter-tag" data-val="GROUP" onclick="toggleMulti(this)" data-key="sel_t_group">:: 组 (Group)</div>
-                <div class="filter-tag" data-val="SECTION" onclick="toggleMulti(this)" data-key="sel_t_section">§ 区域 (Section)</div>
-                <div class="filter-tag" data-val="AUTOLAYOUT" onclick="toggleMulti(this)" data-key="sel_t_auto">🍱 自动布局</div>
-                
-                <!-- 组件相关 -->
-                <div class="filter-tag" data-val="COMPONENT" onclick="toggleMulti(this)" data-key="sel_t_comp">❖ 组件</div>
-                <div class="filter-tag" data-val="COMPONENT_SET" onclick="toggleMulti(this)" data-key="sel_t_compset">💠 变体集</div>
-                <div class="filter-tag" data-val="INSTANCE" onclick="toggleMulti(this)" data-key="sel_t_inst">◇ 实例</div>
-                
-                <!-- 形状与路径 -->
-                <div class="filter-tag" data-val="RECTANGLE" onclick="toggleMulti(this)" data-key="sel_t_rect">☐ 矩形</div>
-                <div class="filter-tag" data-val="ELLIPSE" onclick="toggleMulti(this)" data-key="sel_t_ell">○ 椭圆</div>
-                <div class="filter-tag" data-val="LINE" onclick="toggleMulti(this)" data-key="sel_t_line">/ 直线</div>
-                <div class="filter-tag" data-val="VECTOR" onclick="toggleMulti(this)" data-key="sel_t_vect">✎ 矢量</div>
-                <div class="filter-tag" data-val="STAR" onclick="toggleMulti(this)" data-key="sel_t_star">★ 星形</div>
-                <div class="filter-tag" data-val="POLYGON" onclick="toggleMulti(this)" data-key="sel_t_poly">▲ 多边形</div>
-                <div class="filter-tag" data-val="BOOLEAN_OPERATION" onclick="toggleMulti(this)" data-key="sel_t_bool">◑ 布尔运算</div>
-                
-                <!-- 其他 -->
-                <div class="filter-tag" data-val="TEXT" onclick="toggleMulti(this)" data-key="sel_t_text">T 文本</div>
-                <div class="filter-tag" data-val="IMAGE" onclick="toggleMulti(this)" data-key="sel_t_img">🌄 图片填充</div>
-                <div class="filter-tag" data-val="SLICE" onclick="toggleMulti(this)" data-key="sel_t_slice">✂️ 切片</div>
-                <div class="filter-tag" data-val="CONNECTOR" onclick="toggleMulti(this)" data-key="sel_t_conn">⤚ 连接线</div>
-                <div class="filter-tag" data-val="SHAPE_WITH_TEXT" onclick="toggleMulti(this)" data-key="sel_t_shape_text">💬 形状文字</div>
-                <div class="filter-tag" data-val="STICKY" onclick="toggleMulti(this)" data-key="sel_t_sticky">📝 贴纸</div>
-                <div class="filter-tag" data-val="WIDGET" onclick="toggleMulti(this)" data-key="sel_t_widget">🧩 Widget</div>
-                <div class="filter-tag" data-val="STAMP" onclick="toggleMulti(this)" data-key="sel_t_stamp">💮 印章</div>
-                <div class="filter-tag" data-val="WASHI_TAPE" onclick="toggleMulti(this)" data-key="sel_t_washi">🎞 胶带</div>
-              </div>
-            </div>
-
-            <!-- 4. 状态 (补充 Mask, Export) -->
-            <div>
-              <div class="section-header">
-                <span class="section-title" data-key="sel_title_state">状态</span>
-                <div class="mode-switch include" id="stateLogic" onclick="toggleLogic(this)">
-                  <span class="ms-in" data-key="logic_in">包含</span><span class="ms-ex" data-key="logic_ex">排除</span>
-                </div>
-              </div>
-              <div class="tag-cloud" id="stateGroup">
-                <div class="filter-tag all-tag active" onclick="clearGroup('stateGroup', this)" data-key="sel_state_all">全部状态</div>
-                <div class="filter-tag" data-val="hidden" onclick="toggleMulti(this)" data-key="sel_s_hidden">👻 隐藏</div>
-                <div class="filter-tag" data-val="locked" onclick="toggleMulti(this)" data-key="sel_s_lock">🔒 锁定</div>
-                <div class="filter-tag" data-val="mask" onclick="toggleMulti(this)" data-key="sel_s_mask">🎭 蒙版 (Mask)</div>
-                <div class="filter-tag" data-val="export" onclick="toggleMulti(this)" data-key="sel_s_export">📤 导出 (Export)</div>
-                <div class="filter-tag" data-val="no-fill" onclick="toggleMulti(this)" data-key="sel_s_nofill">无填充</div>
-                <div class="filter-tag" data-val="no-stroke" onclick="toggleMulti(this)" data-key="sel_s_nostroke">无描边</div>
-                <div class="filter-tag" data-val="clip" onclick="toggleMulti(this)" data-key="sel_s_clip">✂️ 裁剪内容</div>
-                <div class="filter-tag" data-val="no-children" onclick="toggleMulti(this)" data-key="sel_s_nochild">空容器</div>
-              </div>
-            </div>
-
-            <!-- 5. 属性 -->
-            <div>
-              <div class="section-header">
-                <span class="section-title" data-key="sel_title_prop">高级属性</span>
-                <div class="add-prop-link" onclick="addPropRow()">
-                  <span style="font-size:16px;">+</span> <span data-key="sel_add_prop">添加条件</span>
-                </div>
-              </div>
-              <div class="prop-list-container" id="propList">
-                <!-- JS 动态添加 -->
-              </div>
-            </div>
-
           </div>
-          <div class="selection-footer">
+          <!-- 名称 -->
+          <div>
+            <div class="section-title" data-key="sel_title_name">名称</div>
+            <div style="display:flex; gap:8px">
+              <input type="text" class="search-box" id="filterNameInput" placeholder="输入名称" data-key="sel_ph_name">
+              <div style="padding:6px 8px; border:1px solid #ddd; border-radius:6px; cursor:pointer; background:#fff; display:flex; align-items:center;" onclick="fetchName()" title="拾取选中图层名称">
+                <svg style="width:16px; height:16px; fill:#666;" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+              </div>
+              <div style="padding:8px; border:1px solid #ddd; border-radius:6px; cursor:pointer;" id="caseBtn" onclick="this.classList.toggle('active')">Aa</div>
+            </div>
+          </div>
+          <!-- 类型 -->
+          <div>
+            <div class="section-title">
+              <span data-key="sel_title_type">类型</span>
+              <div class="toggle-switch include" id="typeLogic" onclick="toggleLogic(this)"><span class="s-in" data-key="logic_in">包含</span><span class="s-ex" data-key="logic_ex">不包含</span></div>
+            </div>
+            <div class="btn-group" id="typeGroup">
+              <div class="filter-btn all-btn active" onclick="clearGroup('typeGroup', this)" data-key="sel_type_all">全部类型</div>
+              <div class="filter-btn" data-val="COMPONENT" onclick="toggleMulti(this)" data-key="sel_t_comp">❖ 组件</div>
+              <div class="filter-btn" data-val="INSTANCE" onclick="toggleMulti(this)" data-key="sel_t_inst">◇ 实例</div>
+              <div class="filter-btn" data-val="FRAME" onclick="toggleMulti(this)" data-key="sel_t_frame"># 画板</div>
+              <div class="filter-btn" data-val="AUTOLAYOUT" onclick="toggleMulti(this)" data-key="sel_t_auto">[] 自动布局</div>
+              <div class="filter-btn" data-val="GROUP" onclick="toggleMulti(this)" data-key="sel_t_group">:: 组</div>
+              <div class="filter-btn" data-val="TEXT" onclick="toggleMulti(this)" data-key="sel_t_text">T 文本</div>
+              <div class="filter-btn" data-val="IMAGE" onclick="toggleMulti(this)" data-key="sel_t_img">Img 图片</div>
+              <div class="filter-btn" data-val="RECTANGLE" onclick="toggleMulti(this)" data-key="sel_t_rect">☐ 矩形</div>
+              <div class="filter-btn" data-val="VECTOR" onclick="toggleMulti(this)" data-key="sel_t_vect">✎ 钢笔</div>
+              <div class="filter-btn" data-val="ELLIPSE" onclick="toggleMulti(this)" data-key="sel_t_ell">○ 椭圆</div>
+              <div class="filter-btn" data-val="LINE" onclick="toggleMulti(this)" data-key="sel_t_line">/ 直线</div>
+            </div>
+          </div>
+          <!-- 状态 -->
+          <div>
+            <div class="section-title">
+              <span data-key="sel_title_state">状态</span>
+              <div class="toggle-switch include" id="stateLogic" onclick="toggleLogic(this)"><span class="s-in" data-key="logic_in">包含</span><span class="s-ex" data-key="logic_ex">不包含</span></div>
+            </div>
+            <div class="btn-group" id="stateGroup">
+              <div class="filter-btn all-btn active" onclick="clearGroup('stateGroup', this)" data-key="sel_state_all">全部状态</div>
+              <div class="filter-btn" data-val="hidden" onclick="toggleMulti(this)" data-key="sel_s_hidden">隐形</div>
+              <div class="filter-btn" data-val="locked" onclick="toggleMulti(this)" data-key="sel_s_lock">锁定</div>
+              <div class="filter-btn" data-val="no-fill" onclick="toggleMulti(this)" data-key="sel_s_nofill">无填充</div>
+              <div class="filter-btn" data-val="no-stroke" onclick="toggleMulti(this)" data-key="sel_s_nostroke">无描边</div>
+              <div class="filter-btn" data-val="clip" onclick="toggleMulti(this)" data-key="sel_s_clip">裁剪内容</div>
+              <div class="filter-btn" data-val="no-children" onclick="toggleMulti(this)" data-key="sel_s_nochild">无子级</div>
+            </div>
+          </div>
+          <!-- 属性 -->
+          <div>
+            <div class="section-title"><span data-key="sel_title_prop">属性</span><span class="add-prop-btn" onclick="addPropRow()">+</span></div>
+            <div class="prop-list" id="propList"></div>
+          </div>
+          <div class="fixed-action" id="selectionFooter">
             <button class="primary-btn" onclick="runFilter()" data-key="sel_btn_exec">查找并选择</button>
           </div>
         </div>
@@ -1326,33 +1302,29 @@
         <!-- Panel 5: 文字工具 (Text Tools) - 最终UI优化版 -->
         <div id="textPanel">
           
-          <!-- 1. 新版顶部功能栏 (常驻) -->
-          <!-- 注意：onclick 事件绑定在整个 header 上，实现点击即折叠/展开 -->
-          <div id="textPanelHeader" class="text-panel-header expanded" onclick="toggleTextHeader()">
-            
-            <!-- 左侧：箭头 + 动态标题 -->
-            <div class="header-title-group">
-              <svg class="header-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-              <span id="txtHeaderTitle" data-key="txt_title_config">查找配置</span>
+          <!-- 1. 顶部配置区 (固定) -->
+          <div class="text-config-header">
+            <!-- 摘要条 (折叠状态) -->
+            <div id="textSummaryBar" class="find-summary-bar" style="display:none; border:none; padding:0; background:transparent;" onclick="toggleTextHeader(true)">
+              <div class="summary-text" style="font-size:13px; color:var(--primary);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                <span id="txtSumText">点击展开查找配置</span>
+              </div>
+              <!-- 新增：清除高亮按钮 -->
+              <button class="btn-reset" onclick="clearAllHighlights(event)" title="还原所有标红的文字" style="margin-right:8px; color:#ff4d4f;">
+                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                 还原
+              </button>
+              
+              <button class="btn-reset" onclick="resetTextFind(event)">重置</button>
             </div>
 
-            <!-- 右侧：操作按钮 (阻止冒泡防止触发折叠) -->
-            <div class="header-actions">
-              <button class="btn-action-small btn-restore" onclick="clearAllHighlights(event)" title="还原所有标红">
-                 <span data-key="txt_restore">还原</span> 
-              </button>
-              <button class="btn-action-small" onclick="resetTextFind(event)">
-                 <span data-key="txt_reset">重置</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- 2. 可折叠的内容区域 -->
-          <div id="textControlsContent">
+            <!-- 展开的配置面板 -->
+            <div id="textControlsExpanded">
               <!-- 范围选择 -->
               <div class="scope-segmented-control">
-                 <div class="scope-seg-item active" id="tScopeSel" onclick="toggleTextScope('selection')" data-key="txt_scope_sel">仅选中图层</div>
-                 <div class="scope-seg-item" id="tScopePage" onclick="toggleTextScope('page')" data-key="txt_scope_page">当前整个页面</div>
+                 <div class="scope-seg-item active" id="tScopeSel" onclick="toggleTextScope('selection')">仅选中图层</div>
+                 <div class="scope-seg-item" id="tScopePage" onclick="toggleTextScope('page')">当前整个页面</div>
               </div>
 
               <!-- 查找输入 -->
@@ -1367,19 +1339,25 @@
                 <input type="text" id="txtRepInput" placeholder="替换为..." data-key="txt_ph_rep">
               </div>
 
-              <!-- 按钮行 -->
+              <!-- 查找按钮 -->
               <button class="btn-find-hero" id="btnTextFind" onclick="startTextFind()">
-                <div class="btn-spinner"></div><span data-key="txt_btn_find">开始查找</span>
+                <div class="btn-spinner"></div><span>开始查找</span>
               </button>
+
+              <!-- 收起箭头 -->
+              <div style="text-align:center; padding-top:10px; cursor:pointer; color:#ccc; height:10px;" onclick="toggleTextHeader(false)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
+              </div>
+            </div>
           </div>
 
-          <!-- 3. 结果列表区 (滚动) -->
+          <!-- 2. 结果列表区 (滚动) -->
           <div id="textResultWrapper" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
             <!-- 列表头部条 -->
             <div class="text-list-header-bar">
-              <label style="display:flex; align-items:center; cursor:pointer; width:100%;">
+              <label style="display:flex; align-items:center; cursor:pointer;">
                 <input type="checkbox" id="textSelectAll" style="margin-right:8px;" onclick="toggleTextSelectAll(this.checked)">
-                <span id="textHeaderLabel" data-key="txt_label_all">全选 / 共 <b id="textCount" style="color:#333;">0</b> <data-key="txt_label_items">项</data-key></span>
+                <span>全选 / 共 <b id="textCount" style="color:#333;">0</b> 项</span>
               </label>
             </div>
             
@@ -1387,15 +1365,15 @@
             <div id="textResultList" class="text-list-container"></div>
           </div>
 
-          <!-- 4. 空状态 -->
+          <!-- 3. 空状态 -->
           <div id="textEmptyState" class="empty-state-refiner" style="display:flex; flex:1;">
             <div class="es-icon" style="font-size:32px; margin-bottom:12px; opacity:0.8;">📝</div>
-            <div class="es-text" style="font-size:13px;" data-key="txt_empty_intro">输入关键词，精准定位并替换</div>
+            <div class="es-text" style="font-size:13px;">输入关键词，精准定位并替换</div>
           </div>
 
-          <!-- 5. 底部固定操作栏 -->
+          <!-- 4. 底部固定操作栏 -->
           <div id="textFooter" class="text-fixed-footer" style="display:none;">
-            <button class="primary-btn" id="btnTextBatchRep" disabled onclick="runBatchTextReplace()" data-key="txt_btn_rep_batch">
+            <button class="primary-btn" id="btnTextBatchRep" disabled onclick="runBatchTextReplace()">
               替换选中项
             </button>
           </div>
@@ -1579,7 +1557,7 @@
                     <input type="checkbox" id="lintSelectAll" class="header-cb" checked onclick="toggleSelectAll('lint', this.checked)">
                     <span style="font-size:12px; font-weight:600;"><span data-key="res_title">检查结果</span> (<span id="lintCount">0</span>)</span>
                   </div>
-                  <button class="btn-reset" onclick="resetLintList()" data-key="btn_back">↺ 返回配置</button>
+                  <button class="btn-reset" onclick="resetLintList()">↺ 返回配置</button>
                 </div>
                 
                 <!-- 2. 列表内容 -->
@@ -1590,7 +1568,7 @@
                   <div class="es-icon">✨</div>
                   <div class="es-text" style="margin-bottom:20px;">太棒了！未发现需要修复的组件命名</div>
                   <!-- 🔥 关键：在这里也加上返回按钮 -->
-                  <button class="primary-btn" style="width:auto; padding:8px 32px;" onclick="resetLintList()" data-key="btn_back">返回配置</button>
+                  <button class="primary-btn" style="width:auto; padding:8px 32px;" onclick="resetLintList()">返回配置</button>
                 </div>
 
                 <!-- 4. 修复成功页 -->
@@ -1631,7 +1609,7 @@
                 
                 <!-- 🔥 修改点 1: 范围选择器移到最上方 -->
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                  <!-- <span style="font-size:12px; font-weight:600; color:#333;">查找范围</span> -->
+                  <span style="font-size:12px; font-weight:600; color:#333;">查找范围</span>
                   <div class="scope-segment">
                       <div class="scope-option active" id="fScopeSel" onclick="toggleFindScope('selection')" data-key="ref_scope_sel_short">选中图层</div>
                       <div class="scope-option" id="fScopePage" onclick="toggleFindScope('page')" data-key="ref_scope_page_short">当前页面</div>
@@ -1903,7 +1881,7 @@
         ref_success_btn: "继续处理剩余项",
 
         // =========================================
-        // 3. 选择工具 (Selection Tools) - 全量扩充版
+        // 3. 选择工具 (Selection Tools)
         // =========================================
         sel_title_scope: "查找范围",
         sel_scope_in: "内在元素",
@@ -1917,56 +1895,31 @@
         
         sel_title_type: "类型",
         logic_in: "包含",
-        logic_ex: "排除",
+        logic_ex: "不包含",
         sel_type_all: "全部类型",
-        
-        // --- 类型 (Types) ---
-        sel_t_frame: "# 画板 Frame",
-        sel_t_group: ":: 组 Group",
-        sel_t_section: "§ 区域 Section)",
-        sel_t_auto: "🍱 自动布局",
-        
         sel_t_comp: "❖ 组件",
-        sel_t_compset: "💠 变体集",
         sel_t_inst: "◇ 实例",
-        
+        sel_t_frame: "# 画板",
+        sel_t_auto: "[] 自动布局",
+        sel_t_group: ":: 组",
+        sel_t_text: "T 文本",
+        sel_t_img: "Img 图片",
         sel_t_rect: "☐ 矩形",
+        sel_t_vect: "✎ 钢笔",
         sel_t_ell: "○ 椭圆",
         sel_t_line: "/ 直线",
-        sel_t_vect: "✎ 矢量",
-        sel_t_star: "★ 星形",
-        sel_t_poly: "▲ 多边形",
-        sel_t_bool: "◑ 布尔",
         
-        sel_t_text: "T 文本",
-        sel_t_img: "🌄 图片",
-        sel_t_slice: "✂️ 切片",
-        sel_t_conn: "⤚ 连接线",
-        sel_t_shape_text: "💬 形状文字",
-        sel_t_sticky: "📝 便签",
-        sel_t_widget: "🧩 小部件",
-        sel_t_stamp: "💮 图章",
-        sel_t_washi: "🎞 胶带",
-        
-        // --- 状态 (States) ---
         sel_title_state: "状态",
         sel_state_all: "全部状态",
-        
-        sel_s_hidden: "👻 隐藏",
-        sel_s_lock: "🔒 锁定",
-        sel_s_mask: "🎭 蒙版",
-        sel_s_export: "📤 可导出",
-        
+        sel_s_hidden: "隐形",
+        sel_s_lock: "锁定",
         sel_s_nofill: "无填充",
         sel_s_nostroke: "无描边",
-        sel_s_clip: "✂️ 裁剪内容",
-        sel_s_nochild: "无子集",
+        sel_s_clip: "裁剪内容",
+        sel_s_nochild: "无子级",
         
-        // --- 属性 (Properties) ---
-        sel_title_prop: "高级属性",
+        sel_title_prop: "属性",
         sel_ph_val: "值",
-        sel_add_prop: "添加条件",
-
 
         // =========================================
         // 4. 文字工具 (Text Tools)
@@ -2019,79 +1972,31 @@
         nav_refiner: "组件清洗",
         nav_theory: "设计理论",
 
-        // --- 文字查找替换 (Text Tool) ---
-        txt_expand: "点击展开查找配置", // 折叠时的默认提示
-        txt_prefix_find: "查找",       // 用于组合 "查找: xxx"
-        
-        txt_reset: "重置",            // 顶部小按钮
-        txt_restore: "还原",          // 顶部小按钮 (还原高亮)
-        
-        txt_scope_sel: "仅选中图层",   // 范围选择
-        txt_scope_page: "当前整个页面", // 范围选择
-        
-        txt_ph_find: "请输入查找关键词", // 查找输入框
-        txt_ph_rep: "替换为...",       // 替换输入框
-        
-        txt_btn_find: "开始查找",      // 大按钮
-        txt_btn_finding: "搜索中...",  // 大按钮 Loading 态
-        
-        txt_label_all: "全选 / 共",    // 列表头部
-        txt_label_item: "项",         // 列表头部单位
-        
-        txt_empty_intro: "输入关键词，精准定位并替换", // 空状态
-        txt_empty_none: "未找到匹配内容",            // 无结果状态
-        
-        txt_btn_rep_batch: "替换选中项", // 底部大按钮
-        txt_btn_rep_single: "替换",      // 列表行内小按钮
-        
-        txt_tip_locate: "点击定位并标红",  // 列表行 Tooltip
-        txt_title_config: "查找配置", // <--- 新增
-        txt_err_no_input: "请输入查找内容", // <--- 新增
-
         // =========================================
         // 6. 工具卡片详情 (Tool Cards)
         // 格式: [标题, 简介, 详细Tooltip, 成功提示]
         // =========================================
-        
-        // --- 形状转换 ---
-        to_frame: ["🖼️ 矩转框", "保留外观转换为Frame", "将选中的矩形转换为Frame，保留原有的填充、描边、圆角等样式。", "已转换为 Frame"],
-        to_rect: ["🧱 框转矩", "Frame扁平化为矩形", "将选中的Frame或Group降维成普通矩形，保留视觉样式但移除容器属性。", "已转换为矩形"],
-        
-        // --- 文本处理 ---
-        split_text: ["✂️ 段落行拆分", "按换行符拆分文本", "将多行文本段落按换行符拆分为独立的文本层，保持原有间距。", "文本已拆分"],
-        join_text: ["🔗 文本拼合", "多行文本合并为一个", "将选中的多个文本图层按视觉位置排序，合并为一个多行文本框。", "文本已拼合"],
-        
-        // --- 自动布局 ---
-        remove_al: ["⛔️ 清除自动布局属性", "移除Auto Layout", "移除选中图层及其内部所有子层级的 Auto Layout 属性，恢复为普通 Frame。", "已移除自动布局"],
-        add_al_wrapper: ["🍱 外加自动布局Frame", "添加自动布局包裹", "给选中图层分别添加一层自动布局Frame外套。", "已添加自动布局外套"],
-        
-        // --- 层级穿梭 ---
-        up_one: ["📤 逃逸一层", "图层向上提一级", "将选中图层从当前父级中移出，放入上一级容器中。", "图层已上移"],
-        up_all: ["🚀 完全逃逸", "图层提至最外层", "将选中图层直接移动到页面的最顶层（Root）。", "已提至最外层"],
-        
-        // --- 编组与锁定 ---
-        ungroup_all: ["💥 解除所有Group", "解散内部所有组", "递归查找并解散选中元素内部所有的 Group，只保留 Frame 结构。", "已解散内部组"],
-        unlock_all: ["🔓 解锁内部图层", "递归解锁所有子级", "一键解锁选中元素内部所有被锁定的图层，方便批量编辑。", "已全部解锁"],
-        
-        // --- 属性调整 ---
-        swap_fs: ["🔄 交换填充描边", "互换填充与描边色", "将选中图层的填充颜色与描边颜色互换。", "已交换填充描边"],
-        reset_image: ["⚖️ 重置图片比例", "恢复原始宽高比", "修复被拉伸变形的图片，恢复其原始的长宽比例。", "已重置图片比例"],
-        
-        // --- 排序与命名 ---
-        sort_layers: ["👁️ 按视觉排序图层", "按坐标重排图层", "根据画布上的 X/Y 坐标，重新排列图层列表顺序（从上到下，从左到右）。", "图层已排序"],
-        rename_content: ["🏷️ 按内容重命名", "图层名同步文本内容", "自动将文本层或包含文本的 Frame 重命名为其内容。", "图层已重命名"],
-        
-        // --- 实例与清理 ---
-        detach_all: ["💔 解绑所有实例", "递归解绑组件实例", "解绑选中图层下所有嵌套的组件实例（Instance）。", "已解绑所有实例"],
-        remove_hidden: ["👻 删除隐藏图层", "清理不可见图层", "递归删除所选范围内所有'闭眼'的隐藏图层。", "已删除隐藏图层"],
-        
-        // --- 位置与对齐 ---
-        pixel_perfect: ["🎯 像素取整", "坐标尺寸取整", "将选中图层的 X、Y 坐标及宽高强制四舍五入为整数，消除小数杂边。", "已像素对齐"],
-        swap_positions: ["🔀 交换位置", "互换图层坐标", "交换选中的两个图层的 X/Y 坐标，保持图层层级不变。", "位置已交换"],
-        
-        // --- 样式管理 ---
-        create_styles: ["✨ 生成本地样式", "一键提取样式", "将选中图层的颜色、文本、效果转为本地样式。自动检测重名。", "检查样式完成"],
-        match_styles: ["💅 匹配本地样式", "重新链接样式库", "扫描选中图层，将裸奔的颜色/字体属性与本地样式库重新绑定。", "已完成样式匹配"]
+        pixel_perfect: ["像素取整", "像素取整对齐", "将选中图层的 X、Y 坐标及宽高强制四舍五入为整数，消除小数杂边。", "已像素对齐"],
+        swap_positions: ["交换位置", "交换位置", "非AutoLayout模式下交换选中的两个图层的 X/Y 坐标，保持图层层级不变。", "位置已交换"],
+        create_styles: ["生成样式", "一键生成样式", "将选中图层的颜色、文本、效果转为本地样式。如果重名，底部会提示冲突。", "检查样式完成"],
+        match_styles: ["匹配样式", "匹配本地样式", "将选中图层及其子级的颜色、文本、效果与本地样式库绑定。", "已完成样式匹配"],
+        to_frame: ["矩转框", "形状转Frame并继承样式", "将选中的矩形转换为Frame，保留原有的填充、描边、圆角和旋转角度。", "已转换为 Frame"],
+        to_rect: ["框转矩", "Frame扁平化为矩形", "将选中的Frame或Group降维成普通矩形，保留视觉样式的同时丢弃容器属性。", "已转换为矩形"],
+        split_text: ["段落行拆", "按行拆分文本", "将多行文本段落按换行符拆分为独立的文本层", "文本已拆分"],
+        join_text: ["文本合并", "多行文本合并为一个", "将选中的多个文本图层按视觉位置排序，合并为一个多行文本框。", "文本已合并"],
+        remove_al: ["移除自动布局", "移除Auto Layout", "移除选中图层及其内部所有子层级的 Auto Layout 属性，恢复为普通 Frame。", "已移除自动布局"],
+        add_al_wrapper: ["添加自动布局", "支持给多个图层批量添加自动布局", "给选中图层外分别添加一层自动布局Frame。", "已添加自动布局外套"],
+        up_one: ["Up One Level", "图层向上提一级", "将选中图层从当前父级中移出，放入上一级容器中。", "图层已上移"],
+        up_all: ["Up All Levels", "图层提至最外层", "将选中图层直接移动到页面的最顶层（Root）。", "已提至最外层"],
+        rename_content: ["按内容重命名", "按文本内容重命名图层", "自动将文本层或包含文本的 Frame 重命名为其内容，方便图层管理。", "图层已重命名"],
+        sort_layers: ["按视觉排序", "按视觉坐标排序图层", "根据画布上的 X/Y 坐标，重新排列图层列表顺序，修复 Auto Layout 顺序错乱问题。", "图层已排序"],
+        ungroup_all: ["Ungroup All", "解散内部所有组", "递归查找并解散选中元素内部所有的 Group，只保留 Frame 结构，减少层级嵌套。", "已解散内部组"],
+        unlock_all: ["Unlock All", "解锁内部所有图层", "一键解锁选中元素内部所有被锁定的图层，方便批量编辑。", "已全部解锁"],
+        swap_fs: ["交换填充描边", "交换填充描边", "互换填充色与描边色。", "已交换填充描边"],
+        reset_image: ["重置图片比例", "重置图片比例", "恢复图片原始宽高比。", "已重置图片比例"],
+        select_text: ["选中所有文本", "选中所有文本", "在当前范围内查找并选中所有文本图层。", "已选中所有文本"],
+        detach_all: ["解绑所有实例", "解绑选中图层下实例", "解绑选中图层下所有嵌套的实例。", "已解绑所有实例"],
+        remove_hidden: ["删除隐藏图层", "删除所选图层下隐藏图层", "递归删除所选图层下所有'闭眼'的不可见图层。", "已删除隐藏图层"]
       },
       en: {
         // =========================================
@@ -2191,7 +2096,7 @@
         ref_success_btn: "Continue",
         
         // =========================================
-        // 3. Selection Tools (English) - Fully Extended
+        // 3. Selection Tools
         // =========================================
         sel_title_scope: "Search Scope",
         sel_scope_in: "Inside",
@@ -2200,61 +2105,36 @@
         sel_scope_desc: "Descendants",
         
         sel_title_name: "Name",
-        sel_ph_name: "Input Name",
+        sel_ph_name: "Input Name...",
         sel_btn_exec: "Find & Select",
         
         sel_title_type: "Type",
         logic_in: "Include",
         logic_ex: "Exclude",
         sel_type_all: "All Types",
-        
-        // --- Types ---
-        sel_t_frame: "# Frame",
-        sel_t_group: ":: Group",
-        sel_t_section: "§ Section",
-        sel_t_auto: "🍱 AutoLayout",
-        
         sel_t_comp: "❖ Component",
-        sel_t_compset: "💠 ComponSet",
         sel_t_inst: "◇ Instance",
-        
+        sel_t_frame: "# Frame",
+        sel_t_auto: "[] AutoLayout",
+        sel_t_group: ":: Group",
+        sel_t_text: "T Text",
+        sel_t_img: "Img Image",
         sel_t_rect: "☐ Rectangle",
+        sel_t_vect: "✎ Vector",
         sel_t_ell: "○ Ellipse",
         sel_t_line: "/ Line",
-        sel_t_vect: "✎ Vector",
-        sel_t_star: "★ Star",
-        sel_t_poly: "▲ Polygon",
-        sel_t_bool: "◑ Boolean",
         
-        sel_t_text: "T Text",
-        sel_t_img: "🌄 Image",
-        sel_t_slice: "✂️ Slice",
-        sel_t_conn: "⤚ Connector",
-        sel_t_shape_text: "💬 Shape with Text",
-        sel_t_sticky: "📝 Sticky",
-        sel_t_widget: "🧩 Widget",
-        sel_t_stamp: "💮 Stamp",
-        sel_t_washi: "🎞 Washi Tape",
-        
-        // --- States ---
         sel_title_state: "State",
         sel_state_all: "All States",
-        
-        sel_s_hidden: "👻 Hide",
-        sel_s_lock: "🔒 Locked",
-        sel_s_mask: "🎭 Mask",
-        sel_s_export: "📤 Export",
-        
+        sel_s_hidden: "Hidden",
+        sel_s_lock: "Locked",
         sel_s_nofill: "No Fill",
         sel_s_nostroke: "No Stroke",
-        sel_s_clip: "✂️ Clip",
-        sel_s_nochild: "No Child",
+        sel_s_clip: "Clip Content",
+        sel_s_nochild: "No Children",
         
-        // --- Properties ---
-        sel_title_prop: "Advanced Props",
+        sel_title_prop: "Properties",
         sel_ph_val: "Value",
-        sel_add_prop: "Add Condition",
-
 
         // =========================================
         // 4. Text Tools
@@ -2306,69 +2186,30 @@
         nav_refiner: "ComRefiner",
         nav_theory: "Theory", 
 
-        // --- Text Find & Replace ---
-        txt_expand: "Expand Search Config",
-        txt_prefix_find: "Find",
-        
-        txt_reset: "Reset",
-        txt_restore: "Restore",
-        
-        txt_scope_sel: "Selection Only",
-        txt_scope_page: "Current Page",
-        
-        txt_ph_find: "Enter text to find...",
-        txt_ph_rep: "Replace with...",
-        
-        txt_btn_find: "Start Find",
-        txt_btn_finding: "Searching...",
-        
-        txt_label_all: "Select All / Total",
-        txt_label_item: "items",
-        
-        txt_empty_intro: "Enter keywords to locate & replace",
-        txt_empty_none: "No matches found",
-        
-        txt_btn_rep_batch: "Replace Selected",
-        txt_btn_rep_single: "Replace",
-        
-        txt_tip_locate: "Click to locate & highlight",
-        txt_title_config: "Search Config", // <--- 新增
-        txt_err_no_input: "Please enter text to find", // <--- 新增
-
         // =========================================
-        // 6. Tool Cards (English)
-        // Format: [Title, Short Desc, Tooltip, Success Msg]
+        // 6. Tool Cards
         // =========================================
-        
-        to_frame: ["🖼️ Rect to Frame", "Convert to Frame", "Convert selected rectangles into Frames while preserving fills, strokes, and corners.", "Converted to Frame"],
-        to_rect: ["🧱 Frame to Rect", "Flatten to Rectangle", "Convert Frames/Groups into simple Rectangles, preserving visual styles but removing container properties.", "Converted to Rect"],
-        
-        split_text: ["✂️ Split Text", "Split by Line", "Split multi-line text into separate text layers per line, maintaining visual spacing.", "Text Split"],
-        join_text: ["🔗 Join Text", "Merge Text Layers", "Merge selected text layers into a single multi-line text box, sorted by visual position.", "Text Joined"],
-        
-        remove_al: ["⛔️ Remove AL", "Remove Auto Layout", "Recursively remove Auto Layout from selected layers and all nested children.", "Auto Layout Removed"],
-        add_al_wrapper: ["🍱 Add AL Wrapper", "Add AL Wrapper", "Wrap selected layers individually in a new Auto Layout Frame.", "Auto Layout Wrapped"],
-        
-        up_one: ["📤 Up One Level", "Lift Layer Up", "Move selected layers out of their current parent into the grandparent container.", "Layer Moved Up"],
-        up_all: ["🚀 Up All Level", "Lift to Root", "Move selected layers directly to the Page root level.", "Moved to Top"],
-        
-        ungroup_all: ["💥 Ungroup All", "Ungroup Nested", "Recursively find and ungroup all Groups within selection, keeping Frames intact.", "Groups Ungrouped"],
-        unlock_all: ["🔓 Unlock All", "Unlock Nested", "Recursively unlock all locked layers within the selection.", "All Unlocked"],
-        
-        swap_fs: ["🔄 Swap Fill/Stroke", "Swap Colors", "Swap the fill color and stroke color of selected layers.", "Swapped"],
-        reset_image: ["⚖️ Reset Image Ratio", "Fix Aspect Ratio", "Restore the original aspect ratio of distorted images.", "Ratio Reset"],
-        
-        sort_layers: ["👁️ Sort by Visual", "Sort by Position", "Reorder layer list based on visual X/Y position (Top-Left to Bottom-Right).", "Layers Sorted"],
-        rename_content: ["🏷️ Rename by Content", "Sync Name to Text", "Rename layers based on their text content for better organization.", "Renamed"],
-        
-        detach_all: ["💔 Detach Instances", "Detach Nested", "Recursively detach all nested Component Instances within selection.", "Detached"],
-        remove_hidden: ["👻 Remove Hidden", "Clean Invisible", "Recursively delete all layers that are toggled off (invisible).", "Removed Hidden"],
-        
-        pixel_perfect: ["🎯 Pixel Perfect", "Round Coordinates", "Round X, Y, Width, and Height to the nearest integers to fix sub-pixel rendering.", "Pixel Perfected"],
-        swap_positions: ["🔀 Swap Positions", "Swap Locations", "Swap X/Y coordinates of exactly two selected layers.", "Swapped"],
-        
-        create_styles: ["✨ Create Styles", "Generate Styles", "Convert properties to local styles based on layer name. Detects conflicts.", "Styles Created"],
-        match_styles: ["💅 Match Styles", "Relink Styles", "Scan selection and bind raw properties to local styles if values match exactly.", "Styles Matched"]
+        pixel_perfect: ["Pixel Perfect", "Round to Pixel", "Round X, Y, Width, Height to nearest integers.", "Pixel Perfected"],
+        swap_positions: ["Swap Positions", "Swap Locations", "Swap X/Y coordinates of exactly two selected layers.", "Positions Swapped"],
+        create_styles: ["Create Styles", "Generate Styles", "Convert properties to local styles based on layer name. Detects conflicts.", "Styles Checked"],
+        match_styles: ["Match Styles", "Match Styles", "Scan selection and bind raw properties to local styles if values match exactly.", "Styles Matched"],
+        to_frame: ["To Frame", "Convert Shape to Frame", "Convert selected shapes to Frames while preserving fills, strokes, corners and rotation.", "Converted to Frame"],
+        to_rect: ["To Rectangle", "Flatten Frame to Rect", "Convert Frames/Groups into simple Rectangles, preserving visual styles but removing container properties.", "Converted to Rect"],
+        split_text: ["Split Text", "Split lines (10px gap)", "Split multi-line text into separate text layers per line, arranged with 10px spacing.", "Text Split"],
+        join_text: ["Join Text", "Merge text layers", "Merge selected text layers into a single multi-line text box, sorted by visual position.", "Text Joined"],
+        remove_al: ["Remove AL", "Remove Auto Layout", "Recursively remove Auto Layout from selected layers and all nested children.", "Auto Layout Removed"],
+        add_al_wrapper: ["Add AL Wrapper", "Add Auto Layout Wrapper", "Add vertical Auto Layout Frame around selected layers.", "Auto Layout Wrapped"],
+        up_one: ["Up One Level", "Lift layer up one level", "Move selected layers out of their current parent into the grandparent container.", "Layer Moved Up"],
+        up_all: ["Up All Levels", "Lift to Top Level", "Move selected layers directly to the Page root level.", "Moved to Top"],
+        rename_content: ["Rename to Content", "Rename to Content", "Rename layers based on their text content for better organization.", "Layers Renamed"],
+        sort_layers: ["Sort Layers", "Sort by Position", "Reorder layers in the sidebar based on their visual X/Y position on the canvas.", "Layers Sorted"],
+        ungroup_all: ["Ungroup All", "Ungroup all nested", "Recursively find and ungroup all Groups within selection, keeping Frames intact.", "Groups Ungrouped"],
+        unlock_all: ["Unlock All", "Unlock nested layers", "Unlock all locked layers within the selection recursively.", "Unlocked All"],
+        swap_fs: ["Swap Fill/Stroke", "Swap Fill and Stroke", "Swap fill and stroke colors.", "Fills and Strokes Swapped"],
+        reset_image: ["Reset Image", "Reset Image Ratio", "Restore original image aspect ratio.", "Image Ratio Reset"],
+        select_text: ["Select All Text", "Select All Text", "Find and select all text layers in current scope.", "All Text Selected"],
+        detach_all: ["Detach All Instances", "Detach All Instances", "Detach all nested Instances.", "All Instances Detached"],
+        remove_hidden: ["Clean Hidden", "Remove Hidden Layers", "Recursively delete all invisible 'closed eye' layers.", "Hidden Layers Removed"]
       }
     };
     
@@ -2377,6 +2218,14 @@
     // 初始化语言
     updateLanguage();
     
+    // --- 新增功能：自动统计与新功能高亮系统 ---
+    // 定义哪些功能的 key 是“新功能”
+    // 只要这里有 NEW_FEATURES 中的 key，就会被标记为新功能，直到用户点击该导航
+    const NEW_FEATURES = ['pixel_perfect', 'swap_positions', 'match_styles', 'nav_ppt', 'nav_refiner'];
+    const readFeatures = new Set();
+
+
+
     // =============================================================================
     // 2. 核心通信与工具函数 (Core & Utils)
     // =============================================================================
@@ -2554,8 +2403,9 @@
       document.body.classList.toggle('mini-mode');
       const isMini = document.body.classList.contains('mini-mode');
       const btn = document.getElementById('modeBtn');
-      // 更新按钮文字 (可选)
-      if(btn) btn.innerText = isMini ? "展开" : "切换";
+      // 迷你模式下文字可能需要简化，这里复用
+      
+      postMsg('resize-window',{width: isMini ? 170 : 460, height: isMini ? 340 : 540 });
     }
 
     // 搜索功能
@@ -2588,22 +2438,13 @@
         const key = card.getAttribute('data-key');
         if(!key) return;
         
-        // 获取数据配置
-        const data = i18n[curLang][key];
+        // 获取详细 Tooltip 内容
+        const desc = i18n[curLang][key][2]; 
+        tooltip.innerText = desc;
+        tooltip.style.display = 'block';
         
-        if (data) {
-            const title = data[0]; // 数组第0项是标题 (如"逃逸一层")
-            const desc = data[2];  // 数组第2项是详细描述
-            
-            // --- 核心修改：使用 innerHTML 插入结构化内容 ---
-            tooltip.innerHTML = `
-                <div class="tt-title">${title}</div>
-                <div class="tt-desc">${desc}</div>
-            `;
-            
-            tooltip.style.display = 'block';
-            moveTooltip(e);
-        }
+        // 初始位置
+        moveTooltip(e);
       });
 
       card.addEventListener('mousemove', (e) => {
@@ -2637,50 +2478,19 @@
       tooltip.style.top = finalY + 'px';
     }
 
-    // 单选切换逻辑 (互斥)
-    function toggleSingle(el, parentId) {
-        // 1. 找到父容器
-        const parent = document.getElementById(parentId);
-        if (!parent) return;
-
-        // 2. 移除该容器下所有按钮的 active 类
-        // 注意：这里使用 .scope-btn 选择器，确保选中所有按钮
-        const btns = parent.querySelectorAll('.scope-btn, .filter-btn'); 
-        btns.forEach(btn => btn.classList.remove('active'));
-
-        // 3. 给当前点击的按钮添加 active 类
-        el.classList.add('active');
+    // 选择工具相关函数
+    function toggleSingle(el, gid) { 
+      document.querySelectorAll(`#${gid} .filter-btn`).forEach(b => b.classList.remove('active')); 
+      el.classList.add('active'); 
     }
     
-    // 多选切换逻辑 (类型/状态)
     function toggleMulti(el) { 
-      // 1. 切换当前按钮的激活状态
       el.classList.toggle('active'); 
-      
-      // 2. 找到父容器
-      const parent = el.parentElement;
-      if (parent) {
-          // 🔥 关键修复：查找 .all-tag (新类名) 而不是 .all-btn
-          const allBtn = parent.querySelector('.all-tag');
-          if (allBtn) {
-              // 只要有一个具体标签被选中，"全部"按钮就取消激活
-              allBtn.classList.remove('active');
-              
-              // 如果所有具体标签都取消了，自动激活"全部"按钮 (可选优化)
-              const hasActive = parent.querySelector('.filter-tag.active:not(.all-tag)');
-              if (!hasActive) {
-                  allBtn.classList.add('active');
-              }
-          }
-      }
+      el.parentElement.querySelector('.all-btn').classList.remove('active'); 
     }
     
-    // 清除选中逻辑 (点击"全部类型"时)
     function clearGroup(gid, el) { 
-      // 1. 找到该组下所有普通标签，移除 active
-      document.querySelectorAll(`#${gid} .filter-tag:not(.all-tag)`).forEach(b => b.classList.remove('active')); 
-      
-      // 2. 激活"全部"按钮自己
+      document.querySelectorAll(`#${gid} .filter-btn`).forEach(b => b.classList.remove('active')); 
       el.classList.add('active'); 
     }
     
@@ -2689,10 +2499,10 @@
       el.classList.toggle('exclude');
     }
 
-    // 添加属性行 (样式更新版)
+    // 添加属性行
     function addPropRow() {
       const div = document.createElement('div'); 
-      div.className = 'prop-item'; // 改用新的类名
+      div.className = 'prop-row';
       div.innerHTML = `
         <select class="prop-select p-key">
           <optgroup label="图层 Layer">
@@ -2711,81 +2521,67 @@
             <option value="fillCount">填充数量</option>
             <option value="fillOpacity">填充透明度</option>
           </optgroup>
+          <optgroup label="描边 Strokes">
+            <option value="strokeCount">描边数量</option>
+            <option value="strokeWeight">描边粗细</option>
+            <option value="strokeAlign">描边对齐 (0内,1中,2外)</option>
+          </optgroup>
           <optgroup label="文本 Text">
             <option value="characters">文本内容</option>
             <option value="fontSize">字号</option>
+            <option value="letterSpacing">字间距</option>
+            <option value="lineHeight">行高</option>
           </optgroup>
           <optgroup label="自动布局 AutoLayout">
             <option value="itemSpacing">子元素间距</option>
             <option value="paddingLeft">左边距</option>
+            <option value="paddingRight">右边距</option>
+            <option value="paddingTop">上边距</option>
+            <option value="paddingBottom">下边距</option>
+          </optgroup>
+          <optgroup label="组件 Component">
+            <option value="description">组件描述</option>
+          </optgroup>
+          <optgroup label="圆角 Radius">
+            <option value="cornerRadius">圆角大小</option>
           </optgroup>
         </select>
-        
-        <select class="prop-op">
-            <option value="=">=</option>
-            <option value=">">></option>
-            <option value="<"><</option>
-            <option value="!=">≠</option>
-            <option value="has">含</option>
-        </select>
-        
-        <input type="text" class="prop-val-input p-val" placeholder="值">
-        
-        <div class="prop-del-btn" onclick="this.parentElement.remove()">×</div>
+        <select class="prop-op" style="width:50px"><option value="=">=</option><option value=">">></option><option value="<"><</option><option value="!=">≠</option><option value="has">含</option></select>
+        <input type="text" class="prop-input p-val" placeholder="值">
+        <div class="prop-remove" onclick="this.parentElement.remove()">×</div>
       `;
       document.getElementById('propList').appendChild(div);
     }
     
     // 默认添加一行属性
-    // addPropRow();
+    addPropRow();
 
-    // [核心修复] 运行筛选 (适配新版 UI 结构)
+    // 运行筛选
     function runFilter() {
-      // 1. 获取范围 (Scope)
-      // 适配新类名 .scope-btn
-      const scopeEl = document.querySelector('#scopeGroup .scope-btn.active');
-      const scope = scopeEl ? scopeEl.getAttribute('data-val') : 'inside';
-
-      // 2. 获取名称 (Name) & 大小写设置
+      const scope = document.querySelector('#scopeGroup .active').getAttribute('data-val');
       const name = document.getElementById('filterNameInput').value;
-      const isCase = document.getElementById('caseBtn').classList.contains('active');
-
-      // 3. 获取类型 (Types)
-      // 适配新类名 .filter-tag 和 .all-tag
-      const types = Array.from(document.querySelectorAll('#typeGroup .filter-tag.active:not(.all-tag)')).map(b => b.getAttribute('data-val'));
+      const types = Array.from(document.querySelectorAll('#typeGroup .active:not(.all-btn)')).map(b => b.getAttribute('data-val'));
       const typeLogic = document.getElementById('typeLogic').classList.contains('include') ? 'include' : 'exclude';
-
-      // 4. 获取状态 (States)
-      // 适配新类名 .filter-tag 和 .all-tag
-      const states = Array.from(document.querySelectorAll('#stateGroup .filter-tag.active:not(.all-tag)')).map(b => b.getAttribute('data-val'));
+      const states = Array.from(document.querySelectorAll('#stateGroup .active:not(.all-btn)')).map(b => b.getAttribute('data-val'));
       const stateLogic = document.getElementById('stateLogic').classList.contains('include') ? 'include' : 'exclude';
       
-      // 5. 获取高级属性 (Props)
       const props = [];
-      // 适配新类名 .prop-item
-      document.querySelectorAll('.prop-item').forEach(row => {
+      document.querySelectorAll('.prop-row').forEach(row => {
         const valRaw = row.querySelector('.p-val').value;
         const op = row.querySelector('.prop-op').value;
         const key = row.querySelector('.p-key').value;
-        // 🔥 修复点：如果值为空，则跳过该条件，不发送给后端
-        if (valRaw === '') return;
-        // 尝试转为数字，如果是纯数字字符串
         const valNum = parseFloat(valRaw);
-        // 如果 valRaw 不为空且能转为数字，则传数字，否则传字符串
-        const finalVal = (valRaw !== '' && !isNaN(valNum)) ? valNum : valRaw;
-        
-        props.push({ key, op, val: finalVal });
+        props.push({ key, op, val: isNaN(valNum) ? valRaw : valNum });
       });
 
-      // 发送消息给后端
       parent.postMessage({ 
         pluginMessage: { 
           type: 'find-and-select', 
           filters: { 
             scope, 
-            name: { val: name, caseSensitive: isCase }, 
-            types: { vals: types, logic: typeLogic }, 
-            states: { vals: states, logic: stateLogic }, 
+            name: {val: name}, 
+            types: {vals: types, logic: typeLogic}, 
+            states: {vals: states, logic: stateLogic}, 
             props 
           } 
         } 
@@ -2797,21 +2593,6 @@
       postMsg('fetch-selection-name');
     }
     
-    // 清除输入框
-    function clearNameInput() {
-        const input = document.getElementById('filterNameInput');
-        input.value = '';
-        toggleClearBtn(input);
-        input.focus();
-    }
-    
-    // 控制清除按钮显隐
-    function toggleClearBtn(input) {
-        const btn = document.getElementById('nameClearBtn');
-        if(input.value.length > 0) btn.classList.remove('hidden');
-        else btn.classList.add('hidden');
-    }
-
     // Drag
     const handle = document.getElementById('resizeHandle');
     let isDragging = false;
@@ -2826,9 +2607,10 @@
     window.onmouseup = () => { isDragging = false; };
   
     // 2. 初始化导航 UI (自动加角标容器，避免手动改 HTML)
-    // 2. 初始化导航 UI (移除红点生成)
+    // 功能：为每个导航项添加左侧图标容器、右侧数量角标和红点
     function initNavigationUI() {
       document.querySelectorAll('.nav-item').forEach(item => {
+        
         if (!item.querySelector('.nav-left')) {
           const svg = item.querySelector('svg');
           const span = item.querySelector('.nav-text');
@@ -2841,10 +2623,10 @@
             leftDiv.appendChild(svg);
             leftDiv.appendChild(span);
             
-            // 创建右侧信息容器 (仅保留数量 Badge，移除 Red Dot)
+            // 创建右侧信息容器 (数量 + 红点)
             const metaDiv = document.createElement('div');
             metaDiv.className = 'nav-meta';
-            metaDiv.innerHTML = `<span class="count-badge" style="display: none;">0</span>`;
+            metaDiv.innerHTML = `<span class="count-badge" style="display: none;">0</span><div class="red-dot"></div>`;
             item.appendChild(metaDiv);
           }
         }
@@ -2852,41 +2634,113 @@
       updateCountsAndStatus();
     }
 
-    // 3. 计算数量 (最终纯净版)
+    // 3. 计算数量并标记红点
     function updateCountsAndStatus() {
       // 定义各分类的数量计算逻辑
       const counts = {
         'nav_simple': document.querySelectorAll('#toolPanel .card').length,
         'nav_layout': document.querySelectorAll('#layoutPanel .card').length,
         'nav_style_tools': document.querySelectorAll('#stylePanel .card').length,
-        // 单功能面板或无需统计的面板设为 null
+        // 单功能面板，设为 null 表示不统计数量
         'nav_select': null,
         'nav_text': null,
         'nav_ppt': 1, 
         'nav_refiner': 1,
-        'nav_theory': null
       };
 
       // 遍历导航项更新 UI
       document.querySelectorAll('.nav-item').forEach(item => {
         const key = item.getAttribute('data-key');
         const badge = item.querySelector('.count-badge');
+        const dot = item.querySelector('.red-dot');
         
-        // 仅更新数量角标 (大于1才显示)
+        // A. 更新数量(大于1才显示)
         const count = counts[key];
         if (count && count > 1) {
           badge.innerText = count;
           badge.style.display = 'inline-block';
         } else {
-          // 如果没有数量或数量为1，隐藏角标
-          if(badge) badge.style.display = 'none';
+          badge.style.display = 'none';
+        }
+
+        // B. 检查该分类下是否有新功能
+        let hasNew = false;
+
+        // 情况1：导航分类下有新功能
+        if (NEW_FEATURES.includes(key) && !readFeatures.has(key)) {
+          hasNew = true;
+        }
+        
+        // 情况2：模块内有新卡片
+        if (!hasNew){
+          const map = {
+            'nav_simple': 'toolPanel',
+            'nav_layout': 'layoutPanel',
+            'nav_style_tools': 'stylePanel'
+          };
+          const panelId = map[key];
+          if (panelId){
+            const panel = document.getElementById(panelId);
+            if (panel) {
+              // 检查该面板内是否有 NEW_FEATURES 中的卡片
+              const newcard = Array.from(panel.querySelectorAll('.card')).filter(card => {
+                const k = card.getAttribute('data-key');
+                return NEW_FEATURES.includes(k) && !readFeatures.has(k);
+              });
+              if (newcard.length > 0) hasNew = true;
+            }
+          }
+        }
+
+        if (hasNew) {
+          item.classList.add('has-new');
+          dot.style.display = 'block';
+        } else {
+          item.classList.remove('has-new');
+          dot.style.display = 'none';
         }
       });
     }
-
     // 4.执行初始化
     initNavigationUI();
 
+
+    // 5. 劫持 switchGroup 函数以处理“消除高亮”逻辑
+    // 保存原始函数
+    const originalSwitchGroup = switchGroup;
+    
+    // 重写函数
+    window.switchGroup = function(group, el) {
+      // 执行原始逻辑
+      if (typeof originalSwitchGroup === 'function') {
+        originalSwitchGroup(group, el);
+      }
+
+      const key = el.getAttribute('data-key');
+      
+      // 1. 标记该大类已读 (使用修复后的小写变量名)
+      readFeatures.add(key);
+      
+      // 2. 标记内部所有新功能卡片为已读
+      const map = { 'nav_simple': 'toolPanel', 'nav_layout': 'layoutPanel', 'nav_style_tools': 'stylePanel' };
+      const panelId = map[key];
+      if (panelId) {
+          const panel = document.getElementById(panelId);
+          if (panel) {
+              panel.querySelectorAll('.card').forEach(card => {
+                  const k = card.getAttribute('data-key');
+                  if (NEW_FEATURES.includes(k)) {
+                    readFeatures.add(k);
+                  }
+                  card.classList.remove('is-new');
+              });
+          }
+      }
+      // 重新计算数量和红点状态
+      updateCountsAndStatus();
+    };
+    
+    
     // === PPT 工具逻辑 (全自动 + Loading + 性能优化 + 死循环修复) ===
     
     let pptStepIndex = 1; 
@@ -4519,7 +4373,7 @@
             // A. 渲染组件名组
             if (buckets.CompName.length > 0) {
                 html += `<div class="detail-category">
-                            <span>Component Name</span>
+                            <span>组件命名 (Component Name)</span>
                             <span class="cat-badge">${buckets.CompName.length}</span>
                          </div>`;
                 html += renderRows(buckets.CompName);
@@ -4528,7 +4382,7 @@
             // B. 渲染属性组
             if (buckets.PropName.length > 0) {
                 html += `<div class="detail-category">
-                            <span>Property Name</span>
+                            <span>属性名 (Property Name)</span>
                             <span class="cat-badge">${buckets.PropName.length}</span>
                          </div>`;
                 html += renderRows(buckets.PropName);
@@ -4537,7 +4391,7 @@
             // C. 渲染属性值组
             if (buckets.PropValue.length > 0) {
                 html += `<div class="detail-category">
-                            <span>Property Value</span>
+                            <span>属性值 (Property Value)</span>
                             <span class="cat-badge">${buckets.PropValue.length}</span>
                          </div>`;
                 html += renderRows(buckets.PropValue);
@@ -4733,7 +4587,7 @@
         
         if (expand) {
             // 展开状态
-            controls.style.display = '';
+            controls.style.display = 'block';
             summary.style.display = 'none'; // 隐藏摘要条
         } else {
             // 折叠状态
@@ -4812,80 +4666,34 @@
         document.getElementById('tScopePage').classList.toggle('active', scope === 'page');
     }
 
-    // 2. 智能折叠/展开控制
-    // 参数 forceState: true(展开), false(折叠), undefined(切换)
-    function toggleTextHeader(forceState) {
-        const header = document.getElementById('textPanelHeader');
-        const content = document.getElementById('textControlsContent');
-        const titleEl = document.getElementById('txtHeaderTitle');
-        const findInput = document.getElementById('txtFindInput');
-        
-        // 获取当前语言包 (关键步骤)
-        const t = i18n[curLang]; 
-
-        // 判断当前状态
-        const isCurrentlyExpanded = header.classList.contains('expanded');
-        
-        // 决定目标状态
-        let shouldExpand;
-        if (typeof forceState !== 'undefined') {
-            shouldExpand = forceState;
+    // 2. 头部折叠/展开
+    function toggleTextHeader(expand) {
+        const controls = document.getElementById('textControlsExpanded');
+        const summary = document.getElementById('textSummaryBar');
+        if (expand) {
+            controls.style.display = 'block';
+            summary.style.display = 'none';
         } else {
-            shouldExpand = !isCurrentlyExpanded; // 没传参数则取反（点击切换）
-        }
-
-        if (shouldExpand) {
-            // ---> 展开状态
-            content.style.display = 'block';
-            header.classList.add('expanded');
-            
-            // 🔥 修复：读取变量 t.txt_title_config
-            titleEl.innerHTML = t.txt_title_config || "查找配置"; 
-            titleEl.classList.remove('search-status-text');
-            
-        } else {
-            // ---> 折叠状态
-            content.style.display = 'none';
-            header.classList.remove('expanded');
-            
-            // 标题显示为“查找: xxx”
-            const val = findInput.value;
-            if (val) {
-                // 🔥 修复：读取变量 t.txt_prefix_find
-                const prefix = t.txt_prefix_find || "查找";
-                titleEl.innerHTML = `${prefix}: "${val}"`;
-                titleEl.classList.add('search-status-text');
-            } else {
-                // 🔥 修复：读取变量 t.txt_expand
-                titleEl.innerHTML = t.txt_expand;
-                titleEl.classList.remove('search-status-text');
-            }
+            controls.style.display = 'none';
+            summary.style.display = 'flex';
+            const val = document.getElementById('txtFindInput').value;
+            document.getElementById('txtSumText').innerText = val ? `查找: "${val}"` : "点击展开配置";
         }
     }
 
-    // 3. 开始查找 (修复版)
+    // 3. [入口] 开始查找
     function startTextFind() {
-        const findInput = document.getElementById('txtFindInput');
-        const findText = findInput.value;
-        const t = i18n[curLang] || i18n['zh'];
-
-        if (!findText) {
-            alert(t.txt_err_no_input || "请输入查找内容");
-            findInput.focus();
-            return;
-        }
+        const findText = document.getElementById('txtFindInput').value;
+        if (!findText) return alert("请输入查找内容");
         
         const isSelection = document.getElementById('tScopeSel').classList.contains('active');
         const btn = document.getElementById('btnTextFind');
         
-        if (btn) {
-            btn.classList.add('loading');
-            const span = btn.querySelector('span');
-            if(span) span.innerText = t.txt_btn_finding || "搜索中...";
-        }
+        // Loading
+        btn.classList.add('loading');
+        btn.querySelector('span').innerText = "搜索中...";
 
-        // 发送消息给后端
-        // 注意：type 必须是 'text-find-matches'，与 code.js 对应
+        // 发送给后端
         parent.postMessage({ 
             pluginMessage: { 
                 type: 'text-find-matches', 
@@ -4893,78 +4701,71 @@
                 findText: findText
             } 
         }, '*');
-        
-        // 自动折叠面板，展示结果区
-        toggleTextHeader(false);
     }
-    
-    // 4. 重置函数 (也要更新一下，确保重置后展开)
+
+    // 4. 重置
     function resetTextFind(e) {
-        if(e) e.stopPropagation(); // 阻止冒泡，防止触发折叠
-        
+        if(e) e.stopPropagation();
         document.getElementById('txtFindInput').value = '';
         document.getElementById('txtRepInput').value = '';
+        textResultCache = [];
         
-        // 恢复初始 UI：展开面板，隐藏结果
+        // 恢复初始 UI
         toggleTextHeader(true);
         document.getElementById('textResultWrapper').style.display = 'none';
         document.getElementById('textFooter').style.display = 'none';
         document.getElementById('textEmptyState').style.display = 'flex';
-        
-        // 清空缓存数据
-        textResultCache = [];
+        document.getElementById('textEmptyState').querySelector('.es-text').innerText = "输入关键词开始查找";
     }
-    function renderTextFindResults(results) {
-        // 1. 停止 Loading
-        const btn = document.getElementById('btnTextFind');
-        if (btn) {
-            btn.classList.remove('loading');
-            const span = btn.querySelector('span');
-            // 安全读取翻译
-            const t = (typeof i18n !== 'undefined' && i18n[curLang]) ? i18n[curLang] : {};
-            if(span) span.innerText = t.txt_btn_find || "开始查找";
-        }
 
-        // 2. 处理数据
+    // 5. [核心] 接收后端数据并渲染 (修复版)
+    function renderTextFindResults(results) {
+        const btn = document.getElementById('btnTextFind');
+        btn.classList.remove('loading');
+        btn.querySelector('span').innerText = "开始查找";
+
+        // 🌟 生成唯一UID，方便后续追踪状态
         textResultCache = results.map((item, i) => ({
             ...item, 
-            uid: `match_${item.id}_${item.index}_${i}`, 
+            uid: `match_${item.id}_${item.index}_${i}`, // 唯一标识
             _selected: false,
-            _done: false
+            _done: false // 标记是否已处理
         }));
         
         const total = results.length;
-        
-        // 3. 控制显隐
+
+        // 切换显示状态
         document.getElementById('textEmptyState').style.display = total === 0 ? 'flex' : 'none';
         document.getElementById('textResultWrapper').style.display = total === 0 ? 'none' : 'flex';
         document.getElementById('textFooter').style.display = total === 0 ? 'none' : 'flex';
         
         if (total === 0) {
-            const t = (typeof i18n !== 'undefined' && i18n[curLang]) ? i18n[curLang] : {};
-            document.getElementById('textEmptyState').querySelector('.es-text').innerText = t.txt_empty_none || "未找到匹配内容";
+            document.getElementById('textEmptyState').querySelector('.es-text').innerText = "未找到匹配内容";
             return;
         }
 
-        // 4. 折叠头部 & 更新计数
-        toggleTextHeader(false); // 这一步很重要，自动折叠
+        // 自动折叠头部
+        toggleTextHeader(false);
         document.getElementById('textCount').innerText = total;
         document.getElementById('textSelectAll').checked = false;
         updateTextFooterBtn();
 
-        // 5. 渲染列表
         const container = document.getElementById('textResultList');
         container.innerHTML = '';
 
+        // 渲染列表
         textResultCache.forEach((item, index) => {
             const div = document.createElement('div');
             div.className = 'text-result-row'; 
-            div.id = `row_${item.uid}`;
+            div.id = `row_${item.uid}`; // 绑定DOM ID
             
-            // 预览文字处理
-            const fullTxt = item.fullText || "";
+            // 🌟 精确高亮预览生成逻辑
+            // 不再使用正则全局替换预览，而是根据 index 截取
+            const fullTxt = item.fullText;
             const start = item.index;
             const len = item.length;
+            
+            // 截取前后文，防止过长
             const preLen = 15; 
             const postLen = 30;
             
@@ -4975,12 +4776,13 @@
             let highlight = fullTxt.substring(start, start + len);
             let suffix = fullTxt.substring(start + len, previewEnd) + (previewEnd < fullTxt.length ? "..." : "");
 
-            const escape = (s) => s ? s.replace(/</g, "&lt;").replace(/>/g, "&gt;") : "";
+            // HTML 转义防止 XSS
+            const escape = (s) => s.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
             div.innerHTML = `
                 <input type="checkbox" class="row-cb" id="cb_${item.uid}" onchange="updateTextSingleSelect(${index}, this.checked)">
                 
-                <div class="text-row-content" onclick="locateItemExact('${item.id}', ${item.index}, ${item.length}, '${item.uid}')" title="点击定位">
+                <div class="text-row-content" onclick="locateItemExact('${item.id}', ${item.index}, ${item.length})" title="点击定位并标红">
                     <div class="text-preview-main">
                        ${escape(prefix)}<span class="hl-text">${escape(highlight)}</span>${escape(suffix)}
                     </div>
@@ -4993,6 +4795,7 @@
             container.appendChild(div);
         });
     }
+    
     // 在 JS 区域添加/修改：
 
     // 1. [新增] 清除所有高亮
@@ -5041,12 +4844,10 @@
 
     // 更新底部按钮
     function updateTextFooterBtn() {
-        const t = i18n[curLang]; // 获取当前语言包
         const count = textResultCache.filter(i => i._selected && !i._done).length;
         const btn = document.getElementById('btnTextBatchRep');
         btn.disabled = count === 0;
-        // 动态拼接: "Replace Selected (N)"
-        btn.innerText = count > 0 ? `${t.txt_btn_rep_batch} (${count})` : t.txt_btn_rep_batch;
+        btn.innerText = count > 0 ? `替换选中项 (${count})` : "替换选中项";
     }
 
     // [核心] 执行替换 (单项或批量)

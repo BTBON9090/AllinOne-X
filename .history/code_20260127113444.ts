@@ -68,9 +68,6 @@ const convertNameAdvanced = (str: string, format: string, sepMode: string, casin
 };
 figma.showUI(__html__, { width: 460, height: 640, themeColors: true });
 
-// 用于存储高亮前的原始样式： Key = "NodeID_Index", Value = OriginalFills
-let highlightCache = {}; 
-
 figma.ui.onmessage = async (msg) => {
   console.log("【2】后端：收到了消息 ->", msg.type);
   const selection = figma.currentPage.selection;
@@ -416,11 +413,13 @@ figma.ui.onmessage = async (msg) => {
     }
 
     // ===========================
-    // B. 高级查找 (Find & Select) - 【已修复】
+    // B. 高级查找 (Find & Select)
     // ===========================
+    // === 获取选中图层名称 ===
     case 'fetch-selection-name': {
       const sel = figma.currentPage.selection;
       if (sel.length > 0) {
+        //以此发回给 UI，取第一个选中项的名称
         figma.ui.postMessage({ type: 'update-name-input', name: sel[0].name });
       } else {
         figma.notify("请先选择一个图层以获取名称");
@@ -429,199 +428,81 @@ figma.ui.onmessage = async (msg) => {
     }
     
     case 'find-and-select': {
-        const f = msg.filters;
-        const sel = figma.currentPage.selection;
-        
-        console.log(`=== 开始查找 (v3修复版) ===`);
-        console.log(`Scope: ${f.scope} | 选中图层: ${sel.length}`);
+      const f = msg.filters;
+      let pool = [];
 
-        // 🔥 1. 使用全新变量名，防止作用域冲突
-        let searchTargets = []; 
+      if (f.scope === 'inside') {
+        if (selection.length === 0) { figma.notify("请先选择一个容器"); return; }
+        for (const node of selection) if ('findAll' in node) pool = pool.concat(node.findAll(n => true));
+      } else if (f.scope === 'descendants') {
+        const targets = selection.length > 0 ? selection : [figma.currentPage];
+        for (const node of targets) if ('findAll' in node) pool = pool.concat(node.findAll(n => true));
+      } else if (f.scope === 'sibling') {
+        if (selection.length > 0) pool = selection[0].parent.children.filter(n => !selection.includes(n));
+      } else if (f.scope === 'children') {
+        for (const node of selection) if ('children' in node) pool = pool.concat(node.children);
+      }
 
-        // =========================================================
-        // A. 构建查找池 (Pool Construction)
-        // =========================================================
-        if (f.scope === 'inside') {
-            // 模式：内在元素 (不包含选中项本身)
-            if (sel.length === 0) {
-                figma.notify("⚠️ 请先选择一个容器(Frame/Group)");
-                return;
-            }
-            for (const node of sel) {
-                if ('findAll' in node) {
-                    // 使用 push(...) 而不是 concat，确保修改的是原数组
-                    const children = node.findAll(() => true);
-                    searchTargets.push(...children);
-                }
-            }
-        } 
-        else if (f.scope === 'children') {
-            // 模式：仅直系子级
-            if (sel.length === 0) {
-                figma.notify("⚠️ 请先选择一个容器");
-                return;
-            }
-            for (const node of sel) {
-                if ('children' in node) {
-                    searchTargets.push(...node.children);
-                }
-            }
+      const results = [];
+      
+      for (const node of pool) {
+        let match = true;
+        // Name
+        if (f.name.val) {
+          let n = node.name; let q = f.name.val;
+          if (!f.name.caseSensitive) { n = n.toLowerCase(); q = q.toLowerCase(); }
+          if (!n.includes(q)) match = false;
         }
-        else if (f.scope === 'sibling') {
-            // 模式：同级
-            if (sel.length > 0 && sel[0].parent) {
-                const siblings = sel[0].parent.children.filter(n => !sel.includes(n));
-                searchTargets.push(...siblings);
-            } else {
-                figma.notify("⚠️ 无法查找同级（未选中或无父级）");
-                return;
-            }
-        } 
-        else {
-            // 模式：子孙元素 (descendants) - 默认模式
-            // 逻辑：如果选了图层，查“选中项+选中项内部”；如果没选，查“全页”
+        // Type
+        if (match && f.types.vals.length > 0) {
+          const t = node.type;
+          const ts = f.types.vals;
+          let isType = ts.includes(t);
+          if (ts.includes('AUTOLAYOUT') && t === 'FRAME' && node.layoutMode !== 'NONE') isType = true;
+          if (ts.includes('IMAGE') && 'fills' in node && Array.isArray(node.fills) && node.fills.some(f => f.type === 'IMAGE')) isType = true;
+          
+          if (f.types.logic === 'include') { if (!isType) match = false; }
+          else { if (isType) match = false; }
+        }
+        // State
+        if (match && f.states.vals.length > 0) {
+          let isState = false;
+          const s = f.states.vals;
+          if (s.includes('hidden') && !node.visible) isState = true;
+          if (s.includes('locked') && node.locked) isState = true;
+          if (s.includes('no-fill') && 'fills' in node && node.fills.length === 0) isState = true;
+          if (s.includes('no-stroke') && 'strokes' in node && node.strokes.length === 0) isState = true;
+          if (s.includes('no-children') && 'children' in node && node.children.length === 0) isState = true;
+          
+          if (f.states.logic === 'include') { if (!isState) match = false; }
+          else { if (isState) match = false; }
+        }
+        // Props
+        if (match && f.props.length > 0) {
+          for (const p of f.props) {
+            let val = 0;
+            if (p.key === 'width') val = node.width;
+            else if (p.key === 'height') val = node.height;
+            else if (p.key === 'x') val = node.x;
+            else if (p.key === 'y') val = node.y;
+            else if (p.key === 'opacity' && 'opacity' in node) val = node.opacity;
             
-            if (sel.length > 0) {
-                console.log(">> 策略: 查找选中项及其后代");
-                
-                // 1. 先把【选中项本身】加进去
-                // (使用 for 循环最稳妥)
-                for (const node of sel) {
-                    searchTargets.push(node);
-                    
-                    // 2. 再把【选中项的子孙】加进去
-                    if ('findAll' in node) {
-                        const children = node.findAll(() => true);
-                        searchTargets.push(...children);
-                    }
-                }
-            } else {
-                console.log(">> 策略: 全页面查找");
-                const allPageNodes = figma.currentPage.findAll(() => true);
-                searchTargets.push(...allPageNodes);
-            }
+            const tgt = p.val;
+            if (p.op === '=') { if (Math.abs(val - tgt) > 0.1) match = false; }
+            else if (p.op === '>') { if (val <= tgt) match = false; }
+            else if (p.op === '<') { if (val >= tgt) match = false; }
+          }
         }
+        if (match) results.push(node);
+      }
 
-        // =========================================================
-        // B. 去重 (Deduplication) - 使用 Map ID 去重最稳健
-        // =========================================================
-        const uniqueMap = new Map();
-        searchTargets.forEach(node => uniqueMap.set(node.id, node));
-        const finalPool = Array.from(uniqueMap.values());
-        
-        console.log(`🔍 待筛选池最终大小: ${finalPool.length}`);
-
-        const results = [];
-
-        // =========================================================
-        // C. 遍历筛选 (Filtering)
-        // =========================================================
-        for (const node of finalPool) {
-            let match = true;
-
-            // 1. 名称匹配
-            if (f.name && f.name.val) {
-                let n = node.name; 
-                let q = f.name.val;
-                if (!f.name.caseSensitive) { 
-                    n = n.toLowerCase(); 
-                    q = q.toLowerCase(); 
-                }
-                if (!n.includes(q)) match = false;
-            }
-
-            // 2. 类型匹配
-            if (match && f.types && f.types.vals.length > 0) {
-                const t = node.type;
-                const ts = f.types.vals;
-                let isType = false;
-
-                if (ts.includes(t)) isType = true;
-                if (ts.includes('AUTOLAYOUT') && t === 'FRAME' && node.layoutMode !== 'NONE') isType = true;
-                if (ts.includes('IMAGE') && 'fills' in node && node.fills !== figma.mixed && Array.isArray(node.fills)) {
-                    if (node.fills.some(p => p.type === 'IMAGE' && p.visible !== false)) isType = true;
-                }
-                if (ts.includes('COMPONENT_SET') && t === 'COMPONENT_SET') isType = true;
-                if (ts.includes('SECTION') && t === 'SECTION') isType = true;
-
-                if (f.types.logic === 'include') {
-                    if (!isType) match = false;
-                } else { 
-                    if (isType) match = false;
-                }
-            }
-
-            // 3. 状态匹配
-            if (match && f.states && f.states.vals.length > 0) {
-                let isState = false;
-                const s = f.states.vals;
-
-                if (s.includes('hidden') && !node.visible) isState = true;
-                if (s.includes('locked') && node.locked) isState = true;
-                if (s.includes('mask') && node.isMask) isState = true;
-                if (s.includes('export') && node.exportSettings && node.exportSettings.length > 0) isState = true;
-
-                if (s.includes('no-fill') && 'fills' in node && node.fills !== figma.mixed) {
-                    if (Array.isArray(node.fills) && node.fills.length === 0) isState = true;
-                }
-                if (s.includes('no-stroke') && 'strokes' in node && node.strokes !== figma.mixed) {
-                    if (Array.isArray(node.strokes) && node.strokes.length === 0) isState = true;
-                }
-                if (s.includes('clip') && 'clipsContent' in node && node.clipsContent) isState = true;
-                if (s.includes('no-children') && 'children' in node) {
-                    if (node.children.length === 0) isState = true;
-                }
-
-                if (f.states.logic === 'include') {
-                    if (!isState) match = false;
-                } else {
-                    if (isState) match = false;
-                }
-            }
-
-            // 4. 属性匹配 (Props) - 加强容错
-            if (match && f.props && f.props.length > 0) {
-                for (const p of f.props) {
-                    let val = undefined;
-                    try {
-                        if (p.key === 'name') val = node.name;
-                        else if (p.key === 'fillCount' && 'fills' in node && node.fills !== figma.mixed) val = node.fills.length;
-                        else if (p.key === 'strokeCount' && 'strokes' in node && node.strokes !== figma.mixed) val = node.strokes.length;
-                        else if (p.key in node) {
-                            const v = node[p.key];
-                            if (v !== figma.mixed) val = v;
-                        }
-                    } catch(e) {}
-
-                    if (val === undefined) {
-                        match = false; break; 
-                    }
-
-                    const tgt = p.val; 
-                    // 数字比较 vs 字符串比较
-                    if (p.op === '=') { if (val != tgt) match = false; } 
-                    else if (p.op === '!=') { if (val == tgt) match = false; }
-                    else if (p.op === '>') { if (Number(val) <= Number(tgt)) match = false; } 
-                    else if (p.op === '<') { if (Number(val) >= Number(tgt)) match = false; } 
-                    else if (p.op === 'has') { if (!String(val).toLowerCase().includes(String(tgt).toLowerCase())) match = false; }
-                }
-            }
-
-            if (match) {
-                results.push(node);
-            }
-        }
-
-        console.log(`✅ 最终匹配: ${results.length}`);
-        
-        if (results.length > 0) {
-            figma.currentPage.selection = results;
-            figma.viewport.scrollAndZoomIntoView(results);
-            figma.notify(`✅ 已选中 ${results.length} 个图层`);
-        } else {
-            figma.notify("⚠️ 未找到图层 (请检查下方日志的筛选池大小)");
-        }
-        break;
+      if (results.length > 0) {
+        figma.currentPage.selection = results;
+        figma.notify(`选中 ${results.length} 个`);
+      } else {
+        figma.notify("未找到");
+      }
+      break;
     }
 
     // ===========================
@@ -1185,255 +1066,62 @@ figma.ui.onmessage = async (msg) => {
         break;
     }
 
-    // -------------------------------------------------------------
-    // 1. 查找功能：改为返回具体的匹配项列表 (后端修复版)
-    // -------------------------------------------------------------
-    case 'text-find-matches': {
-        const { scope, findText } = msg;
-        console.log("【后端】收到文本查找请求:", scope, findText); // 调试日志
+    // 在 switch (msg.type) { ... } 中替换 case 'locate-node':
 
-        const results = [];
-        let searchPool = [];
-
-        // 1. 确定搜索范围
-        if (scope === 'selection') {
-            searchPool = figma.currentPage.selection;
-        } else {
-            // 搜索整个页面 (包含页面本身)
-            searchPool = [figma.currentPage]; 
-        }
-
-        if (searchPool.length === 0 && scope === 'selection') {
-            figma.notify("请先选择图层");
-            // 即使失败，也要发回空结果，以此重置前端按钮状态
-            figma.ui.postMessage({ type: 'text-find-results', data: [] });
-            return;
-        }
-
-        // 2. 递归查找函数
-        const traverse = (node) => {
-            // 只有可见的文本层才参与查找
-            if (node.type === 'TEXT' && node.visible) {
-                const fullText = node.characters;
-                // 转义正则特殊字符
-                const escapedFindText = findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                // 全局、不区分大小写匹配
-                const regex = new RegExp(escapedFindText, 'gi');
-                
-                let match;
-                while ((match = regex.exec(fullText)) !== null) {
-                    results.push({
-                        id: node.id,
-                        fullText: fullText,
-                        index: match.index,
-                        length: match[0].length,
-                        matchText: match[0]
-                    });
-                }
-            }
-            
-            // 递归子级
-            if ('children' in node) {
-                node.children.forEach(traverse);
-            }
-        };
-
-        // 3. 执行查找
-        searchPool.forEach(traverse);
-        
-        console.log(`【后端】查找完成，找到 ${results.length} 项`);
-
-        // 4. 发送结果给前端
-        figma.ui.postMessage({ type: 'text-find-results', data: results });
-        
-        if (results.length === 0) {
-            figma.notify("未找到匹配文本");
-        }
-        break;
-    }
-
-    // -------------------------------------------------------------
-    // 2. 定位功能 (修复版：兼容组件清洗和文字工具)
-    // -------------------------------------------------------------
     case 'locate-node': {
         try {
             const node = await figma.getNodeByIdAsync(msg.id);
-            
             if (node) {
-                // === 第一步：通用操作 (先选中并聚焦) ===
-                // 这一步对组件、矩形、文本都有效，修复了组件清洗无法定位的问题
-                // 检查节点是否在当前页面，如果在不同页面可能需要切换（但插件API限制通常只能操作当前页）
+                // 1. 基础操作：选中并聚焦
                 figma.currentPage.selection = [node];
                 figma.viewport.scrollAndZoomIntoView([node]);
 
-                // === 第二步：文字工具特有逻辑 (仅当是文本且包含索引参数时执行) ===
-                if (node.type === 'TEXT' && typeof msg.index === 'number' && typeof msg.length === 'number') {
+                // 2. 高亮逻辑 (如果传了 keyword 且节点是文本)
+                if (msg.highlight && node.type === 'TEXT') {
+                    const text = node.characters;
+                    const keyword = msg.highlight;
                     
-                    const cacheKey = `${msg.id}_${msg.index}`;
-                    
-                    // 加载字体
+                    // ⚠️ 警告：修改文字颜色需要加载字体
+                    // 这里尝试加载当前节点的字体 (混合字体可能会有问题，这里取第一个字符的字体作为尝试)
                     const font = node.fontName === figma.mixed 
                                  ? node.getRangeFontName(0, 1) 
                                  : node.fontName;
-                    await figma.loadFontAsync(font);
+                                 
+                    try {
+                        await figma.loadFontAsync(font);
 
-                    // A. 还原颜色
-                    if (highlightCache[cacheKey]) {
-                        const cachedData = highlightCache[cacheKey]; // { fills, length }
-                        node.setRangeFills(msg.index, msg.index + cachedData.length, cachedData.fills);
+                        // 定义高亮颜色 (例如：鲜艳的洋红色/红色)
+                        const highlightPaint = [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 } }]; // 🔴 红色
+
+                        // 正则查找所有匹配项的索引
+                        const regex = new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                        let match;
+                        let count = 0;
+
+                        // 循环找到所有出现的位置并变色
+                        while ((match = regex.exec(text)) !== null) {
+                            const start = match.index;
+                            const end = match.index + match[0].length;
+                            node.setRangeFills(start, end, highlightPaint);
+                            count++;
+                        }
                         
-                        delete highlightCache[cacheKey];
-                        figma.notify("已还原颜色");
-                        figma.ui.postMessage({ type: 'highlight-status', key: cacheKey, status: false });
-                    
-                    } else {
-                        // B. 执行高亮
-                        const currentFills = node.getRangeFills(msg.index, msg.index + 1);
-                        highlightCache[cacheKey] = { fills: currentFills, length: msg.length };
-                        
-                        const highlightPaint = [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 } }];
-                        node.setRangeFills(msg.index, msg.index + msg.length, highlightPaint);
-                        
-                        figma.notify("已标记 (再次点击可还原)");
-                        figma.ui.postMessage({ type: 'highlight-status', key: cacheKey, status: true });
+                        if (count > 0) {
+                            figma.notify(`已定位并标红 ${count} 处关键字 (Ctrl+Z 可撤销)`);
+                        }
+                    } catch (fontErr) {
+                        console.error("无法加载字体，仅定位:", fontErr);
+                        figma.notify("已定位 (字体加载失败，无法标红)");
                     }
+                } else {
+                    figma.notify("已定位到图层");
                 }
             } else {
-                figma.notify("图层不存在 (可能已被删除)");
+                figma.notify("图层已不存在");
             }
         } catch (e) {
-            console.error("定位失败:", e);
-            // 即使报错，通常是因为字体加载或跨页问题，不应该影响基础选中
-            // 如果已经在上面被选中了，这里就不报干扰信息了
+            console.error(e);
         }
-        break;
-    }
-
-    // -------------------------------------------------------------
-    // 3. 替换功能：支持点对点替换 (修复Bug 1 & 4)
-    // -------------------------------------------------------------
-    case 'text-replace-batch': {
-        const { tasks, replaceText } = msg; 
-        // tasks 是一个数组: [{id, index, length}, ...]
-        
-        let successCount = 0;
-        const processedIds = new Set(); // 用于记录成功的 uniqueId，发回给前端禁用
-
-        // 🌟 关键策略：按 Node ID 分组，组内按 Index 倒序排列
-        // 为什么倒序？因为替换前面的文字会改变后面文字的索引。
-        // 从后往前替换，坐标永远是准的。
-        
-        const groups = {};
-        tasks.forEach(task => {
-            if (!groups[task.id]) groups[task.id] = [];
-            groups[task.id].push(task);
-        });
-
-        for (const nodeId in groups) {
-            const node = await figma.getNodeByIdAsync(nodeId);
-            if (!node || node.type !== 'TEXT') continue;
-
-            const groupTasks = groups[nodeId];
-            // 🌟 倒序排序
-            groupTasks.sort((a, b) => b.index - a.index);
-
-            try {
-                // 加载字体
-                await figma.loadFontAsync(node.fontName === figma.mixed 
-                        ? node.getRangeFontName(0, 1) 
-                        : node.fontName);
-
-                // 执行替换
-                for (const task of groupTasks) {
-                    // 再次检查字符是否匹配（防止并发修改导致的错位）
-                    const currentStr = node.characters.substring(task.index, task.index + task.length);
-                    // 简单的校验，略过严格校验以允许大小写差异
-                    
-                    node.deleteCharacters(task.index, task.index + task.length);
-                    node.insertCharacters(task.index, replaceText);
-                    
-                    successCount++;
-                    // 记录前端传来的唯一标识 (uid)，以便前端禁用
-                    if (task.uid) processedIds.add(task.uid);
-                }
-            } catch (err) {
-                console.error(`替换失败 ${nodeId}:`, err);
-            }
-        }
-
-        // 通知前端哪些任务完成了
-        figma.ui.postMessage({ 
-            type: 'text-replace-success', 
-            count: successCount,
-            processedUids: Array.from(processedIds)
-        });
-        
-        figma.notify(`已替换 ${successCount} 处文本`);
-        break;
-    }
-
-    // -------------------------------------------------------------
-    // [新] 一键清除所有高亮
-    // -------------------------------------------------------------
-    case 'clear-all-highlights': {
-        let count = 0;
-        for (const key in highlightCache) {
-            const [nodeId, indexStr] = key.split('_');
-            const index = parseInt(indexStr);
-            const data = highlightCache[key]; // { fills, length }
-
-            try {
-                const node = await figma.getNodeByIdAsync(nodeId);
-                if (node && node.type === 'TEXT') {
-                     const font = node.fontName === figma.mixed ? node.getRangeFontName(0, 1) : node.fontName;
-                     await figma.loadFontAsync(font);
-                     node.setRangeFills(index, index + data.length, data.fills);
-                     count++;
-                }
-            } catch(e) { console.log("还原失败", e) }
-        }
-        highlightCache = {}; // 清空池子
-        figma.notify(`已还原 ${count} 处高亮`);
-        // 通知前端清除所有高亮样式
-        figma.ui.postMessage({ type: 'clear-all-highlights-ui' });
-        break;
-    }
-    
-    // 另外：在 text-replace-batch 成功后，也要清理对应的缓存，防止还原时报错
-    // 在 case 'text-replace-batch' 的循环里，successCount++ 后面加一行：
-    // delete highlightCache[`${task.id}_${task.index}`];
-
-    // -------------------------------------------------------------
-    // 3. 替换功能：支持点对点替换 (修复Bug 1 & 4)
-    // -------------------------------------------------------------
-    case 'text-replace-batch': {
-        const { ids, findText, replaceText } = msg;
-        let count = 0;
-
-        // 批量处理 ID
-        for (const id of ids) {
-            const node = await figma.getNodeByIdAsync(id);
-            if (node && node.type === 'TEXT') {
-                try {
-                    // 加载字体 (必要步骤)
-                    await figma.loadFontAsync(node.fontName === figma.mixed 
-                        ? node.getRangeFontName(0, 1) 
-                        : node.fontName);
-                    
-                    // 执行替换 (全局替换该节点内的所有匹配项)
-                    // 使用正则进行全局替换 (Global, Case Insensitive)
-                    const regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-                    
-                    if (regex.test(node.characters)) {
-                        node.characters = node.characters.replace(regex, replaceText);
-                        count++;
-                    }
-                } catch (err) {
-                    console.error(`替换文本失败 (ID: ${id}):`, err);
-                }
-            }
-        }
-        figma.notify(`已替换 ${count} 个文本图层`);
         break;
     }
 

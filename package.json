@@ -4,7 +4,7 @@
   "description": "Figma All in One Plugin",
   "main": "code.js",
   "scripts": {
-    "build": "tsc code.ts --outFile code.js",
+    "build": "tsc code.ts --outFile code.js && node -e \"const fs = require('fs'); const html = fs.readFileSync('ui.html', 'utf8'); const js = fs.readFileSync('code.js', 'utf8'); const newJs = js.replace(/__html__/g, JSON.stringify(html)); fs.writeFileSync('code.js', newJs);\"",
     "watch": "tsc code.ts --outFile code.js --watch"
   },
   "devDependencies": {

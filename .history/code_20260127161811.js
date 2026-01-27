@@ -128,10 +128,10 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
         if ('children' in n)
             n.children.forEach(ul);
     }
-    var selection, _a, newSelection, _i, selection_1, node, frame, idx, children, _b, children_1, child, newSelection, _c, selection_2, node, r, idx, count, _d, selection_3, node, temp, _e, selection_4, node, img, asyncImg, size, t, pool, _f, pool_1, n, count_1, newSelection, _g, selection_5, node, frame, parent_1, index, newSel, _h, selection_6, node, lines, font, e_1, cy, _j, lines_1, l, t, tNodes, font, e_2, txt, nt, i, arr_1, arr_2, sel, targets_3, scan_1, count, _k, targets_1, node, h, pool, _l, pool_2, n, count_3, p_1, count_4, count_2, count, _m, selection_7, node, newX, newY, newW, newH, sel, f, sel_5, searchTargets, _o, sel_1, node, children, _p, sel_2, node, siblings, _q, sel_3, node, children, allPageNodes, uniqueMap_1, finalPool, results, _r, finalPool_1, node, match, n, q, t, ts, isType, isState, s, _s, _t, p, val, v, tgt, createdCount, conflicts, errors, localPaints, localTexts, localEffects, _loop_1, _u, selection_8, node, e_3, parts, sel, countFill_1, countStroke_1, countText_1, countEffect_1, paints, texts, effects, paintMap_1, effectMap_1, textMap_1, traverse_1, _v, sel_4, node, e_4, total, n1, n2, x1, y1, x2, y2, findText, replaceText, scope, count, textNodes_2, collect_1, _w, textNodes_1, node, font, e_5, pageName, slides, slides, slides, slides, slides, cfg_1, targets_4, scopeNodes, collectTargets_1, findRegex_1, escape_1, pat, results_1, checkString_1, _loop_2, _x, targets_2, node, items, count, _y, items_1, item, node, err_1, scope, findText_1, results_2, searchPool, traverse_2, node, cacheKey, font, cachedData, currentFills, highlightPaint, e_6, tasks, replaceText, successCount, processedIds, groups_1, _z, _0, _1, _2, nodeId, node, groupTasks, _3, groupTasks_1, task, currentStr, err_2, count, _4, _5, _6, _7, key, _8, nodeId, indexStr, index, data, node, font, e_7, ids, findText, replaceText, count, _9, ids_1, id, node, regex, err_3;
+    var selection, _a, newSelection, _i, selection_1, node, frame, idx, children, _b, children_1, child, newSelection, _c, selection_2, node, r, idx, count, _d, selection_3, node, temp, _e, selection_4, node, img, asyncImg, size, t, pool, _f, pool_1, n, count_1, newSelection, _g, selection_5, node, frame, parent_1, index, newSel, _h, selection_6, node, lines, font, e_1, cy, _j, lines_1, l, t, tNodes, font, e_2, txt, nt, i, arr_1, arr_2, sel, targets_4, scan_1, count, _k, targets_1, node, h, pool, _l, pool_2, n, count_3, p_1, count_4, count_2, count, _m, selection_7, node, newX, newY, newW, newH, sel, f, pool, _o, selection_8, node, targets, _p, targets_2, node, _q, selection_9, node, results, _r, pool_3, node, match, n, q, t, ts, isType, isState, s, _s, _t, p, val, tgt, createdCount, conflicts, errors, localPaints, localTexts, localEffects, _loop_1, _u, selection_10, node, e_3, parts, sel, countFill_1, countStroke_1, countText_1, countEffect_1, paints, texts, effects, paintMap_1, effectMap_1, textMap_1, traverse_1, _v, sel_1, node, e_4, total, n1, n2, x1, y1, x2, y2, findText, replaceText, scope, count, textNodes_2, collect_1, _w, textNodes_1, node, font, e_5, pageName, slides, slides, slides, slides, slides, cfg_1, targets_5, scopeNodes, collectTargets_1, findRegex_1, escape_1, pat, results_1, checkString_1, _loop_2, _x, targets_3, node, items, count, _y, items_1, item, node, err_1, scope, findText_1, results_2, searchPool, traverse_2, node, cacheKey, font, cachedData, currentFills, highlightPaint, e_6, restoreCount, _z, _0, _1, _2, key, _3, nodeId, indexStr, index, data, node, font, e_7, tasks, replaceText, successCount, processedIds, groups_1, _4, _5, _6, _7, nodeId, node, groupTasks, _8, groupTasks_1, task, currentStr, err_2;
     var _this = this;
-    return __generator(this, function (_10) {
-        switch (_10.label) {
+    return __generator(this, function (_9) {
+        switch (_9.label) {
             case 0:
                 console.log("【2】后端：收到了消息 ->", msg.type);
                 selection = figma.currentPage.selection;
@@ -170,13 +170,12 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     case 'fix-variants': return [3 /*break*/, 80];
                     case 'text-find-matches': return [3 /*break*/, 87];
                     case 'locate-node': return [3 /*break*/, 88];
-                    case 'text-replace-batch': return [3 /*break*/, 96];
-                    case 'clear-all-highlights': return [3 /*break*/, 104];
-                    case 'text-replace-batch': return [3 /*break*/, 113];
-                    case 'resize-drag': return [3 /*break*/, 121];
-                    case 'resize-window': return [3 /*break*/, 121];
+                    case 'clear-all-highlights': return [3 /*break*/, 96];
+                    case 'text-replace-batch': return [3 /*break*/, 105];
+                    case 'resize-drag': return [3 /*break*/, 113];
+                    case 'resize-window': return [3 /*break*/, 113];
                 }
-                return [3 /*break*/, 122];
+                return [3 /*break*/, 114];
             case 1:
                 {
                     if (selection.length === 0) {
@@ -224,9 +223,9 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     }
                     figma.currentPage.selection = newSelection;
                     figma.notify("已转换为 Frame");
-                    return [3 /*break*/, 122];
+                    return [3 /*break*/, 114];
                 }
-                _10.label = 2;
+                _9.label = 2;
             case 2:
                 {
                     newSelection = [];
@@ -261,9 +260,9 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     }
                     if (newSelection.length > 0)
                         figma.currentPage.selection = newSelection;
-                    return [3 /*break*/, 122];
+                    return [3 /*break*/, 114];
                 }
-                _10.label = 3;
+                _9.label = 3;
             case 3:
                 {
                     count = 0;
@@ -280,12 +279,12 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     }
                     if (count > 0)
                         figma.notify("已交换填充/描边");
-                    return [3 /*break*/, 122];
+                    return [3 /*break*/, 114];
                 }
-                _10.label = 4;
+                _9.label = 4;
             case 4:
                 _e = 0, selection_4 = selection;
-                _10.label = 5;
+                _9.label = 5;
             case 5:
                 if (!(_e < selection_4.length)) return [3 /*break*/, 8];
                 node = selection_4[_e];
@@ -295,14 +294,14 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                 asyncImg = figma.getImageByHash(img.imageHash);
                 return [4 /*yield*/, asyncImg.getSizeAsync()];
             case 6:
-                size = _10.sent();
+                size = _9.sent();
                 if (size && size.width)
                     node.resize(node.width, node.width * (size.height / size.width));
-                _10.label = 7;
+                _9.label = 7;
             case 7:
                 _e++;
                 return [3 /*break*/, 5];
-            case 8: return [3 /*break*/, 122];
+            case 8: return [3 /*break*/, 114];
             case 9:
                 {
                     t = [];
@@ -321,17 +320,17 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     else {
                         figma.notify("未找到文本");
                     }
-                    return [3 /*break*/, 122];
+                    return [3 /*break*/, 114];
                 }
-                _10.label = 10;
+                _9.label = 10;
             case 10:
                 {
                     count_1 = 0;
                     selection.forEach(rm);
                     figma.notify("\u79FB\u9664 ".concat(count_1, " \u4E2A\u81EA\u52A8\u5E03\u5C40"));
-                    return [3 /*break*/, 122];
+                    return [3 /*break*/, 114];
                 }
-                _10.label = 11;
+                _9.label = 11;
             case 11:
                 {
                     newSelection = [];
@@ -370,13 +369,13 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                         figma.currentPage.selection = newSelection;
                         figma.notify(msg.successMsg || "已添加自动布局外套");
                     }
-                    return [3 /*break*/, 122];
+                    return [3 /*break*/, 114];
                 }
-                _10.label = 12;
+                _9.label = 12;
             case 12:
                 newSel = [];
                 _h = 0, selection_6 = selection;
-                _10.label = 13;
+                _9.label = 13;
             case 13:
                 if (!(_h < selection_6.length)) return [3 /*break*/, 19];
                 node = selection_6[_h];
@@ -388,15 +387,15 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                 font = node.fontName;
                 if (font === figma.mixed)
                     font = node.getRangeFontName(0, 1);
-                _10.label = 14;
+                _9.label = 14;
             case 14:
-                _10.trys.push([14, 16, , 17]);
+                _9.trys.push([14, 16, , 17]);
                 return [4 /*yield*/, figma.loadFontAsync(font)];
             case 15:
-                _10.sent();
+                _9.sent();
                 return [3 /*break*/, 17];
             case 16:
-                e_1 = _10.sent();
+                e_1 = _9.sent();
                 figma.notify("字体加载失败");
                 return [3 /*break*/, 18];
             case 17:
@@ -414,14 +413,14 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     cy += t.height + 10;
                 }
                 node.remove();
-                _10.label = 18;
+                _9.label = 18;
             case 18:
                 _h++;
                 return [3 /*break*/, 13];
             case 19:
                 if (newSel.length > 0)
                     figma.currentPage.selection = newSel;
-                return [3 /*break*/, 122];
+                return [3 /*break*/, 114];
             case 20:
                 tNodes = selection.filter(function (n) { return n.type === 'TEXT'; }).sort(function (a, b) { return Math.abs(a.y - b.y) > 5 ? a.y - b.y : a.x - b.x; });
                 if (tNodes.length < 2) {
@@ -431,15 +430,15 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                 font = tNodes[0].fontName;
                 if (font === figma.mixed)
                     font = tNodes[0].getRangeFontName(0, 1);
-                _10.label = 21;
+                _9.label = 21;
             case 21:
-                _10.trys.push([21, 23, , 24]);
+                _9.trys.push([21, 23, , 24]);
                 return [4 /*yield*/, figma.loadFontAsync(font)];
             case 22:
-                _10.sent();
+                _9.sent();
                 return [3 /*break*/, 24];
             case 23:
-                e_2 = _10.sent();
+                e_2 = _9.sent();
                 figma.notify("字体加载失败");
                 return [2 /*return*/];
             case 24:
@@ -450,7 +449,7 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                 for (i = 1; i < tNodes.length; i++)
                     tNodes[i].remove();
                 figma.currentPage.selection = [nt];
-                return [3 /*break*/, 122];
+                return [3 /*break*/, 114];
             case 25:
                 {
                     arr_1 = [];
@@ -462,9 +461,9 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     });
                     if (arr_1.length > 0)
                         figma.currentPage.selection = arr_1;
-                    return [3 /*break*/, 122];
+                    return [3 /*break*/, 114];
                 }
-                _10.label = 26;
+                _9.label = 26;
             case 26:
                 {
                     arr_2 = [];
@@ -473,9 +472,9 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                         arr_2.push(n);
                     });
                     figma.currentPage.selection = arr_2;
-                    return [3 /*break*/, 122];
+                    return [3 /*break*/, 114];
                 }
-                _10.label = 27;
+                _9.label = 27;
             case 27:
                 {
                     selection.forEach(function (n) {
@@ -491,9 +490,9 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                             n.name = name.substring(0, 20);
                     });
                     figma.notify("已重命名");
-                    return [3 /*break*/, 122];
+                    return [3 /*break*/, 114];
                 }
-                _10.label = 28;
+                _9.label = 28;
             case 28:
                 {
                     sel = figma.currentPage.selection;
@@ -501,7 +500,7 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                         figma.notify("请先选中图层");
                         return [2 /*return*/];
                     }
-                    targets_3 = [];
+                    targets_4 = [];
                     scan_1 = function (n) {
                         // 1. 先递归找子级
                         if ('children' in n) {
@@ -514,18 +513,18 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                         }
                         // 2. 子级找完了，再看自己是不是组件实例
                         if (n.type === 'INSTANCE') {
-                            targets_3.push(n);
+                            targets_4.push(n);
                         }
                     };
                     // 开始扫描
                     sel.forEach(scan_1);
-                    if (targets_3.length === 0) {
+                    if (targets_4.length === 0) {
                         figma.notify("未找到可解绑的实例");
                         return [2 /*return*/];
                     }
                     count = 0;
                     // 按顺序解绑 (因为已经是“从内到外”的顺序，所以直接执行即可)
-                    for (_k = 0, targets_1 = targets_3; _k < targets_1.length; _k++) {
+                    for (_k = 0, targets_1 = targets_4; _k < targets_1.length; _k++) {
                         node = targets_1[_k];
                         // 再次检查节点是否还存在（防止父级解绑导致子级引用变化，虽然此算法能最大程度避免）
                         if (!node.removed) {
@@ -539,9 +538,9 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                         }
                     }
                     figma.notify("\u5DF2\u5F7B\u5E95\u89E3\u7ED1 ".concat(count, " \u4E2A\u7EC4\u4EF6"));
-                    return [3 /*break*/, 122];
+                    return [3 /*break*/, 114];
                 }
-                _10.label = 29;
+                _9.label = 29;
             case 29:
                 {
                     h = [];
@@ -559,9 +558,9 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                         count_3++;
                     } });
                     figma.notify("\u5DF2\u5220\u9664 ".concat(count_3, " \u4E2A\u9690\u85CF\u56FE\u5C42"));
-                    return [3 /*break*/, 122];
+                    return [3 /*break*/, 114];
                 }
-                _10.label = 30;
+                _9.label = 30;
             case 30:
                 {
                     if (selection.length > 1) {
@@ -571,9 +570,9 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                             figma.notify("图层已排序");
                         }
                     }
-                    return [3 /*break*/, 122];
+                    return [3 /*break*/, 114];
                 }
-                _10.label = 31;
+                _9.label = 31;
             case 31:
                 {
                     count_4 = 0;
@@ -590,17 +589,17 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                         }
                     });
                     figma.notify("\u5DF2\u89E3\u6563 ".concat(count_4, " \u4E2A\u7EC4"));
-                    return [3 /*break*/, 122];
+                    return [3 /*break*/, 114];
                 }
-                _10.label = 32;
+                _9.label = 32;
             case 32:
                 {
                     count_2 = 0;
                     selection.forEach(ul);
                     figma.notify("\u5DF2\u89E3\u9501 ".concat(count_2, " \u4E2A\u56FE\u5C42"));
-                    return [3 /*break*/, 122];
+                    return [3 /*break*/, 114];
                 }
-                _10.label = 33;
+                _9.label = 33;
             case 33:
                 {
                     if (selection.length === 0) {
@@ -624,105 +623,62 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                         }
                     }
                     figma.notify("\u5DF2\u5BF9\u9F50 ".concat(count, " \u4E2A\u56FE\u5C42"));
-                    return [3 /*break*/, 122];
+                    return [3 /*break*/, 114];
                 }
-                _10.label = 34;
+                _9.label = 34;
             case 34:
                 {
                     sel = figma.currentPage.selection;
                     if (sel.length > 0) {
+                        //以此发回给 UI，取第一个选中项的名称
                         figma.ui.postMessage({ type: 'update-name-input', name: sel[0].name });
                     }
                     else {
                         figma.notify("请先选择一个图层以获取名称");
                     }
-                    return [3 /*break*/, 122];
+                    return [3 /*break*/, 114];
                 }
-                _10.label = 35;
+                _9.label = 35;
             case 35:
                 {
                     f = msg.filters;
-                    sel_5 = figma.currentPage.selection;
-                    console.log("=== \u5F00\u59CB\u67E5\u627E (v3\u4FEE\u590D\u7248) ===");
-                    console.log("Scope: ".concat(f.scope, " | \u9009\u4E2D\u56FE\u5C42: ").concat(sel_5.length));
-                    searchTargets = [];
-                    // =========================================================
-                    // A. 构建查找池 (Pool Construction)
-                    // =========================================================
+                    pool = [];
                     if (f.scope === 'inside') {
-                        // 模式：内在元素 (不包含选中项本身)
-                        if (sel_5.length === 0) {
-                            figma.notify("⚠️ 请先选择一个容器(Frame/Group)");
+                        if (selection.length === 0) {
+                            figma.notify("请先选择一个容器");
                             return [2 /*return*/];
                         }
-                        for (_o = 0, sel_1 = sel_5; _o < sel_1.length; _o++) {
-                            node = sel_1[_o];
-                            if ('findAll' in node) {
-                                children = node.findAll(function () { return true; });
-                                searchTargets.push.apply(searchTargets, children);
-                            }
+                        for (_o = 0, selection_8 = selection; _o < selection_8.length; _o++) {
+                            node = selection_8[_o];
+                            if ('findAll' in node)
+                                pool = pool.concat(node.findAll(function (n) { return true; }));
                         }
                     }
-                    else if (f.scope === 'children') {
-                        // 模式：仅直系子级
-                        if (sel_5.length === 0) {
-                            figma.notify("⚠️ 请先选择一个容器");
-                            return [2 /*return*/];
-                        }
-                        for (_p = 0, sel_2 = sel_5; _p < sel_2.length; _p++) {
-                            node = sel_2[_p];
-                            if ('children' in node) {
-                                searchTargets.push.apply(searchTargets, node.children);
-                            }
+                    else if (f.scope === 'descendants') {
+                        targets = selection.length > 0 ? selection : [figma.currentPage];
+                        for (_p = 0, targets_2 = targets; _p < targets_2.length; _p++) {
+                            node = targets_2[_p];
+                            if ('findAll' in node)
+                                pool = pool.concat(node.findAll(function (n) { return true; }));
                         }
                     }
                     else if (f.scope === 'sibling') {
-                        // 模式：同级
-                        if (sel_5.length > 0 && sel_5[0].parent) {
-                            siblings = sel_5[0].parent.children.filter(function (n) { return !sel_5.includes(n); });
-                            searchTargets.push.apply(searchTargets, siblings);
-                        }
-                        else {
-                            figma.notify("⚠️ 无法查找同级（未选中或无父级）");
-                            return [2 /*return*/];
+                        if (selection.length > 0)
+                            pool = selection[0].parent.children.filter(function (n) { return !selection.includes(n); });
+                    }
+                    else if (f.scope === 'children') {
+                        for (_q = 0, selection_9 = selection; _q < selection_9.length; _q++) {
+                            node = selection_9[_q];
+                            if ('children' in node)
+                                pool = pool.concat(node.children);
                         }
                     }
-                    else {
-                        // 模式：子孙元素 (descendants) - 默认模式
-                        // 逻辑：如果选了图层，查“选中项+选中项内部”；如果没选，查“全页”
-                        if (sel_5.length > 0) {
-                            console.log(">> 策略: 查找选中项及其后代");
-                            // 1. 先把【选中项本身】加进去
-                            // (使用 for 循环最稳妥)
-                            for (_q = 0, sel_3 = sel_5; _q < sel_3.length; _q++) {
-                                node = sel_3[_q];
-                                searchTargets.push(node);
-                                // 2. 再把【选中项的子孙】加进去
-                                if ('findAll' in node) {
-                                    children = node.findAll(function () { return true; });
-                                    searchTargets.push.apply(searchTargets, children);
-                                }
-                            }
-                        }
-                        else {
-                            console.log(">> 策略: 全页面查找");
-                            allPageNodes = figma.currentPage.findAll(function () { return true; });
-                            searchTargets.push.apply(searchTargets, allPageNodes);
-                        }
-                    }
-                    uniqueMap_1 = new Map();
-                    searchTargets.forEach(function (node) { return uniqueMap_1.set(node.id, node); });
-                    finalPool = Array.from(uniqueMap_1.values());
-                    console.log("\uD83D\uDD0D \u5F85\u7B5B\u9009\u6C60\u6700\u7EC8\u5927\u5C0F: ".concat(finalPool.length));
                     results = [];
-                    // =========================================================
-                    // C. 遍历筛选 (Filtering)
-                    // =========================================================
-                    for (_r = 0, finalPool_1 = finalPool; _r < finalPool_1.length; _r++) {
-                        node = finalPool_1[_r];
+                    for (_r = 0, pool_3 = pool; _r < pool_3.length; _r++) {
+                        node = pool_3[_r];
                         match = true;
-                        // 1. 名称匹配
-                        if (f.name && f.name.val) {
+                        // Name
+                        if (f.name.val) {
                             n = node.name;
                             q = f.name.val;
                             if (!f.name.caseSensitive) {
@@ -732,130 +688,90 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                             if (!n.includes(q))
                                 match = false;
                         }
-                        // 2. 类型匹配
-                        if (match && f.types && f.types.vals.length > 0) {
+                        // Type (扩充版)
+                        if (match && f.types.vals.length > 0) {
                             t = node.type;
                             ts = f.types.vals;
-                            isType = false;
-                            if (ts.includes(t))
-                                isType = true;
-                            if (ts.includes('AUTOLAYOUT') && t === 'FRAME' && node.layoutMode !== 'NONE')
-                                isType = true;
-                            if (ts.includes('IMAGE') && 'fills' in node && node.fills !== figma.mixed && Array.isArray(node.fills)) {
-                                if (node.fills.some(function (p) { return p.type === 'IMAGE' && p.visible !== false; }))
-                                    isType = true;
-                            }
-                            if (ts.includes('COMPONENT_SET') && t === 'COMPONENT_SET')
-                                isType = true;
-                            if (ts.includes('SECTION') && t === 'SECTION')
-                                isType = true;
+                            isType = ts.includes(t); // 默认直接匹配类型字符串
+                            
+                            // 特殊类型判断
+                            if (ts.includes('AUTOLAYOUT') && t === 'FRAME' && node.layoutMode !== 'NONE') isType = true;
+                            if (ts.includes('IMAGE') && 'fills' in node && Array.isArray(node.fills) && node.fills.some(f => f.type === 'IMAGE')) isType = true;
+                            
+                            // 逻辑判断
                             if (f.types.logic === 'include') {
-                                if (!isType)
-                                    match = false;
-                            }
-                            else {
-                                if (isType)
-                                    match = false;
+                                if (!isType) match = false;
+                            } else {
+                                if (isType) match = false;
                             }
                         }
-                        // 3. 状态匹配
-                        if (match && f.states && f.states.vals.length > 0) {
+
+                        // State (扩充版)
+                        if (match && f.states.vals.length > 0) {
                             isState = false;
                             s = f.states.vals;
-                            if (s.includes('hidden') && !node.visible)
-                                isState = true;
-                            if (s.includes('locked') && node.locked)
-                                isState = true;
-                            if (s.includes('mask') && node.isMask)
-                                isState = true;
-                            if (s.includes('export') && node.exportSettings && node.exportSettings.length > 0)
-                                isState = true;
-                            if (s.includes('no-fill') && 'fills' in node && node.fills !== figma.mixed) {
-                                if (Array.isArray(node.fills) && node.fills.length === 0)
-                                    isState = true;
-                            }
-                            if (s.includes('no-stroke') && 'strokes' in node && node.strokes !== figma.mixed) {
-                                if (Array.isArray(node.strokes) && node.strokes.length === 0)
-                                    isState = true;
-                            }
-                            if (s.includes('clip') && 'clipsContent' in node && node.clipsContent)
-                                isState = true;
-                            if (s.includes('no-children') && 'children' in node) {
-                                if (node.children.length === 0)
-                                    isState = true;
-                            }
+                            
+                            if (s.includes('hidden') && !node.visible) isState = true;
+                            if (s.includes('locked') && node.locked) isState = true;
+                            // 新增：Mask
+                            if (s.includes('mask') && node.isMask) isState = true;
+                            // 新增：Export (检查 exportSettings 数组是否有内容)
+                            if (s.includes('export') && node.exportSettings && node.exportSettings.length > 0) isState = true;
+                            
+                            if (s.includes('no-fill') && 'fills' in node && node.fills.length === 0) isState = true;
+                            if (s.includes('no-stroke') && 'strokes' in node && node.strokes.length === 0) isState = true;
+                            if (s.includes('no-children') && 'children' in node && node.children.length === 0) isState = true;
+                            if (s.includes('clip') && 'clipsContent' in node && node.clipsContent) isState = true;
+
                             if (f.states.logic === 'include') {
-                                if (!isState)
-                                    match = false;
-                            }
-                            else {
-                                if (isState)
-                                    match = false;
+                                if (!isState) match = false;
+                            } else {
+                                if (isState) match = false;
                             }
                         }
-                        // 4. 属性匹配 (Props) - 加强容错
-                        if (match && f.props && f.props.length > 0) {
+                        // Props
+                        if (match && f.props.length > 0) {
                             for (_s = 0, _t = f.props; _s < _t.length; _s++) {
                                 p = _t[_s];
-                                val = undefined;
-                                try {
-                                    if (p.key === 'name')
-                                        val = node.name;
-                                    else if (p.key === 'fillCount' && 'fills' in node && node.fills !== figma.mixed)
-                                        val = node.fills.length;
-                                    else if (p.key === 'strokeCount' && 'strokes' in node && node.strokes !== figma.mixed)
-                                        val = node.strokes.length;
-                                    else if (p.key in node) {
-                                        v = node[p.key];
-                                        if (v !== figma.mixed)
-                                            val = v;
-                                    }
-                                }
-                                catch (e) { }
-                                if (val === undefined) {
-                                    match = false;
-                                    break;
-                                }
+                                val = 0;
+                                if (p.key === 'width')
+                                    val = node.width;
+                                else if (p.key === 'height')
+                                    val = node.height;
+                                else if (p.key === 'x')
+                                    val = node.x;
+                                else if (p.key === 'y')
+                                    val = node.y;
+                                else if (p.key === 'opacity' && 'opacity' in node)
+                                    val = node.opacity;
                                 tgt = p.val;
-                                // 数字比较 vs 字符串比较
                                 if (p.op === '=') {
-                                    if (val != tgt)
-                                        match = false;
-                                }
-                                else if (p.op === '!=') {
-                                    if (val == tgt)
+                                    if (Math.abs(val - tgt) > 0.1)
                                         match = false;
                                 }
                                 else if (p.op === '>') {
-                                    if (Number(val) <= Number(tgt))
+                                    if (val <= tgt)
                                         match = false;
                                 }
                                 else if (p.op === '<') {
-                                    if (Number(val) >= Number(tgt))
-                                        match = false;
-                                }
-                                else if (p.op === 'has') {
-                                    if (!String(val).toLowerCase().includes(String(tgt).toLowerCase()))
+                                    if (val >= tgt)
                                         match = false;
                                 }
                             }
                         }
-                        if (match) {
+                        if (match)
                             results.push(node);
-                        }
                     }
-                    console.log("\u2705 \u6700\u7EC8\u5339\u914D: ".concat(results.length));
                     if (results.length > 0) {
                         figma.currentPage.selection = results;
-                        figma.viewport.scrollAndZoomIntoView(results);
-                        figma.notify("\u2705 \u5DF2\u9009\u4E2D ".concat(results.length, " \u4E2A\u56FE\u5C42"));
+                        figma.notify("\u9009\u4E2D ".concat(results.length, " \u4E2A"));
                     }
                     else {
-                        figma.notify("⚠️ 未找到图层 (请检查下方日志的筛选池大小)");
+                        figma.notify("未找到");
                     }
-                    return [3 /*break*/, 122];
+                    return [3 /*break*/, 114];
                 }
-                _10.label = 36;
+                _9.label = 36;
             case 36:
                 console.log("=== 开始执行创建样式 (Async模式) ===");
                 if (selection.length === 0) {
@@ -865,22 +781,22 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                 createdCount = 0;
                 conflicts = [];
                 errors = [];
-                _10.label = 37;
+                _9.label = 37;
             case 37:
-                _10.trys.push([37, 45, , 46]);
+                _9.trys.push([37, 45, , 46]);
                 return [4 /*yield*/, figma.getLocalPaintStylesAsync()];
             case 38:
-                localPaints = _10.sent();
+                localPaints = _9.sent();
                 return [4 /*yield*/, figma.getLocalTextStylesAsync()];
             case 39:
-                localTexts = _10.sent();
+                localTexts = _9.sent();
                 return [4 /*yield*/, figma.getLocalEffectStylesAsync()];
             case 40:
-                localEffects = _10.sent();
+                localEffects = _9.sent();
                 _loop_1 = function (node) {
-                    var name_1, exist, style, exist, style, font, err_4, exist, style;
-                    return __generator(this, function (_11) {
-                        switch (_11.label) {
+                    var name_1, exist, style, exist, style, font, err_3, exist, style;
+                    return __generator(this, function (_10) {
+                        switch (_10.label) {
                             case 0:
                                 if (node.removed)
                                     return [2 /*return*/, "continue"];
@@ -916,14 +832,14 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                                     conflicts.push(name_1 + " (文本)");
                                 return [3 /*break*/, 5];
                             case 1:
-                                _11.trys.push([1, 4, , 5]);
+                                _10.trys.push([1, 4, , 5]);
                                 style = figma.createTextStyle();
                                 style.name = name_1;
                                 font = node.fontName;
                                 if (!(font !== figma.mixed)) return [3 /*break*/, 3];
                                 return [4 /*yield*/, figma.loadFontAsync(font)];
                             case 2:
-                                _11.sent();
+                                _10.sent();
                                 style.fontName = font;
                                 style.fontSize = node.fontSize !== figma.mixed ? node.fontSize : 12;
                                 if (node.letterSpacing !== figma.mixed)
@@ -934,12 +850,12 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                                     style.textDecoration = node.textDecoration;
                                 node.textStyleId = style.id;
                                 createdCount++;
-                                _11.label = 3;
+                                _10.label = 3;
                             case 3: return [3 /*break*/, 5];
                             case 4:
-                                err_4 = _11.sent();
+                                err_3 = _10.sent();
                                 errors.push(name_1);
-                                console.error("文本创建失败:", err_4);
+                                console.error("文本创建失败:", err_3);
                                 return [3 /*break*/, 5];
                             case 5:
                                 // --- 3. 处理效果样式 (Effects) ---
@@ -967,21 +883,21 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                         }
                     });
                 };
-                _u = 0, selection_8 = selection;
-                _10.label = 41;
+                _u = 0, selection_10 = selection;
+                _9.label = 41;
             case 41:
-                if (!(_u < selection_8.length)) return [3 /*break*/, 44];
-                node = selection_8[_u];
+                if (!(_u < selection_10.length)) return [3 /*break*/, 44];
+                node = selection_10[_u];
                 return [5 /*yield**/, _loop_1(node)];
             case 42:
-                _10.sent();
-                _10.label = 43;
+                _9.sent();
+                _9.label = 43;
             case 43:
                 _u++;
                 return [3 /*break*/, 41];
             case 44: return [3 /*break*/, 46];
             case 45:
-                e_3 = _10.sent();
+                e_3 = _9.sent();
                 console.error("全局错误:", e_3);
                 figma.notify("发生错误，请查看控制台");
                 return [3 /*break*/, 46];
@@ -998,7 +914,7 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     figma.notify("未执行操作 (可能是无样式属性或已重复)");
                 }
                 console.log("=== 结束 ===");
-                return [3 /*break*/, 122];
+                return [3 /*break*/, 114];
             case 47:
                 console.log("=== 开始匹配样式 (Async修复版) ===");
                 sel = figma.currentPage.selection;
@@ -1007,18 +923,18 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     return [2 /*return*/];
                 }
                 countFill_1 = 0, countStroke_1 = 0, countText_1 = 0, countEffect_1 = 0;
-                _10.label = 48;
+                _9.label = 48;
             case 48:
-                _10.trys.push([48, 56, , 57]);
+                _9.trys.push([48, 56, , 57]);
                 return [4 /*yield*/, figma.getLocalPaintStylesAsync()];
             case 49:
-                paints = _10.sent();
+                paints = _9.sent();
                 return [4 /*yield*/, figma.getLocalTextStylesAsync()];
             case 50:
-                texts = _10.sent();
+                texts = _9.sent();
                 return [4 /*yield*/, figma.getLocalEffectStylesAsync()];
             case 51:
-                effects = _10.sent();
+                effects = _9.sent();
                 paintMap_1 = new Map();
                 paints.forEach(function (s) { return paintMap_1.set(JSON.stringify(s.paints), s.id); });
                 effectMap_1 = new Map();
@@ -1138,21 +1054,21 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                         }
                     });
                 }); };
-                _v = 0, sel_4 = sel;
-                _10.label = 52;
+                _v = 0, sel_1 = sel;
+                _9.label = 52;
             case 52:
-                if (!(_v < sel_4.length)) return [3 /*break*/, 55];
-                node = sel_4[_v];
+                if (!(_v < sel_1.length)) return [3 /*break*/, 55];
+                node = sel_1[_v];
                 return [4 /*yield*/, traverse_1(node)];
             case 53:
-                _10.sent();
-                _10.label = 54;
+                _9.sent();
+                _9.label = 54;
             case 54:
                 _v++;
                 return [3 /*break*/, 52];
             case 55: return [3 /*break*/, 57];
             case 56:
-                e_4 = _10.sent();
+                e_4 = _9.sent();
                 console.error("匹配过程出错:", e_4);
                 figma.notify("匹配出错，请检查控制台");
                 return [2 /*return*/];
@@ -1164,7 +1080,7 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                 else {
                     figma.notify("未发现可匹配的样式");
                 }
-                return [3 /*break*/, 122];
+                return [3 /*break*/, 114];
             case 58:
                 {
                     if (selection.length !== 2) {
@@ -1180,9 +1096,9 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     n2.x = x1;
                     n2.y = y1;
                     figma.notify("位置已互换");
-                    return [3 /*break*/, 122];
+                    return [3 /*break*/, 114];
                 }
-                _10.label = 59;
+                _9.label = 59;
             case 59:
                 findText = msg.findText, replaceText = msg.replaceText;
                 if (!findText) {
@@ -1204,33 +1120,33 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     return [2 /*return*/];
                 }
                 _w = 0, textNodes_1 = textNodes_2;
-                _10.label = 60;
+                _9.label = 60;
             case 60:
                 if (!(_w < textNodes_1.length)) return [3 /*break*/, 68];
                 node = textNodes_1[_w];
                 if (!node.characters.includes(findText)) return [3 /*break*/, 67];
-                _10.label = 61;
+                _9.label = 61;
             case 61:
-                _10.trys.push([61, 66, , 67]);
+                _9.trys.push([61, 66, , 67]);
                 font = node.fontName;
                 if (!(font === figma.mixed)) return [3 /*break*/, 63];
                 // 简化处理：如果是混合字体，尝试加载第一段的字体（复杂情况可能报错，暂跳过）
                 return [4 /*yield*/, figma.loadFontAsync(node.getRangeFontName(0, 1))];
             case 62:
                 // 简化处理：如果是混合字体，尝试加载第一段的字体（复杂情况可能报错，暂跳过）
-                _10.sent();
+                _9.sent();
                 return [3 /*break*/, 65];
             case 63: return [4 /*yield*/, figma.loadFontAsync(font)];
             case 64:
-                _10.sent();
-                _10.label = 65;
+                _9.sent();
+                _9.label = 65;
             case 65:
                 // 执行替换
                 node.characters = node.characters.split(findText).join(replaceText);
                 count++;
                 return [3 /*break*/, 67];
             case 66:
-                e_5 = _10.sent();
+                e_5 = _9.sent();
                 console.error("字体加载失败或替换出错", e_5);
                 return [3 /*break*/, 67];
             case 67:
@@ -1241,7 +1157,7 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     figma.notify("\u5DF2\u66FF\u6362 ".concat(count, " \u5904\u6587\u672C"));
                 else
                     figma.notify("未找到匹配内容");
-                return [3 /*break*/, 122];
+                return [3 /*break*/, 114];
             case 69:
                 pageName = figma.currentPage.name.toLowerCase();
                 // --- 修复点 1：安全检查不通过时，要告诉 UI 重置按钮 ---
@@ -1262,20 +1178,20 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                 return [4 /*yield*/, pptStep1_Init(slides)];
             case 70:
                 // 执行 Step 1 函数
-                _10.sent();
-                return [3 /*break*/, 122];
+                _9.sent();
+                return [3 /*break*/, 114];
             case 71:
                 slides = getSlides();
                 return [4 /*yield*/, pptStep2_Rasterize(slides)];
             case 72:
-                _10.sent();
-                return [3 /*break*/, 122];
+                _9.sent();
+                return [3 /*break*/, 114];
             case 73:
                 slides = getSlides();
                 return [4 /*yield*/, pptStep3_Flatten(slides)];
             case 74:
-                _10.sent();
-                return [3 /*break*/, 122];
+                _9.sent();
+                return [3 /*break*/, 114];
             case 75:
                 slides = getSlides();
                 // === 修复：使用绝对坐标排序 ===
@@ -1284,8 +1200,8 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                 return [4 /*yield*/, pptStep4_Extract(slides)];
             case 76:
                 // 函数内部会发送 step-done，这里不需要再发了
-                _10.sent();
-                return [3 /*break*/, 122];
+                _9.sent();
+                return [3 /*break*/, 114];
             case 77:
                 slides = getSlides();
                 // === 修复：使用绝对坐标排序 (保持顺序一致) ===
@@ -1294,13 +1210,13 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                 return [4 /*yield*/, pptStep5_ExportImages(slides)];
             case 78:
                 // 同上，内部已发消息
-                _10.sent();
-                return [3 /*break*/, 122];
+                _9.sent();
+                return [3 /*break*/, 114];
             case 79:
                 {
                     console.log("【3】后端：进入严格分类逻辑...");
                     cfg_1 = msg.config || msg;
-                    targets_4 = [];
+                    targets_5 = [];
                     scopeNodes = [];
                     if (cfg_1.scope === 'page') {
                         scopeNodes = figma.currentPage.children;
@@ -1312,7 +1228,7 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                         for (var _i = 0, nodes_1 = nodes; _i < nodes_1.length; _i++) {
                             var node = nodes_1[_i];
                             if (node.type === 'COMPONENT_SET' || node.type === 'COMPONENT') {
-                                targets_4.push(node);
+                                targets_5.push(node);
                             }
                             if ('children' in node)
                                 collectTargets_1(node.children);
@@ -1464,102 +1380,92 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                         }
                     };
                     // 2. 遍历处理
-                    for (_x = 0, targets_2 = targets_4; _x < targets_2.length; _x++) {
-                        node = targets_2[_x];
+                    for (_x = 0, targets_3 = targets_5; _x < targets_3.length; _x++) {
+                        node = targets_3[_x];
                         _loop_2(node);
                     }
                     figma.ui.postMessage({ type: 'lint-results', data: results_1 });
-                    return [3 /*break*/, 122];
+                    return [3 /*break*/, 114];
                 }
-                _10.label = 80;
+                _9.label = 80;
             case 80:
                 items = msg.items;
                 count = 0;
                 _y = 0, items_1 = items;
-                _10.label = 81;
+                _9.label = 81;
             case 81:
                 if (!(_y < items_1.length)) return [3 /*break*/, 86];
                 item = items_1[_y];
-                _10.label = 82;
+                _9.label = 82;
             case 82:
-                _10.trys.push([82, 84, , 85]);
+                _9.trys.push([82, 84, , 85]);
                 return [4 /*yield*/, figma.getNodeByIdAsync(item.id)];
             case 83:
-                node = _10.sent();
+                node = _9.sent();
                 if (node) {
                     node.name = item.fullResult || item.newVal;
                     count++;
                 }
                 return [3 /*break*/, 85];
             case 84:
-                err_1 = _10.sent();
+                err_1 = _9.sent();
                 return [3 /*break*/, 85];
             case 85:
                 _y++;
                 return [3 /*break*/, 81];
             case 86:
                 figma.notify("\u2728 \u5DF2\u6210\u529F\u4FEE\u590D ".concat(count, " \u9879\u547D\u540D"));
-                return [3 /*break*/, 122];
+                return [3 /*break*/, 114];
             case 87:
                 {
                     scope = msg.scope, findText_1 = msg.findText;
-                    console.log("【后端】收到文本查找请求:", scope, findText_1); // 调试日志
                     results_2 = [];
                     searchPool = [];
-                    // 1. 确定搜索范围
                     if (scope === 'selection') {
                         searchPool = figma.currentPage.selection;
                     }
                     else {
-                        // 搜索整个页面 (包含页面本身)
                         searchPool = [figma.currentPage];
                     }
                     if (searchPool.length === 0 && scope === 'selection') {
                         figma.notify("请先选择图层");
-                        // 即使失败，也要发回空结果，以此重置前端按钮状态
-                        figma.ui.postMessage({ type: 'text-find-results', data: [] });
                         return [2 /*return*/];
                     }
                     traverse_2 = function (node) {
-                        // 只有可见的文本层才参与查找
-                        if (node.type === 'TEXT' && node.visible) {
+                        if (node.type === 'TEXT') {
                             var fullText = node.characters;
-                            // 转义正则特殊字符
+                            // 使用正则全局匹配，获取所有出现的位置
+                            // 自动转义正则特殊字符
                             var escapedFindText = findText_1.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                            // 全局、不区分大小写匹配
                             var regex = new RegExp(escapedFindText, 'gi');
                             var match = void 0;
                             while ((match = regex.exec(fullText)) !== null) {
                                 results_2.push({
-                                    id: node.id,
-                                    fullText: fullText,
-                                    index: match.index,
-                                    length: match[0].length,
-                                    matchText: match[0]
+                                    id: node.id, // 图层ID
+                                    fullText: fullText, // 完整文本（用于预览）
+                                    index: match.index, // 🌟 关键：匹配的起始位置
+                                    length: match[0].length, // 匹配长度
+                                    matchText: match[0] // 实际匹配到的文本（保留原大小写）
                                 });
                             }
                         }
-                        // 递归子级
                         if ('children' in node) {
                             node.children.forEach(traverse_2);
                         }
                     };
-                    // 3. 执行查找
                     searchPool.forEach(traverse_2);
-                    console.log("\u3010\u540E\u7AEF\u3011\u67E5\u627E\u5B8C\u6210\uFF0C\u627E\u5230 ".concat(results_2.length, " \u9879"));
-                    // 4. 发送结果给前端
                     figma.ui.postMessage({ type: 'text-find-results', data: results_2 });
                     if (results_2.length === 0) {
                         figma.notify("未找到匹配文本");
                     }
-                    return [3 /*break*/, 122];
+                    return [3 /*break*/, 114];
                 }
-                _10.label = 88;
+                _9.label = 88;
             case 88:
-                _10.trys.push([88, 94, , 95]);
+                _9.trys.push([88, 94, , 95]);
                 return [4 /*yield*/, figma.getNodeByIdAsync(msg.id)];
             case 89:
-                node = _10.sent();
+                node = _9.sent();
                 if (!node) return [3 /*break*/, 92];
                 // === 第一步：通用操作 (先选中并聚焦) ===
                 // 这一步对组件、矩形、文本都有效，修复了组件清洗无法定位的问题
@@ -1573,7 +1479,7 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     : node.fontName;
                 return [4 /*yield*/, figma.loadFontAsync(font)];
             case 90:
-                _10.sent();
+                _9.sent();
                 // A. 还原颜色
                 if (highlightCache[cacheKey]) {
                     cachedData = highlightCache[cacheKey];
@@ -1590,18 +1496,78 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     figma.notify("已标记 (再次点击可还原)");
                     figma.ui.postMessage({ type: 'highlight-status', key: cacheKey, status: true });
                 }
-                _10.label = 91;
+                _9.label = 91;
             case 91: return [3 /*break*/, 93];
             case 92:
                 figma.notify("图层不存在 (可能已被删除)");
-                _10.label = 93;
+                _9.label = 93;
             case 93: return [3 /*break*/, 95];
             case 94:
-                e_6 = _10.sent();
+                e_6 = _9.sent();
                 console.error("定位失败:", e_6);
                 return [3 /*break*/, 95];
-            case 95: return [3 /*break*/, 122];
+            case 95: return [3 /*break*/, 114];
             case 96:
+                restoreCount = 0;
+                _z = highlightCache;
+                _0 = [];
+                for (_1 in _z)
+                    _0.push(_1);
+                _2 = 0;
+                _9.label = 97;
+            case 97:
+                if (!(_2 < _0.length)) return [3 /*break*/, 104];
+                _1 = _0[_2];
+                if (!(_1 in _z)) return [3 /*break*/, 103];
+                key = _1;
+                _3 = key.split('_'), nodeId = _3[0], indexStr = _3[1];
+                index = parseInt(indexStr);
+                data = highlightCache[key];
+                _9.label = 98;
+            case 98:
+                _9.trys.push([98, 102, , 103]);
+                return [4 /*yield*/, figma.getNodeByIdAsync(nodeId)];
+            case 99:
+                node = _9.sent();
+                if (!(node && node.type === 'TEXT')) return [3 /*break*/, 101];
+                font = node.fontName === figma.mixed ? node.getRangeFontName(0, 1) : node.fontName;
+                return [4 /*yield*/, figma.loadFontAsync(font)];
+            case 100:
+                _9.sent();
+                // 这里的长度我们只能估算，或者在存储时也存长度。
+                // 为了简便，我们假设还没被替换。如果被替换了，ID可能都变了或内容变了，这里做个容错。
+                // 更好的做法是在 Cache 里存 Length。
+                // 补救：我们在前端传过来的 locate 里有 length，但在全局清除时拿不到。
+                // 修正策略：Cache Value 改存 { fills: [], length: number }
+                // 由于上面我们只存了 fills，这里为了稳健，我们简单略过长度问题，
+                // 或者：修改上面的 cache 存储结构 (推荐)。
+                // 但为了不改动太大，我们只在这里做 best effort 还原，
+                // 如果你在 locate-node 里存对象会更好: highlightCache[key] = { fills: currentFills, length: msg.length }
+                node.setRangeFills(index, index + data.length, data.fills);
+                count++;
+                _9.label = 101;
+            case 101: return [3 /*break*/, 103];
+            case 102:
+                e_7 = _9.sent();
+                console.log("还原失败", e_7);
+                return [3 /*break*/, 103];
+            case 103:
+                _2++;
+                return [3 /*break*/, 97];
+            case 104:
+                // 由于全局清除比较复杂（涉及重新加载字体），
+                // 建议：全局清除只清除缓存变量，并提示用户用 Ctrl+Z，
+                // 或者强制重置页面（不推荐）。
+                // 🔥 最佳实践：我们刚才修改了 locate-node 为 Toggle 模式，
+                // 用户其实可以通过再次点击行来还原。
+                // "一键清除" 可以在这里实现，但需要更完善的 Cache 结构。
+                // 下面是【修正版】locate-node 存储结构，请务必配合使用：
+                highlightCache = {}; // 清空池子
+                figma.notify("\u5DF2\u8FD8\u539F ".concat(count, " \u5904\u9AD8\u4EAE"));
+                // 通知前端清除所有高亮样式
+                figma.ui.postMessage({ type: 'clear-all-highlights-ui' });
+                return [3 /*break*/, 114];
+            case 105:
                 tasks = msg.tasks, replaceText = msg.replaceText;
                 successCount = 0;
                 processedIds = new Set();
@@ -1611,38 +1577,38 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                         groups_1[task.id] = [];
                     groups_1[task.id].push(task);
                 });
-                _z = groups_1;
-                _0 = [];
-                for (_1 in _z)
-                    _0.push(_1);
-                _2 = 0;
-                _10.label = 97;
-            case 97:
-                if (!(_2 < _0.length)) return [3 /*break*/, 103];
-                _1 = _0[_2];
-                if (!(_1 in _z)) return [3 /*break*/, 102];
-                nodeId = _1;
+                _4 = groups_1;
+                _5 = [];
+                for (_6 in _4)
+                    _5.push(_6);
+                _7 = 0;
+                _9.label = 106;
+            case 106:
+                if (!(_7 < _5.length)) return [3 /*break*/, 112];
+                _6 = _5[_7];
+                if (!(_6 in _4)) return [3 /*break*/, 111];
+                nodeId = _6;
                 return [4 /*yield*/, figma.getNodeByIdAsync(nodeId)];
-            case 98:
-                node = _10.sent();
+            case 107:
+                node = _9.sent();
                 if (!node || node.type !== 'TEXT')
-                    return [3 /*break*/, 102];
+                    return [3 /*break*/, 111];
                 groupTasks = groups_1[nodeId];
                 // 🌟 倒序排序
                 groupTasks.sort(function (a, b) { return b.index - a.index; });
-                _10.label = 99;
-            case 99:
-                _10.trys.push([99, 101, , 102]);
+                _9.label = 108;
+            case 108:
+                _9.trys.push([108, 110, , 111]);
                 // 加载字体
                 return [4 /*yield*/, figma.loadFontAsync(node.fontName === figma.mixed
                         ? node.getRangeFontName(0, 1)
                         : node.fontName)];
-            case 100:
+            case 109:
                 // 加载字体
-                _10.sent();
+                _9.sent();
                 // 执行替换
-                for (_3 = 0, groupTasks_1 = groupTasks; _3 < groupTasks_1.length; _3++) {
-                    task = groupTasks_1[_3];
+                for (_8 = 0, groupTasks_1 = groupTasks; _8 < groupTasks_1.length; _8++) {
+                    task = groupTasks_1[_8];
                     currentStr = node.characters.substring(task.index, task.index + task.length);
                     // 简单的校验，略过严格校验以允许大小写差异
                     node.deleteCharacters(task.index, task.index + task.length);
@@ -1652,15 +1618,15 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     if (task.uid)
                         processedIds.add(task.uid);
                 }
-                return [3 /*break*/, 102];
-            case 101:
-                err_2 = _10.sent();
+                return [3 /*break*/, 111];
+            case 110:
+                err_2 = _9.sent();
                 console.error("\u66FF\u6362\u5931\u8D25 ".concat(nodeId, ":"), err_2);
-                return [3 /*break*/, 102];
-            case 102:
-                _2++;
-                return [3 /*break*/, 97];
-            case 103:
+                return [3 /*break*/, 111];
+            case 111:
+                _7++;
+                return [3 /*break*/, 106];
+            case 112:
                 // 通知前端哪些任务完成了
                 figma.ui.postMessage({
                     type: 'text-replace-success',
@@ -1668,93 +1634,11 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     processedUids: Array.from(processedIds)
                 });
                 figma.notify("\u5DF2\u66FF\u6362 ".concat(successCount, " \u5904\u6587\u672C"));
-                return [3 /*break*/, 122];
-            case 104:
-                count = 0;
-                _4 = highlightCache;
-                _5 = [];
-                for (_6 in _4)
-                    _5.push(_6);
-                _7 = 0;
-                _10.label = 105;
-            case 105:
-                if (!(_7 < _5.length)) return [3 /*break*/, 112];
-                _6 = _5[_7];
-                if (!(_6 in _4)) return [3 /*break*/, 111];
-                key = _6;
-                _8 = key.split('_'), nodeId = _8[0], indexStr = _8[1];
-                index = parseInt(indexStr);
-                data = highlightCache[key];
-                _10.label = 106;
-            case 106:
-                _10.trys.push([106, 110, , 111]);
-                return [4 /*yield*/, figma.getNodeByIdAsync(nodeId)];
-            case 107:
-                node = _10.sent();
-                if (!(node && node.type === 'TEXT')) return [3 /*break*/, 109];
-                font = node.fontName === figma.mixed ? node.getRangeFontName(0, 1) : node.fontName;
-                return [4 /*yield*/, figma.loadFontAsync(font)];
-            case 108:
-                _10.sent();
-                node.setRangeFills(index, index + data.length, data.fills);
-                count++;
-                _10.label = 109;
-            case 109: return [3 /*break*/, 111];
-            case 110:
-                e_7 = _10.sent();
-                console.log("还原失败", e_7);
-                return [3 /*break*/, 111];
-            case 111:
-                _7++;
-                return [3 /*break*/, 105];
-            case 112:
-                highlightCache = {}; // 清空池子
-                figma.notify("\u5DF2\u8FD8\u539F ".concat(count, " \u5904\u9AD8\u4EAE"));
-                // 通知前端清除所有高亮样式
-                figma.ui.postMessage({ type: 'clear-all-highlights-ui' });
-                return [3 /*break*/, 122];
-            case 113:
-                ids = msg.ids, findText = msg.findText, replaceText = msg.replaceText;
-                count = 0;
-                _9 = 0, ids_1 = ids;
-                _10.label = 114;
-            case 114:
-                if (!(_9 < ids_1.length)) return [3 /*break*/, 120];
-                id = ids_1[_9];
-                return [4 /*yield*/, figma.getNodeByIdAsync(id)];
-            case 115:
-                node = _10.sent();
-                if (!(node && node.type === 'TEXT')) return [3 /*break*/, 119];
-                _10.label = 116;
-            case 116:
-                _10.trys.push([116, 118, , 119]);
-                // 加载字体 (必要步骤)
-                return [4 /*yield*/, figma.loadFontAsync(node.fontName === figma.mixed
-                        ? node.getRangeFontName(0, 1)
-                        : node.fontName)];
-            case 117:
-                // 加载字体 (必要步骤)
-                _10.sent();
-                regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-                if (regex.test(node.characters)) {
-                    node.characters = node.characters.replace(regex, replaceText);
-                    count++;
-                }
-                return [3 /*break*/, 119];
-            case 118:
-                err_3 = _10.sent();
-                console.error("\u66FF\u6362\u6587\u672C\u5931\u8D25 (ID: ".concat(id, "):"), err_3);
-                return [3 /*break*/, 119];
-            case 119:
-                _9++;
                 return [3 /*break*/, 114];
-            case 120:
-                figma.notify("\u5DF2\u66FF\u6362 ".concat(count, " \u4E2A\u6587\u672C\u56FE\u5C42"));
-                return [3 /*break*/, 122];
-            case 121:
+            case 113:
                 figma.ui.resize(msg.width, msg.height);
-                return [3 /*break*/, 122];
-            case 122: return [2 /*return*/];
+                return [3 /*break*/, 114];
+            case 114: return [2 /*return*/];
         }
     });
 }); };
@@ -1767,8 +1651,8 @@ function getSlides() {
     var selection = figma.currentPage.selection;
     var uniqueMap = new Map();
     // 1. 只找选中的 Frame
-    for (var _i = 0, selection_9 = selection; _i < selection_9.length; _i++) {
-        var node = selection_9[_i];
+    for (var _i = 0, selection_11 = selection; _i < selection_11.length; _i++) {
+        var node = selection_11[_i];
         if (node.type === 'FRAME') {
             uniqueMap.set(node.id, node);
         }
@@ -2098,7 +1982,7 @@ function pptStep3_Flatten(slides) {
 // Step 4: 提取结构 (高性能优化版：大批次 + 零丢弃)
 function pptStep4_Extract(slides) {
     return __awaiter(this, void 0, void 0, function () {
-        var rgbToHex, i, slide, slideAbs, slideX, slideY, chunkBuffer, children, j, node, nodeAbs, centerX, centerY, el, stroke, shadow, visibleFill, style, isMultiLine, err_5;
+        var rgbToHex, i, slide, slideAbs, slideX, slideY, chunkBuffer, children, j, node, nodeAbs, centerX, centerY, el, stroke, shadow, visibleFill, style, isMultiLine, err_4;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -2253,7 +2137,7 @@ function pptStep4_Extract(slides) {
                     _a.label = 6;
                 case 6: return [3 /*break*/, 8];
                 case 7:
-                    err_5 = _a.sent();
+                    err_4 = _a.sent();
                     return [3 /*break*/, 8];
                 case 8:
                     j++;

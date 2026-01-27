@@ -416,11 +416,13 @@ figma.ui.onmessage = async (msg) => {
     }
 
     // ===========================
-    // B. 高级查找 (Find & Select) - 【已修复】
+    // B. 高级查找 (Find & Select)
     // ===========================
+    // === 获取选中图层名称 ===
     case 'fetch-selection-name': {
       const sel = figma.currentPage.selection;
       if (sel.length > 0) {
+        //以此发回给 UI，取第一个选中项的名称
         figma.ui.postMessage({ type: 'update-name-input', name: sel[0].name });
       } else {
         figma.notify("请先选择一个图层以获取名称");
@@ -430,96 +432,63 @@ figma.ui.onmessage = async (msg) => {
     
     case 'find-and-select': {
         const f = msg.filters;
+        console.log("🔍 收到查找请求:", f); // Debug日志
+
+        let pool = [];
         const sel = figma.currentPage.selection;
-        
-        console.log(`=== 开始查找 (v3修复版) ===`);
-        console.log(`Scope: ${f.scope} | 选中图层: ${sel.length}`);
 
-        // 🔥 1. 使用全新变量名，防止作用域冲突
-        let searchTargets = []; 
-
-        // =========================================================
-        // A. 构建查找池 (Pool Construction)
-        // =========================================================
+        // 1. 确定查找池 (Search Pool) - 逻辑优化
+        // -------------------------------------------------------------
         if (f.scope === 'inside') {
-            // 模式：内在元素 (不包含选中项本身)
+            // "内在元素": 必须先选中容器
             if (sel.length === 0) {
-                figma.notify("⚠️ 请先选择一个容器(Frame/Group)");
+                figma.notify("请先选择一个容器以查找内部元素");
                 return;
             }
             for (const node of sel) {
-                if ('findAll' in node) {
-                    // 使用 push(...) 而不是 concat，确保修改的是原数组
-                    const children = node.findAll(() => true);
-                    searchTargets.push(...children);
-                }
+                if ('findAll' in node) pool = pool.concat(node.findAll(() => true));
             }
         } 
         else if (f.scope === 'children') {
-            // 模式：仅直系子级
+            // "子级": 仅直系子级
             if (sel.length === 0) {
-                figma.notify("⚠️ 请先选择一个容器");
+                figma.notify("请先选择一个容器");
                 return;
             }
             for (const node of sel) {
-                if ('children' in node) {
-                    searchTargets.push(...node.children);
-                }
+                if ('children' in node) pool = pool.concat(node.children);
             }
         }
         else if (f.scope === 'sibling') {
-            // 模式：同级
+            // "同级"
             if (sel.length > 0 && sel[0].parent) {
-                const siblings = sel[0].parent.children.filter(n => !sel.includes(n));
-                searchTargets.push(...siblings);
+                pool = sel[0].parent.children.filter(n => !sel.includes(n));
             } else {
-                figma.notify("⚠️ 无法查找同级（未选中或无父级）");
+                figma.notify("请先选择一个图层");
                 return;
             }
         } 
         else {
-            // 模式：子孙元素 (descendants) - 默认模式
-            // 逻辑：如果选了图层，查“选中项+选中项内部”；如果没选，查“全页”
-            
-            if (sel.length > 0) {
-                console.log(">> 策略: 查找选中项及其后代");
-                
-                // 1. 先把【选中项本身】加进去
-                // (使用 for 循环最稳妥)
-                for (const node of sel) {
-                    searchTargets.push(node);
-                    
-                    // 2. 再把【选中项的子孙】加进去
-                    if ('findAll' in node) {
-                        const children = node.findAll(() => true);
-                        searchTargets.push(...children);
-                    }
-                }
-            } else {
-                console.log(">> 策略: 全页面查找");
-                const allPageNodes = figma.currentPage.findAll(() => true);
-                searchTargets.push(...allPageNodes);
+            // "子孙元素" (Descendants) 或 默认
+            // 如果没选，查全页；选了，查选中图层内部
+            const targets = sel.length > 0 ? sel : [figma.currentPage];
+            for (const node of targets) {
+                // 如果是具体图层，把自己也算进去(可选)，这里主要查内部
+                if (node.type !== 'PAGE' && node.type !== 'DOCUMENT') pool.push(node);
+                if ('findAll' in node) pool = pool.concat(node.findAll(() => true));
             }
         }
 
-        // =========================================================
-        // B. 去重 (Deduplication) - 使用 Map ID 去重最稳健
-        // =========================================================
-        const uniqueMap = new Map();
-        searchTargets.forEach(node => uniqueMap.set(node.id, node));
-        const finalPool = Array.from(uniqueMap.values());
-        
-        console.log(`🔍 待筛选池最终大小: ${finalPool.length}`);
-
+        // 去重
+        pool = [...new Set(pool)];
         const results = [];
 
-        // =========================================================
-        // C. 遍历筛选 (Filtering)
-        // =========================================================
-        for (const node of finalPool) {
+        // 2. 遍历筛选
+        // -------------------------------------------------------------
+        for (const node of pool) {
             let match = true;
 
-            // 1. 名称匹配
+            // --- A. 名称匹配 ---
             if (f.name && f.name.val) {
                 let n = node.name; 
                 let q = f.name.val;
@@ -530,41 +499,48 @@ figma.ui.onmessage = async (msg) => {
                 if (!n.includes(q)) match = false;
             }
 
-            // 2. 类型匹配
+            // --- B. 类型匹配 (Type) ---
             if (match && f.types && f.types.vals.length > 0) {
                 const t = node.type;
                 const ts = f.types.vals;
-                let isType = false;
+                let isType = false; // 🔥 必须加 let
 
+                // 1. 直接匹配
                 if (ts.includes(t)) isType = true;
+
+                // 2. 特殊映射
                 if (ts.includes('AUTOLAYOUT') && t === 'FRAME' && node.layoutMode !== 'NONE') isType = true;
-                if (ts.includes('IMAGE') && 'fills' in node && node.fills !== figma.mixed && Array.isArray(node.fills)) {
+                
+                if (ts.includes('IMAGE') && 'fills' in node && Array.isArray(node.fills)) {
                     if (node.fills.some(p => p.type === 'IMAGE' && p.visible !== false)) isType = true;
                 }
+                
                 if (ts.includes('COMPONENT_SET') && t === 'COMPONENT_SET') isType = true;
                 if (ts.includes('SECTION') && t === 'SECTION') isType = true;
 
+                // 逻辑判断
                 if (f.types.logic === 'include') {
                     if (!isType) match = false;
-                } else { 
+                } else { // exclude
                     if (isType) match = false;
                 }
             }
 
-            // 3. 状态匹配
+            // --- C. 状态匹配 (State) ---
             if (match && f.states && f.states.vals.length > 0) {
-                let isState = false;
+                let isState = false; // 🔥 必须加 let
                 const s = f.states.vals;
 
                 if (s.includes('hidden') && !node.visible) isState = true;
                 if (s.includes('locked') && node.locked) isState = true;
                 if (s.includes('mask') && node.isMask) isState = true;
+                
                 if (s.includes('export') && node.exportSettings && node.exportSettings.length > 0) isState = true;
 
-                if (s.includes('no-fill') && 'fills' in node && node.fills !== figma.mixed) {
+                if (s.includes('no-fill') && 'fills' in node) {
                     if (Array.isArray(node.fills) && node.fills.length === 0) isState = true;
                 }
-                if (s.includes('no-stroke') && 'strokes' in node && node.strokes !== figma.mixed) {
+                if (s.includes('no-stroke') && 'strokes' in node) {
                     if (Array.isArray(node.strokes) && node.strokes.length === 0) isState = true;
                 }
                 if (s.includes('clip') && 'clipsContent' in node && node.clipsContent) isState = true;
@@ -579,31 +555,47 @@ figma.ui.onmessage = async (msg) => {
                 }
             }
 
-            // 4. 属性匹配 (Props) - 加强容错
+            // --- D. 属性匹配 (Props) - 修复版 ---
             if (match && f.props && f.props.length > 0) {
                 for (const p of f.props) {
-                    let val = undefined;
-                    try {
-                        if (p.key === 'name') val = node.name;
-                        else if (p.key === 'fillCount' && 'fills' in node && node.fills !== figma.mixed) val = node.fills.length;
-                        else if (p.key === 'strokeCount' && 'strokes' in node && node.strokes !== figma.mixed) val = node.strokes.length;
-                        else if (p.key in node) {
-                            const v = node[p.key];
-                            if (v !== figma.mixed) val = v;
-                        }
-                    } catch(e) {}
+                    let val = undefined; // 初始化为 undefined
 
-                    if (val === undefined) {
-                        match = false; break; 
+                    // 1. 获取属性值
+                    if (p.key === 'name') val = node.name;
+                    // 特殊计算属性
+                    else if (p.key === 'fillCount' && 'fills' in node) val = node.fills.length;
+                    else if (p.key === 'strokeCount' && 'strokes' in node) val = node.strokes.length;
+                    // 常规属性 (width, height, x, y, opacity, characters, itemSpacing...)
+                    else if (p.key in node) {
+                        val = node[p.key];
                     }
 
-                    const tgt = p.val; 
-                    // 数字比较 vs 字符串比较
-                    if (p.op === '=') { if (val != tgt) match = false; } 
-                    else if (p.op === '!=') { if (val == tgt) match = false; }
-                    else if (p.op === '>') { if (Number(val) <= Number(tgt)) match = false; } 
-                    else if (p.op === '<') { if (Number(val) >= Number(tgt)) match = false; } 
-                    else if (p.op === 'has') { if (!String(val).toLowerCase().includes(String(tgt).toLowerCase())) match = false; }
+                    // 如果属性不存在，直接判定为不匹配
+                    if (val === undefined) {
+                        match = false;
+                        break; 
+                    }
+
+                    const tgt = p.val; // 目标值
+
+                    // 2. 比较逻辑
+                    if (p.op === '=') {
+                        // 弱等于，允许 "100" == 100
+                        if (val != tgt) match = false;
+                    } 
+                    else if (p.op === '!=') {
+                        if (val == tgt) match = false;
+                    }
+                    else if (p.op === '>') {
+                        if (Number(val) <= Number(tgt)) match = false;
+                    } 
+                    else if (p.op === '<') {
+                        if (Number(val) >= Number(tgt)) match = false;
+                    } 
+                    else if (p.op === 'has') {
+                        // 字符串包含匹配
+                        if (!String(val).toLowerCase().includes(String(tgt).toLowerCase())) match = false;
+                    }
                 }
             }
 
@@ -612,14 +604,13 @@ figma.ui.onmessage = async (msg) => {
             }
         }
 
-        console.log(`✅ 最终匹配: ${results.length}`);
-        
+        // 3. 执行选中
         if (results.length > 0) {
             figma.currentPage.selection = results;
             figma.viewport.scrollAndZoomIntoView(results);
             figma.notify(`✅ 已选中 ${results.length} 个图层`);
         } else {
-            figma.notify("⚠️ 未找到图层 (请检查下方日志的筛选池大小)");
+            figma.notify("⚠️ 未找到符合条件的图层");
         }
         break;
     }
@@ -1186,64 +1177,49 @@ figma.ui.onmessage = async (msg) => {
     }
 
     // -------------------------------------------------------------
-    // 1. 查找功能：改为返回具体的匹配项列表 (后端修复版)
+    // 1. 查找功能：改为返回具体的匹配项列表
     // -------------------------------------------------------------
     case 'text-find-matches': {
         const { scope, findText } = msg;
-        console.log("【后端】收到文本查找请求:", scope, findText); // 调试日志
-
         const results = [];
+        
         let searchPool = [];
-
-        // 1. 确定搜索范围
         if (scope === 'selection') {
             searchPool = figma.currentPage.selection;
         } else {
-            // 搜索整个页面 (包含页面本身)
             searchPool = [figma.currentPage]; 
         }
 
         if (searchPool.length === 0 && scope === 'selection') {
             figma.notify("请先选择图层");
-            // 即使失败，也要发回空结果，以此重置前端按钮状态
-            figma.ui.postMessage({ type: 'text-find-results', data: [] });
             return;
         }
 
-        // 2. 递归查找函数
         const traverse = (node) => {
-            // 只有可见的文本层才参与查找
-            if (node.type === 'TEXT' && node.visible) {
+            if (node.type === 'TEXT') {
                 const fullText = node.characters;
-                // 转义正则特殊字符
+                // 使用正则全局匹配，获取所有出现的位置
+                // 自动转义正则特殊字符
                 const escapedFindText = findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                // 全局、不区分大小写匹配
                 const regex = new RegExp(escapedFindText, 'gi');
                 
                 let match;
                 while ((match = regex.exec(fullText)) !== null) {
                     results.push({
-                        id: node.id,
-                        fullText: fullText,
-                        index: match.index,
-                        length: match[0].length,
-                        matchText: match[0]
+                        id: node.id,         // 图层ID
+                        fullText: fullText,  // 完整文本（用于预览）
+                        index: match.index,  // 🌟 关键：匹配的起始位置
+                        length: match[0].length, // 匹配长度
+                        matchText: match[0]  // 实际匹配到的文本（保留原大小写）
                     });
                 }
             }
-            
-            // 递归子级
             if ('children' in node) {
                 node.children.forEach(traverse);
             }
         };
 
-        // 3. 执行查找
         searchPool.forEach(traverse);
-        
-        console.log(`【后端】查找完成，找到 ${results.length} 项`);
-
-        // 4. 发送结果给前端
         figma.ui.postMessage({ type: 'text-find-results', data: results });
         
         if (results.length === 0) {

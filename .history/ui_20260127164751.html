@@ -444,8 +444,9 @@
       .scope-control {
           display: flex;
           gap: 4px !important; /* 关键：增加间距 */
-          padding: 0px;
-          border-radius: 0px;
+          background: #e5e5e5; /* 深一点的背景 */
+          padding: 4px;
+          border-radius: 8px;
           width: 100%;
           box-sizing: border-box;
       }
@@ -460,15 +461,15 @@
           transition: all 0.2s;
           font-weight: 500;
           margin: 0 !important; /* 清除默认 margin */
-          background: #00000008; /* 默认透明 */
-          border: 1px solid #0000000c;
+          background: transparent; /* 默认透明 */
+          border: 1px solid transparent;
       }
       .scope-btn.active {
-          background: #e6f7ff;
-          color: var(--primary);
+          background: #fff;
+          color: #000;
           font-weight: 600;
-          box-shadow: 0 2px 5px #188fff32;
-          border-color: var(--primary);
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          border-color: transparent;
       }
 
       /* 名称输入行 */
@@ -745,7 +746,7 @@
         10. Refiner (组件清洗) 面板样式
         ========================================= */
       #lintResultsWrapper, #findResultsWrapper {
-          display: none; flex-direction: column; overflow: hidden; height: 100%; overflow: hidden; /* 关键：禁止最外层滚动 */
+          display: none; flex-direction: column; overflow: hidden; height: 100%;
       }
       #findResultsWrapper { flex: 1; min-height: 0; }
       .limit-warning {
@@ -823,7 +824,7 @@
       }
       .lint-summary-bar:hover { background: #f9f9f9; }
       .lint-summary-bar.visible, .find-summary-bar.visible { display: flex; }
-      .find-expanded { display: flex; flex-direction: column; gap: 0px; padding: 12px 16px; opacity: 1; max-height: 300px; }
+      .find-expanded { display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; opacity: 1; max-height: 300px; }
       .find-summary-bar { display: flex; align-items: center; justify-content: space-between; background: #f0f7ff; border-bottom: 1px solid #bae7ff; padding: 8px 16px; cursor: pointer; flex-shrink: 0; font-size: 12px; font-weight: 500; }
       .find-summary-bar:hover { background: #e6f7ff; }
       
@@ -880,22 +881,7 @@
       .comp-header:hover .btn-locate, .diff-item:hover .btn-locate { opacity: 1; }
       .btn-locate:hover { color: var(--primary); background: #e6f7ff; border-color: var(--primary); opacity: 1; }
 
-      /* 列表区域：占据剩余空间，并在内部滚动 */
-      .res-list {
-          flex: 1;             /* 关键：撑开高度 */
-          overflow-y: auto;    /* 关键：内部滚动 */
-          padding-bottom: 10px;
-          min-height: 0;       /* 防止 flex 子项溢出 */
-      }
-
-      .res-footer { 
-        padding: 12px 16px; 
-        background: var(--bg-white); 
-        border-top: 1px solid #eee; 
-        display: flex; gap: 12px; 
-        flex-shrink: 0; 
-        z-index: 10;         /* 确保浮在列表上方（如果有阴影的话）*/
-      }
+      .res-footer { padding: 12px 16px; background: var(--bg-white); border-top: 1px solid #eee; display: flex; gap: 12px; flex-shrink: 0; }
       .btn-act { flex: 1; padding: 9px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid #ddd; background: #fff; color: #333; transition: all 0.2s; }
       .btn-act:hover { background: #f5f5f5; border-color: #ccc; }
       .btn-act:disabled { opacity: 0.5; cursor: not-allowed; background: #f5f5f5; }
@@ -918,124 +904,6 @@
       .success-icon { font-size: 32px; margin-bottom: 16px; color: var(--success); }
       .success-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px; }
       .success-desc { font-size: 12px; color: #666; margin-bottom: 16px; line-height: 1.5; }
-
-      /* 2. 修复查找替换面板 UI 混乱 (Fixes Issue 3) */
-
-      /* 顶部范围切换器 */
-      .scope-segment {
-          display: flex;
-          background: #f5f5f5;
-          padding: 3px;
-          border-radius: 6px;
-          margin-bottom: 0px;
-          gap: 2px;
-          width: 100%;
-      }
-      .scope-option {
-          flex: 1;
-          text-align: center;
-          padding: 6px 0;
-          font-size: 12px;
-          color: #666;
-          cursor: pointer;
-          border-radius: 4px;
-          transition: all 0.2s;
-      }
-      .scope-option:hover {
-          background: rgba(255,255,255,0.5);
-      }
-      .scope-option.active {
-          background: #fff;
-          color: var(--primary); /* 使用全局变量蓝色 */
-          font-weight: 600;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-      }
-
-      /* 输入框组容器 */
-      .input-group-icon {
-          position: relative;
-          margin-bottom: 0px;
-          width: 100%;
-          display: flex;
-          align-items: center;
-      }
-
-      /* 输入框样式修正 */
-      .input-group-icon input {
-          width: 100%;
-          height: 36px;
-          padding: 0 60px 0 32px; /* 左侧留给图标，右侧留给Aa按钮 */
-          border: 1px solid #e0e0e0;
-          border-radius: 6px;
-          box-sizing: border-box;
-          font-size: 13px;
-          transition: border 0.2s;
-      }
-      .input-group-icon input:focus {
-          border-color: var(--primary);
-          outline: none;
-      }
-
-      /* 左侧图标 */
-      .icon-prefix {
-          position: absolute;
-          left: 10px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: #999;
-          pointer-events: none;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 16px; 
-          height: 16px;
-      }
-      .icon-prefix svg {
-          width: 100%;
-          height: 100%;
-      }
-
-      /* 右侧按钮组 (Aa, ab) */
-      .icon-suffix-group {
-          position: absolute;
-          right: 6px;
-          top: 50%;
-          transform: translateY(-50%);
-          display: flex;
-          gap: 2px;
-      }
-
-      /* 小开关按钮 */
-      .icon-toggle {
-          cursor: pointer;
-          width: 24px;
-          height: 24px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 4px;
-          font-size: 11px;
-          font-weight: 600;
-          color: #999;
-          border: 1px solid transparent;
-          transition: all 0.2s;
-          user-select: none;
-      }
-      .icon-toggle:hover {
-          background: #f0f0f0;
-          color: #666;
-      }
-      .icon-toggle.active {
-          background: #E6F7FF;
-          color: var(--primary);
-          border-color: #BAE7FF;
-      }
-
-      /* 修复下拉箭头 */
-      .find-expanded svg {
-          display: inline-block;
-          vertical-align: middle;
-      }
 
       /* =========================================
         11. 设计理论面板 (Design Theory)
@@ -1212,14 +1080,10 @@
             <div>
               <div class="section-header"><span class="section-title" data-key="sel_title_scope">查找范围</span></div>
               <div class="scope-control" id="scopeGroup">
-                  <!-- 1. 去掉 inside 的 active -->
-                  <div class="scope-btn" data-val="inside" onclick="toggleSingle(this, 'scopeGroup')" data-key="sel_scope_in">内在元素</div>
-                  
-                  <div class="scope-btn" data-val="sibling" onclick="toggleSingle(this, 'scopeGroup')" data-key="sel_scope_sib">同级</div>
-                  <div class="scope-btn" data-val="children" onclick="toggleSingle(this, 'scopeGroup')" data-key="sel_scope_child">子级</div>
-                  
-                  <!-- 2. 给 descendants 加上 active (改为默认) -->
-                  <div class="scope-btn active" data-val="descendants" onclick="toggleSingle(this, 'scopeGroup')" data-key="sel_scope_desc">子孙元素</div>
+                <div class="scope-btn active" data-val="inside" onclick="toggleSingle(this, 'scopeGroup')" data-key="sel_scope_in">内在元素</div>
+                <div class="scope-btn" data-val="sibling" onclick="toggleSingle(this, 'scopeGroup')" data-key="sel_scope_sib">同级</div>
+                <div class="scope-btn" data-val="children" onclick="toggleSingle(this, 'scopeGroup')" data-key="sel_scope_child">子级</div>
+                <div class="scope-btn" data-val="descendants" onclick="toggleSingle(this, 'scopeGroup')" data-key="sel_scope_desc">子孙元素</div>
               </div>
             </div>
 
@@ -1579,7 +1443,7 @@
                     <input type="checkbox" id="lintSelectAll" class="header-cb" checked onclick="toggleSelectAll('lint', this.checked)">
                     <span style="font-size:12px; font-weight:600;"><span data-key="res_title">检查结果</span> (<span id="lintCount">0</span>)</span>
                   </div>
-                  <button class="btn-reset" onclick="resetLintList()" data-key="btn_back">↺ 返回配置</button>
+                  <button class="btn-reset" onclick="resetLintList()">↺ 返回配置</button>
                 </div>
                 
                 <!-- 2. 列表内容 -->
@@ -1590,7 +1454,7 @@
                   <div class="es-icon">✨</div>
                   <div class="es-text" style="margin-bottom:20px;">太棒了！未发现需要修复的组件命名</div>
                   <!-- 🔥 关键：在这里也加上返回按钮 -->
-                  <button class="primary-btn" style="width:auto; padding:8px 32px;" onclick="resetLintList()" data-key="btn_back">返回配置</button>
+                  <button class="primary-btn" style="width:auto; padding:8px 32px;" onclick="resetLintList()">返回配置</button>
                 </div>
 
                 <!-- 4. 修复成功页 -->
@@ -1631,7 +1495,7 @@
                 
                 <!-- 🔥 修改点 1: 范围选择器移到最上方 -->
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                  <!-- <span style="font-size:12px; font-weight:600; color:#333;">查找范围</span> -->
+                  <span style="font-size:12px; font-weight:600; color:#333;">查找范围</span>
                   <div class="scope-segment">
                       <div class="scope-option active" id="fScopeSel" onclick="toggleFindScope('selection')" data-key="ref_scope_sel_short">选中图层</div>
                       <div class="scope-option" id="fScopePage" onclick="toggleFindScope('page')" data-key="ref_scope_page_short">当前页面</div>
@@ -2637,50 +2501,19 @@
       tooltip.style.top = finalY + 'px';
     }
 
-    // 单选切换逻辑 (互斥)
-    function toggleSingle(el, parentId) {
-        // 1. 找到父容器
-        const parent = document.getElementById(parentId);
-        if (!parent) return;
-
-        // 2. 移除该容器下所有按钮的 active 类
-        // 注意：这里使用 .scope-btn 选择器，确保选中所有按钮
-        const btns = parent.querySelectorAll('.scope-btn, .filter-btn'); 
-        btns.forEach(btn => btn.classList.remove('active'));
-
-        // 3. 给当前点击的按钮添加 active 类
-        el.classList.add('active');
+    // 选择工具相关函数
+    function toggleSingle(el, gid) { 
+      document.querySelectorAll(`#${gid} .filter-btn`).forEach(b => b.classList.remove('active')); 
+      el.classList.add('active'); 
     }
     
-    // 多选切换逻辑 (类型/状态)
     function toggleMulti(el) { 
-      // 1. 切换当前按钮的激活状态
       el.classList.toggle('active'); 
-      
-      // 2. 找到父容器
-      const parent = el.parentElement;
-      if (parent) {
-          // 🔥 关键修复：查找 .all-tag (新类名) 而不是 .all-btn
-          const allBtn = parent.querySelector('.all-tag');
-          if (allBtn) {
-              // 只要有一个具体标签被选中，"全部"按钮就取消激活
-              allBtn.classList.remove('active');
-              
-              // 如果所有具体标签都取消了，自动激活"全部"按钮 (可选优化)
-              const hasActive = parent.querySelector('.filter-tag.active:not(.all-tag)');
-              if (!hasActive) {
-                  allBtn.classList.add('active');
-              }
-          }
-      }
+      el.parentElement.querySelector('.all-btn').classList.remove('active'); 
     }
     
-    // 清除选中逻辑 (点击"全部类型"时)
     function clearGroup(gid, el) { 
-      // 1. 找到该组下所有普通标签，移除 active
-      document.querySelectorAll(`#${gid} .filter-tag:not(.all-tag)`).forEach(b => b.classList.remove('active')); 
-      
-      // 2. 激活"全部"按钮自己
+      document.querySelectorAll(`#${gid} .filter-btn`).forEach(b => b.classList.remove('active')); 
       el.classList.add('active'); 
     }
     
@@ -2737,55 +2570,34 @@
     }
     
     // 默认添加一行属性
-    // addPropRow();
+    addPropRow();
 
-    // [核心修复] 运行筛选 (适配新版 UI 结构)
+    // 运行筛选
     function runFilter() {
-      // 1. 获取范围 (Scope)
-      // 适配新类名 .scope-btn
-      const scopeEl = document.querySelector('#scopeGroup .scope-btn.active');
-      const scope = scopeEl ? scopeEl.getAttribute('data-val') : 'inside';
-
-      // 2. 获取名称 (Name) & 大小写设置
+      const scope = document.querySelector('#scopeGroup .active').getAttribute('data-val');
       const name = document.getElementById('filterNameInput').value;
-      const isCase = document.getElementById('caseBtn').classList.contains('active');
-
-      // 3. 获取类型 (Types)
-      // 适配新类名 .filter-tag 和 .all-tag
-      const types = Array.from(document.querySelectorAll('#typeGroup .filter-tag.active:not(.all-tag)')).map(b => b.getAttribute('data-val'));
+      const types = Array.from(document.querySelectorAll('#typeGroup .active:not(.all-btn)')).map(b => b.getAttribute('data-val'));
       const typeLogic = document.getElementById('typeLogic').classList.contains('include') ? 'include' : 'exclude';
-
-      // 4. 获取状态 (States)
-      // 适配新类名 .filter-tag 和 .all-tag
-      const states = Array.from(document.querySelectorAll('#stateGroup .filter-tag.active:not(.all-tag)')).map(b => b.getAttribute('data-val'));
+      const states = Array.from(document.querySelectorAll('#stateGroup .active:not(.all-btn)')).map(b => b.getAttribute('data-val'));
       const stateLogic = document.getElementById('stateLogic').classList.contains('include') ? 'include' : 'exclude';
       
-      // 5. 获取高级属性 (Props)
       const props = [];
-      // 适配新类名 .prop-item
-      document.querySelectorAll('.prop-item').forEach(row => {
+      document.querySelectorAll('.prop-row').forEach(row => {
         const valRaw = row.querySelector('.p-val').value;
         const op = row.querySelector('.prop-op').value;
         const key = row.querySelector('.p-key').value;
-        // 🔥 修复点：如果值为空，则跳过该条件，不发送给后端
-        if (valRaw === '') return;
-        // 尝试转为数字，如果是纯数字字符串
         const valNum = parseFloat(valRaw);
-        // 如果 valRaw 不为空且能转为数字，则传数字，否则传字符串
-        const finalVal = (valRaw !== '' && !isNaN(valNum)) ? valNum : valRaw;
-        
-        props.push({ key, op, val: finalVal });
+        props.push({ key, op, val: isNaN(valNum) ? valRaw : valNum });
       });
 
-      // 发送消息给后端
       parent.postMessage({ 
         pluginMessage: { 
           type: 'find-and-select', 
           filters: { 
             scope, 
-            name: { val: name, caseSensitive: isCase }, 
-            types: { vals: types, logic: typeLogic }, 
-            states: { vals: states, logic: stateLogic }, 
+            name: {val: name}, 
+            types: {vals: types, logic: typeLogic}, 
+            states: {vals: states, logic: stateLogic}, 
             props 
           } 
         } 
@@ -4519,7 +4331,7 @@
             // A. 渲染组件名组
             if (buckets.CompName.length > 0) {
                 html += `<div class="detail-category">
-                            <span>Component Name</span>
+                            <span>组件命名 (Component Name)</span>
                             <span class="cat-badge">${buckets.CompName.length}</span>
                          </div>`;
                 html += renderRows(buckets.CompName);
@@ -4528,7 +4340,7 @@
             // B. 渲染属性组
             if (buckets.PropName.length > 0) {
                 html += `<div class="detail-category">
-                            <span>Property Name</span>
+                            <span>属性名 (Property Name)</span>
                             <span class="cat-badge">${buckets.PropName.length}</span>
                          </div>`;
                 html += renderRows(buckets.PropName);
@@ -4537,7 +4349,7 @@
             // C. 渲染属性值组
             if (buckets.PropValue.length > 0) {
                 html += `<div class="detail-category">
-                            <span>Property Value</span>
+                            <span>属性值 (Property Value)</span>
                             <span class="cat-badge">${buckets.PropValue.length}</span>
                          </div>`;
                 html += renderRows(buckets.PropValue);
@@ -4733,7 +4545,7 @@
         
         if (expand) {
             // 展开状态
-            controls.style.display = '';
+            controls.style.display = 'block';
             summary.style.display = 'none'; // 隐藏摘要条
         } else {
             // 折叠状态
@@ -4863,29 +4675,23 @@
         }
     }
 
-    // 3. 开始查找 (修复版)
+    // 3. 开始查找 (国际化适配版)
     function startTextFind() {
-        const findInput = document.getElementById('txtFindInput');
-        const findText = findInput.value;
-        const t = i18n[curLang] || i18n['zh'];
+        const findText = document.getElementById('txtFindInput').value;
+        const t = i18n[curLang]; // 获取语言包
 
-        if (!findText) {
-            alert(t.txt_err_no_input || "请输入查找内容");
-            findInput.focus();
-            return;
-        }
+        // 🔥 修复：Alert 内容改为变量
+        if (!findText) return alert(t.txt_err_no_input || "请输入查找内容");
         
         const isSelection = document.getElementById('tScopeSel').classList.contains('active');
         const btn = document.getElementById('btnTextFind');
         
-        if (btn) {
-            btn.classList.add('loading');
-            const span = btn.querySelector('span');
-            if(span) span.innerText = t.txt_btn_finding || "搜索中...";
-        }
+        btn.classList.add('loading');
+        
+        const span = btn.querySelector('span');
+        // 🔥 修复：Loading 文本改为变量
+        if(span) span.innerText = t.txt_btn_finding;
 
-        // 发送消息给后端
-        // 注意：type 必须是 'text-find-matches'，与 code.js 对应
         parent.postMessage({ 
             pluginMessage: { 
                 type: 'text-find-matches', 
@@ -4894,7 +4700,6 @@
             } 
         }, '*');
         
-        // 自动折叠面板，展示结果区
         toggleTextHeader(false);
     }
     
@@ -4914,18 +4719,20 @@
         // 清空缓存数据
         textResultCache = [];
     }
+    // 5. [核心] 接收后端数据并渲染 (安全修复版)
     function renderTextFindResults(results) {
-        // 1. 停止 Loading
+        // 1. 获取当前语言包
+        const t = i18n[curLang] || i18n['zh']; 
+        
+        // 2. 停止按钮 Loading (安全检查)
         const btn = document.getElementById('btnTextFind');
         if (btn) {
             btn.classList.remove('loading');
             const span = btn.querySelector('span');
-            // 安全读取翻译
-            const t = (typeof i18n !== 'undefined' && i18n[curLang]) ? i18n[curLang] : {};
             if(span) span.innerText = t.txt_btn_find || "开始查找";
         }
 
-        // 2. 处理数据
+        // 3. 处理数据
         textResultCache = results.map((item, i) => ({
             ...item, 
             uid: `match_${item.id}_${item.index}_${i}`, 
@@ -4934,26 +4741,50 @@
         }));
         
         const total = results.length;
+        const findVal = document.getElementById('txtFindInput') ? document.getElementById('txtFindInput').value : "";
+
+        // 4. 获取 DOM 元素 (安全检查)
+        const emptyState = document.getElementById('textEmptyState');
+        const resultWrapper = document.getElementById('textResultWrapper');
+        const footer = document.getElementById('textFooter');
+
+        // 5. 切换显示状态
+        if(emptyState) emptyState.style.display = total === 0 ? 'flex' : 'none';
+        if(resultWrapper) resultWrapper.style.display = total === 0 ? 'none' : 'flex';
+        if(footer) footer.style.display = total === 0 ? 'none' : 'flex';
         
-        // 3. 控制显隐
-        document.getElementById('textEmptyState').style.display = total === 0 ? 'flex' : 'none';
-        document.getElementById('textResultWrapper').style.display = total === 0 ? 'none' : 'flex';
-        document.getElementById('textFooter').style.display = total === 0 ? 'none' : 'flex';
-        
+        // --- 情况 A: 无结果 ---
         if (total === 0) {
-            const t = (typeof i18n !== 'undefined' && i18n[curLang]) ? i18n[curLang] : {};
-            document.getElementById('textEmptyState').querySelector('.es-text').innerText = t.txt_empty_none || "未找到匹配内容";
+            if(emptyState) {
+                const txtEl = emptyState.querySelector('.es-text');
+                if(txtEl) txtEl.innerText = t.txt_empty_none || "未找到匹配内容";
+            }
             return;
         }
 
-        // 4. 折叠头部 & 更新计数
-        toggleTextHeader(false); // 这一步很重要，自动折叠
-        document.getElementById('textCount').innerText = total;
-        document.getElementById('textSelectAll').checked = false;
+        // --- 情况 B: 有结果 ---
+        
+        // 收起头部
+        toggleTextHeader(false);
+        
+        // 更新统计信息 (安全检查，防止报错)
+        const countEl = document.getElementById('textCount');
+        if(countEl) countEl.innerText = total;
+        
+        const headerLabel = document.getElementById('textHeaderLabel');
+        if(headerLabel) {
+            headerLabel.innerHTML = `${t.txt_label_all || "全选 / 共"} <b style="color:#333;">${total}</b> ${t.txt_label_item || "项"}`;
+        }
+
+        const selectAllCb = document.getElementById('textSelectAll');
+        if(selectAllCb) selectAllCb.checked = false;
+        
         updateTextFooterBtn();
 
-        // 5. 渲染列表
+        // 渲染列表
         const container = document.getElementById('textResultList');
+        if (!container) return; // 如果找不到容器，直接退出，防止报错
+        
         container.innerHTML = '';
 
         textResultCache.forEach((item, index) => {
@@ -4976,18 +4807,20 @@
             let suffix = fullTxt.substring(start + len, previewEnd) + (previewEnd < fullTxt.length ? "..." : "");
 
             const escape = (s) => s ? s.replace(/</g, "&lt;").replace(/>/g, "&gt;") : "";
+            // 转义关键词用于传参
+            const safeFindVal = findVal.replace(/'/g, "\\'"); 
 
             div.innerHTML = `
                 <input type="checkbox" class="row-cb" id="cb_${item.uid}" onchange="updateTextSingleSelect(${index}, this.checked)">
                 
-                <div class="text-row-content" onclick="locateItemExact('${item.id}', ${item.index}, ${item.length}, '${item.uid}')" title="点击定位">
+                <div class="text-row-content" onclick="locateItemExact('${item.id}', ${item.index}, ${item.length}, '${item.uid}')" title="${t.txt_tip_locate}">
                     <div class="text-preview-main">
                        ${escape(prefix)}<span class="hl-text">${escape(highlight)}</span>${escape(suffix)}
                     </div>
                 </div>
                 
                 <button class="btn-row-replace" id="btn_${item.uid}" onclick="runSingleTextReplace(${index})">
-                    替换
+                    ${t.txt_btn_rep_single || "替换"}
                 </button>
             `;
             container.appendChild(div);
