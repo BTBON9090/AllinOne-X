@@ -2010,14 +2010,24 @@
                
                <textarea class="ai-textarea" id="aiPrompt" placeholder="例：生成20个高档小区名称..."></textarea>
                
-               <!-- 修改这里：将按钮放入一个 Flex 容器，并排显示 -->
-               <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                   <button class="primary-btn" id="btnAiGen" onclick="runAiGenerate()" style="flex: 1; margin-bottom: 0;">
-                      <span data-key="sf_btn_gen">生成内容</span>
-                   </button>
-                   <button class="btn-ai-action" onclick="clearAiInput()" style="width: auto; padding: 0 16px; border-color: #ddd; color: #666;" title="清空">
-                      🗑️
-                   </button>
+               <!-- 新增：控制栏 (思考模式 + 按钮组) -->
+               <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 12px;">
+                   
+                   <!-- 思考模式开关 (左侧) -->
+                   <label class="check-item" title="关闭可加快速度。" style="flex-shrink: 0; color: #666;">
+                       <input type="checkbox" id="aiThinkingToggle"> 
+                       <span>DeepThink</span>
+                   </label>
+
+                   <!-- 按钮组 (右侧) -->
+                   <div style="display: flex; gap: 8px; flex: 1;">
+                       <button class="primary-btn" id="btnAiGen" onclick="runAiGenerate()" style="flex: 1; margin-bottom: 0;">
+                          <span data-key="sf_btn_gen">生成内容</span>
+                       </button>
+                       <button class="btn-ai-action" onclick="clearAiInput()" style="width: auto; padding: 0 12px; border-color: #ddd; color: #666;" title="清空">
+                          🗑️
+                       </button>
+                   </div>
                </div>
 
                <div class="ai-result-box" id="aiResultArea" placeholder="生成结果将显示在这里..."></div>
@@ -5801,13 +5811,67 @@
        if(!aiConfig.key) return alert("请先配置 API Key");
        
        const btn = document.getElementById('btnAiGen');
-       btn.innerText = "生成中...";
+       btn.innerText = "Running...";
        btn.disabled = true;
        
-       // 默认生成20个，如果用户没写数字
-       let finalPrompt = `请按要求生成以下内容，换行书写，不要再次出现与提示词相同或相似的内容或标题，直接开始陈列内容：${prompt}。`;
-       if (!prompt.match(/\d+/)) finalPrompt += " (生成20个)";
-       finalPrompt += " 请直接返回纯文本，每行一句，不要带任何项目符号，不要带Markdown，不要废话。";
+       // 1. 获取思考模式开关状态 - 【修改1：默认关闭深度推理】
+       // 开关未找到/未勾选 → 均为false（禁用推理），勾选后为true（开启推理）
+       const thinkingToggle = document.getElementById('aiThinkingToggle');
+       const enableThinking = thinkingToggle ? thinkingToggle.checked : false;
+
+       // 2. 强化 Prompt：【修改2：根据推理开关动态拼接，禁用时追加强制无思考指令（全模型兜底）】
+       let systemPrompt = "你是一个严格的数据生成器。用户会要求生成列表，请直接输出内容，每行一条。严禁输出标题、序号、Markdown符号、开场白或结束语。";
+       // 禁用深度推理时，追加通用禁思考指令，所有模型都生效（兜底）
+       if (!enableThinking) {
+          systemPrompt += " 严格禁止任何逻辑推理、分析、推导和延伸思考，仅对输入做直接响应，按要求直接输出结果，无需任何额外解释。";
+       }
+       
+       const userPrompt = `${prompt}。如果未指定数量，默认生成20条。格式要求：纯文本，无序号。`;
+
+       // 3. 构建请求体
+       const requestBody = {
+          model: aiConfig.model,
+          messages: [
+             { role: "system", content: systemPrompt },
+             { role: "user", content: userPrompt }
+          ],
+          temperature: enableThinking ? 0.7 : 0 // 核心：推理开关联动温度值
+       };
+
+       // 4. 处理所有模型的推理控制参数 - 【修改4：扩展GLM逻辑，适配Qwen/Deepseek/OpenAI等所有模型】
+       // 提取厂商标识并转小写，避免大小写不一致导致适配失败（兼容GLM/Glm/glm、Qwen/qwen等）
+       const provider = aiConfig.provider?.toLowerCase() || '';
+       const modelName = aiConfig.model?.toLowerCase() || '';
+       // 仅在禁用深度推理时，添加各模型专属的禁思考参数；开启时用模型默认逻辑，不做任何处理
+       if (!enableThinking) {
+          // 4.1 GLM模型（智谱AI）- 保留原有原生thinking参数
+          if (provider === 'glm' || modelName.includes('glm')) {
+            requestBody.thinking = { type: "disabled" };
+          }
+          // 4.2 通义千问（Qwen）- 原生推理模式开关，direct=直接输出（无思考）
+          else if (provider === 'qwen' || modelName.includes('qwen') || provider === 'ali') {
+            requestBody.inference_mode = "direct";
+          }
+          // 4.3 Deepseek（深度求索）- 官方专属[NO_REASONING]标识 + top_p=0（无概率采样）
+          else if (provider === 'deepseek' || modelName.includes('deepseek')) {
+            requestBody.messages[0].content += " [NO_REASONING]";
+            requestBody.top_p = 0;
+          }
+          // 4.4 OpenAI/GPT/Claude/Gemini/Grok/文心一言 - 通用配置：top_p=0+top_k=1（禁用多路径推理）
+          else if (
+            provider === 'openai' || modelName.includes('gpt') ||
+            provider === 'anthropic' || modelName.includes('claude') ||
+            provider === 'google' || modelName.includes('gemini') ||
+            provider === 'xai' || modelName.includes('grok') ||
+            provider === 'baidu' || modelName.includes('ernie')
+          ) {
+            requestBody.top_p = 0; // 禁用概率性采样，仅选最优解
+            requestBody.top_k = 1; // 仅保留1个候选，彻底禁用多路径思考
+          }
+          // 4.5 Kimi（月之暗面）- 无专属API参数，已通过「提示词+temperature=0」兜底，效果稳定
+          // 若后续Kimi开放推理参数，可在此处补充
+        }
+
 
        try {
          const res = await fetch(`${aiConfig.baseUrl}/chat/completions`, {
@@ -5816,16 +5880,24 @@
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${aiConfig.key}`
             },
-            body: JSON.stringify({
-              model: aiConfig.model,
-              messages: [{ role: "user", content: finalPrompt }]
-            })
+            body: JSON.stringify(requestBody)
          });
          
          const data = await res.json();
          if (data.error) throw new Error(data.error.message);
          
-         const content = data.choices[0].message.content;
+         let content = data.choices[0].message.content;
+         
+         // 5. 【核心修复】强力清洗数据 (Regex Cleaning)
+         // A. 去除 Markdown 加粗 (**text**)
+         content = content.replace(/\*\*/g, '');
+         // B. 去除行首的序号 (1. 2. - • )
+         content = content.replace(/^[\s\t]*(\d+\.|-|•)\s*/gm, '');
+         // C. 去除可能的标题行 (以冒号结尾的短句，通常是"以下是...:")
+         content = content.replace(/^.{0,20}[:：]\s*$/gm, '');
+         // D. 去除空行
+         content = content.split('\n').filter(line => line.trim() !== '').join('\n');
+
          document.getElementById('aiResultArea').innerText = content;
          
        } catch(e) {
