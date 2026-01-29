@@ -1,5 +1,5 @@
 {
-  "name": "AllinOne-j",
+  "name": "AllinOne-m",
   "id": "1579115225697225019",
   "api": "1.0.0",
   "main": "code.js",
@@ -14,15 +14,8 @@
   
   "networkAccess": {
     "allowedDomains": [
-      "https://open.bigmodel.cn",
-      "https://api.openai.com",
-      "https://api.deepseek.com",
-      "https://api.moonshot.cn",
-      "https://dashscope.aliyuncs.com",
-      "https://generativelanguage.googleapis.com",
-      "https://api.anthropic.com",
-      "https://api.x.ai",
-      "https://api.siliconflow.cn"
-    ]
+      "*"
+    ],
+    "reasoning": "This plugin connects to various user-defined AI model APIs (OpenAI, GLM, etc.) for text generation."
   }
 }

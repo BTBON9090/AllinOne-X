@@ -1291,6 +1291,62 @@
       }
       .btn-ai-action:hover { border-color: var(--primary); color: var(--primary); }
 
+      /* --- 新增样式：标签与自定义Tab --- */
+
+      /* 标签按钮组 */
+      .row-tags {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+
+      /* 单个标签按钮 */
+      .tag-btn {
+        font-size: 11px;
+        padding: 2px 8px;
+        background: #f0f0f0;
+        color: #666;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+        user-select: none;
+      }
+      .tag-btn:hover {
+        background: #e0e0e0;
+      }
+      /* 选中状态 */
+      .tag-btn.active {
+        background: #e6f7ff;
+        color: #1890FF;
+        border-color: #1890FF;
+        font-weight: 500;
+      }
+
+      /* 发送到 AI 按钮 */
+      .btn-to-ai {
+        font-size: 11px;
+        padding: 2px 8px;
+        background: #fff0f6; /* 浅粉色背景区分 */
+        color: #c41d7f;
+        border-radius: 4px;
+        cursor: pointer;
+        border: 1px solid transparent;
+      }
+      .btn-to-ai:hover {
+        border-color: #ffadd2;
+      }
+
+      /* 调整列表行布局，防止挤压 */
+      .smart-row {
+        flex-wrap: wrap; /* 允许小屏幕换行 */
+        gap: 8px;
+      }
+      .smart-label {
+        margin-right: auto; /* 让左侧文字撑开 */
+        font-weight: 500;
+      }
+
   </style>
 </head>
 <body>
@@ -1984,6 +2040,7 @@
           <div class="smart-tabs">
             <div class="smart-tab-item active" onclick="switchSmartTab('basic')" data-key="sf_tab_basic">基础填充</div>
             <div class="smart-tab-item" onclick="switchSmartTab('ai')" data-key="sf_tab_ai">AI 生成</div>
+            <div class="smart-tab-item" onclick="switchSmartTab('custom')" data-key="sf_tab_custom">自定义字段</div>
           </div>
 
           <!-- Tab 1: 基础填充 -->
@@ -1996,7 +2053,7 @@
                  <label class="check-item"><input type="checkbox" id="sfPrefix"> <span data-key="sf_prefix">加为前缀</span></label>
                  <label class="check-item"><input type="checkbox" id="sfSuffix"> <span data-key="sf_suffix">加为后缀</span></label>
                </div>
-               <button class="btn-action-small" onclick="openSubPage('pageAddCustom')" data-key="sf_btn_add_custom">+ 自定义</button>
+               
             </div>
           </div>
 
@@ -2038,6 +2095,30 @@
                  <button class="btn-ai-action" onclick="saveAiResultAsCustom()" style="grid-column: span 2;" data-key="sf_btn_save_list">💾 存为自定义列表</button>
                </div>
              </div>
+          </div>
+
+          <!-- Tab 3: 新增 自定义字段 -->
+          <div id="smartCustom" class="smart-content">
+            <div class="smart-list-container" id="smartCustomList">
+              <!-- JS 动态渲染自定义列表 -->
+              <div class="empty-state-refiner" id="customEmptyState" style="display:none;">
+                  <div class="es-text">暂无自定义数据<br>请在“AI生成”中保存或点击下方添加</div>
+              </div>
+            </div>
+            <div class="smart-footer" style="display: flex; gap: 10px;">
+              <!-- 左侧：功能按钮组 -->
+              <div style="display: flex; gap: 6px;">
+                  <button class="btn-ai-action" onclick="clearAllCustomLists()" title="清空列表" style="padding: 10 16px; color: #e62b2e; border-color: #ffccc7;">🗑️</button>
+                  <button class="btn-ai-action" onclick="exportCustomLists()" title="导出 JSON" style="padding: 10 16px;">📤</button>
+                  <button class="btn-ai-action" onclick="document.getElementById('importFileBtn').click()" title="导入 JSON" style="padding: 10 16px;">📥</button>
+              </div>
+              
+              <!-- 隐藏的文件上传 input -->
+              <input type="file" id="importFileBtn" accept=".json" style="display: none;" onchange="importCustomLists(this)">
+
+              <!-- 右侧：添加按钮 -->
+              <button class="primary-btn" style="flex: 1;" onclick="openAddCustomPage()">+ 添加新列表</button>
+            </div>
           </div>
 
           <!-- 子页面 1: 添加自定义类型 -->
@@ -2106,19 +2187,11 @@
               <span class="btn-back-sub" onclick="closeSubPage('pageBasicSetting')">←</span>
               <span id="basicSettingTitle">设置</span>
             </div>
-            <div style="padding:16px;">
-               <p style="font-size:12px; color:#999;">当前仅支持“日期/时间”格式配置，其他类型暂无配置项。</p>
-               
-               <div id="settingDateOption" style="display:none; margin-top:10px;">
-                   <label class="config-label">日期格式</label>
-                   <select id="dateFormatSel" class="search-box">
-                       <option value="YYYY-MM-DD">2023-10-01 (YYYY-MM-DD)</option>
-                       <option value="YYYY/MM/DD">2023/10/01 (YYYY/MM/DD)</option>
-                       <option value="MM-DD">10-01 (MM-DD)</option>
-                       <option value="CN">2023年10月1日</option>
-                   </select>
-                   <button class="primary-btn" onclick="saveBasicSettings('date')" style="margin-top:10px; width:100%;">保存</button>
-               </div>
+            <div style="padding:16px; overflow-y:auto; flex:1;" id="settingFormContainer">
+               <!-- 动态插入表单 -->
+            </div>
+            <div style="padding:16px; border-top:1px solid #eee;">
+                <button class="primary-btn" onclick="saveCurrentSettings()">保存配置</button>
             </div>
           </div>
 
@@ -4088,6 +4161,7 @@
              dateFormat = msg.value;
           }
       }
+      if (msg.key === 'smart_advanced_settings') smartSettings = msg.value || smartSettings;
     };
 
     // 处理 PPT 消息的独立函数 (从 onmessage 拆分出来)
@@ -5474,25 +5548,148 @@
     // Smart Fill 逻辑模块
     // ==========================================
     
+    // 存储每个类型的标签选中状态 { 'name': ['cn'], 'gender': ['male', 'female'] }
+    let activeTagsMap = {}; 
+
+    function rand(min, max) { 
+        return Math.floor(Math.random() * (max - min + 1)) + min; 
+    }
+
     // --- 数据源定义 ---
     const basicDataTypes = [
-      { key: 'name_cn', label: '姓名 (中文)', gen: () => getRandomNameCN() },
-      { key: 'address', label: '地址', gen: () => getRandomAddress() },
-      { key: 'nickname', label: '网名', gen: () => getRandomNickname() },
-      { key: 'gender', label: '性别', gen: () => Math.random() > 0.5 ? '男' : '女' },
-      { key: 'number', label: '数字 (1-100)', gen: () => Math.floor(Math.random()*100).toString() },
-      { key: 'date', label: '日期', hasSetting: true, gen: () => getRandomDate() },
-      { key: 'time', label: '时间', gen: () => getRandomTime() },
-      { key: 'province', label: '省市区', gen: () => "浙江省杭州市西湖区" }, // 简化演示
-      { key: 'email', label: 'Email', gen: () => `user${Math.floor(Math.random()*1000)}@example.com` },
-      { key: 'idcard', label: '身份证', gen: () => "11010119900307" + Math.floor(Math.random()*10000) },
-      { key: 'company', label: '公司名称', gen: () => "未来科技" + Math.floor(Math.random()*100) + "有限公司" },
-      { key: 'bank', label: '银行卡号', gen: () => "622202" + Math.floor(Math.random()*100000000000) },
-      { key: 'website', label: '网站地址', gen: () => "www.example" + Math.floor(Math.random()*100) + ".com" },
-      { key: 'ip', label: 'IP地址', gen: () => `192.168.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}` },
-      { key: 'phone', label: '手机型号', gen: () => ["iPhone 15", "Samsung S24", "Xiaomi 14", "Huawei Mate 60"][Math.floor(Math.random()*4)] },
-      { key: 'news_title', label: '新闻标题', gen: () => "重磅！科技巨头发布最新AI模型，性能超越GPT-4" },
-      { key: 'lorem', label: '名人名言', gen: () => "Stay hungry, stay foolish." }
+      { 
+        key: 'name', label: '姓名', 
+        allowAI: true,
+        tags: [ {l:'中文', v:'cn'}, {l:'英文', v:'en'} ],
+        gen: (tags) => {
+            // 示例：根据标签判断生成什么
+            const useEn = tags.includes('en');
+            const useCn = tags.includes('cn') || tags.length === 0; // 默认中文
+            
+            // 如果都选了，随机混合
+            if(useEn && useCn) return Math.random()>0.5 ? getRandomNameCN() : getRandomNameEN();
+            if(useEn) return getRandomNameEN();
+            return getRandomNameCN();
+        }
+      },
+      { 
+        key: 'address', label: '地址', 
+        allowAI: true, tags: [ {l:'同地区', v:'same'} ],
+        gen: (tags) => {
+            const cities = ["杭州市", "北京市", "上海市", "深圳市", "成都市"];
+            const areas = ["西湖区", "朝阳区", "浦东新区", "南山区", "武侯区"];
+            const roads = ["建国路", "人民路", "解放路", "科技路"];
+            
+            // 简单模拟：如果选了同地区，我们在内存里存一个 lastCity
+            if (tags.includes('same') && window.lastCity) {
+                // 复用
+            } else {
+                window.lastCity = cities[rand(0, cities.length-1)];
+                window.lastArea = areas[rand(0, areas.length-1)];
+            }
+            return `${window.lastCity}${window.lastArea}${roads[rand(0,3)]}${rand(1,999)}号`;
+        } 
+      },
+      { key: 'nickname', label: '网名', allowAI: true, gen: () => getRandomNickname() },
+      { 
+        key: 'gender', label: '性别', 
+        tags: [ {l:'男', v:'1'}, {l:'女', v:'0'} ],
+        gen: (tags) => {
+            const hasMale = tags.includes('1');
+            const hasFemale = tags.includes('0');
+            if(hasMale && !hasFemale) return '男';
+            if(!hasMale && hasFemale) return '女';
+            return Math.random() > 0.5 ? '男' : '女';
+        }
+      },
+      { 
+        key: 'number', label: '数字', hasSetting: true, 
+        gen: (tags) => {
+            const s = smartSettings.number;
+            let val = Math.random() * (s.max - s.min) + s.min;
+            // 处理小数
+            if (s.decimals === 0) val = Math.floor(val);
+            else val = val.toFixed(s.decimals);
+            
+            // 处理千分位
+            if (s.thousands) {
+                return Number(val).toLocaleString('en-US', {minimumFractionDigits: s.decimals});
+            }
+            return val.toString();
+        } 
+      },
+      { 
+        key: 'date', label: '日期', hasSetting: true,
+        gen: () => {
+            const fmt = smartSettings.date.format;
+            const d = new Date();
+            d.setDate(d.getDate() - rand(0, 365));
+            const y = d.getFullYear();
+            const m = (d.getMonth()+1).toString().padStart(2,'0');
+            const day = d.getDate().toString().padStart(2,'0');
+            
+            return fmt.replace('YYYY', y).replace('MM', m).replace('DD', day);
+        } 
+      },
+      
+      // 5. 时间 (格式化)
+      {
+        key: 'time', label: '时间', hasSetting: true,
+        gen: () => {
+            const fmt = smartSettings.time.format;
+            const h = rand(0,23).toString().padStart(2,'0');
+            const m = rand(0,59).toString().padStart(2,'0');
+            const s = rand(0,59).toString().padStart(2,'0');
+            const h_s = Number(h).toString(); // 短格式
+            
+            if(fmt === 'HH:mm:ss') return `${h}:${m}:${s}`;
+            if(fmt === 'HH:mm') return `${h}:${m}`;
+            if(fmt === 'mm:ss') return `${m}:${s}`;
+            if(fmt === 'H:m:s') return `${Number(h)}:${Number(m)}:${Number(s)}`;
+            if(fmt === 'cn_long') return `${h}时${m}分${s}秒`;
+            return `${h}:${m}`;
+        }
+      },
+      { 
+        key: 'province', label: '省市区', hasSetting: true,
+        gen: () => {
+            const s = smartSettings.province;
+            let res = "";
+            if (s.showProv) res += "浙江省";
+            if (s.showCity) res += "杭州市";
+            if (s.showArea) res += "西湖区";
+            return res || "请在设置中勾选显示项";
+        } 
+      }, // 简化演示
+      { key: 'email', label: 'Email', allowAI: true, gen: () => `user${Math.floor(Math.random()*1000)}@example.com` },
+      { key: 'idcard', label: '身份证', allowAI: true, gen: () => "11010119900307" + Math.floor(Math.random()*10000) },
+      { key: 'company', label: '公司名称', allowAI: true, gen: () => "未来科技" + Math.floor(Math.random()*100) + "有限公司" },
+      { key: 'bank', label: '银行卡号', allowAI: true, gen: () => "622202" + Math.floor(Math.random()*100000000000) },
+      
+      // 6. 网站地址 (Tag: 去协议头, 长路径)
+      {
+        key: 'website', label: '网站地址', allowAI: true,
+        tags: [ {l:'去协议头', v:'no_proto'}, {l:'长路径', v:'long'} ],
+        gen: (tags) => {
+            const proto = tags.includes('no_proto') ? '' : 'https://';
+            const domain = "www.example" + rand(1,99) + ".com";
+            const path = tags.includes('long') ? `/article/${rand(1000,9999)}/details` : '';
+            return `${proto}${domain}${path}`;
+        }
+      },
+      
+      // 7. IP地址 (Tag: 含端口)
+      {
+        key: 'ip', label: 'IP地址', allowAI: true,
+        tags: [ {l:'含端口', v:'port'} ],
+        gen: (tags) => {
+            const ip = `192.168.${rand(0,255)}.${rand(1,254)}`;
+            return tags.includes('port') ? `${ip}:8080` : ip;
+        }
+      },
+      { key: 'phone', label: '手机型号', allowAI: true, gen: () => ["iPhone 15", "Samsung S24", "Xiaomi 14", "Huawei Mate 60"][Math.floor(Math.random()*4)] },
+      { key: 'news_title', label: '新闻标题', allowAI: true, gen: () => "重磅！科技巨头发布最新AI模型，性能超越GPT-4" },
+      { key: 'lorem', label: '名人名言', allowAI: true, gen: () => "Stay hungry, stay foolish." }
     ];
 
     let customDataLists = []; // 存储自定义列表 [{title: 'xxx', list: ['a','b']}]
@@ -5505,6 +5702,14 @@
     };
     let dateFormat = 'YYYY-MM-DD';
 
+    let smartSettings = {
+        number: { min: 1, max: 100, decimals: 0, thousands: false },
+        province: { showProv: true, showCity: true, showArea: true, scope: 'all' },
+        date: { format: 'YYYY-MM-DD' },
+        time: { format: 'HH:mm:ss' }
+    };
+
+    let currentSettingKey = '';
     // --- 初始化 ---
     function initSmartFill() {
       renderBasicList();
@@ -5516,37 +5721,98 @@
 
       // 2. 然后再请求保存的配置
       postMsg('load-storage', { key: 'smart_custom_lists' });
+      renderBasicList(); // 渲染基础列表
+      renderCustomList(); // 渲染自定义列表
       postMsg('load-storage', { key: 'smart_ai_config' });
       postMsg('load-storage', { key: 'smart_date_format' });
+      postMsg('load-storage', { key: 'smart_advanced_settings' });
     }
 
-    // 渲染列表
+    // 渲染 Tab 1: 基础填充 (带标签和AI按钮)
     function renderBasicList() {
       const container = document.getElementById('smartBasicList');
+      if (!container) return;
       container.innerHTML = '';
       
-      // 1. 预置类型
       basicDataTypes.forEach(item => {
         const row = document.createElement('div');
         row.className = 'smart-row';
+        
+        // 构建标签 HTML
+        let tagsHtml = '';
+        if (item.tags && item.tags.length > 0) {
+            // 初始化状态
+            if (!activeTagsMap[item.key]) activeTagsMap[item.key] = []; 
+            
+            tagsHtml = item.tags.map(t => {
+                const isActive = activeTagsMap[item.key].includes(t.v) ? 'active' : '';
+                // 注意：点击标签时阻止冒泡，避免触发填充
+                return `<span class="tag-btn ${isActive}" onclick="toggleTag('${item.key}', '${t.v}', this, event)">${t.l}</span>`;
+            }).join('');
+        }
+
+        // 构建“发送到AI”按钮
+        let aiBtnHtml = '';
+        if (item.allowAI) {
+            aiBtnHtml = `<span class="btn-to-ai" onclick="jumpToAI('${item.key}', '${item.label}', event)">发送到 AI</span>`;
+        }
+
+        // 构建设置按钮
+        let settingBtnHtml = '';
+        if (item.hasSetting) {
+            settingBtnHtml = `<div class="smart-setting-btn" onclick="openBasicSetting('${item.key}', event)">⚙️</div>`;
+        }
+
         row.innerHTML = `
            <div class="smart-label">${item.label}</div>
-           <div class="smart-setting-btn" onclick="openBasicSetting('${item.key}', event)">⚙️</div>
+           <div class="row-tags">
+              ${tagsHtml}
+              ${aiBtnHtml}
+              ${settingBtnHtml}
+           </div>
         `;
+        
+        // 点击行本身触发填充
         row.onclick = (e) => { 
-           if(e.target.classList.contains('smart-setting-btn')) return;
+           // 只有点击空白处或文字才触发，点击按钮不触发
+           if(e.target.classList.contains('tag-btn') || 
+              e.target.classList.contains('btn-to-ai') || 
+              e.target.classList.contains('smart-setting-btn')) return;
+           
            runBasicFill(item.key); 
         };
         container.appendChild(row);
       });
+    }
 
-      // 2. 自定义类型
+    // 渲染 Tab 3: 自定义字段 (仅显示用户添加的)
+    function renderCustomList() {
+      const container = document.getElementById('smartCustomList');
+      const emptyState = document.getElementById('customEmptyState');
+      if (!container) return;
+      
+      // 清空列表区域 (保留 emptyState dom)
+      // 简单做法：先把 innerHTML 清空，再根据情况加回去
+      container.innerHTML = '';
+      container.appendChild(emptyState);
+
+      if (!customDataLists || customDataLists.length === 0) {
+          emptyState.style.display = 'flex';
+          return;
+      } else {
+          emptyState.style.display = 'none';
+      }
+
       customDataLists.forEach((item, index) => {
         const row = document.createElement('div');
         row.className = 'smart-row';
         row.innerHTML = `
-           <div class="smart-label">${item.title} <span class="tag-custom">自定义</span></div>
-           <div class="smart-setting-btn" onclick="deleteCustomList(${index}, event)">🗑️</div>
+           <div class="smart-label">${item.title}</div>
+           <div class="row-tags">
+              <span class="tag-btn" style="background:#fffbe6; color:#d48806;">${item.list.length}条</span>
+              <div class="smart-setting-btn" onclick="editCustomList(${index}, event)">✏️</div>
+              <div class="smart-setting-btn" onclick="deleteCustomList(${index}, event)">🗑️</div>
+           </div>
         `;
         row.onclick = (e) => {
            if(e.target.classList.contains('smart-setting-btn')) return;
@@ -5554,6 +5820,52 @@
         };
         container.appendChild(row);
       });
+    }
+    
+    // 1. 切换标签状态 (多选)
+    function toggleTag(key, val, el, e) {
+        e.stopPropagation(); // 阻止触发填充
+        
+        const list = activeTagsMap[key] || [];
+        const idx = list.indexOf(val);
+        
+        if (idx > -1) {
+            list.splice(idx, 1); // 取消选中
+            el.classList.remove('active');
+        } else {
+            list.push(val); // 选中
+            el.classList.add('active');
+        }
+        activeTagsMap[key] = list;
+    }
+
+    // 2. 快捷跳转到 AI 并填入提示词
+    function jumpToAI(key, label, e) {
+        e.stopPropagation();
+        switchSmartTab('ai');
+        
+        // 1. 获取选中的 tags 对象数组 [{l:'中文', v:'cn'}, ...]
+        const config = basicDataTypes.find(t => t.key === key);
+        const activeVals = activeTagsMap[key] || [];
+        
+        // 2. 找到对应的中文 label
+        const activeLabels = [];
+        if (config.tags) {
+            config.tags.forEach(t => {
+                if (activeVals.includes(t.v)) activeLabels.push(t.l);
+            });
+        }
+
+        // 3. 构建提示词
+        let prompt = `生成${label}`;
+        if (activeLabels.length > 0) {
+            prompt += `，要求：${activeLabels.join('、')}`;
+        }
+        
+        // 4. 特殊处理：如果没有任何要求，且本来就没tag，或者没选tag，就不加冒号
+        const promptBox = document.getElementById('aiPrompt');
+        promptBox.value = prompt;
+        promptBox.focus();
     }
 
     // --- 填充执行逻辑 ---
@@ -5566,7 +5878,12 @@
       // 这里的逻辑稍微绕一下，通过 postMsg('get-selection-count')
       // 然后在 onmessage 里处理生成逻辑。
       // 为简化代码，我们先把“当前要执行的任务”存起来
-      window.pendingFillTask = { type: 'basic', key: key };
+      window.pendingFillTask = { 
+        type: 'basic', 
+        key: key,
+        // 🔥 将当前选中的标签传递给后端/生成器
+        tags: activeTagsMap[key] || [] 
+      };
       postMsg('get-selection-count');
     }
 
@@ -5574,6 +5891,7 @@
       window.pendingFillTask = { type: 'custom', index: index };
       postMsg('get-selection-count');
     }
+    
     
     function applyAiFill(dist) {
       const text = document.getElementById('aiResultArea').innerText;
@@ -5612,7 +5930,9 @@
       if (task.type === 'basic') {
         const generator = basicDataTypes.find(t => t.key === task.key);
         if (generator) {
-          for(let i=0; i<count; i++) list.push(generator.gen());
+          for(let i=0; i<count; i++) {
+              list.push(generator.gen(task.tags));
+          }
         }
       } else if (task.type === 'custom') {
         const customData = customDataLists[task.index];
@@ -5637,6 +5957,7 @@
        const ming = "伟刚勇毅俊峰强军平保东文辉力明永健世广志义兴良海山仁波宁".split('');
        return xing[Math.floor(Math.random()*xing.length)] + ming[Math.floor(Math.random()*ming.length)];
     }
+    function getRandomNameEN() { return ["Alex", "John", "Alice", "David"][Math.floor(Math.random()*4)]; }
     function getRandomAddress() {
        return ["北京市朝阳区建国路88号", "上海市浦东新区陆家嘴环路1号", "深圳市南山区科技园南区"][Math.floor(Math.random()*3)];
     }
@@ -5668,23 +5989,118 @@
       document.querySelectorAll('.smart-tab-item').forEach(el => el.classList.remove('active'));
       document.querySelector(`[data-key="sf_tab_${tab}"]`).classList.add('active');
       document.querySelectorAll('.smart-content').forEach(el => el.classList.remove('active'));
-      document.getElementById(tab === 'basic' ? 'smartBasic' : 'smartAI').classList.add('active');
+      if (tab === 'basic') document.getElementById('smartBasic').classList.add('active');
+      if (tab === 'ai') document.getElementById('smartAI').classList.add('active');
+      if (tab === 'custom') {
+          document.getElementById('smartCustom').classList.add('active');
+          renderCustomList(); // 每次切换进来刷新一下，确保数据最新
+      }
     }
     
     // --- 基础设置页逻辑 ---
     function openBasicSetting(key, e) {
       e.stopPropagation();
-      openSubPage('pageBasicSetting');
-      const title = basicDataTypes.find(t => t.key === key).label;
-      document.getElementById('basicSettingTitle').innerText = title + " 设置";
+      currentSettingKey = key;
+      const config = basicDataTypes.find(t => t.key === key);
+      document.getElementById('basicSettingTitle').innerText = config.label + " 设置";
       
-      // 仅 Date 支持设置演示
-      if (key === 'date') {
-        document.getElementById('settingDateOption').style.display = 'block';
-        document.getElementById('dateFormatSel').value = dateFormat;
-      } else {
-        document.getElementById('settingDateOption').style.display = 'none';
+      const container = document.getElementById('settingFormContainer');
+      container.innerHTML = '';
+      
+      // 1. 数字设置
+      if (key === 'number') {
+          const s = smartSettings.number;
+          container.innerHTML = `
+            <div class="config-group">
+                <label class="config-label">数值范围</label>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <input type="number" id="numMin" class="search-box" value="${s.min}" style="flex:1">
+                    <span>-</span>
+                    <input type="number" id="numMax" class="search-box" value="${s.max}" style="flex:1">
+                </div>
+            </div>
+            <div class="config-group">
+                <label class="config-label">小数位数</label>
+                <input type="number" id="numDec" class="search-box" value="${s.decimals}" min="0" max="5">
+            </div>
+            <label class="checkbox-row" style="margin-top:10px;">
+                <input type="checkbox" id="numThous" ${s.thousands?'checked':''}> 使用千分位分隔符 (1,000)
+            </label>
+          `;
       }
+      
+      // 2.省市区设置
+      else if (key === 'province') {
+          const s = smartSettings.province;
+          container.innerHTML = `
+            <label class="checkbox-row"><input type="checkbox" id="showProv" ${s.showProv?'checked':''}> 显示省份</label>
+            <label class="checkbox-row"><input type="checkbox" id="showCity" ${s.showCity?'checked':''}> 显示城市</label>
+            <label class="checkbox-row"><input type="checkbox" id="showArea" ${s.showArea?'checked':''}> 显示区县</label>
+          `;
+      }
+      
+      // 3. 日期设置 (增强版)
+      else if (key === 'date') {
+          const val = smartSettings.date.format;
+          container.innerHTML = `
+            <label class="config-label">日期格式</label>
+            <select id="dateFormatSel" class="search-box">
+                <option value="YYYY-MM-DD" ${val=='YYYY-MM-DD'?'selected':''}>2023-10-01 (标准)</option>
+                <option value="YYYY/MM/DD" ${val=='YYYY/MM/DD'?'selected':''}>2023/10/01 (斜杠)</option>
+                <option value="YYYY.MM.DD" ${val=='YYYY.MM.DD'?'selected':''}>2023.10.01 (点)</option>
+                <option value="YYYY年MM月DD日" ${val=='YYYY年MM月DD日'?'selected':''}>2023年10月1日 (中文)</option>
+                <option value="YYYY-MM" ${val=='YYYY-MM'?'selected':''}>2023-10 (年月)</option>
+                <option value="MM-DD" ${val=='MM-DD'?'selected':''}>10-01 (月日)</option>
+            </select>
+          `;
+      }
+      
+      // 4. 时间设置
+      else if (key === 'time') {
+          const val = smartSettings.time.format;
+          container.innerHTML = `
+            <label class="config-label">时间格式</label>
+            <select id="timeFormatSel" class="search-box">
+                <option value="HH:mm:ss" ${val=='HH:mm:ss'?'selected':''}>05:05:05 (时分秒)</option>
+                <option value="HH:mm" ${val=='HH:mm'?'selected':''}>05:05 (时分)</option>
+                <option value="mm:ss" ${val=='mm:ss'?'selected':''}>05:05 (分秒)</option>
+                <option value="H:m:s" ${val=='H:m:s'?'selected':''}>5:5:5 (短时分秒)</option>
+                <option value="cn_long" ${val=='cn_long'?'selected':''}>05时05分05秒</option>
+            </select>
+          `;
+      }
+      
+      openSubPage('pageBasicSetting');
+    }
+
+    function saveCurrentSettings() {
+        const key = currentSettingKey;
+        
+        if (key === 'number') {
+            smartSettings.number = {
+                min: Number(document.getElementById('numMin').value),
+                max: Number(document.getElementById('numMax').value),
+                decimals: Number(document.getElementById('numDec').value),
+                thousands: document.getElementById('numThous').checked
+            };
+        }
+        else if (key === 'province') {
+            smartSettings.province = {
+                showProv: document.getElementById('showProv').checked,
+                showCity: document.getElementById('showCity').checked,
+                showArea: document.getElementById('showArea').checked
+            };
+        }
+        else if (key === 'date') {
+            smartSettings.date.format = document.getElementById('dateFormatSel').value;
+        }
+        else if (key === 'time') {
+            smartSettings.time.format = document.getElementById('timeFormatSel').value;
+        }
+        
+        // 持久化存储
+        postMsg('save-storage', { key: 'smart_advanced_settings', value: smartSettings, notify: true });
+        closeSubPage('pageBasicSetting');
     }
     
     function saveBasicSettings(type) {
@@ -5695,6 +6111,29 @@
        closeSubPage('pageBasicSetting');
     }
 
+    let currentEditingIndex = -1; // 记录当前编辑的索引，-1 表示新增
+
+    function editCustomList(index, e) {
+        e.stopPropagation();
+        currentEditingIndex = index;
+        const item = customDataLists[index];
+        
+        document.getElementById('customTitle').value = item.title;
+        document.getElementById('customContent').value = item.list.join('\n');
+        
+        // 修改标题和按钮文字
+        document.querySelector('#pageAddCustom .sub-header span:last-child').innerText = "编辑自定义数据";
+        openSubPage('pageAddCustom');
+    }
+
+    function openAddCustomPage() {
+        currentEditingIndex = -1;
+        document.getElementById('customTitle').value = '';
+        document.getElementById('customContent').value = '';
+        document.querySelector('#pageAddCustom .sub-header span:last-child').innerText = "添加自定义数据";
+        openSubPage('pageAddCustom');
+    }
+    
     // --- 自定义列表逻辑 ---
     function saveCustomList() {
        const title = document.getElementById('customTitle').value;
@@ -5702,14 +6141,23 @@
        if(!title || !content) return alert("请填写标题和内容");
        
        const list = content.split('\n').filter(s => s.trim());
-       customDataLists.push({ title, list });
+       
+       if (currentEditingIndex >= 0) {
+           // 编辑模式
+           customDataLists[currentEditingIndex] = { title, list };
+       } else {
+           // 新增模式
+           customDataLists.push({ title, list });
+       }
        
        postMsg('save-storage', { key: 'smart_custom_lists', value: customDataLists, notify: true });
-       renderBasicList();
+       renderCustomList();
        closeSubPage('pageAddCustom');
        // 清空
-       document.getElementById('customTitle').value = '';
-       document.getElementById('customContent').value = '';
+       // document.getElementById('customTitle').value = '';// 清空标题
+       // document.getElementById('customContent').value = '';
+       // renderCustomList();
+       // switchSmartTab('custom');
     }
     
     function deleteCustomList(index, e) {
@@ -5717,10 +6165,70 @@
        if(confirm("确定删除这个列表吗？")) {
          customDataLists.splice(index, 1);
          postMsg('save-storage', { key: 'smart_custom_lists', value: customDataLists });
-         renderBasicList();
+         renderCustomList();
        }
     }
 
+    // --- 1. 清空所有自定义列表 ---
+    function clearAllCustomLists() {
+        if (customDataLists.length === 0) return alert("列表已经是空的了");
+        if (confirm("⚠️ 确定要清空所有自定义列表吗？此操作不可恢复！")) {
+            customDataLists = [];
+            postMsg('save-storage', { key: 'smart_custom_lists', value: customDataLists, notify: true });
+            renderCustomList();
+        }
+    }
+
+    // --- 2. 导出 JSON ---
+    function exportCustomLists() {
+        if (customDataLists.length === 0) return alert("没有数据可导出");
+        
+        const dataStr = JSON.stringify(customDataLists, null, 2);
+        const blob = new Blob([dataStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "SmartFill_Custom_Lists.json";
+        document.body.appendChild(a); // 兼容火狐
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // --- 3. 导入 JSON ---
+    function importCustomLists(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const json = JSON.parse(e.target.result);
+                
+                // 简单的格式校验
+                if (!Array.isArray(json)) throw new Error("文件格式错误：必须是数组");
+                if (json.length > 0 && (!json[0].title || !json[0].list)) throw new Error("数据结构不符");
+
+                if (confirm(`检测到 ${json.length} 条数据。\n是否覆盖现有列表？\n\n点击【确定】覆盖，点击【取消】追加。`)) {
+                    customDataLists = json; // 覆盖
+                } else {
+                    customDataLists = customDataLists.concat(json); // 追加
+                }
+
+                postMsg('save-storage', { key: 'smart_custom_lists', value: customDataLists, notify: true });
+                renderCustomList();
+                alert("导入成功！");
+                
+            } catch (err) {
+                alert("导入失败：" + err.message);
+            }
+            // 清空 input，允许重复导入同一文件
+            input.value = '';
+        };
+        reader.readAsText(file);
+    }
+    
     // --- AI 逻辑 ---
     // 补全后的模型配置字典 (OpenAI 兼容格式)
     const aiProviders = {
@@ -5796,24 +6304,67 @@
        postMsg('save-storage', { key: 'smart_ai_config', value: aiConfig, notify: true });
        
        // 显示成功后 3s 返回
-       const btn = event.target;
-       const originalText = btn.innerText;
-       btn.innerText = "配置成功 (3s)";
+       const btn = event.target; // 获取点击的按钮
+       const originalText = "保存配置"; // 记录原始文字
+       
+       btn.innerText = "配置成功"; // 1. 去掉 (3s) 文字
+       btn.disabled = true;        // 2. 禁用按钮防止重复点击
+       
+       // 3. 1.5秒后自动返回 (比3秒更流畅)
        setTimeout(() => {
           btn.innerText = originalText;
+          btn.disabled = false;
           closeSubPage('pageAiConfig');
-       }, 3000);
+       }, 1500);
+    }
+
+    let aiAbortController = null; // 全局控制器
+    
+    // --- 辅助函数：强制重置 UI 状态 ---
+    function resetAiInterface() {
+        const btn = document.getElementById('btnAiGen');
+        if (!btn) return;
+
+        btn.innerText = "生成内容";
+        btn.style.backgroundColor = ""; // 恢复默认颜色
+        btn.style.borderColor = "";
+        btn.disabled = false;
+        
+        // 恢复清空按钮
+        const clearBtn = document.querySelector('button[title="清空"]');
+        if (clearBtn) clearBtn.disabled = false;
+
+        // 关键：清空控制器
+        aiAbortController = null;
     }
 
     async function runAiGenerate() {
+       const btn = document.getElementById('btnAiGen');
+       
+       // --- 1. 如果正在运行，则执行【停止】逻辑 ---
+       if (aiAbortController) {
+           aiAbortController.abort(); // 发送中断信号
+           resetAiInterface();        // 立即重置 UI
+           return;                    // 退出函数
+       }
+       
        const prompt = document.getElementById('aiPrompt').value;
        if(!prompt) return alert("请输入提示词");
        if(!aiConfig.key) return alert("请先配置 API Key");
+
+      
+       // UI 切换为【停止】状态
+       btn.innerText = "生成中...点击停止";
+       btn.style.backgroundColor = "#ff4d4f"; // 红色警告色
+       btn.style.borderColor = "#ff4d4f";
+       // 禁用清空按钮防止冲突
+       document.querySelector('button[title="清空"]').disabled = true;
        
-       const btn = document.getElementById('btnAiGen');
-       btn.innerText = "Running...";
-       btn.disabled = true;
-       
+       // 初始化控制器
+       aiAbortController = new AbortController();
+       const signal = aiAbortController.signal;
+
+
        // 1. 获取思考模式开关状态 - 【修改1：默认关闭深度推理】
        // 开关未找到/未勾选 → 均为false（禁用推理），勾选后为true（开启推理）
        const thinkingToggle = document.getElementById('aiThinkingToggle');
@@ -5826,7 +6377,12 @@
           systemPrompt += " 严格禁止任何逻辑推理、分析、推导和延伸思考，仅对输入做直接响应，按要求直接输出结果，无需任何额外解释。";
        }
        
-       const userPrompt = `${prompt}。如果未指定数量，默认生成20条。格式要求：纯文本，无序号。`;
+       const userPrompt = `${prompt}。如果未指定数量，默认生成20条。
+【严格格式要求】：
+1. 只输出内容本身，不要带任何前缀（如 "Subject:", "Title:", "1." 等）。
+2. 不要输出任何解释性文字。
+3. 纯文本格式，每行一条。
+4. 严禁使用 Markdown 格式。`;
 
        // 3. 构建请求体
        const requestBody = {
@@ -5880,7 +6436,8 @@
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${aiConfig.key}`
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify(requestBody),
+            signal: signal // 绑定信号
          });
          
          const data = await res.json();
@@ -5889,22 +6446,38 @@
          let content = data.choices[0].message.content;
          
          // 5. 【核心修复】强力清洗数据 (Regex Cleaning)
-         // A. 去除 Markdown 加粗 (**text**)
-         content = content.replace(/\*\*/g, '');
-         // B. 去除行首的序号 (1. 2. - • )
-         content = content.replace(/^[\s\t]*(\d+\.|-|•)\s*/gm, '');
-         // C. 去除可能的标题行 (以冒号结尾的短句，通常是"以下是...:")
-         content = content.replace(/^.{0,20}[:：]\s*$/gm, '');
-         // D. 去除空行
-         content = content.split('\n').filter(line => line.trim() !== '').join('\n');
+         // 正则清洗
+         content = content
+            // 1. 去除 Markdown 加粗 (**text**)
+            .replace(/\*\*/g, '')
+            // 2. 去除行首的序号 (1. 2. - • )
+            .replace(/^[\s\t]*(\d+\.|-|•)\s*/gm, '')
+            // 3. 去除常见的键值对前缀 (Subject:, Title:, 姓名: 等)
+            .replace(/^[\s\t]*[^:\n]{1,20}[:：]\s*/gm, '')
+            // 4. 去除引用符号 (>)
+            .replace(/^>\s*/gm, '')
+            // 5. 去除空行
+            .split('\n').filter(l => l.trim() !== '').join('\n');
 
          document.getElementById('aiResultArea').innerText = content;
          
        } catch(e) {
-         alert("AI 请求失败: " + e.message);
+         if (e.name === 'AbortError') {
+             // 用户主动取消，不弹窗报错
+             console.log('用户取消生成');
+         } else {
+             alert("AI 请求失败: " + e.message);
+         }
        } finally {
-         btn.innerText = "生成内容";
-         btn.disabled = false;
+         // 3. 【最终清理】
+         // 无论成功还是失败，只要这个请求结束了，且当前控制器还是它自己，就重置 UI
+         // (防止极端情况下，用户快速点击停止后又点了开始，导致新请求被旧的 finally 覆盖)
+         if (aiAbortController && aiAbortController.signal === signal) {
+             resetAiInterface();
+         } else if (btn.innerText.includes("Stop")) {
+             // 兜底：如果按钮还卡在Stop状态，强制重置
+             resetAiInterface();
+         }
        }
     }
 
