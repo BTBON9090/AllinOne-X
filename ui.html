@@ -2111,7 +2111,12 @@
                <div class="ai-actions">
                  <button class="btn-ai-action" onclick="applyAiFill('order')" data-key="sf_btn_seq">⬇ 顺序录入</button>
                  <button class="btn-ai-action" onclick="applyAiFill('random')" data-key="sf_btn_rnd">🔀 随机录入</button>
-                 <button class="btn-ai-action" onclick="saveAiResultAsCustom()" style="grid-column: span 2;" data-key="sf_btn_save_list">💾 存为自定义列表</button>
+                 <button class="btn-ai-action" onclick="saveAiResultAsCustom('new')" title="保存为新的列表" data-key="sf_btn_new_list">
+                    💾 存为新列表
+                 </button>
+                 <button class="btn-ai-action" onclick="saveAiResultAsCustom('append')" title="追加到已有列表" data-key="sf_btn_append_list">
+                    ➕ 追加到列表
+                 </button>
                </div>
              </div>
           </div>
@@ -2121,7 +2126,7 @@
             <div class="smart-list-container" id="smartCustomList">
               <!-- JS 动态渲染自定义列表 -->
               <div class="empty-state-refiner" id="customEmptyState" style="display:none;">
-                  <div class="es-text">暂无自定义数据<br>请在“AI生成”中保存或点击下方添加</div>
+                  <div class="es-text" data-key="sf_empty_custom">暂无自定义数据<br>请在“AI生成”中保存或点击下方添加</div>
               </div>
             </div>
             <div class="smart-footer" style="display: flex; gap: 10px;">
@@ -2136,7 +2141,7 @@
               <input type="file" id="importFileBtn" accept=".json" style="display: none;" onchange="importCustomLists(this)">
 
               <!-- 右侧：添加按钮 -->
-              <button class="primary-btn" style="flex: 1;" onclick="openAddCustomPage()">+ 添加新列表</button>
+              <button class="primary-btn" style="flex: 1;" onclick="openAddCustomPage()" data-key="sf_btn_add_new">+ 添加新列表</button>
             </div>
           </div>
 
@@ -2162,7 +2167,7 @@
             <div style="padding:16px; display:flex; flex-direction:column; gap:12px;">
               
               <div>
-                <label class="config-label">服务商</label>
+                <label class="config-label" data-key="sf_lbl_provider">服务商</label>
                 <select id="aiProvider" class="search-box" onchange="updateAiConfigDefaults()">
                   <!-- 默认选中 GLM -->
                   <option value="glm" selected>智谱 GLM (默认)</option>
@@ -2182,12 +2187,12 @@
               </div>
 
               <div>
-                <label class="config-label">API 地址 (Base URL)</label>
+                <label class="config-label" data-key="sf_lbl_baseurl">API 地址 (Base URL)</label>
                 <input type="text" id="aiBaseUrl" class="search-box">
               </div>
 
               <div>
-                <label class="config-label">模型名称 (Model)</label>
+                <label class="config-label" data-key="sf_lbl_model">模型名称 (Model)</label>
                 <input type="text" id="aiModelName" class="search-box">
               </div>
 
@@ -2196,7 +2201,7 @@
                 <input type="password" id="aiKey" class="search-box" placeholder="sk-...">
               </div>
 
-              <button class="primary-btn" onclick="saveAiConfig()" style="margin-top:10px;">保存配置</button>
+              <button class="primary-btn" onclick="saveAiConfig()" style="margin-top:10px;" data-key="sf_btn_save_cfg">保存配置</button>
             </div>
           </div>
           
@@ -2210,8 +2215,8 @@
                <!-- 动态插入表单 -->
             </div>
             <div style="padding:16px; border-top:1px solid #eee; display:flex; gap:10px;">
-                <button class="primary-btn" onclick="saveCurrentSettings()" style="flex:1;">保存配置</button>
-                <button class="btn-ai-action" onclick="saveAndFill()" style="flex:1; background:#e6f7ff; color:#1890FF; border-color:#1890FF;">保存并填充</button>
+                <button class="primary-btn" onclick="saveCurrentSettings()" style="flex:1;" data-key="sf_btn_save_cfg">保存配置</button>
+                <button class="btn-ai-action" onclick="saveAndFill()" style="flex:1; background:#e6f7ff; color:#1890FF; border-color:#1890FF;" data-key="sf_btn_save_fill">保存并填充</button>
             </div>
           </div>
 
@@ -2231,6 +2236,38 @@
     </div>
   </div>
 
+  <!-- 自定义通用弹窗 (用于保存/追加) -->
+  <div id="saveDialog" class="sub-page" style="height: auto; max-height: 80%; bottom: 0; top: auto; border-radius: 12px 12px 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,0.15);">
+    <div class="sub-header">
+      <span id="saveDialogTitle" data-key="sf_dialog_title">保存列表</span>
+      <span class="btn-back-sub" onclick="closeSaveDialog()" style="margin-left: auto;">✕</span>
+    </div>
+    <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+      
+      <!-- 模式 A: 新建 -->
+      <div id="saveModeNew">
+        <label class="config-label" style="margin-bottom: 8px; display: block;" data-key="sf_mode_new">列表标题</label>
+        <input type="text" id="saveNewTitle" class="search-box" placeholder="请输入标题..." data-key="sf_ph_dialog_title">
+      </div>
+
+      <!-- 模式 B: 追加 -->
+      <div id="saveModeAppend" style="display: none;">
+        <label class="config-label" style="margin-bottom: 8px; display: block;" data-key="sf_mode_append">选择目标列表</label>
+        <select id="saveTargetSelect" class="search-box">
+           <!-- JS 动态填充 -->
+        </select>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button class="btn-ai-action" onclick="closeSaveDialog()" style="flex: 1;" data-key="sf_btn_cancel">取消</button>
+        <button class="primary-btn" onclick="confirmSaveDialog()" style="flex: 1;" data-key="sf_btn_confirm">确定</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 遮罩层 (用于点击空白关闭) -->
+  <div id="dialogOverlay" onclick="closeSaveDialog()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 49; display: none;"></div>
+
   <script>
     // =============================================================================
     // 1. 全局变量与配置 (Globals)
@@ -2243,6 +2280,7 @@
         nav_smart: "智能填充",
         sf_tab_basic: "基础填充",
         sf_tab_ai: "AI 生成",
+        sf_tab_custom: "自定义字段",
         sf_prefix: "加为前缀",
         sf_suffix: "加为后缀",
         sf_btn_add_custom: "+ 自定义",
@@ -2253,6 +2291,67 @@
         sf_btn_save_list: "💾 存为自定义列表",
         sf_sub_add_title: "添加自定义数据",
         sf_sub_cfg_title: "AI 模型配置",
+        // ... 原有 Smart Fill 翻译 ...
+      
+      // 新增翻译 (Smart Fill Advanced)
+      sf_tag_cn: "中文",
+      sf_tag_en: "英文",
+      sf_tag_same: "同地区",
+      sf_tag_zip: "带邮编",
+      sf_tag_male: "男",
+      sf_tag_female: "女",
+      sf_tag_comma: "千分号",
+      sf_tag_year: "年",
+      sf_tag_month: "月",
+      sf_tag_day: "日",
+      sf_tag_ltd: "有限责任",
+      sf_tag_grp: "集团",
+      sf_tag_noproto: "去协议头",
+      sf_tag_long: "长路径",
+      sf_tag_port: "含端口",
+      sf_tag_prov: "省",
+      sf_tag_city: "市",
+      sf_tag_area: "区",
+      
+      sf_send_ai: "发送到 AI",
+      sf_btn_save_cfg: "保存配置",
+      sf_btn_save_fill: "保存并填充",
+      
+      sf_ph_title: "标题 (如: 部门列表)",
+      sf_ph_content: "输入内容，每行一个...",
+      sf_btn_save: "保存",
+      
+      sf_lbl_provider: "服务商",
+      sf_lbl_baseurl: "API 地址 (Base URL)",
+      sf_lbl_model: "模型名称 (Model)",
+      sf_lbl_key: "API Key",
+      
+      sf_cfg_range: "数值范围 (最小值 - 最大值)",
+      sf_cfg_time_range: "时间范围",
+      sf_cfg_date_range: "日期范围",
+
+      sf_cfg_time_help: "* 仅支持设置时分，秒数随机",
+      sf_cfg_decimal: "小数位数 (0为整数)",
+      sf_cfg_thous: "使用千分位分隔符 (1,000)",
+      sf_cfg_sort: "排序方式",
+      sf_sort_rand: "随机",
+      sf_sort_asc: "升序",
+      sf_sort_desc: "降序",
+      
+      sf_cfg_date_fmt: "日期格式",
+      sf_cfg_time_fmt: "时间格式",
+      
+      sf_dialog_title: "保存列表",
+      sf_mode_new: "列表标题",
+      sf_mode_append: "选择目标列表",
+      sf_btn_cancel: "取消",
+      sf_btn_confirm: "确定",
+      sf_ph_dialog_title: "请输入标题...",
+      
+      sf_btn_new_list: "💾 存为新列表",
+      sf_btn_append_list: "➕ 追加到列表",
+      sf_btn_add_new: "+ 添加新列表",
+      sf_empty_custom: "暂无自定义数据\n请在“AI生成”中保存或点击下方添加",
         
         // =========================================
         // 1. 导航与通用 (Navigation & General)
@@ -2545,6 +2644,7 @@
         nav_smart: "Smart Fill",
         sf_tab_basic: "Basic",
         sf_tab_ai: "AI Gen",
+        sf_tab_custom: "Custom Fields",
         sf_prefix: "Prefix",
         sf_suffix: "Suffix",
         sf_btn_add_custom: "+ Custom",
@@ -2555,6 +2655,67 @@
         sf_btn_save_list: "💾 Save as List",
         sf_sub_add_title: "Add Custom Data",
         sf_sub_cfg_title: "AI Config",
+        // ... Existing Smart Fill translations ...
+      
+      // New Translations (Smart Fill Advanced)
+      sf_tag_cn: "CN",
+      sf_tag_en: "EN",
+      sf_tag_same: "Same Region",
+      sf_tag_zip: "Zip Code",
+      sf_tag_male: "Male",
+      sf_tag_female: "Female",
+      sf_tag_comma: "Comma",
+      sf_tag_year: "Year",
+      sf_tag_month: "Month",
+      sf_tag_day: "Day",
+      sf_tag_ltd: "Ltd.",
+      sf_tag_grp: "Group",
+      sf_tag_noproto: "No Protocol",
+      sf_tag_long: "Long Path",
+      sf_tag_port: "Port",
+      sf_tag_prov: "Prov",
+      sf_tag_city: "City",
+      sf_tag_area: "Dist",
+      
+      sf_send_ai: "Send to AI",
+      sf_btn_save_cfg: "Save Config",
+      sf_btn_save_fill: "Save & Fill",
+      
+      sf_ph_title: "Title (e.g. Departments)",
+      sf_ph_content: "Enter content, one per line...",
+      sf_btn_save: "Save",
+      
+      sf_lbl_provider: "Provider",
+      sf_lbl_baseurl: "API Address (Base URL)",
+      sf_lbl_model: "Model Name",
+      sf_lbl_key: "API Key",
+      
+      sf_cfg_range: "Range (Min - Max)",
+      sf_cfg_time_range: "Time Range",
+      sf_cfg_date_range: "Date Range",
+
+      sf_cfg_time_help: "Format: HH:mm:ss",
+      sf_cfg_decimal: "Decimals (0 for Integer)",
+      sf_cfg_thous: "Thousands Separator (1,000)",
+      sf_cfg_sort: "Sort Order",
+      sf_sort_rand: "Random",
+      sf_sort_asc: "Ascending",
+      sf_sort_desc: "Descending",
+      
+      sf_cfg_date_fmt: "Date Format",
+      sf_cfg_time_fmt: "Time Format",
+      
+      sf_dialog_title: "Save List",
+      sf_mode_new: "List Title",
+      sf_mode_append: "Select Target List",
+      sf_btn_cancel: "Cancel",
+      sf_btn_confirm: "Confirm",
+      sf_ph_dialog_title: "Enter title...",
+      
+      sf_btn_new_list: "💾 New List",
+      sf_btn_append_list: "➕ Append",
+      sf_btn_add_new: "+ Add New List",
+      sf_empty_custom: "No custom data\nSave from AI or click Add below",
         
         // =========================================
         // 1. Navigation & General
@@ -6301,7 +6462,7 @@
         // 构建“发送到AI”按钮
         let aiBtnHtml = '';
         if (item.allowAI) {
-            aiBtnHtml = `<span class="btn-to-ai" onclick="jumpToAI('${item.key}', '${item.label}', event)">发送到 AI</span>`;
+            aiBtnHtml = `<span class="btn-to-ai" onclick="jumpToAI('${item.key}', '${item.label}', event)">${i18n[curLang].sf_send_ai}</span>`;
         }
 
         // 构建设置按钮
@@ -6404,14 +6565,14 @@
         }
 
         // 3. 构建提示词
-        let prompt = `生成${label}`;
+        let promptText = `生成${label}`;
         if (activeLabels.length > 0) {
-            prompt += `，要求：${activeLabels.join('、')}`;
+            promptText += `，要求：${activeLabels.join('、')}`;
         }
         
         // 4. 特殊处理：如果没有任何要求，且本来就没tag，或者没选tag，就不加冒号
         const promptBox = document.getElementById('aiPrompt');
-        promptBox.value = prompt;
+        promptBox.value = promptText;
         promptBox.focus();
     }
 
@@ -6627,7 +6788,7 @@
           const s = smartSettings.number;
           container.innerHTML = `
             <div class="config-group">
-                <label class="config-label">数值范围 (最小值 - 最大值)</label>
+                <label class="config-label">${i18n[curLang].sf_cfg_range}</label>
                 <div style="display:flex; gap:8px; align-items:center;">
                     <input type="number" id="numMin" class="search-box" value="${s.min}" style="flex:1">
                     <span style="color:#999">-</span>
@@ -6635,17 +6796,17 @@
                 </div>
             </div>
             <div class="config-group" style="margin-top:12px;">
-                <label class="config-label">小数位数 (0为整数)</label>
+                <label class="config-label">${i18n[curLang].sf_cfg_decimal}</label>
                 <input type="number" id="numDec" class="search-box" value="${s.decimals}" min="0" max="5">
             </div>
             <div style="margin-top:12px;">
                  <label class="checkbox-row">
-                    <input type="checkbox" id="numThous" ${s.thousands?'checked':''}> 使用千分位分隔符 (1,000)
+                    <input type="checkbox" id="numThous" ${s.thousands?'checked':''}> ${i18n[curLang].sf_cfg_thous} 
                 </label>
             </div>
             
             <div class="config-group" style="margin-top:16px; border-top:1px dashed #eee; padding-top:12px;">
-                <label class="config-label">排序方式</label>
+                <label class="config-label">${i18n[curLang].sf_cfg_sort}</label>
                 ${renderRadioTags('numSort', [
                     {l:'随机', v:'random'}, {l:'升序 1→9', v:'asc'}, {l:'降序 9→1', v:'desc'}
                 ], s.sort)}
@@ -6664,7 +6825,7 @@
           
           container.innerHTML = `
             <div class="config-group">
-                <label class="config-label">日期范围</label>
+                <label class="config-label">${i18n[curLang].sf_cfg_date_range}</label>
                 <div style="display:flex; gap:8px; align-items:center;">
                     <input type="date" id="dateStart" class="search-box" value="${dStart}" style="flex:1">
                     <span style="color:#999">-</span>
@@ -6673,7 +6834,7 @@
             </div>
           
             <div class="config-group" style="margin-top:16px;">
-                <label class="config-label">日期格式</label>
+                <label class="config-label">${i18n[curLang].sf_cfg_date_fmt}</label>
                 ${renderRadioTags('dateFormat', [
                     {l:'2023-10-01', v:'YYYY-MM-DD'},
                     {l:'2023/10/01', v:'YYYY/MM/DD'},
@@ -6685,9 +6846,9 @@
             </div>
             
             <div class="config-group" style="margin-top:16px;">
-                <label class="config-label">排序方式</label>
+                <label class="config-label">${i18n[curLang].sf_cfg_sort}</label>
                 ${renderRadioTags('dateSort', [
-                    {l:'随机', v:'random'}, {l:'升序 (旧→新)', v:'asc'}, {l:'降序 (新→旧)', v:'desc'}
+                    {l:'随机', v:'random'}, {l:'正序 (old→new)', v:'asc'}, {l:'倒序 (new→old)', v:'desc'}
                 ], s.sort)}
             </div>
           `;
@@ -6701,7 +6862,7 @@
           
           container.innerHTML = `
             <div class="config-group">
-                <label class="config-label">时间范围</label>
+                <label class="config-label">${i18n[curLang].sf_cfg_time_range}</label>
                 <div style="display:flex; gap:8px; align-items:center;">
                     <div style="flex:1">
                          <input type="time" id="timeStart" class="search-box" value="${tStart.substring(0,5)}" step="1" style="width:100%">
@@ -6711,22 +6872,22 @@
                          <input type="time" id="timeEnd" class="search-box" value="${tEnd.substring(0,5)}" step="1" style="width:100%">
                     </div>
                 </div>
-                <div style="font-size:11px; color:#999; margin-top:4px;">* 仅支持设置时分，秒数随机</div>
+                <div style="font-size:11px; color:#999; margin-top:4px;">${i18n[curLang].sf_cfg_time_help}</div>
             </div>
           
             <div class="config-group" style="margin-top:16px;">
-                <label class="config-label">时间格式</label>
+                <label class="config-label">${i18n[curLang].sf_cfg_time_fmt}</label>
                 ${renderRadioTags('timeFormat', [
                     {l:'05:05:05', v:'HH:mm:ss'},
                     {l:'05:05', v:'HH:mm'},
-                    {l:'05:05 (分秒)', v:'mm:ss'},
+                    {l:'05:05 (m:s)', v:'mm:ss'},
                     {l:'5:5:5', v:'H:m:s'},
                     {l:'中文长格式', v:'cn_long'}
                 ], s.format)}
             </div>
             
             <div class="config-group" style="margin-top:16px;">
-                <label class="config-label">排序方式</label>
+                <label class="config-label">${i18n[curLang].sf_cfg_sort}</label>
                 ${renderRadioTags('timeSort', [
                     {l:'随机', v:'random'}, {l:'升序 (早→晚)', v:'asc'}, {l:'降序 (晚→早)', v:'desc'}
                 ], s.sort)}
@@ -6876,9 +7037,9 @@
        closeSubPage('pageAddCustom');
        // 清空
        // document.getElementById('customTitle').value = '';// 清空标题
-       // document.getElementById('customContent').value = '';
-       // renderCustomList();
-       // switchSmartTab('custom');
+       // document.getElementById('customContent').value = '';// 清空内容
+       // renderCustomList();// 刷新列表
+       // switchSmartTab('custom');// 切换到自定义列表页
     }
     
     function deleteCustomList(index, e) {
@@ -7069,8 +7230,8 @@
            return;                    // 退出函数
        }
        
-       const prompt = document.getElementById('aiPrompt').value;
-       if(!prompt) return alert("请输入提示词");
+       const promptText = document.getElementById('aiPrompt').value;
+       if(!promptText) return alert("请输入提示词");
        if(!aiConfig.key) return alert("请先配置 API Key");
 
       
@@ -7098,7 +7259,7 @@
           systemPrompt += " 严格禁止任何逻辑推理、分析、推导和延伸思考，仅对输入做直接响应，按要求直接输出结果，无需任何额外解释。";
        }
        
-       const userPrompt = `${prompt}。如果未指定数量，默认生成20条。
+       const userPrompt = `${promptText}。如果未指定数量，默认生成20条。
 【严格格式要求】：
 1. 只输出内容本身，不要带任何前缀（如 "Subject:", "Title:", "1." 等）。
 2. 不要输出任何解释性文字。
@@ -7210,15 +7371,104 @@
        document.getElementById('aiPrompt').focus();
     }
     
-    function saveAiResultAsCustom() {
+    // --- 新增：保存 AI 结果为自定义列表 ---
+    let currentSaveMode = ''; // 'new' | 'append'
+
+    // 1. 打开保存弹窗
+    function saveAiResultAsCustom(mode) {
        const text = document.getElementById('aiResultArea').innerText;
-       if(!text.trim()) return;
-       const prompt = document.getElementById('aiPrompt').value.substring(0, 10) + "...";
+       if(!text.trim()) return alert("内容为空，无法保存");
        
-       customDataLists.push({ title: "AI: " + prompt, list: text.split('\n').filter(s=>s.trim()) });
-       postMsg('save-storage', { key: 'smart_custom_lists', value: customDataLists, notify: true });
-       renderBasicList();
-       alert("已保存到基础列表");
+       currentSaveMode = mode;
+       const dialog = document.getElementById('saveDialog');
+       const overlay = document.getElementById('dialogOverlay');
+       const titleEl = document.getElementById('saveDialogTitle');
+       const boxNew = document.getElementById('saveModeNew');
+       const boxAppend = document.getElementById('saveModeAppend');
+       
+       // 显示弹窗
+       dialog.classList.add('open');
+       overlay.style.display = 'block';
+
+       if (mode === 'new') {
+           titleEl.innerText = "保存为新列表";
+           boxNew.style.display = 'block';
+           boxAppend.style.display = 'none';
+           
+           // 自动填充默认标题
+           const promptVal = document.getElementById('aiPrompt').value;
+           // ⚠️ 修复变量名冲突：使用 localPrompt 而非 prompt
+           const localPrompt = promptVal.substring(0, 15).replace(/\n/g, ' ') + "...";
+           document.getElementById('saveNewTitle').value = "AI: " + localPrompt;
+           
+       } else {
+           if (customDataLists.length === 0) {
+               closeSaveDialog();
+               return alert("没有已有的列表可追加，请先新建。");
+           }
+           titleEl.innerText = "追加到已有列表";
+           boxNew.style.display = 'none';
+           boxAppend.style.display = 'block';
+           
+           // 填充 Select 选项
+           const select = document.getElementById('saveTargetSelect');
+           select.innerHTML = customDataLists.map((item, idx) => 
+               `<option value="${idx}">${item.title} (现有${item.list.length}条)</option>`
+           ).join('');
+       }
+    }
+
+    // 2. 关闭弹窗
+    function closeSaveDialog() {
+       const dialog = document.getElementById('saveDialog');
+       const overlay = document.getElementById('dialogOverlay');
+       
+       if (dialog) {
+           dialog.classList.remove('open');
+           // 强制加个延时隐藏，配合 CSS transition
+           setTimeout(() => {
+               // 只有当它是弹窗模式时才隐藏 display，避免影响普通 sub-page
+               // 但这里我们用的是 class 控制 transform，所以 remove open 就够了
+           }, 300); 
+       }
+       
+       if (overlay) {
+           overlay.style.display = 'none';
+       }
+    }
+
+    // 3. 确认保存
+    function confirmSaveDialog() {
+       // 1. 先获取数据
+       const text = document.getElementById('aiResultArea').innerText;
+       const list = text.split('\n').filter(s => s.trim());
+       
+       // 2. 执行逻辑
+       if (currentSaveMode === 'new') {
+           const title = document.getElementById('saveNewTitle').value;
+           if (!title) return alert("请输入标题");
+           
+           customDataLists.push({ title: title, list: list });
+           // 先关闭，再弹提示
+           closeSaveDialog(); 
+           setTimeout(() => alert("已保存为新列表"), 100);
+           
+       } else {
+           const idxStr = document.getElementById('saveTargetSelect').value;
+           const index = parseInt(idxStr);
+           
+           if (isNaN(index) || !customDataLists[index]) return alert("目标列表无效");
+           
+           const target = customDataLists[index];
+           target.list = target.list.concat(list);
+           
+           // 先关闭，再弹提示
+           closeSaveDialog();
+           setTimeout(() => alert(`追加成功！"${target.title}" 现有 ${target.list.length} 条数据。`), 100);
+       }
+
+       // 3. 刷新数据
+       saveAndRefreshCustom();
     }
 
     initSmartFill();
