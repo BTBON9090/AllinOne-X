@@ -1347,6 +1347,25 @@
         font-weight: 500;
       }
 
+      /* 单选 Tag 样式 */
+      .radio-tag {
+          font-size: 12px;
+          padding: 4px 12px;
+          background: #f5f5f5;
+          border-radius: 4px;
+          color: #666;
+          cursor: pointer;
+          border: 1px solid transparent;
+          transition: all 0.2s;
+      }
+      .radio-tag.active {
+          background: #e6f7ff;
+          color: var(--primary);
+          border-color: var(--primary);
+          font-weight: 500;
+      }
+      .radio-tag input { display: none; }
+
   </style>
 </head>
 <body>
@@ -2190,8 +2209,9 @@
             <div style="padding:16px; overflow-y:auto; flex:1;" id="settingFormContainer">
                <!-- 动态插入表单 -->
             </div>
-            <div style="padding:16px; border-top:1px solid #eee;">
-                <button class="primary-btn" onclick="saveCurrentSettings()">保存配置</button>
+            <div style="padding:16px; border-top:1px solid #eee; display:flex; gap:10px;">
+                <button class="primary-btn" onclick="saveCurrentSettings()" style="flex:1;">保存配置</button>
+                <button class="btn-ai-action" onclick="saveAndFill()" style="flex:1; background:#e6f7ff; color:#1890FF; border-color:#1890FF;">保存并填充</button>
             </div>
           </div>
 
@@ -5555,8 +5575,137 @@
         return Math.floor(Math.random() * (max - min + 1)) + min; 
     }
 
+    // 精简版中国省市区数据 (按需扩充)
+    const chinaAreaData = {
+        "北京市": { "北京市": ["东城区", "西城区", "朝阳区", "海淀区", "丰台区"] },
+        "上海市": { "上海市": ["黄浦区", "徐汇区", "长宁区", "静安区", "浦东新区"] },
+        "天津市": { "天津市": ["和平区", "河东区", "河西区", "南开区", "滨海新区"] },
+        "重庆市": { "重庆市": ["渝中区", "江北区", "南岸区", "九龙坡区", "沙坪坝区"] },
+        "浙江省": {
+            "杭州市": ["西湖区", "上城区", "拱墅区", "滨江区", "余杭区"],
+            "宁波市": ["海曙区", "江北区", "鄞州区", "镇海区", "北仑区"],
+            "温州市": ["鹿城区", "龙湾区", "瓯海区", "瑞安市", "乐清市"]
+        },
+        "江苏省": {
+            "南京市": ["玄武区", "秦淮区", "建邺区", "鼓楼区", "栖霞区"],
+            "苏州市": ["姑苏区", "虎丘区", "吴中区", "相城区", "吴江区"],
+            "无锡市": ["梁溪区", "滨湖区", "惠山区", "锡山区", "新吴区"]
+        },
+        "广东省": {
+            "广州市": ["天河区", "越秀区", "海珠区", "荔湾区", "白云区"],
+            "深圳市": ["福田区", "罗湖区", "南山区", "宝安区", "龙岗区"],
+            "佛山市": ["禅城区", "南海区", "顺德区", "高明区", "三水区"]
+        },
+        "四川省": {
+            "成都市": ["锦江区", "青羊区", "金牛区", "武侯区", "成华区"],
+            "绵阳市": ["涪城区", "游仙区", "安州区", "江油市", "三台县"],
+            "宜宾市": ["翠屏区", "叙州区", "南溪区", "江安县", "长宁县"]
+        },
+        "山东省": {
+            "济南市": ["历下区", "市中区", "槐荫区", "天桥区", "历城区"],
+            "青岛市": ["市南区", "市北区", "黄岛区", "崂山区", "李沧区"],
+            "烟台市": ["芝罘区", "福山区", "牟平区", "莱山区", "蓬莱区"]
+        },
+        "福建省": {
+            "福州市": ["鼓楼区", "台江区", "仓山区", "马尾区", "晋安区"],
+            "厦门市": ["思明区", "海沧区", "湖里区", "集美区", "同安区"],
+            "泉州市": ["鲤城区", "丰泽区", "洛江区", "泉港区", "晋江市"]
+        },
+        "湖北省": {
+            "武汉市": ["江岸区", "江汉区", "硚口区", "汉阳区", "武昌区"],
+            "宜昌市": ["西陵区", "伍家岗区", "点军区", "猇亭区", "夷陵区"],
+            "襄阳市": ["襄城区", "樊城区", "襄州区", "枣阳市", "宜城市"]
+        },
+        "湖南省": {
+            "长沙市": ["芙蓉区", "天心区", "岳麓区", "开福区", "雨花区"],
+            "株洲市": ["荷塘区", "芦淞区", "石峰区", "天元区", "渌口区"],
+            "湘潭市": ["雨湖区", "岳塘区", "湘乡市", "韶山市", "湘潭县"]
+        },
+        "河南省": {
+            "郑州市": ["中原区", "二七区", "管城回族区", "金水区", "上街区"],
+            "洛阳市": ["老城区", "西工区", "瀍河回族区", "涧西区", "洛龙区"],
+            "新乡市": ["红旗区", "卫滨区", "凤泉区", "牧野区", "卫辉市"]
+        },
+        "河北省": {
+            "石家庄市": ["长安区", "桥西区", "新华区", "井陉矿区", "裕华区"],
+            "唐山市": ["路南区", "路北区", "古冶区", "开平区", "丰南区"],
+            "保定市": ["竞秀区", "莲池区", "满城区", "清苑区", "徐水区"]
+        },
+        "陕西省": {
+            "西安市": ["新城区", "碑林区", "莲湖区", "灞桥区", "未央区"],
+            "宝鸡市": ["渭滨区", "金台区", "陈仓区", "凤翔区", "岐山县"],
+            "咸阳市": ["秦都区", "杨陵区", "渭城区", "三原县", "泾阳县"]
+        },
+        "安徽省": {
+            "合肥市": ["瑶海区", "庐阳区", "蜀山区", "包河区", "肥东县"],
+            "芜湖市": ["镜湖区", "鸠江区", "弋江区", "湾沚区", "繁昌区"],
+            "蚌埠市": ["龙子湖区", "蚌山区", "禹会区", "淮上区", "五河县"]
+        },
+        "辽宁省": {
+            "沈阳市": ["和平区", "沈河区", "大东区", "皇姑区", "铁西区"],
+            "大连市": ["中山区", "西岗区", "沙河口区", "甘井子区", "旅顺口区"],
+            "鞍山市": ["铁东区", "铁西区", "立山区", "千山区", "海城市"]
+        },
+        "黑龙江省": {
+            "哈尔滨市": ["道里区", "南岗区", "道外区", "平房区", "松北区"],
+            "齐齐哈尔市": ["龙沙区", "建华区", "铁锋区", "昂昂溪区", "富拉尔基区"],
+            "大庆市": ["萨尔图区", "龙凤区", "让胡路区", "红岗区", "大同区"]
+        },
+        "吉林省": {
+            "长春市": ["南关区", "宽城区", "朝阳区", "二道区", "绿园区"],
+            "吉林市": ["昌邑区", "龙潭区", "船营区", "丰满区", "永吉县"],
+            "延边州": ["延吉市", "图们市", "敦化市", "珲春市", "龙井市"]
+        },
+        "山西省": {
+            "太原市": ["小店区", "迎泽区", "杏花岭区", "尖草坪区", "万柏林区"],
+            "大同市": ["平城区", "云冈区", "新荣区", "云州区", "阳高县"],
+            "运城市": ["盐湖区", "永济市", "河津市", "临猗县", "万荣县"]
+        },
+        "江西省": {
+            "南昌市": ["东湖区", "西湖区", "青云谱区", "湾里管理局", "青山湖区"],
+            "赣州市": ["章贡区", "南康区", "赣县区", "信丰县", "大余县"],
+            "九江市": ["浔阳区", "濂溪区", "柴桑区", "瑞昌市", "共青城市"]
+        },
+        "云南省": {
+            "昆明市": ["五华区", "盘龙区", "官渡区", "西山区", "呈贡区"],
+            "曲靖市": ["麒麟区", "沾益区", "马龙区", "陆良县", "师宗县"],
+            "大理州": ["大理市", "祥云县", "宾川县", "弥渡县", "永平县"]
+        },
+        "贵州省": {
+            "贵阳市": ["南明区", "云岩区", "花溪区", "乌当区", "白云区"],
+            "遵义市": ["红花岗区", "汇川区", "播州区", "桐梓县", "绥阳县"],
+            "毕节市": ["七星关区", "大方县", "黔西市", "金沙县", "织金县"]
+        },
+        "广西壮族自治区": {
+            "南宁市": ["兴宁区", "青秀区", "江南区", "西乡塘区", "良庆区"],
+            "柳州市": ["城中区", "鱼峰区", "柳南区", "柳北区", "柳江区"],
+            "桂林市": ["秀峰区", "叠彩区", "象山区", "七星区", "雁山区"]
+        },
+        "海南省": {
+            "海口市": ["秀英区", "龙华区", "琼山区", "美兰区"],
+            "三亚市": ["吉阳区", "天涯区", "海棠区", "崖州区"],
+            "儋州市": ["那大镇", "兰洋镇", "和庆镇", "海头镇", "光村镇"]
+        },
+        "甘肃省": {
+            "兰州市": ["城关区", "七里河区", "西固区", "安宁区", "红古区"],
+            "天水市": ["秦州区", "麦积区", "清水县", "秦安县", "甘谷县"],
+            "酒泉市": ["肃州区", "玉门市", "敦煌市", "金塔县", "瓜州县"]
+        },
+        "内蒙古自治区": {
+            "呼和浩特市": ["新城区", "回民区", "玉泉区", "赛罕区", "土默特左旗"],
+            "包头市": ["东河区", "昆都仑区", "青山区", "石拐区", "白云鄂博矿区"],
+            "鄂尔多斯市": ["东胜区", "康巴什区", "达拉特旗", "准格尔旗", "鄂托克前旗"]
+        },
+        "台湾省": {
+            "台北市": ["信义区", "大安区", "中山区", "松山区", "中正区"],
+            "高雄市": ["左营区", "三民区", "苓雅区", "鼓山区", "前镇区"],
+            "新北市": ["板桥区", "新庄区", "中和区", "三重区", "新店区"]
+        }
+    };
+
     // --- 数据源定义 ---
     const basicDataTypes = [
+      // 姓名 (Tag: AI生成)
       { 
         key: 'name', label: '姓名', 
         allowAI: true,
@@ -5572,36 +5721,121 @@
             return getRandomNameCN();
         }
       },
+      
+      // 地址 (Tag: AI生成)
       { 
         key: 'address', label: '地址', 
-        allowAI: true, tags: [ {l:'同地区', v:'same'} ],
+        allowAI: true,
         gen: (tags) => {
-            const cities = ["杭州市", "北京市", "上海市", "深圳市", "成都市"];
-            const areas = ["西湖区", "朝阳区", "浦东新区", "南山区", "武侯区"];
-            const roads = ["建国路", "人民路", "解放路", "科技路"];
-            
-            // 简单模拟：如果选了同地区，我们在内存里存一个 lastCity
-            if (tags.includes('same') && window.lastCity) {
-                // 复用
-            } else {
-                window.lastCity = cities[rand(0, cities.length-1)];
-                window.lastArea = areas[rand(0, areas.length-1)];
-            }
-            return `${window.lastCity}${window.lastArea}${roads[rand(0,3)]}${rand(1,999)}号`;
+            const list = [
+              "北京市朝阳区建国路88号",
+              "上海市浦东新区陆家嘴环路1000号",
+              "广州市天河区珠江新城华夏路10号",
+              "深圳市南山区科技园南区深南大道9988号",
+              "杭州市西湖区文三路199号",
+              "成都市武侯区天府大道北段1700号",
+              "武汉市洪山区珞喻路1037号",
+              "南京市鼓楼区中山路286号",
+              "西安市雁塔区科技路38号",
+              "重庆市渝中区解放碑步行街",
+              "天津市和平区南京路189号",
+              "苏州市工业园区星湖街328号",
+              "长沙市岳麓区麓山南路36号",
+              "青岛市市南区香港中路66号",
+              "大连市中山区人民路88号",
+              "厦门市思明区环岛南路",
+              "郑州市金水区花园路99号",
+              "沈阳市和平区南京北街",
+              "西安市碑林区长安北路111号",
+              "杭州市拱墅区莫干山路666号"
+            ];
+            return list[Math.floor(Math.random()*list.length)];
         } 
       },
-      { key: 'nickname', label: '网名', allowAI: true, gen: () => getRandomNickname() },
+
+      // 省市区 (重构版)
       { 
-        key: 'gender', label: '性别', 
-        tags: [ {l:'男', v:'1'}, {l:'女', v:'0'} ],
+        key: 'province', label: '省市区', 
+        // 定义 Tags
+        tags: [ 
+            {l:'省', v:'prov'}, 
+            {l:'市', v:'city'}, 
+            {l:'区', v:'area'} 
+        ],
         gen: (tags) => {
-            const hasMale = tags.includes('1');
-            const hasFemale = tags.includes('0');
-            if(hasMale && !hasFemale) return '男';
-            if(!hasMale && hasFemale) return '女';
-            return Math.random() > 0.5 ? '男' : '女';
+            // 1. 随机选一个省
+            const provs = Object.keys(chinaAreaData);
+            const p = provs[Math.floor(Math.random() * provs.length)];
+            
+            // 2. 根据省选市
+            const cities = Object.keys(chinaAreaData[p]);
+            const c = cities[Math.floor(Math.random() * cities.length)];
+            
+            // 3. 根据市选区
+            const areas = chinaAreaData[p][c];
+            const a = areas[Math.floor(Math.random() * areas.length)];
+            
+            // 4. 根据 Tags 拼接结果
+            // 如果用户一个都没选，默认全显示
+            const showP = tags.includes('prov') || tags.length === 0;
+            const showC = tags.includes('city') || tags.length === 0;
+            const showA = tags.includes('area') || tags.length === 0;
+            
+            let res = "";
+            if (showP) {
+                // 特殊处理直辖市：北京/上海的省名和市名一样，如果同时显示，可以去重
+                if (p === c && showC) {
+                    res += p; // 只显示一次 "北京市"
+                } else {
+                    res += p;
+                }
+            }
+            
+            if (showC) {
+                // 如果刚刚没显示过市名（非直辖市，或者直辖市但没勾选省），则显示
+                if (!(p === c && showP)) {
+                    res += c;
+                }
+            }
+            
+            if (showA) res += a;
+            
+            return res;
+        } 
+      },
+
+      // 街道 (Street)
+      {
+        key: 'street', label: '街道', allowAI: true,
+        gen: () => {
+            const roadNames = ["人民", "建设", "解放", "和平", "文化", "中山", "朝阳", "胜利", "幸福", "团结"];
+            const suffixes = ["路", "街", "大道", "胡同", "巷"];
+            const road = roadNames[Math.floor(Math.random() * roadNames.length)];
+            const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
+            const num = Math.floor(Math.random() * 900) + 1; // 1-900号
+            return `${road}${suffix}${num}号`;
         }
       },
+
+      // 小区 (Community)
+      {
+        key: 'community', label: '小区', allowAI: true,
+        gen: () => {
+            const prefix = ["阳光", "金色", "锦绣", "绿地", "万科", "恒大", "碧桂园", "东方", "幸福", "理想"];
+            const suffix = ["花园", "家园", "小区", "公馆", "壹号院", "新城", "国际", "华府"];
+            const p = prefix[Math.floor(Math.random() * prefix.length)];
+            const s = suffix[Math.floor(Math.random() * suffix.length)];
+            
+            // 随机生成楼栋房号
+            const build = Math.floor(Math.random() * 20) + 1;
+            const unit = Math.floor(Math.random() * 4) + 1;
+            const room = (Math.floor(Math.random() * 20) + 1) * 100 + Math.floor(Math.random() * 4) + 1;
+            
+            return `${p}${s}${build}栋${unit}单元${room}室`;
+        }
+      },
+      
+      // 数字 (Tag: AI生成)
       { 
         key: 'number', label: '数字', hasSetting: true, 
         gen: (tags) => {
@@ -5618,12 +5852,16 @@
             return val.toString();
         } 
       },
+      
+      // 日期 (格式化)
       { 
         key: 'date', label: '日期', hasSetting: true,
         gen: () => {
             const fmt = smartSettings.date.format;
-            const d = new Date();
-            d.setDate(d.getDate() - rand(0, 365));
+            const start = new Date(smartSettings.date.start || '2020-01-01').getTime();
+            const end = new Date(smartSettings.date.end || '2025-12-31').getTime();
+            const d = new Date(start + Math.random() * (end - start));
+            
             const y = d.getFullYear();
             const m = (d.getMonth()+1).toString().padStart(2,'0');
             const day = d.getDate().toString().padStart(2,'0');
@@ -5632,15 +5870,23 @@
         } 
       },
       
-      // 5. 时间 (格式化)
+      // 时间 (格式化)
       {
         key: 'time', label: '时间', hasSetting: true,
         gen: () => {
             const fmt = smartSettings.time.format;
-            const h = rand(0,23).toString().padStart(2,'0');
-            const m = rand(0,59).toString().padStart(2,'0');
-            const s = rand(0,59).toString().padStart(2,'0');
-            const h_s = Number(h).toString(); // 短格式
+            const parseTime = (str) => {
+                const parts = str.split(':');
+                return parseInt(parts[0])*3600 + parseInt(parts[1])*60 + (parseInt(parts[2]) || 0);
+            };
+            const start = parseTime(smartSettings.time.start || '00:00:00');
+            const end = parseTime(smartSettings.time.end || '23:59:59');
+            
+            let totalSeconds = Math.floor(start + Math.random() * (end - start));
+            const h = Math.floor(totalSeconds / 3600).toString().padStart(2,'0');
+            totalSeconds %= 3600;
+            const m = Math.floor(totalSeconds / 60).toString().padStart(2,'0');
+            const s = (totalSeconds % 60).toString().padStart(2,'0');
             
             if(fmt === 'HH:mm:ss') return `${h}:${m}:${s}`;
             if(fmt === 'HH:mm') return `${h}:${m}`;
@@ -5650,46 +5896,348 @@
             return `${h}:${m}`;
         }
       },
+      
+      // 邮箱 (Tag: AI生成)
       { 
-        key: 'province', label: '省市区', hasSetting: true,
+        key: 'email', label: 'Email', allowAI: true, 
         gen: () => {
-            const s = smartSettings.province;
-            let res = "";
-            if (s.showProv) res += "浙江省";
-            if (s.showCity) res += "杭州市";
-            if (s.showArea) res += "西湖区";
-            return res || "请在设置中勾选显示项";
+          const list = [
+            "john.smith@example.com",
+            "jane.doe@domain.org",
+            "mike.wilson@tech.net",
+            "sarah.jones@web.com",
+            "david.brown@info.org",
+            "emily.davis@cloud.net",
+            "chris.miller@shop.org",
+            "lisa.anderson@web.net",
+            "michael.thomas@tech.org",
+            "jennifer.white@domain.net",
+            "robert.harris@info.com",
+            "susan.clark@shop.net",
+            "james.lewis@web.org",
+            "katherine.walker@cloud.com",
+            "charles.hall@domain.net",
+            "barbara.young@shop.org",
+            "richard.miller@tech.com",
+            "patricia.taylor@info.net",
+            "dennis.anderson@web.org",
+            "joseph.thomas@cloud.net"
+          ];
+          return list[Math.floor(Math.random()*list.length)];
         } 
-      }, // 简化演示
-      { key: 'email', label: 'Email', allowAI: true, gen: () => `user${Math.floor(Math.random()*1000)}@example.com` },
-      { key: 'idcard', label: '身份证', allowAI: true, gen: () => "11010119900307" + Math.floor(Math.random()*10000) },
-      { key: 'company', label: '公司名称', allowAI: true, gen: () => "未来科技" + Math.floor(Math.random()*100) + "有限公司" },
+      },
+      
+      // 身份证 (Tag: 男/女)
+      { 
+        key: 'idcard', label: '身份证', allowAI: true, 
+        gen: () => {
+          const list = [
+            "14072119900307" + Math.floor(Math.random()*10000),
+            "11010119900307" + Math.floor(Math.random()*10000),
+            "11010519900101" + Math.floor(Math.random()*10000),
+            "11010419950228" + Math.floor(Math.random()*10000),
+            "14030419881225" + Math.floor(Math.random()*10000),
+            "11010419960315" + Math.floor(Math.random()*10000),
+            "12010519920708" + Math.floor(Math.random()*10000),
+            "13010619940415" + Math.floor(Math.random()*10000),
+            "14030419950528" + Math.floor(Math.random()*10000),
+            "11010419930615" + Math.floor(Math.random()*10000),
+            "12010519940708" + Math.floor(Math.random()*10000),
+            "13010619950815" + Math.floor(Math.random()*10000),
+            "14030419960928" + Math.floor(Math.random()*10000),
+            "11010419971015" + Math.floor(Math.random()*10000),
+            "12010519981108" + Math.floor(Math.random()*10000),
+            "13010619991215" + Math.floor(Math.random()*10000),
+            "14030420000128" + Math.floor(Math.random()*10000),
+            "11010420020215" + Math.floor(Math.random()*10000),
+            "12010520030308" + Math.floor(Math.random()*10000),
+            "13010620040415" + Math.floor(Math.random()*10000),
+            "14030420050528" + Math.floor(Math.random()*10000),
+            "11010420060615" + Math.floor(Math.random()*10000),
+          ];
+          return list[Math.floor(Math.random()*list.length)];
+        } 
+      },
+      
+      // 公司名称 (Tag: AI生成)
+      { 
+        key: 'company', label: '公司名称', allowAI: true, 
+        gen: () => {
+          const list = [
+            "未来视界科技有限公司",
+            "星河动力集团有限公司",
+            "云端智联网络有限公司",
+            "极光创新工场有限公司",
+            "深蓝数据服务有限公司",
+            "天际线传媒有限公司",
+            "绿洲生态农业有限公司",
+            "极速物流供应链有限公司",
+            "智汇通信息技术有限公司",
+            "宏图盛世投资有限公司",
+            "蓝海创想设计有限公司",
+            "金石重工制造有限公司",
+            "紫罗兰生物科技有限公司",
+            "北极星新能源有限公司",
+            "锦绣前程教育有限公司",
+            "金盾安防系统有限公司",
+            "天马行空广告有限公司",
+            "恒信资本管理有限公司",
+            "众志成城建设有限公司",
+            "博雅文化发展有限公司",
+          ];
+          return list[Math.floor(Math.random()*list.length)];
+        } 
+      },
+      
+      // 银行卡号 (Tag: AI生成)
       { key: 'bank', label: '银行卡号', allowAI: true, gen: () => "622202" + Math.floor(Math.random()*100000000000) },
       
-      // 6. 网站地址 (Tag: 去协议头, 长路径)
+      // 网站地址 (Tag: 去协议头, 长路径)
       {
         key: 'website', label: '网站地址', allowAI: true,
         tags: [ {l:'去协议头', v:'no_proto'}, {l:'长路径', v:'long'} ],
         gen: (tags) => {
-            const proto = tags.includes('no_proto') ? '' : 'https://';
-            const domain = "www.example" + rand(1,99) + ".com";
-            const path = tags.includes('long') ? `/article/${rand(1000,9999)}/details` : '';
+            const protos = ['https://', 'http://', 'ftp://'];
+            const domains = [
+              'www.google.com',
+              'www.baidu.com',
+              'www.bilibili.com',
+              'www.zhihu.com',
+              'www.taobao.com',
+              'www.jd.com',
+              'www.weibo.com',
+              'www.github.com',
+              'www.youtube.com',
+              'www.twitter.com',
+              'www.linkedin.com',
+              'www.reddit.com',
+              'www.twitch.tv',
+              'www.stackoverflow.com',
+              'www.npmjs.com',
+              'www.leetcode.com',
+              'www.coursera.org',
+              'www.udemy.com',
+              'www.freecodecamp.org'
+            ];
+            const paths = ['/search?q=codeium', '/repo/main/src', '/p/12345', '/category/tech/news', '/api/v1/status'];
+
+            const proto = tags.includes('no_proto') ? '' : protos[rand(0, protos.length - 1)];
+            const domain = domains[rand(0, domains.length - 1)];
+            const path = tags.includes('long') ? paths[rand(0, paths.length - 1)] : '';
             return `${proto}${domain}${path}`;
         }
       },
       
-      // 7. IP地址 (Tag: 含端口)
+      // IP地址 (Tag: 含端口)
       {
         key: 'ip', label: 'IP地址', allowAI: true,
         tags: [ {l:'含端口', v:'port'} ],
         gen: (tags) => {
-            const ip = `192.168.${rand(0,255)}.${rand(1,254)}`;
-            return tags.includes('port') ? `${ip}:8080` : ip;
+            const ip = `${rand(0,255)}.${rand(0,255)}.${rand(0,255)}.${rand(0,255)}`;
+            return tags.includes('port') ? `${ip}:${rand(0,65535)}` : ip;
         }
       },
-      { key: 'phone', label: '手机型号', allowAI: true, gen: () => ["iPhone 15", "Samsung S24", "Xiaomi 14", "Huawei Mate 60"][Math.floor(Math.random()*4)] },
-      { key: 'news_title', label: '新闻标题', allowAI: true, gen: () => "重磅！科技巨头发布最新AI模型，性能超越GPT-4" },
-      { key: 'lorem', label: '名人名言', allowAI: true, gen: () => "Stay hungry, stay foolish." }
+      
+      // 手机型号 (Tag: AI生成)
+      { 
+        key: 'phone', label: '手机型号', allowAI: true , 
+        gen: () => {
+            const list = [
+              "iPhone 15 Pro Max",
+              "Samsung Galaxy S24 Ultra",
+              "Xiaomi 14 Ultra",
+              "OPPO Find X7 Ultra",
+              "vivo X100 Ultra",
+              "Honor Magic6 Pro",
+              "OnePlus 12",
+              "Google Pixel 8 Pro",
+              "Sony Xperia 1 VI",
+              "Honor Magic6 RSR",
+              "iPhone 15 Pro",
+              "Samsung Galaxy S24",
+              "Xiaomi 14",
+              "OPPO Find X7",
+              "vivo X100",
+              "Honor Magic6",
+              "OnePlus 12R",
+              "Google Pixel 8",
+              "Sony Xperia 5 V",
+              "iPhone 15",
+              "Samsung Galaxy S24+",
+              "Xiaomi 14 Pro",
+              "OPPO Find X6 Pro",
+              "vivo X100 Pro",
+              "Honor Magic5 Pro",
+              "OnePlus 11",
+              "Google Pixel 7a",
+              "Sony Xperia 1 V",
+              "iPhone 14 Pro Max",
+              "Samsung Galaxy S23 Ultra",
+              "Xiaomi 13 Ultra",
+              "OPPO Find X6",
+              "vivo X90 Pro",
+              "Honor Magic5",
+              "OnePlus 11",
+              "Google Pixel 7 Pro",
+              "Sony Xperia 1 V",
+              "iPhone 14 Pro",
+              "Samsung Galaxy S23",
+              "Xiaomi 13",
+              "OPPO Find X5 Pro",
+              "vivo X90",
+              "Honor Magic4 Pro",
+              "OnePlus 10 Pro",
+              "Google Pixel 7",
+              "Sony Xperia 5 IV",
+              "iPhone 13 Pro Max",
+              "Samsung Galaxy S22 Ultra",
+              "Xiaomi 12S Ultra",
+              "OPPO Find X5",
+              "vivo X90 Pro+",
+              "Honor Magic4"
+            ];
+            return list[Math.floor(Math.random()*list.length)];
+        }
+      },
+      
+      // 性别 (Tag: AI生成)
+      { 
+        key: 'gender', label: '性别', 
+        tags: [ {l:'男', v:'1'}, {l:'女', v:'0'} ],
+        gen: (tags) => {
+            const hasMale = tags.includes('1');
+            const hasFemale = tags.includes('0');
+            if(hasMale && !hasFemale) return '男';
+            if(!hasMale && hasFemale) return '女';
+            return Math.random() > 0.5 ? '男' : '女';
+        }
+      },
+
+      // 网名 (Tag: AI生成)
+      { 
+        key: 'nickname', label: '网名', allowAI: true, 
+        gen: () => {
+          const list = [
+            "风清扬", 
+            "独孤求败", 
+            "快乐的小二", 
+            "User888", 
+            "DesignMaster",
+            "星河入梦",
+            "半盏清茶",
+            "听风吟",
+            "墨染流年",
+            "浅笑安然",
+            "云边有个小卖部",
+            "北巷不夏",
+            "南街旧人",
+            "一抹微凉",
+            "时光煮雨",
+            "清风挽发",
+            "陌上花开",
+            "半世流离",
+            "浅夏微凉",
+            "岁月静好",
+            "梦醒时分",
+            "浮生若梦",
+            "半生缘浅",
+            "一纸荒年",
+            "旧城旧梦"
+          ];
+          return list[Math.floor(Math.random()*list.length)];
+        },
+      },
+
+      // 新闻标题 (Tag: AI生成)
+      { 
+        key: 'news_title', label: '新闻标题', allowAI: true, 
+        gen: () => {
+            const list = [
+                "重磅！科技巨头发布最新AI模型，性能超越GPT-4",
+                "未来已来：人工智能将如何改变我们的工作方式？",
+                "十年磨一剑：这款国产芯片终于突破技术封锁",
+                "全球经济观察：新一轮科技革命正蓄势待发",
+                "深度解析：为什么极简主义设计越来越受追捧？",
+                "全球气候峰会达成历史性协议，各国承诺加速减排",
+                "科技巨头发布最新AI模型，引发行业技术革命",
+                "股市迎来强劲反弹，主要指数全线飘红",
+                "新型环保材料研发成功，有望彻底改变塑料污染现状",
+                "国际空间站完成关键维修任务，宇航员安全返回",
+                "某国突发地震灾害，救援工作正在紧张进行",
+                "新能源汽车销量再创新高，传统燃油车市场受冲击",
+                "人工智能辅助医疗诊断准确率突破98%，医生效率大幅提升",
+                "全球粮食价格波动加剧，多国启动紧急储备计划",
+                "知名企业宣布裁员计划，引发市场对经济前景担忧",
+                "新型疫苗研发取得重大突破，针对多种变异病毒",
+                "远程办公成为新常态，企业数字化转型加速",
+                "某国发生严重洪涝灾害，数万人紧急转移",
+                "全球旅游业逐步复苏，国际航班预订量激增",
+                "某科技公司推出革命性产品，重新定义行业标准",
+                "全球能源危机持续，各国寻求替代能源方案",
+                "某国成功发射新型卫星，提升通信能力",
+                "新型抗癌药物临床试验结果喜人，患者生存率显著提高",
+                "全球教育数字化进程加快，在线学习平台用户激增",
+                "某国发生严重山火，消防员全力扑救"
+            ];
+            return list[Math.floor(Math.random() * list.length)];
+        } 
+      },
+      
+      // 名人名言 (Tag: AI生成)
+      { 
+        key: 'lorem', label: '名人名言', allowAI: true, 
+        gen: () => {
+            const list = [
+                "未经审视的人生不值得过",
+                "三人行，必有我师焉",
+                "想象力比知识更重要",
+                "人不是为失败而生的，一个人可以被毁灭，但不能被打败",
+                "世界上只有一种真正的英雄主义，那就是在认清生活的真相后依然热爱生活",
+                "世界上本没有路，走的人多了，也便成了路",
+                "生如夏花之绚烂，死如秋叶之静美",
+                "你好哇，李银河",
+                "满地都是六便士，他却抬头看见了月亮",
+                "冬天来了，春天还会远吗",
+                "大多数人都生活在平静的绝望中",
+                "爱自己就是终身浪漫的开始",
+                "面朝大海，春暖花开",
+                "愿中国青年都摆脱冷气，只是向上走，不必听自暴自弃者流的话",
+                "每一个不曾起舞的日子，都是对生命的辜负",
+                "我不同意你的观点，但我誓死捍卫你说话的权利",
+                "每个孩子都是艺术家，问题在于如何在他长大后依然保持这种天赋",
+                "真的猛士，敢于直面惨淡的人生，敢于正视淋漓的鲜血",
+                "人生不如一行波德莱尔",
+                "使生如夏花之绚烂，死如秋叶之静美",
+                "生活总是让我们遍体鳞伤，但到后来，那些受伤的地方一定会变成我们最强壮的地方",
+                "时间就像海绵里的水，只要愿挤，总还是有的",
+                "想象比知识更重要",
+                "世界上只有一种真正的英雄主义，那就是在认清生活的真相后依然热爱生活",
+                "冬天来了，春天还会远吗",
+                "阅读是一座随身携带的避难所",
+                "人的一切痛苦，本质上都是对自己的无能的愤怒",
+                "优于别人，并不高贵，真正的高贵应该是优于过去的自己",
+                "远方除了遥远一无所有",
+                "人不能两次踏进同一条河流",
+                "上帝死了",
+                "知之者不如好之者，好之者不如乐之者",
+                "我思故我在",
+                "你若爱，生活哪里都可爱",
+                "走上人生的路途吧，前途很远，也很暗，然而不要怕，不怕的人的面前才有路",
+                "人是为了活着本身而活着的，而不是为了活着之外的任何事物所活着",
+                "我要扼住命运的咽喉，它休想使我完全屈服",
+                "人类的全部尊严，就在于思想",
+                "你若盛开，蝴蝶自来",
+                "没有人会为你踏雪而来，喜欢的风景要自己去看",
+                "既然选择了远方，便只顾风雨兼程",
+                "没有什么比健康更美好的了，虽然健康不是一切，但没有健康就没有一切",
+                "真正的友谊，是一株成长缓慢的植物",
+                "只有经历地狱般的磨练，才能炼出创造天堂的力量",
+                "每个人都是月亮，总有一个阴暗面，从来不让人看见",
+                "真正的猛士，敢于直面惨淡的人生，敢于正视淋漓的鲜血"
+            ];
+            return list[Math.floor(Math.random() * list.length)];
+        } 
+      }
     ];
 
     let customDataLists = []; // 存储自定义列表 [{title: 'xxx', list: ['a','b']}]
@@ -5703,10 +6251,9 @@
     let dateFormat = 'YYYY-MM-DD';
 
     let smartSettings = {
-        number: { min: 1, max: 100, decimals: 0, thousands: false },
-        province: { showProv: true, showCity: true, showArea: true, scope: 'all' },
-        date: { format: 'YYYY-MM-DD' },
-        time: { format: 'HH:mm:ss' }
+        number: { min: 1, max: 100, decimals: 0, thousands: false, sort: 'random' },
+        date: { format: 'YYYY-MM-DD', sort: 'random', start: '2020-01-01', end: '2025-12-31' },
+        time: { format: 'HH:mm:ss', sort: 'random', start: '00:00:00', end: '23:59:59' }
     };
 
     let currentSettingKey = '';
@@ -5918,6 +6465,7 @@
     function handleFillGeneration(count) {
       if (!window.pendingFillTask) return;
       const task = window.pendingFillTask;
+      
       const list = [];
       
       // 获取当前模式
@@ -5927,6 +6475,7 @@
       if(isPrefix) mode = 'prefix';
       else if(isSuffix) mode = 'suffix';
 
+      // 生成数据
       if (task.type === 'basic') {
         const generator = basicDataTypes.find(t => t.key === task.key);
         if (generator) {
@@ -5942,6 +6491,42 @@
         }
       }
 
+      // 2. 排序逻辑 (修复报错点)
+      if (task.type === 'basic') {
+          // 🔥 必须在这里声明变量
+          let sortMode = 'random';
+          
+          // 根据类型读取配置
+          if (task.key === 'number') sortMode = smartSettings.number.sort;
+          else if (task.key === 'date') sortMode = smartSettings.date.sort;
+          else if (task.key === 'time') sortMode = smartSettings.time.sort;
+          
+          // 执行排序
+          if (sortMode && sortMode !== 'random') { // 加上非空检查更安全
+              list.sort((a, b) => {
+                  let valA = a, valB = b;
+                  
+                  if (task.key === 'number') {
+                      valA = parseFloat(String(a).replace(/,/g, ''));
+                      valB = parseFloat(String(b).replace(/,/g, ''));
+                  } else if (task.key === 'date') {
+                      const parseDate = (str) => {
+                          const s = String(str).replace(/[年月日]/g, '/').replace(/\/$/, '');
+                          return Date.parse(s) || str;
+                      };
+                      valA = parseDate(a);
+                      valB = parseDate(b);
+                  }
+                  
+                  if (valA < valB) return sortMode === 'asc' ? -1 : 1;
+                  if (valA > valB) return sortMode === 'asc' ? 1 : -1;
+                  return 0;
+              });
+          }
+      }
+      
+      
+
       postMsg('smart-fill-exec', {
         dataList: list,
         mode: mode,
@@ -5953,17 +6538,47 @@
 
     // --- 数据生成器 (Mock Generators) ---
     function getRandomNameCN() {
-       const xing = "赵钱孙李周吴郑王冯陈褚卫蒋沈韩杨朱秦尤许何吕施张孔曹严华金魏陶姜".split('');
-       const ming = "伟刚勇毅俊峰强军平保东文辉力明永健世广志义兴良海山仁波宁".split('');
-       return xing[Math.floor(Math.random()*xing.length)] + ming[Math.floor(Math.random()*ming.length)];
+       // 常见单姓 + 复姓
+       const xingList = [
+           "赵","钱","孙","李","周","吴","郑","王","冯","陈","褚","卫","蒋","沈","韩","杨","朱","秦","尤","许",
+           "何","吕","施","张","孔","曹","严","华","金","魏","陶","姜","戚","谢","邹","喻","柏","水","窦","章",
+           "云","苏","潘","葛","奚","范","彭","郎","鲁","韦","昌","马","苗","凤","花","方","俞","任","袁","柳",
+           "欧阳","太史","端木","上官","司马","东方","独孤","南宫","万俟","闻人","夏侯","诸葛","尉迟","公羊","赫连","澹台","皇甫","宗政","濮阳","公孙",
+           "慕容","仲孙","钟离","长孙","宇文","司徒","鲜于","司空","闾丘","子车","亓官","司寇","巫马","公西","颛孙","壤驷","公良","漆雕","乐正","宰父",
+           "谷梁","拓跋","夹谷","轩辕","令狐","段干","百里","呼延","东郭","南门","羊舌","微生","公户","公玉","公仪","梁丘","公仲","公上","公门","公山"
+       ];
+       const mingChars = "伟刚勇毅俊峰强军平保东文辉力明永健世广志义兴良海山仁波宁贵福生龙元全国胜学祥才发武新利清飞彬富顺信子杰涛昌成康星光天达安岩中茂进林有坚和彪博诚先敬震振壮会思群豪心邦承乐绍功松善厚庆磊民友裕河哲江超浩亮政谦亨奇固之轮翰朗伯宏言若鸣朋斌梁栋维启克伦翔旭鹏泽晨辰士以建家致树炎德行时泰盛雄琛钧冠策腾楠榕风航弘";
+       
+       const selectedXing = xingList[Math.floor(Math.random() * xingList.length)];
+       
+       // 名字长度 1 或 2
+       const mingLen = Math.random() > 0.5 ? 2 : 1;
+       let selectedMing = "";
+       for(let i=0; i<mingLen; i++) {
+           selectedMing += mingChars.charAt(Math.floor(Math.random() * mingChars.length));
+       }
+       
+       return selectedXing + selectedMing;
     }
-    function getRandomNameEN() { return ["Alex", "John", "Alice", "David"][Math.floor(Math.random()*4)]; }
-    function getRandomAddress() {
-       return ["北京市朝阳区建国路88号", "上海市浦东新区陆家嘴环路1号", "深圳市南山区科技园南区"][Math.floor(Math.random()*3)];
+    function getRandomNameEN() {
+       const firstNames = [
+          "James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda",
+          "William", "Elizabeth", "David", "Barbara", "Richard", "Susan", "Joseph", "Jessica",
+          "Thomas", "Sarah", "Charles", "Karen", "Christopher", "Nancy", "Daniel", "Lisa", 
+          "Matthew", "Betty", "Anthony", "Margaret", "Mark", "Sandra"
+       ];
+       const lastNames = [
+          "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis",
+          "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson",
+          "Thomas", "Taylor", "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson",
+          "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis", "Robinson"
+       ];
+       const first = firstNames[Math.floor(Math.random() * firstNames.length)];
+       const last = lastNames[Math.floor(Math.random() * lastNames.length)];
+       return `${first} ${last}`;
     }
-    function getRandomNickname() {
-       return ["风清扬", "独孤求败", "快乐的小二", "User888", "DesignMaster"][Math.floor(Math.random()*5)];
-    }
+    
+  
     function getRandomDate() {
        const d = new Date();
        d.setDate(d.getDate() - Math.floor(Math.random()*1000));
@@ -6007,100 +6622,171 @@
       const container = document.getElementById('settingFormContainer');
       container.innerHTML = '';
       
-      // 1. 数字设置
+      // 1. 数字设置 (补全了范围、小数、千分位)
       if (key === 'number') {
           const s = smartSettings.number;
           container.innerHTML = `
             <div class="config-group">
-                <label class="config-label">数值范围</label>
+                <label class="config-label">数值范围 (最小值 - 最大值)</label>
                 <div style="display:flex; gap:8px; align-items:center;">
                     <input type="number" id="numMin" class="search-box" value="${s.min}" style="flex:1">
-                    <span>-</span>
+                    <span style="color:#999">-</span>
                     <input type="number" id="numMax" class="search-box" value="${s.max}" style="flex:1">
                 </div>
             </div>
-            <div class="config-group">
-                <label class="config-label">小数位数</label>
+            <div class="config-group" style="margin-top:12px;">
+                <label class="config-label">小数位数 (0为整数)</label>
                 <input type="number" id="numDec" class="search-box" value="${s.decimals}" min="0" max="5">
             </div>
-            <label class="checkbox-row" style="margin-top:10px;">
-                <input type="checkbox" id="numThous" ${s.thousands?'checked':''}> 使用千分位分隔符 (1,000)
-            </label>
+            <div style="margin-top:12px;">
+                 <label class="checkbox-row">
+                    <input type="checkbox" id="numThous" ${s.thousands?'checked':''}> 使用千分位分隔符 (1,000)
+                </label>
+            </div>
+            
+            <div class="config-group" style="margin-top:16px; border-top:1px dashed #eee; padding-top:12px;">
+                <label class="config-label">排序方式</label>
+                ${renderRadioTags('numSort', [
+                    {l:'随机', v:'random'}, {l:'升序 1→9', v:'asc'}, {l:'降序 9→1', v:'desc'}
+                ], s.sort)}
+            </div>
           `;
       }
       
-      // 2.省市区设置
-      else if (key === 'province') {
-          const s = smartSettings.province;
-          container.innerHTML = `
-            <label class="checkbox-row"><input type="checkbox" id="showProv" ${s.showProv?'checked':''}> 显示省份</label>
-            <label class="checkbox-row"><input type="checkbox" id="showCity" ${s.showCity?'checked':''}> 显示城市</label>
-            <label class="checkbox-row"><input type="checkbox" id="showArea" ${s.showArea?'checked':''}> 显示区县</label>
-          `;
-      }
       
-      // 3. 日期设置 (增强版)
+      
+      // 3. 日期设置
       else if (key === 'date') {
-          const val = smartSettings.date.format;
+          const s = smartSettings.date;
+          // 防止 undefined 报错
+          const dStart = s.start || '2020-01-01';
+          const dEnd = s.end || '2025-12-31';
+          
           container.innerHTML = `
-            <label class="config-label">日期格式</label>
-            <select id="dateFormatSel" class="search-box">
-                <option value="YYYY-MM-DD" ${val=='YYYY-MM-DD'?'selected':''}>2023-10-01 (标准)</option>
-                <option value="YYYY/MM/DD" ${val=='YYYY/MM/DD'?'selected':''}>2023/10/01 (斜杠)</option>
-                <option value="YYYY.MM.DD" ${val=='YYYY.MM.DD'?'selected':''}>2023.10.01 (点)</option>
-                <option value="YYYY年MM月DD日" ${val=='YYYY年MM月DD日'?'selected':''}>2023年10月1日 (中文)</option>
-                <option value="YYYY-MM" ${val=='YYYY-MM'?'selected':''}>2023-10 (年月)</option>
-                <option value="MM-DD" ${val=='MM-DD'?'selected':''}>10-01 (月日)</option>
-            </select>
+            <div class="config-group">
+                <label class="config-label">日期范围</label>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <input type="date" id="dateStart" class="search-box" value="${dStart}" style="flex:1">
+                    <span style="color:#999">-</span>
+                    <input type="date" id="dateEnd" class="search-box" value="${dEnd}" style="flex:1">
+                </div>
+            </div>
+          
+            <div class="config-group" style="margin-top:16px;">
+                <label class="config-label">日期格式</label>
+                ${renderRadioTags('dateFormat', [
+                    {l:'2023-10-01', v:'YYYY-MM-DD'},
+                    {l:'2023/10/01', v:'YYYY/MM/DD'},
+                    {l:'2023.10.01', v:'YYYY.MM.DD'},
+                    {l:'2023年10月1日', v:'YYYY年MM月DD日'},
+                    {l:'2023-10', v:'YYYY-MM'},
+                    {l:'10-01', v:'MM-DD'}
+                ], s.format)}
+            </div>
+            
+            <div class="config-group" style="margin-top:16px;">
+                <label class="config-label">排序方式</label>
+                ${renderRadioTags('dateSort', [
+                    {l:'随机', v:'random'}, {l:'升序 (旧→新)', v:'asc'}, {l:'降序 (新→旧)', v:'desc'}
+                ], s.sort)}
+            </div>
           `;
       }
       
       // 4. 时间设置
       else if (key === 'time') {
-          const val = smartSettings.time.format;
+          const s = smartSettings.time;
+          const tStart = s.start || '00:00:00';
+          const tEnd = s.end || '23:59:59';
+          
           container.innerHTML = `
-            <label class="config-label">时间格式</label>
-            <select id="timeFormatSel" class="search-box">
-                <option value="HH:mm:ss" ${val=='HH:mm:ss'?'selected':''}>05:05:05 (时分秒)</option>
-                <option value="HH:mm" ${val=='HH:mm'?'selected':''}>05:05 (时分)</option>
-                <option value="mm:ss" ${val=='mm:ss'?'selected':''}>05:05 (分秒)</option>
-                <option value="H:m:s" ${val=='H:m:s'?'selected':''}>5:5:5 (短时分秒)</option>
-                <option value="cn_long" ${val=='cn_long'?'selected':''}>05时05分05秒</option>
-            </select>
+            <div class="config-group">
+                <label class="config-label">时间范围</label>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <div style="flex:1">
+                         <input type="time" id="timeStart" class="search-box" value="${tStart.substring(0,5)}" step="1" style="width:100%">
+                    </div>
+                    <span style="color:#999">-</span>
+                    <div style="flex:1">
+                         <input type="time" id="timeEnd" class="search-box" value="${tEnd.substring(0,5)}" step="1" style="width:100%">
+                    </div>
+                </div>
+                <div style="font-size:11px; color:#999; margin-top:4px;">* 仅支持设置时分，秒数随机</div>
+            </div>
+          
+            <div class="config-group" style="margin-top:16px;">
+                <label class="config-label">时间格式</label>
+                ${renderRadioTags('timeFormat', [
+                    {l:'05:05:05', v:'HH:mm:ss'},
+                    {l:'05:05', v:'HH:mm'},
+                    {l:'05:05 (分秒)', v:'mm:ss'},
+                    {l:'5:5:5', v:'H:m:s'},
+                    {l:'中文长格式', v:'cn_long'}
+                ], s.format)}
+            </div>
+            
+            <div class="config-group" style="margin-top:16px;">
+                <label class="config-label">排序方式</label>
+                ${renderRadioTags('timeSort', [
+                    {l:'随机', v:'random'}, {l:'升序 (早→晚)', v:'asc'}, {l:'降序 (晚→早)', v:'desc'}
+                ], s.sort)}
+            </div>
           `;
       }
       
       openSubPage('pageBasicSetting');
     }
 
-    function saveCurrentSettings() {
+    function saveCurrentSettings(closePage = true) {
         const key = currentSettingKey;
+        
+        // 辅助函数：获取单选框选中的值
+        const getRadioValue = (name) => {
+            const el = document.querySelector(`input[name="${name}"]:checked`);
+            return el ? el.value : 'random'; // 默认 random 防错
+        };
         
         if (key === 'number') {
             smartSettings.number = {
                 min: Number(document.getElementById('numMin').value),
                 max: Number(document.getElementById('numMax').value),
                 decimals: Number(document.getElementById('numDec').value),
-                thousands: document.getElementById('numThous').checked
-            };
-        }
-        else if (key === 'province') {
-            smartSettings.province = {
-                showProv: document.getElementById('showProv').checked,
-                showCity: document.getElementById('showCity').checked,
-                showArea: document.getElementById('showArea').checked
+                thousands: document.getElementById('numThous').checked,
+                sort: getRadioValue('numSort')
             };
         }
         else if (key === 'date') {
-            smartSettings.date.format = document.getElementById('dateFormatSel').value;
+            smartSettings.date = {
+                format: getRadioValue('dateFormat'),
+                sort: getRadioValue('dateSort'),
+                start: document.getElementById('dateStart').value,
+                end: document.getElementById('dateEnd').value
+            };
         }
         else if (key === 'time') {
-            smartSettings.time.format = document.getElementById('timeFormatSel').value;
+            // input type=time 返回的是 HH:mm，我们补全秒数
+            let sStart = document.getElementById('timeStart').value;
+            let sEnd = document.getElementById('timeEnd').value;
+            
+            if(sStart && sStart.length===5) sStart += ":00";
+            if(sEnd && sEnd.length===5) sEnd += ":59";
+            
+            smartSettings.time = {
+                format: getRadioValue('timeFormat'),
+                sort: getRadioValue('timeSort'),
+                start: sStart,
+                end: sEnd
+            };
         }
         
         // 持久化存储
-        postMsg('save-storage', { key: 'smart_advanced_settings', value: smartSettings, notify: true });
-        closeSubPage('pageBasicSetting');
+        // 只有当 closePage 为 true 时显示 Notify，避免 saveAndFill 时也弹窗干扰体验（或者也可以都弹）
+        postMsg('save-storage', { key: 'smart_advanced_settings', value: smartSettings, notify: closePage });
+        
+        // 关闭页面
+        if (closePage) {
+            closeSubPage('pageBasicSetting');
+        }
     }
     
     function saveBasicSettings(type) {
@@ -6109,6 +6795,41 @@
           postMsg('save-storage', { key: 'smart_date_format', value: dateFormat, notify: true });
        }
        closeSubPage('pageBasicSetting');
+    }
+
+    // 辅助：生成单选 Tag 组 HTML
+    function renderRadioTags(groupName, options, currentValue) {
+        return `<div class="radio-tag-group" style="display:flex; gap:8px; flex-wrap:wrap;">
+            ${options.map(opt => {
+                // 兼容处理：优先取 label/value，没有则取 l/v
+                const label = opt.label || opt.l;
+                const value = opt.value || opt.v;
+                
+                return `
+                <label class="radio-tag ${value === currentValue ? 'active' : ''}">
+                    <input type="radio" name="${groupName}" value="${value}" ${value === currentValue ? 'checked' : ''} onchange="updateRadioTagStyle(this)">
+                    ${label}
+                </label>
+            `}).join('')}
+        </div>`;
+    }
+
+    // 辅助：点击切换样式
+    function updateRadioTagStyle(input) {
+        const group = input.closest('.radio-tag-group');
+        group.querySelectorAll('.radio-tag').forEach(el => el.classList.remove('active'));
+        input.parentElement.classList.add('active');
+    }
+    
+    function saveAndFill() {
+        // 1. 保存配置，但不关闭页面
+        saveCurrentSettings(false); 
+        
+        // 2. 执行填充 (使用当前设置的 key)
+        // 稍微延迟一下，确保状态更新（虽然同步的，但稳妥起见）
+        setTimeout(() => {
+            runBasicFill(currentSettingKey);
+        }, 50);
     }
 
     let currentEditingIndex = -1; // 记录当前编辑的索引，-1 表示新增
