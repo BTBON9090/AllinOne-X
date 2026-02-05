@@ -1948,8 +1948,8 @@ async function pptStep4_Extract(slides: FrameNode[]) {
              if (/bold|heavy|black|strong/.test(style)) el.isBold = true;
           }
           if (node.fontSize !== figma.mixed) el.fontSize = node.fontSize;
-          if (node.lineHeight !== figma.mixed && node.lineHeight.unit === 'PIXELS' && node.fontSize !== figma.mixed) {
-             el.lineSpacing = node.lineHeight.value / node.fontSize;
+          if (node.lineHeight !== figma.mixed && node.lineHeight.unit === 'PIXELS') {
+             el.lineSpacing = node.lineHeight.value;
           }
           // 高度判定多行
           let isMultiLine = node.characters.includes('\n');

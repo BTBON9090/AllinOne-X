@@ -4650,7 +4650,7 @@
           else if (el.type === 'text') {
             opts.fontSize = Math.round((el.fontSize || 12) * ratio * 0.75);
             opts.margin = 0; 
-            if (el.lineSpacing) opts.lineSpacing = el.lineSpacing;
+            if (el.lineSpacing) opts.lineSpacing = Math.round(el.lineSpacing * ratio * 0.75);
             if (el.fontFace) opts.fontFace = el.fontFace;
             if (el.isBold) opts.bold = true;
             opts.color = el.color || '000000';
@@ -4668,7 +4668,7 @@
             if (el.cornerRadius > 0) {
                 shapeType = pptx.ShapeType.roundRect;
                 const minSide = Math.min(el.w, el.h);
-                if (minSide > 0) opts.rectRadius = Math.min(el.cornerRadius / minSide, 0.5);
+                if (minSide > 0) opts.rectRadius = Math.min(el.cornerRadius / 2 / minSide, 0.5);
             }
             slide.addShape(shapeType, opts);
           }
@@ -4683,7 +4683,7 @@
             if (el.cornerRadius > 0) {
                 phShape = pptx.ShapeType.roundRect;
                 const minSide = Math.min(el.w, el.h);
-                if (minSide > 0) boxOpts.rectRadius = Math.min(el.cornerRadius / minSide, 0.5);
+                if (minSide > 0) boxOpts.rectRadius = Math.min(el.cornerRadius / 2 / minSide, 0.5);
             }
             slide.addShape(phShape, boxOpts);
             slide.addText(el.imageName || 'IMG', { 
@@ -7418,6 +7418,12 @@
        }
     }
 
+    // 辅助：保存并刷新 (补上这个缺失的函数)
+    function saveAndRefreshCustom() {
+        postMsg('save-storage', { key: 'smart_custom_lists', value: customDataLists, notify: true });
+        renderCustomList(); // 刷新自定义Tab
+    }
+    
     // 2. 关闭弹窗
     function closeSaveDialog() {
        const dialog = document.getElementById('saveDialog');
