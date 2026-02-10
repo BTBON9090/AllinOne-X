@@ -70,6 +70,7 @@ figma.showUI(__html__, { width: 460, height: 640, themeColors: true });
 
 // 用于存储高亮前的原始样式： Key = "NodeID_Index", Value = OriginalFills
 let highlightCache = {}; 
+let layerSortDirection = 'asc'; // 用于图层排序切换
 
 figma.ui.onmessage = async (msg) => {
   console.log("【2】后端：收到了消息 ->", msg.type);
@@ -463,9 +464,22 @@ figma.ui.onmessage = async (msg) => {
       if (selection.length > 1) {
         const p = selection[0].parent;
         if (selection.every(n => n.parent === p)) {
-          [...selection].sort((a, b) => Math.abs(a.y - b.y) > 2 ? a.y - b.y : a.x - b.x).forEach(n => p.appendChild(n));
-          figma.notify("图层已排序");
+          const isReverse = layerSortDirection === 'desc';
+          
+          [...selection].sort((a, b) => {
+            const diffY = a.y - b.y;
+            const diffX = a.x - b.x;
+            const result = Math.abs(diffY) > 2 ? diffY : diffX;
+            return isReverse ? -result : result;
+          }).forEach(n => p.appendChild(n));
+
+          figma.notify(isReverse ? "已【倒序】排列图层 (Z->A)" : "已【正序】排列图层 (A->Z)");
+          
+          // 切换下次点击的方向
+          layerSortDirection = isReverse ? 'asc' : 'desc';
         }
+      } else {
+        figma.notify("请至少选择两个同级图层");
       }
       break;
     }
@@ -1926,40 +1940,93 @@ async function pptStep4_Extract(slides: FrameNode[]) {
 
         // --- 类型分类 ---
 
-        // A. 直线
-        if (node.type === 'LINE') {
+        // A. 直线 & 连接线 (以及看起来像线的 Vector)
+        const isLineLike = (node.type === 'LINE' || node.type === 'CONNECTOR');
+        
+        if (isLineLike) {
           el.type = 'line';
-          if ('dashPattern' in node && node.dashPattern.length > 0 && node.dashPattern[0] > 0) {
-             el.dashPattern = node.dashPattern; 
-          }
-          if (node.lineEndCap === 'ARROW_LINES' || node.lineEndCap === 'ARROW_EQUILATERAL') el.tailArrow = 'arrow';
-          if (node.lineStartCap === 'ARROW_LINES' || node.lineStartCap === 'ARROW_EQUILATERAL') el.headArrow = 'arrow';
           
-          if (!el.strokeColor) continue; // 无色直线跳过
+          if ('dashPattern' in node && node.dashPattern.length > 0) el.dashPattern = node.dashPattern;
+          
+          const arrowCaps = ['ARROW_LINES', 'ARROW_EQUILATERAL', 'TRIANGLE_FILLED', 'TRIANGLE_WIRED', 'DIAMOND_FILLED', 'CIRCLE_FILLED'];
+          if ('lineStartCap' in node && arrowCaps.includes(node.lineStartCap)) el.headArrow = 'triangle';
+          if ('lineEndCap' in node && arrowCaps.includes(node.lineEndCap)) el.tailArrow = 'triangle';
+          
+          // 必须要有一条可见的描边，否则跳过
+          if (!el.strokeColor) continue;
+          
           chunkBuffer.push(el);
         }
+
         // B. 文本
         else if (node.type === 'TEXT') {
           el.type = 'text';
-          el.text = node.characters.substring(0, 2000); // 稍微放宽限制
+          el.text = node.characters.substring(0, 2000); 
+          
+          // --- 1. 强制获取基准字号 ---
+          let baseSize = 12;
+          if (node.fontSize !== figma.mixed) {
+              baseSize = node.fontSize;
+          } else {
+              const firstCharFont = node.getRangeFontSize(0, 1);
+              if (firstCharFont && firstCharFont !== figma.mixed) baseSize = firstCharFont;
+          }
+          el.fontSize = baseSize;
+
+          // --- 2. 强制获取基准行高 (核心修复) ---
+          // 无论是否混合，都尝试获取具体的行高对象
+          let lh = node.lineHeight;
+          if (lh === figma.mixed) {
+              // 如果混合，强制读取第一个字符的行高
+              lh = node.getRangeLineHeight(0, 1);
+          }
+          // 如果还是读不到(极罕见)，造一个默认值
+          if (!lh || lh === figma.mixed) {
+              lh = { unit: 'AUTO' };
+          }
+
+          // --- 3. 计算绝对像素值 ---
+          // 默认 Auto = 1.3 倍
+          let finalPx = baseSize * 1.3; 
+
+          if (lh.unit === 'PIXELS') {
+              finalPx = lh.value;
+          } else if (lh.unit === 'PERCENT') {
+              finalPx = baseSize * (lh.value / 100);
+          }
+          
+          // 存入变量
+          el.lineHeightPx = finalPx;
+          
+          // 4. 其他属性
           if (node.fontName !== figma.mixed) {
              el.fontFace = node.fontName.family;
              const style = node.fontName.style.toLowerCase();
              if (/bold|heavy|black|strong/.test(style)) el.isBold = true;
           }
-          if (node.fontSize !== figma.mixed) el.fontSize = node.fontSize;
-          if (node.lineHeight !== figma.mixed && node.lineHeight.unit === 'PIXELS') {
-             el.lineSpacing = node.lineHeight.value;
-          }
-          // 高度判定多行
+
+          // 4. 判定多行 (逻辑保持不变，但要存入 el)
           let isMultiLine = node.characters.includes('\n');
+          // 如果没有换行符，但高度超过 1.5 倍字号，也视为多行（折行）
           if (!isMultiLine && node.fontSize !== figma.mixed) {
              if (node.height > node.fontSize * 1.5) isMultiLine = true;
           }
-          el.valign = isMultiLine ? 'top' : 'middle';
+          el.isMultiLine = isMultiLine;
+
+          // 5. 获取水平对齐 (Horizontal Align)
+          if (node.textAlignHorizontal === 'CENTER') el.align = 'center';
+          else if (node.textAlignHorizontal === 'RIGHT') el.align = 'right';
+          else if (node.textAlignHorizontal === 'JUSTIFIED') el.align = 'justify';
+          else el.align = 'left'; // 默认左对齐
+
+          // 6. (可选) 获取垂直对齐，虽然你的需求是强制覆盖，但获取一下也没坏处
+          if (node.textAlignVertical === 'CENTER') el.vAlignFigma = 'middle';
+          else if (node.textAlignVertical === 'BOTTOM') el.vAlignFigma = 'bottom';
+          else el.vAlignFigma = 'top';
+          
           if (!visibleFill) el.fillAlpha = el.opacity || 1;
           chunkBuffer.push(el);
-        } 
+        }
         // C. 占位符 (图片)
         else if (node.type === 'RECTANGLE' && node.fills !== figma.mixed && node.fills.length > 0 && node.fills.some(p => p.type === 'IMAGE' && p.visible !== false)) {
           el.type = 'placeholder';
@@ -1968,13 +2035,30 @@ async function pptStep4_Extract(slides: FrameNode[]) {
           el.fillAlpha = el.opacity || 1;
           chunkBuffer.push(el);
         }
-        // D. 形状 (包含所有矢量)
+
+        // D. 形状 (矩形、圆、星形、多边形) - 排除 LINE/CONNECTOR
         else if (
           node.type === 'RECTANGLE' || node.type === 'ELLIPSE' || 
           node.type === 'VECTOR' || node.type === 'STAR' || 
           node.type === 'POLYGON' || node.type === 'BOOLEAN_OPERATION'
         ) {
-          el.type = 'rect';
+          el.type = 'shape'; 
+          el.pptShape = 'rect'; // 默认
+
+          if (node.type === 'ELLIPSE') el.pptShape = 'ellipse';
+          else if (node.type === 'STAR') {
+              const c = node.pointCount;
+              if(c>=4 && c<=32) el.pptShape = 'star'+c;
+              else el.pptShape = 'star5';
+          }
+          else if (node.type === 'POLYGON') {
+              const c = node.pointCount;
+              if (c === 3) el.pptShape = 'triangle';
+              else if (c === 5) el.pptShape = 'pentagon';
+              else if (c === 6) el.pptShape = 'hexagon';
+              else if (c === 8) el.pptShape = 'octagon';
+          }
+          
           if (!el.color && !el.strokeColor) continue;
           chunkBuffer.push(el);
         }

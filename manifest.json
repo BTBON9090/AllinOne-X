@@ -1,5 +1,5 @@
 {
-  "name": "AllinOne-B",
+  "name": "AllinOne",
   "id": "1579115225697225019",
   "api": "1.0.0",
   "main": "code.js",
@@ -13,9 +13,7 @@
   ],
   
   "networkAccess": {
-    "allowedDomains": [
-      "*"
-    ],
-    "reasoning": "This plugin connects to various user-defined AI model APIs (OpenAI, GLM, etc.) for text generation."
+    "allowedDomains": ["*"],
+    "reasoning": "This plugin connects to AI APIs and loads external libraries (JSZip, PptxGenJS) from CDNs."
   }
 }

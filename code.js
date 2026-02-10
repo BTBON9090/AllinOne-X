@@ -111,6 +111,7 @@ var convertNameAdvanced = function (str, format, sepMode, casing, keepEmoji, rem
 figma.showUI(__html__, { width: 460, height: 640, themeColors: true });
 // 用于存储高亮前的原始样式： Key = "NodeID_Index", Value = OriginalFills
 var highlightCache = {};
+var layerSortDirection = 'asc'; // 用于图层排序切换
 figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, function () {
     function rm(n) {
         if (n.layoutMode && n.layoutMode !== 'NONE') {
@@ -128,7 +129,7 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
         if ('children' in n)
             n.children.forEach(ul);
     }
-    var selection, _a, textNodes_2, traverse_1, scope, dataList, mode, distribution, textNodes_3, traverse_2, changeCount, i, node, textToFill, e_1, value, newSelection, _i, selection_1, node, frame, idx, children, _b, children_1, child, newSelection, _c, selection_2, node, r, idx, count, _d, selection_3, node, temp, _e, selection_4, node, img, asyncImg, size, t, pool, _f, pool_1, n, count_1, newSelection, _g, selection_5, node, frame, parent_1, index, newSel, _h, selection_6, node, lines, font, e_2, cy, _j, lines_1, l, t, tNodes, font, e_3, txt, nt, i, arr_1, arr_2, sel, targets_3, scan_1, count, _k, targets_1, node, h, pool, _l, pool_2, n, count_3, p_1, count_4, count_2, count, _m, selection_7, node, newX, newY, newW, newH, sel, f, sel_5, searchTargets, _o, sel_1, node, children, _p, sel_2, node, siblings, _q, sel_3, node, children, allPageNodes, uniqueMap_1, finalPool, results, _r, finalPool_1, node, match, n, q, t, ts, isType, isState, s, _s, _t, p, val, v, tgt, createdCount, conflicts, errors, localPaints, localTexts, localEffects, _loop_1, _u, selection_8, node, e_4, parts, sel, countFill_1, countStroke_1, countText_1, countEffect_1, paints, texts, effects, paintMap_1, effectMap_1, textMap_1, traverse_3, _v, sel_4, node, e_5, total, n1, n2, x1, y1, x2, y2, findText, replaceText, scope, count, textNodes_4, collect_1, _w, textNodes_1, node, font, e_6, pageName, slides, slides, slides, slides, slides, cfg_1, targets_4, scopeNodes, collectTargets_1, findRegex_1, escape_1, pat, results_1, checkString_1, _loop_2, _x, targets_2, node, items, count, _y, items_1, item, node, err_1, scope, findText_1, results_2, searchPool, traverse_4, node, cacheKey, font, cachedData, currentFills, highlightPaint, e_7, tasks, replaceText, successCount, processedIds, groups_1, _z, _0, _1, _2, nodeId, node, groupTasks, _3, groupTasks_1, task, currentStr, err_2, count, _4, _5, _6, _7, key, _8, nodeId, indexStr, index, data, node, font, e_8, ids, findText, replaceText, count, _9, ids_1, id, node, regex, err_3;
+    var selection, _a, textNodes_2, traverse_1, scope, dataList, mode, distribution, textNodes_3, traverse_2, changeCount, i, node, textToFill, e_1, value, newSelection, _i, selection_1, node, frame, idx, children, _b, children_1, child, newSelection, _c, selection_2, node, r, idx, count, _d, selection_3, node, temp, _e, selection_4, node, img, asyncImg, size, t, pool, _f, pool_1, n, count_1, newSelection, _g, selection_5, node, frame, parent_1, index, newSel, _h, selection_6, node, lines, font, e_2, cy, _j, lines_1, l, t, tNodes, font, e_3, txt, nt, i, arr_1, arr_2, sel, targets_3, scan_1, count, _k, targets_1, node, h, pool, _l, pool_2, n, count_3, p_1, isReverse_1, count_4, count_2, count, _m, selection_7, node, newX, newY, newW, newH, sel, f, sel_5, searchTargets, _o, sel_1, node, children, _p, sel_2, node, siblings, _q, sel_3, node, children, allPageNodes, uniqueMap_1, finalPool, results, _r, finalPool_1, node, match, n, q, t, ts, isType, isState, s, _s, _t, p, val, v, tgt, createdCount, conflicts, errors, localPaints, localTexts, localEffects, _loop_1, _u, selection_8, node, e_4, parts, sel, countFill_1, countStroke_1, countText_1, countEffect_1, paints, texts, effects, paintMap_1, effectMap_1, textMap_1, traverse_3, _v, sel_4, node, e_5, total, n1, n2, x1, y1, x2, y2, findText, replaceText, scope, count, textNodes_4, collect_1, _w, textNodes_1, node, font, e_6, pageName, slides, slides, slides, slides, slides, cfg_1, targets_4, scopeNodes, collectTargets_1, findRegex_1, escape_1, pat, results_1, checkString_1, _loop_2, _x, targets_2, node, items, count, _y, items_1, item, node, err_1, scope, findText_1, results_2, searchPool, traverse_4, node, cacheKey, font, cachedData, currentFills, highlightPaint, e_7, tasks, replaceText, successCount, processedIds, groups_1, _z, _0, _1, _2, nodeId, node, groupTasks, _3, groupTasks_1, task, currentStr, err_2, count, _4, _5, _6, _7, key, _8, nodeId, indexStr, index, data, node, font, e_8, ids, findText, replaceText, count, _9, ids_1, id, node, regex, err_3;
     var _this = this;
     return __generator(this, function (_10) {
         switch (_10.label) {
@@ -673,9 +674,20 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     if (selection.length > 1) {
                         p_1 = selection[0].parent;
                         if (selection.every(function (n) { return n.parent === p_1; })) {
-                            __spreadArray([], selection, true).sort(function (a, b) { return Math.abs(a.y - b.y) > 2 ? a.y - b.y : a.x - b.x; }).forEach(function (n) { return p_1.appendChild(n); });
-                            figma.notify("图层已排序");
+                            isReverse_1 = layerSortDirection === 'desc';
+                            __spreadArray([], selection, true).sort(function (a, b) {
+                                var diffY = a.y - b.y;
+                                var diffX = a.x - b.x;
+                                var result = Math.abs(diffY) > 2 ? diffY : diffX;
+                                return isReverse_1 ? -result : result;
+                            }).forEach(function (n) { return p_1.appendChild(n); });
+                            figma.notify(isReverse_1 ? "已【倒序】排列图层 (Z->A)" : "已【正序】排列图层 (A->Z)");
+                            // 切换下次点击的方向
+                            layerSortDirection = isReverse_1 ? 'asc' : 'desc';
                         }
+                    }
+                    else {
+                        figma.notify("请至少选择两个同级图层");
                     }
                     return [3 /*break*/, 134];
                 }
@@ -2204,7 +2216,7 @@ function pptStep3_Flatten(slides) {
 // Step 4: 提取结构 (高性能优化版：大批次 + 零丢弃)
 function pptStep4_Extract(slides) {
     return __awaiter(this, void 0, void 0, function () {
-        var rgbToHex, i, slide, slideAbs, slideX, slideY, chunkBuffer, children, j, node, nodeAbs, centerX, centerY, el, stroke, shadow, visibleFill, style, isMultiLine, err_5;
+        var rgbToHex, i, slide, slideAbs, slideX, slideY, chunkBuffer, children, j, node, nodeAbs, centerX, centerY, el, stroke, shadow, visibleFill, isLineLike, arrowCaps, baseSize, firstCharFont, lh, finalPx, style, isMultiLine, c, c, err_5;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -2291,42 +2303,83 @@ function pptStep4_Extract(slides) {
                         el.color = null;
                         el.fillAlpha = 0;
                     }
-                    // --- 类型分类 ---
-                    // A. 直线
-                    if (node.type === 'LINE') {
+                    isLineLike = (node.type === 'LINE' || node.type === 'CONNECTOR');
+                    if (isLineLike) {
                         el.type = 'line';
-                        if ('dashPattern' in node && node.dashPattern.length > 0 && node.dashPattern[0] > 0) {
+                        if ('dashPattern' in node && node.dashPattern.length > 0)
                             el.dashPattern = node.dashPattern;
-                        }
-                        if (node.lineEndCap === 'ARROW_LINES' || node.lineEndCap === 'ARROW_EQUILATERAL')
-                            el.tailArrow = 'arrow';
-                        if (node.lineStartCap === 'ARROW_LINES' || node.lineStartCap === 'ARROW_EQUILATERAL')
-                            el.headArrow = 'arrow';
+                        arrowCaps = ['ARROW_LINES', 'ARROW_EQUILATERAL', 'TRIANGLE_FILLED', 'TRIANGLE_WIRED', 'DIAMOND_FILLED', 'CIRCLE_FILLED'];
+                        if ('lineStartCap' in node && arrowCaps.includes(node.lineStartCap))
+                            el.headArrow = 'triangle';
+                        if ('lineEndCap' in node && arrowCaps.includes(node.lineEndCap))
+                            el.tailArrow = 'triangle';
+                        // 必须要有一条可见的描边，否则跳过
                         if (!el.strokeColor)
-                            return [3 /*break*/, 8]; // 无色直线跳过
+                            return [3 /*break*/, 8];
                         chunkBuffer.push(el);
                     }
                     // B. 文本
                     else if (node.type === 'TEXT') {
                         el.type = 'text';
-                        el.text = node.characters.substring(0, 2000); // 稍微放宽限制
+                        el.text = node.characters.substring(0, 2000);
+                        baseSize = 12;
+                        if (node.fontSize !== figma.mixed) {
+                            baseSize = node.fontSize;
+                        }
+                        else {
+                            firstCharFont = node.getRangeFontSize(0, 1);
+                            if (firstCharFont && firstCharFont !== figma.mixed)
+                                baseSize = firstCharFont;
+                        }
+                        el.fontSize = baseSize;
+                        lh = node.lineHeight;
+                        if (lh === figma.mixed) {
+                            // 如果混合，强制读取第一个字符的行高
+                            lh = node.getRangeLineHeight(0, 1);
+                        }
+                        // 如果还是读不到(极罕见)，造一个默认值
+                        if (!lh || lh === figma.mixed) {
+                            lh = { unit: 'AUTO' };
+                        }
+                        finalPx = baseSize * 1.3;
+                        if (lh.unit === 'PIXELS') {
+                            finalPx = lh.value;
+                        }
+                        else if (lh.unit === 'PERCENT') {
+                            finalPx = baseSize * (lh.value / 100);
+                        }
+                        // 存入变量
+                        el.lineHeightPx = finalPx;
+                        // 4. 其他属性
                         if (node.fontName !== figma.mixed) {
                             el.fontFace = node.fontName.family;
                             style = node.fontName.style.toLowerCase();
                             if (/bold|heavy|black|strong/.test(style))
                                 el.isBold = true;
                         }
-                        if (node.fontSize !== figma.mixed)
-                            el.fontSize = node.fontSize;
-                        if (node.lineHeight !== figma.mixed && node.lineHeight.unit === 'PIXELS' && node.fontSize !== figma.mixed) {
-                            el.lineSpacing = node.lineHeight.value / node.fontSize;
-                        }
                         isMultiLine = node.characters.includes('\n');
+                        // 如果没有换行符，但高度超过 1.5 倍字号，也视为多行（折行）
                         if (!isMultiLine && node.fontSize !== figma.mixed) {
                             if (node.height > node.fontSize * 1.5)
                                 isMultiLine = true;
                         }
-                        el.valign = isMultiLine ? 'top' : 'middle';
+                        el.isMultiLine = isMultiLine;
+                        // 5. 获取水平对齐 (Horizontal Align)
+                        if (node.textAlignHorizontal === 'CENTER')
+                            el.align = 'center';
+                        else if (node.textAlignHorizontal === 'RIGHT')
+                            el.align = 'right';
+                        else if (node.textAlignHorizontal === 'JUSTIFIED')
+                            el.align = 'justify';
+                        else
+                            el.align = 'left'; // 默认左对齐
+                        // 6. (可选) 获取垂直对齐，虽然你的需求是强制覆盖，但获取一下也没坏处
+                        if (node.textAlignVertical === 'CENTER')
+                            el.vAlignFigma = 'middle';
+                        else if (node.textAlignVertical === 'BOTTOM')
+                            el.vAlignFigma = 'bottom';
+                        else
+                            el.vAlignFigma = 'top';
                         if (!visibleFill)
                             el.fillAlpha = el.opacity || 1;
                         chunkBuffer.push(el);
@@ -2339,11 +2392,32 @@ function pptStep4_Extract(slides) {
                         el.fillAlpha = el.opacity || 1;
                         chunkBuffer.push(el);
                     }
-                    // D. 形状 (包含所有矢量)
+                    // D. 形状 (矩形、圆、星形、多边形) - 排除 LINE/CONNECTOR
                     else if (node.type === 'RECTANGLE' || node.type === 'ELLIPSE' ||
                         node.type === 'VECTOR' || node.type === 'STAR' ||
                         node.type === 'POLYGON' || node.type === 'BOOLEAN_OPERATION') {
-                        el.type = 'rect';
+                        el.type = 'shape';
+                        el.pptShape = 'rect'; // 默认
+                        if (node.type === 'ELLIPSE')
+                            el.pptShape = 'ellipse';
+                        else if (node.type === 'STAR') {
+                            c = node.pointCount;
+                            if (c >= 4 && c <= 32)
+                                el.pptShape = 'star' + c;
+                            else
+                                el.pptShape = 'star5';
+                        }
+                        else if (node.type === 'POLYGON') {
+                            c = node.pointCount;
+                            if (c === 3)
+                                el.pptShape = 'triangle';
+                            else if (c === 5)
+                                el.pptShape = 'pentagon';
+                            else if (c === 6)
+                                el.pptShape = 'hexagon';
+                            else if (c === 8)
+                                el.pptShape = 'octagon';
+                        }
                         if (!el.color && !el.strokeColor)
                             return [3 /*break*/, 8];
                         chunkBuffer.push(el);

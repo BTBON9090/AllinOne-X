@@ -2625,7 +2625,7 @@
         reset_image: ["⚖️ 重置图片比例", "恢复原始宽高比", "修复被拉伸变形的图片，恢复其原始的长宽比例。", "已重置图片比例"],
         
         // --- 排序与命名 ---
-        sort_layers: ["👁️ 按视觉排序图层", "按坐标重排图层", "根据画布上的 X/Y 坐标，重新排列图层列表顺序（从上到下，从左到右）。", "图层已排序"],
+        sort_layers: ["👁️ 按视觉排序图层", "按坐标重排图层", "根据画布上的 X/Y 坐标，重新排列图层列表顺序（从上到下，从左到右）。再点一次可反向排列", "图层已排序"],
         rename_content: ["🏷️ 按内容重命名", "图层名同步文本内容", "自动将文本层或包含文本的 Frame 重命名为其内容。", "图层已重命名"],
         
         // --- 实例与清理 ---
@@ -4614,18 +4614,22 @@
           const y = cy - (h / 2);
 
           const opts = { x:x, y:y, w:w, h:h };
-          
+
+          // 旋转
           if (el.rotation) opts.rotate = -el.rotation;
 
+          // 透明度
           let pptTransparency = 0;
           if (el.opacity !== undefined && el.opacity < 1) pptTransparency = (1 - el.opacity) * 100;
           const fillTrans = (el.fillAlpha !== undefined && el.fillAlpha < 1) ? (1 - el.fillAlpha) * 100 : 0;
           const strokeTrans = (el.strokeAlpha !== undefined && el.strokeAlpha < 1) ? (1 - el.strokeAlpha) * 100 : 0;
 
+          // 边框
           if (el.strokeColor) {
             opts.line = { color: el.strokeColor, width: (el.strokeWeight || 1) * ratio, transparency: strokeTrans };
           }
 
+          // 阴影
           if (el.shadow) {
             const dist = Math.sqrt(el.shadow.x**2 + el.shadow.y**2) * ratio;
             let angle = Math.atan2(el.shadow.y, el.shadow.x) * (180 / Math.PI);
@@ -4633,45 +4637,121 @@
             opts.shadow = { type: 'outer', color: el.shadow.color, opacity: el.shadow.opacity, blur: (el.shadow.blur * ratio * 0.75), offset: dist / 0.75, angle: angle };
           }
 
-          // A. 直线
-          if (el.type === 'line') {
-            let pptDash = 'solid';
-            if (el.dashPattern && el.dashPattern.length > 0) {
-               const [d, g] = el.dashPattern;
-               if (d<=2 && g<=2) pptDash = 'dot'; else if (d>10) pptDash = 'lgDash'; else pptDash = 'dash';
-            }
+          // A. 线条 (Line) - 终极修正版
+          else if (el.type === 'line') {
+            // 箭头样式：如果后端标记了有箭头，就设为 'triangle' (标准箭头)，否则 'none'
+            const arrowHead = el.headArrow ? 'triangle' : 'none';
+            const arrowTail = el.tailArrow ? 'triangle' : 'none';
+
             const lineOpts = {
-              x:x, y:y, w:w, h:h, rotate: opts.rotate || 0,
-              line: { color: el.strokeColor, width: (el.strokeWeight || 1)*ratio, transparency: strokeTrans, dashType: pptDash, beginArrowType: el.headArrow || 'none', endArrowType: el.tailArrow || 'none' }
+              x: x, y: y, w: w, h: h,
+              rotate: opts.rotate || 0,
+              line: {
+                color: el.strokeColor || '000000',
+                width: (el.strokeWeight || 1) * ratio,
+                transparency: (el.strokeAlpha !== undefined) ? (1 - el.strokeAlpha)*100 : 0,
+                
+                // 🔥 核心修复：同时写上两套属性名，防止版本兼容问题
+                // 方案 1: 针对 Shape 的属性
+                lineHead: arrowHead,
+                lineTail: arrowTail,
+                // 方案 2: 针对 Connector 的属性 (作为兜底)
+                beginArrowType: arrowHead,
+                endArrowType: arrowTail
+              }
             };
+            
+            if (el.dashPattern) lineOpts.line.dashType = 'dash'; 
+
+            // 使用 addShape 画线条，这是最标准的做法
             slide.addShape(pptx.ShapeType.line, lineOpts);
           }
+         
           // B. 文本
           else if (el.type === 'text') {
-            opts.fontSize = Math.round((el.fontSize || 12) * ratio * 0.75);
+            const ptSize = Math.round((el.fontSize || 12) * ratio * 0.75);
+            opts.fontSize = ptSize;
             opts.margin = 0; 
-            if (el.lineSpacing) opts.lineSpacing = Math.round(el.lineSpacing * ratio * 0.75);
+            
+            // --- 调试日志 (请查看控制台) ---
+            console.log(`文本: ${el.text.substring(0,5)}... | 字号(px):${el.fontSize} | 行高(px):${el.lineHeightPx}`);
+
+            // 计算行高 (px -> pt)
+            if (el.lineHeightPx) {
+                opts.lineSpacing = Math.round(el.lineHeightPx * ratio * 0.75);
+            } else {
+                opts.lineSpacing = Math.round(ptSize * 1.2);
+            }
+
             if (el.fontFace) opts.fontFace = el.fontFace;
             if (el.isBold) opts.bold = true;
             opts.color = el.color || '000000';
             opts.transparency = fillTrans;
-            opts.valign = el.valign || 'top';
-            opts.wrap = true;
-            slide.addText(el.text, opts);
-          } 
-          // C. 矩形
-          else if (el.type === 'rect') {
-            if (el.color) opts.fill = { color: el.color, transparency: fillTrans };
-            else opts.fill = { color: 'FFFFFF', transparency: 100 };
+            // ============================================
+            // 🔥 核心修改：根据单/多行设置不同的布局属性
+            // ============================================
             
-            let shapeType = pptx.ShapeType.rect;
-            if (el.cornerRadius > 0) {
-                shapeType = pptx.ShapeType.roundRect;
+            // 1. 水平对齐 (完全同步 Figma)
+            opts.align = el.align || 'left';
+
+            // 2. 差异化设置
+            if (el.isMultiLine) {
+                // --- 多行文本 ---
+                // 需求：根据文字调整大小 + 自动换行 + 顶部对齐
+                opts.fit = 'resize';  // 允许形状随文字撑开
+                opts.wrap = true;     // 开启换行
+                opts.valign = 'top';  // 顶部对齐
+            } else {
+                // --- 单行文本 ---
+                // 需求：根据文字调整大小 + 不自动换行 + 垂直居中
+                opts.fit = 'resize';  // 允许形状随文字撑开 (宽度变长)
+                opts.wrap = false;    // 关闭换行 (单行无限长)
+                opts.valign = 'middle'; // 垂直居中
+            }
+            
+            // 注意：autoFit 属性与 fit 属性有时冲突，建议显式移除 autoFit 以防干扰
+            delete opts.autoFit; 
+
+            slide.addText(el.text, opts);
+          }
+          
+          // C. 通用形状 (矩形、圆、三角、星形...)
+          // 只要类型是 shape (新逻辑) 或者 rect/ellipse (兼容旧逻辑)
+          else if (el.type === 'shape' || el.type === 'rect' || el.type === 'ellipse') {
+            
+            // 样式设置
+            if (el.color) opts.fill = { color: el.color, transparency: fillTrans };
+            else opts.fill = { color: 'FFFFFF', transparency: 100 }; // 无填充则白色透明(占位)
+            
+            if (el.strokeColor) {
+                opts.line = { 
+                    color: el.strokeColor, 
+                    width: (el.strokeWeight || 1) * ratio, 
+                    transparency: strokeTrans 
+                };
+            }
+
+            // --- 🔥 核心：动态形状类型 ---
+            let pptShapeType = pptx.ShapeType.rect; // 默认矩形
+
+            // 1. 优先使用后端指定的 pptShape (如 'star5', 'triangle')
+            if (el.pptShape && pptx.ShapeType[el.pptShape]) {
+                pptShapeType = pptx.ShapeType[el.pptShape];
+            }
+            // 2. 兼容旧逻辑
+            else if (el.type === 'ellipse') {
+                pptShapeType = pptx.ShapeType.ellipse;
+            }
+
+            // 3. 圆角矩形特殊处理
+            if (pptShapeType === pptx.ShapeType.rect && el.cornerRadius > 0) {
+                pptShapeType = pptx.ShapeType.roundRect;
                 const minSide = Math.min(el.w, el.h);
                 if (minSide > 0) opts.rectRadius = Math.min(el.cornerRadius / 2 / minSide, 0.5);
             }
-            slide.addShape(shapeType, opts);
+            slide.addShape(pptShapeType, opts);
           }
+          
           // D. 占位符
           else if (el.type === 'placeholder') {
             const boxOpts = { 
@@ -7480,9 +7560,11 @@
     initSmartFill();
 
   </script>
-  <!-- B步骤：引入外部 PPT 库 -->
+  <!-- B步骤：引入外部 PPT 库-->
   <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+   
+
 
 </body>
 </html>
