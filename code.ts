@@ -574,7 +574,7 @@ figma.ui.onmessage = async (msg) => {
         else if (f.scope === 'children') {
             // 模式：仅直系子级
             if (sel.length === 0) {
-                figma.notify("⚠️ 请先选择一个容器");
+                figma.notify("⚠️ 请先选择一个容器(Frame/Group)");
                 return;
             }
             for (const node of sel) {
@@ -589,7 +589,7 @@ figma.ui.onmessage = async (msg) => {
                 const siblings = sel[0].parent.children.filter(n => !sel.includes(n));
                 searchTargets.push(...siblings);
             } else {
-                figma.notify("⚠️ 无法查找同级（未选中或无父级）");
+                figma.notify("⚠️ 请先选择一个图层");
                 return;
             }
         } 
@@ -734,11 +734,93 @@ figma.ui.onmessage = async (msg) => {
             figma.currentPage.selection = results;
             figma.viewport.scrollAndZoomIntoView(results);
             figma.notify(`✅ 已选中 ${results.length} 个图层`);
+            
+            // 🔥 新增：将结果回传给 UI
+            figma.ui.postMessage({
+              type: 'found-layers-result',
+              count: results.length,
+              layers: results.map(n => ({ id: n.id, name: n.name, type: n.type }))
+            });
+
         } else {
-            figma.notify("⚠️ 未找到图层 (请检查下方日志的筛选池大小)");
+            figma.notify("⚠️ 未找到图层，请检查 Console的筛选池大小");
+            figma.ui.postMessage({ type: 'found-layers-result', count: 0, layers: [] });
         }
         break;
     }
+
+    // ==========================================
+    // 后端逻辑：响应 focus-layers
+    // ==========================================
+        case 'focus-layers': {
+            const runFocus = async () => {
+                try {
+                    const ids = msg.ids;
+                    if (!ids || ids.length === 0) return;
+
+                    // 1. 异步获取图层 (Figma 强制要求)
+                    // 使用 Promise.all 确保并发获取，速度极快
+                    const nodes = await Promise.all(ids.map(id => figma.getNodeByIdAsync(id)));
+                    
+                    const targets: SceneNode[] = [];
+                    const selection: SceneNode[] = [];
+                    const currentPageId = figma.currentPage.id;
+
+                    // 2. 快速筛选
+                    for (const node of nodes) {
+                        if (!node || node.removed) continue;
+                        if (node.type === 'DOCUMENT' || node.type === 'PAGE') continue;
+                        
+                        // 确保在当前页
+                        // 简单的向上查找，确保安全
+                        let p = node.parent; 
+                        let isCurrent = false;
+                        // 大多数情况父级就是 Page，优化判断速度
+                        if (p && p.type === 'PAGE') {
+                            isCurrent = (p.id === currentPageId);
+                        } else {
+                            // 深度查找
+                            while (p) {
+                                if (p.type === 'PAGE') {
+                                    isCurrent = (p.id === currentPageId);
+                                    break;
+                                }
+                                p = p.parent;
+                            }
+                        }
+
+                        if (isCurrent) {
+                            // 只要在当前页，就加入“视图定位目标”
+                            targets.push(node as SceneNode);
+                            
+                            // 如果没锁且可见，也加入“选中目标”
+                            if (!node.locked && node.visible) {
+                                selection.push(node as SceneNode);
+                            }
+                        }
+                    }
+
+                    if (targets.length > 0) {
+                        // A. 尝试选中 (如果全是锁定的，这里就是空数组，会清空选择，是正确的表现)
+                        figma.currentPage.selection = selection;
+
+                        // B. 视图定位 (这是你要的核心功能)
+                        figma.viewport.scrollAndZoomIntoView(targets);
+                        
+                        // C. 只有多选时才提示，单选静默，体验最好
+                        if (targets.length > 1) {
+                            figma.notify(`已定位 ${targets.length} 项`);
+                        }
+                    }
+
+                } catch (e: any) {
+                    console.log("定位错误 (已忽略):", e);
+                }
+            };
+
+            runFocus();
+            break;
+        }
 
     // ===========================
     // C. 样式工具
