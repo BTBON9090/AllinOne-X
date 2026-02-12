@@ -2320,6 +2320,10 @@
               </div>
 
               <button class="primary-btn" onclick="saveAiConfig()" style="margin-top:10px;" data-key="sf_btn_save_cfg">保存配置</button>
+              
+              <div style="margin-top:16px; padding:12px; background:#f5f5f5; border-radius:8px; font-size:12px; color:#666; line-height:1.6;" data-key="sf_privacy_note">
+                隐私说明：本插件没有后台服务器，API Key 仅保存在本地。Figma 卸载重装后需要重新填写 Key，请放心使用。
+              </div>
             </div>
           </div>
           
@@ -2443,6 +2447,7 @@
       sf_lbl_baseurl: "API 地址 (Base URL)",
       sf_lbl_model: "模型名称 (Model)",
       sf_lbl_key: "API Key",
+      sf_privacy_note: "隐私说明：本插件没有后台服务器，API Key 仅保存在本地。Figma 卸载重装后需要重新填写 Key，请放心使用。",
       
       sf_cfg_range: "数值范围 (最小值 - 最大值)",
       sf_cfg_time_range: "时间范围",
@@ -2609,10 +2614,10 @@
         sel_scope_sib: "同级",
         sel_scope_child: "子级",
         sel_scope_desc: "子孙元素",
-        sel_desc_inside: "查找当前选中项内部的所有图层（不含选中项本身）",
-        sel_desc_sibling: "查找与当前选中项处于同一父级层级的其他图层",
-        sel_desc_children: "仅查找当前选中项的直接第一层子图层",
-        sel_desc_descendants: "查找当前选中项及其内部所有图层；若未选择，则查找全页面",
+        sel_desc_inside: "选中项内部的所有图层，不含选中项本身",
+        sel_desc_sibling: "当前选中项处于同一层级的其他图层",
+        sel_desc_children: "当前选中项的下一层子图层",
+        sel_desc_descendants: "当前选中项及内部所有图层；若未选择图层，则查找全页",
         
         sel_title_name: "名称",
         sel_ph_name: "输入名称",
@@ -2847,6 +2852,7 @@
       sf_lbl_baseurl: "API Address (Base URL)",
       sf_lbl_model: "Model Name",
       sf_lbl_key: "API Key",
+      sf_privacy_note: "Privacy Note: This plugin has no backend server. API Keys are stored locally only. You'll need to re-enter the key after reinstalling Figma. Feel free to use with confidence.",
       
       sf_cfg_range: "Range (Min - Max)",
       sf_cfg_time_range: "Time Range",
