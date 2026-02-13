@@ -421,12 +421,6 @@
           width: 100%; 
           margin-bottom: 0; 
       }
-      .card-desc { 
-          font-size: 11px; 
-          opacity: 0.7; 
-          line-height: 1.4; 
-          display: none; 
-      }
 
       .theme-orange { background: var(--card-orange-bg); color: var(--card-orange-text); border-color: var(--card-orange-border); }
       .theme-blue   { background: var(--card-blue-bg); color: var(--card-blue-text); border-color: var(--card-blue-border); }
@@ -450,6 +444,47 @@
       }
       .tt-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
       @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+      
+      /* Error Toast */
+      #errorToast {
+          position: fixed;
+          bottom: 24px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: var(--danger);
+          color: white;
+          padding: 12px 20px;
+          border-radius: var(--radius-lg);
+          font-size: 13px;
+          font-weight: 500;
+          box-shadow: var(--shadow-lg);
+          z-index: 10000;
+          display: none;
+          align-items: center;
+          gap: 10px;
+          max-width: 90%;
+          animation: slideUp var(--transition-normal);
+      }
+      #errorToast.show { display: flex; }
+      #errorToast .toast-icon { font-size: 16px; }
+      #errorToast .toast-close {
+          background: rgba(255,255,255,0.2);
+          border: none;
+          color: white;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          cursor: pointer;
+          font-size: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+      }
+      #errorToast .toast-close:hover { background: rgba(255,255,255,0.3); }
+      @keyframes slideUp {
+          from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+          to { opacity: 1; transform: translateX(-50%) translateY(0); }
+      }
 
       .empty-state {
           display: none; flex-direction: column; align-items: center; justify-content: center;
@@ -2480,31 +2515,31 @@
         <!-- Panel 1: 简易工具 (Simple Tools) -->
         <div class="grid" id="toolPanel">
           <!-- 形状 -->
-          <div class="card theme-orange" onclick="run('to-frame')" data-key="to_frame"><div class="card-title">To Frame</div><div class="card-desc"></div></div>
-          <div class="card theme-orange" onclick="run('to-rect')" data-key="to_rect"><div class="card-title">To Rectangle</div><div class="card-desc"></div></div>
+          <div class="card theme-orange" onclick="run('to-frame')" data-key="to_frame"><div class="card-title">To Frame</div></div>
+          <div class="card theme-orange" onclick="run('to-rect')" data-key="to_rect"><div class="card-title">To Rectangle</div></div>
           <!-- 文本 -->
-          <div class="card theme-pink" onclick="run('split-text')" data-key="split_text"><div class="card-title">Split Text</div><div class="card-desc"></div></div>
-          <div class="card theme-pink" onclick="run('join-text')" data-key="join_text"><div class="card-title">Join Text</div><div class="card-desc"></div></div>
+          <div class="card theme-pink" onclick="run('split-text')" data-key="split_text"><div class="card-title">Split Text</div></div>
+          <div class="card theme-pink" onclick="run('join-text')" data-key="join_text"><div class="card-title">Join Text</div></div>
           <!-- 布局 -->
-          <div class="card theme-blue" onclick="run('remove-al')" data-key="remove_al"><div class="card-title">Remove AL</div><div class="card-desc"></div></div>
-          <div class="card theme-blue" onclick="run('add-al-wrapper')" data-key="add_al_wrapper"><div class="card-title">Add AL Wrapper</div><div class="card-desc"></div></div>
+          <div class="card theme-blue" onclick="run('remove-al')" data-key="remove_al"><div class="card-title">Remove AL</div></div>
+          <div class="card theme-blue" onclick="run('add-al-wrapper')" data-key="add_al_wrapper"><div class="card-title">Add AL Wrapper</div></div>
           <!-- 层级与整理 -->
-          <div class="card theme-purple" onclick="run('up-one')" data-key="up_one"><div class="card-title">Up One Level</div><div class="card-desc"></div></div>
-          <div class="card theme-purple" onclick="run('up-all')" data-key="up_all"><div class="card-title">Up All Level</div><div class="card-desc"></div></div>
-          <div class="card theme-green" onclick="run('ungroup-all')" data-key="ungroup_all"><div class="card-title">Ungroup All</div><div class="card-desc"></div></div>
-          <div class="card theme-green" onclick="run('unlock-all')" data-key="unlock_all"><div class="card-title">Unlock All</div><div class="card-desc"></div></div>
-          <div class="card theme-orange" onclick="run('swap-fs')" data-key="swap_fs"><div class="card-title">Swap Fill/Stroke</div><div class="card-desc"></div></div>
-          <div class="card theme-orange" onclick="run('reset-image')" data-key="reset_image"><div class="card-title">Reset Image</div><div class="card-desc"></div></div>
+          <div class="card theme-purple" onclick="run('up-one')" data-key="up_one"><div class="card-title">Up One Level</div></div>
+          <div class="card theme-purple" onclick="run('up-all')" data-key="up_all"><div class="card-title">Up All Level</div></div>
+          <div class="card theme-green" onclick="run('ungroup-all')" data-key="ungroup_all"><div class="card-title">Ungroup All</div></div>
+          <div class="card theme-green" onclick="run('unlock-all')" data-key="unlock_all"><div class="card-title">Unlock All</div></div>
+          <div class="card theme-orange" onclick="run('swap-fs')" data-key="swap_fs"><div class="card-title">Swap Fill/Stroke</div></div>
+          <div class="card theme-orange" onclick="run('reset-image')" data-key="reset_image"><div class="card-title">Reset Image</div></div>
           <!-- 增强功能 -->
-          <div class="card theme-pink" onclick="run('sort-layers')" data-key="sort_layers"><div class="card-title">Sort Layers</div><div class="card-desc"></div></div>
-          <div class="card theme-pink" onclick="run('rename-content')" data-key="rename_content"><div class="card-title">Rename Content</div><div class="card-desc"></div></div>
-          <div class="card theme-blue" onclick="run('detach-all')" data-key="detach_all"><div class="card-title">Detach All</div><div class="card-desc"></div></div>
-          <div class="card theme-blue" onclick="run('remove-hidden')" data-key="remove_hidden"><div class="card-title">Clean Hidden</div><div class="card-desc"></div></div>
-          <div class="card theme-purple" onclick="run('pixel-perfect')" data-key="pixel_perfect"><div class="card-title">Pixel Perfect</div><div class="card-desc"></div></div>
-          <div class="card theme-purple" onclick="run('swap-positions')" data-key="swap_positions"><div class="card-title">Swap Positions</div><div class="card-desc"></div></div>
+          <div class="card theme-pink" onclick="run('sort-layers')" data-key="sort_layers"><div class="card-title">Sort Layers</div></div>
+          <div class="card theme-pink" onclick="run('rename-content')" data-key="rename_content"><div class="card-title">Rename Content</div></div>
+          <div class="card theme-blue" onclick="run('detach-all')" data-key="detach_all"><div class="card-title">Detach All</div></div>
+          <div class="card theme-blue" onclick="run('remove-hidden')" data-key="remove_hidden"><div class="card-title">Clean Hidden</div></div>
+          <div class="card theme-purple" onclick="run('pixel-perfect')" data-key="pixel_perfect"><div class="card-title">Pixel Perfect</div></div>
+          <div class="card theme-purple" onclick="run('swap-positions')" data-key="swap_positions"><div class="card-title">Swap Positions</div></div>
           <!-- 样式工具 -->
-          <div class="card theme-green" onclick="run('create-styles')" data-key="create_styles"><div class="card-title">Create Styles</div><div class="card-desc"></div></div>
-          <div class="card theme-green" onclick="run('match-styles')" data-key="match_styles"><div class="card-title">Match Styles</div><div class="card-desc"></div></div>
+          <div class="card theme-green" onclick="run('create-styles')" data-key="create_styles"><div class="card-title">Create Styles</div></div>
+          <div class="card theme-green" onclick="run('match-styles')" data-key="match_styles"><div class="card-title">Match Styles</div></div>
         
         </div>
 
@@ -3304,6 +3339,13 @@
     </div>
   </div>
 
+  <!-- Error Toast -->
+  <div id="errorToast">
+    <span class="toast-icon">⚠️</span>
+    <span class="toast-message">发生错误</span>
+    <button class="toast-close" onclick="hideErrorToast()">✕</button>
+  </div>
+
   <!-- 自定义通用弹窗 (用于保存/追加) -->
   <div id="saveDialog" class="sub-page" style="height: auto; max-height: 80%; bottom: 0; top: auto; border-radius: 12px 12px 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,0.15);">
     <div class="sub-header">
@@ -3340,6 +3382,165 @@
     // =============================================================================
     // 1. 全局变量与配置 (Globals)
     // =============================================================================
+    
+    // --- 内存缓存系统 ---
+    const MemoryCache = {
+      _data: {},
+      
+      get(key) {
+        return this._data[key];
+      },
+      
+      set(key, value) {
+        this._data[key] = value;
+        return value;
+      },
+      
+      has(key) {
+        return key in this._data;
+      },
+      
+      remove(key) {
+        delete this._data[key];
+      },
+      
+      clear() {
+        this._data = {};
+      }
+    };
+    
+    // --- 持久化缓存系统 ---
+    const PersistentCache = {
+      prefix: 'allinone_',
+      
+      get(key) {
+        try {
+          const data = localStorage.getItem(this.prefix + key);
+          return data ? JSON.parse(data) : null;
+        } catch (e) {
+          console.warn('[Cache] Read error:', e);
+          return null;
+        }
+      },
+      
+      set(key, value) {
+        try {
+          localStorage.setItem(this.prefix + key, JSON.stringify(value));
+          return value;
+        } catch (e) {
+          console.warn('[Cache] Write error:', e);
+          return null;
+        }
+      },
+      
+      remove(key) {
+        try {
+          localStorage.removeItem(this.prefix + key);
+        } catch (e) {
+          console.warn('[Cache] Remove error:', e);
+        }
+      },
+      
+      clear() {
+        try {
+          Object.keys(localStorage)
+            .filter(k => k.startsWith(this.prefix))
+            .forEach(k => localStorage.removeItem(k));
+        } catch (e) {
+          console.warn('[Cache] Clear error:', e);
+        }
+      }
+    };
+    
+    // --- 全局错误处理器 ---
+    const ErrorHandler = {
+      errors: [],
+      maxErrors: 50,
+      
+      init() {
+        window.onerror = (msg, url, line, col, error) => {
+          this.handleError({
+            type: 'sync',
+            message: msg,
+            source: url,
+            line,
+            col,
+            stack: error?.stack,
+            time: Date.now()
+          });
+          return false;
+        };
+        
+        window.addEventListener('unhandledrejection', (event) => {
+          this.handleError({
+            type: 'promise',
+            message: event.reason?.message || String(event.reason),
+            stack: event.reason?.stack,
+            time: Date.now()
+          });
+        });
+        
+        window.addEventListener('error', (event) => {
+          if (event.error) {
+            this.handleError({
+              type: 'resource',
+              message: event.message,
+              source: event.filename,
+              line: event.lineno,
+              col: event.colno,
+              time: Date.now()
+            });
+          }
+        }, true);
+      },
+      
+      handleError(error) {
+        this.errors.push(error);
+        if (this.errors.length > this.maxErrors) {
+          this.errors.shift();
+        }
+        
+        console.error('[ErrorHandler]', error);
+        
+        if (typeof showErrorToast === 'function') {
+          showErrorToast(error.message);
+        }
+      },
+      
+      getErrors() {
+        return this.errors;
+      },
+      
+      clearErrors() {
+        this.errors = [];
+      }
+    };
+    
+    ErrorHandler.init();
+    
+    // --- Error Toast Functions ---
+    let errorToastTimer = null;
+    
+    function showErrorToast(message, duration = 4000) {
+      const toast = document.getElementById('errorToast');
+      const msgEl = toast?.querySelector('.toast-message');
+      if (!toast || !msgEl) return;
+      
+      msgEl.textContent = message || '发生未知错误';
+      toast.classList.add('show');
+      
+      if (errorToastTimer) clearTimeout(errorToastTimer);
+      errorToastTimer = setTimeout(() => hideErrorToast(), duration);
+    }
+    
+    function hideErrorToast() {
+      const toast = document.getElementById('errorToast');
+      if (toast) toast.classList.remove('show');
+      if (errorToastTimer) {
+        clearTimeout(errorToastTimer);
+        errorToastTimer = null;
+      }
+    }
     
     // --- 国际化数据字典 ---
     const i18n = {
@@ -3486,9 +3687,9 @@
         scope_page: "当前页面",
         
         lbl_case: "目标命名风格",
-        lbl_fmt: "格式 (Format)",       // 新增
-        lbl_sep: "分隔符 (Separator)",  // 新增
-        lbl_casing: "大小写 (Casing)",  // 新增
+        lbl_fmt: "格式",       // 新增
+        lbl_sep: "分隔符",  // 新增
+        lbl_casing: "大小写",  // 新增
         
         opt_fmt_sep: "分隔符模式",      // 新增
         opt_keep_orig: "保持原样",      // 新增
@@ -4154,9 +4355,8 @@
       }
     };
     
-    let curLang = 'zh'; // 默认中文
+    let curLang = PersistentCache.get('user_lang') || 'zh';
 
-    // 初始化语言
     updateLanguage();
     
   
@@ -4164,24 +4364,21 @@
     // 2. 核心通信与工具函数 (Core & Utils)
     // =============================================================================
 
-    // 向 Figma 插件后端发送消息
     function postMsg(type, data = {}) {
         parent.postMessage({ pluginMessage: { type, ...data } }, '*');
     }
 
-    // 切换语言
     function toggleLang() {
       curLang = curLang === 'zh' ? 'en' : 'zh';
+      PersistentCache.set('user_lang', curLang);
       updateLanguage();
-      // 同时刷新一下动态生成的列表
       if(typeof renderBasicList === 'function') renderBasicList();
       if(typeof renderCustomList === 'function') renderCustomList();
     }
 
-    // 更新语言
     function updateLanguage() {
       const t = i18n[curLang];
-      if (!t) return; // 安全检查
+      if (!t) return;
 
       // 1. 通用更新：处理新加的 Refiner 界面及普通文本
       // 筛选策略：找到有 data-key 属性，但【不是】导航项、【不是】卡片的元素
@@ -4356,8 +4553,8 @@
       const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
       
       html.setAttribute('data-theme', newTheme);
+      PersistentCache.set('user_theme', newTheme);
       
-      // 更新图标显示
       const lightIcon = document.getElementById('themeIconLight');
       const darkIcon = document.getElementById('themeIconDark');
       const themeText = document.getElementById('themeText');
@@ -4372,19 +4569,10 @@
         darkIcon.style.display = 'none';
         themeText.textContent = t.btn_theme_dark || "主题";
       }
-      
-      // 保存主题偏好
-      try {
-        localStorage.setItem('theme', newTheme);
-      } catch(e) {}
     }
 
-    // 初始化主题
     function initTheme() {
-      let savedTheme = 'light';
-      try {
-        savedTheme = localStorage.getItem('theme') || 'light';
-      } catch(e) {}
+      const savedTheme = PersistentCache.get('user_theme') || 'light';
       
       if (savedTheme === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
@@ -4397,7 +4585,6 @@
       }
     }
     
-    // 页面加载时初始化主题
     initTheme();
 
     // 搜索功能
@@ -6838,6 +7025,8 @@
             return;
         }
         
+        saveFindHistory(findText);
+        
         const isSelection = document.getElementById('tScopeSel').classList.contains('active');
         const btn = document.getElementById('btnTextFind');
         
@@ -6847,8 +7036,6 @@
             if(span) span.innerText = t.txt_btn_finding || "搜索中...";
         }
 
-        // 发送消息给后端
-        // 注意：type 必须是 'text-find-matches'，与 code.js 对应
         parent.postMessage({ 
             pluginMessage: { 
                 type: 'text-find-matches', 
@@ -6857,8 +7044,20 @@
             } 
         }, '*');
         
-        // 自动折叠面板，展示结果区
         toggleTextHeader(false);
+    }
+    
+    function saveFindHistory(text) {
+        if (!text || text.trim().length === 0) return;
+        let history = PersistentCache.get('find_history') || [];
+        history = history.filter(item => item !== text);
+        history.unshift(text);
+        history = history.slice(0, 10);
+        PersistentCache.set('find_history', history);
+    }
+    
+    function getFindHistory() {
+        return PersistentCache.get('find_history') || [];
     }
     
     // 4. 重置函数 (也要更新一下，确保重置后展开)
@@ -7363,8 +7562,21 @@
             const y = d.getFullYear();
             const m = (d.getMonth()+1).toString().padStart(2,'0');
             const day = d.getDate().toString().padStart(2,'0');
+            const dayNoPad = d.getDate().toString();
+            const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            const monthShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const mmm = monthShort[d.getMonth()];
+            const mmmm = monthNames[d.getMonth()];
             
-            return fmt.replace('YYYY', y).replace('MM', m).replace('DD', day);
+            let result = fmt;
+            result = result.replace('MMMM', mmmm);
+            result = result.replace('MMM', mmm);
+            result = result.replace('YYYY', y);
+            result = result.replace('MM', m);
+            result = result.replace('DD', day);
+            result = result.replace('D', dayNoPad);
+            
+            return result;
         } 
       },
       
@@ -8187,7 +8399,12 @@
                     {l:'2023.10.01', v:'YYYY.MM.DD'},
                     {l:'2023年10月1日', v:'YYYY年MM月DD日'},
                     {l:'2023-10', v:'YYYY-MM'},
-                    {l:'10-01', v:'MM-DD'}
+                    {l:'10-01', v:'MM-DD'},
+                    {l:'Oct 1, 2023', v:'MMM D, YYYY'},
+                    {l:'October 1, 2023', v:'MMMM D, YYYY'},
+                    {l:'1 Oct 2023', v:'D MMM YYYY'},
+                    {l:'01/10/2023', v:'DD/MM/YYYY'},
+                    {l:'10/01/2023', v:'MM/DD/YYYY'}
                 ], s.format)}
             </div>
             
