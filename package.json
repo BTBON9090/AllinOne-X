@@ -4,11 +4,25 @@
   "description": "Figma All in One Plugin",
   "main": "code.js",
   "scripts": {
-    "build": "tsc code.ts --outFile code.js && node -e \"const fs = require('fs'); const html = fs.readFileSync('ui.html', 'utf8'); const js = fs.readFileSync('code.js', 'utf8'); const newJs = js.replace(/__html__/g, JSON.stringify(html)); fs.writeFileSync('code.js', newJs);\"",
-    "watch": "tsc code.ts --outFile code.js --watch"
+    "dev": "vite build --watch",
+    "build": "vite build && npm run build:backend",
+    "build:backend": "tsc code.ts --outFile dist/code.js",
+    "build:legacy": "tsc code.ts --outFile code.js && node -e \"const fs = require('fs'); const html = fs.readFileSync('ui.html', 'utf8'); const js = fs.readFileSync('code.js', 'utf8'); const newJs = js.replace(/__html__/g, JSON.stringify(html)); fs.writeFileSync('code.js', newJs);\"",
+    "watch": "tsc code.ts --outFile code.js --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --project tsconfig.src.json --noEmit"
+  },
+  "dependencies": {
+    "preact": "^10.19.3"
   },
   "devDependencies": {
+    "@preact/preset-vite": "^2.8.2",
+    "@figma/plugin-typings": "*",
     "typescript": "^5.0.0",
-    "@figma/plugin-typings": "*"
+    "vite": "^5.0.0",
+    "vitest": "^1.2.0",
+    "jsdom": "^24.0.0",
+    "terser": "^5.27.0"
   }
 }
