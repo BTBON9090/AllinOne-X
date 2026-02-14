@@ -1427,6 +1427,37 @@
       .checkbox-row:hover { color: var(--text-primary); }
       .checkbox-row input { accent-color: var(--primary); width: 14px; height: 14px; }
 
+      .checkbox-grid-row {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+      }
+      .checkbox-chip {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 12px;
+          background: var(--bg-muted);
+          border-radius: var(--radius-md);
+          font-size: 12px;
+          cursor: pointer;
+          transition: all var(--transition-fast);
+          border: 1px solid transparent;
+      }
+      .checkbox-chip:hover {
+          background: var(--bg-hover);
+      }
+      .checkbox-chip.active {
+          background: var(--primary-light);
+          color: var(--primary);
+          border-color: var(--primary);
+      }
+      .checkbox-chip input {
+          accent-color: var(--primary);
+          width: 14px;
+          height: 14px;
+      }
+
       .btn-start-lint {
           width: 100%; 
           padding: 10px; 
@@ -2873,6 +2904,25 @@
                   </div>
                 </div>
 
+                <!-- A2. 目标类型 (多选) -->
+                <div class="config-group">
+                  <label class="config-label" data-key="lbl_target_type">目标类型</label>
+                  <div class="checkbox-grid-row">
+                    <label class="checkbox-chip active" onclick="toggleTargetChip(this)">
+                      <input type="checkbox" id="target_comp_name" checked>
+                      <span data-key="target_comp_name">组件名</span>
+                    </label>
+                    <label class="checkbox-chip active" onclick="toggleTargetChip(this)">
+                      <input type="checkbox" id="target_prop_name" checked>
+                      <span data-key="target_prop_name">属性名</span>
+                    </label>
+                    <label class="checkbox-chip active" onclick="toggleTargetChip(this)">
+                      <input type="checkbox" id="target_prop_value" checked>
+                      <span data-key="target_prop_value">属性值</span>
+                    </label>
+                  </div>
+                </div>
+
                 <!-- B. 目标命名风格 (重构) -->
                 <div class="config-group">
                   <label class="config-label" data-key="lbl_case">目标命名风格</label>
@@ -3686,6 +3736,11 @@
         scope_sel: "选中图层",
         scope_page: "当前页面",
         
+        lbl_target_type: "目标类型",
+        target_comp_name: "组件名",
+        target_prop_name: "属性名",
+        target_prop_value: "属性值",
+        
         lbl_case: "目标命名风格",
         lbl_fmt: "格式",       // 新增
         lbl_sep: "分隔符",  // 新增
@@ -4094,6 +4149,11 @@
         lbl_scope: "Scope",
         scope_sel: "Selection",
         scope_page: "Current Page",
+        
+        lbl_target_type: "Target Types",
+        target_comp_name: "Comp Name",
+        target_prop_name: "Prop Name",
+        target_prop_value: "Prop Value",
         
         lbl_case: "Naming Case",
         lbl_fmt: "Format",
@@ -6287,7 +6347,12 @@
         const parent = el.closest('.radio-grid');
         parent.querySelectorAll('.radio-item').forEach(i => i.classList.remove('active'));
         el.classList.add('active');
-        el.dataset.value = value; // 存储值供后续读取
+        el.dataset.value = value;
+    }
+
+    // 多选 chip 切换逻辑
+    function toggleTargetChip(el) {
+        el.classList.toggle('active');
     }
 
     // [重要] 命名风格 UI 联动 (互斥逻辑)
@@ -6332,13 +6397,11 @@
 
     // [入口] 开始检查
     function startRefinerLint(isManualClick = false) {
-        // 🔥 【埋点1】确认按钮点击生效了没
         console.log("【1】前端：按钮被点击了，准备发送消息..."); 
         if (isManualClick) {
             setButtonLoading('btnLintStart', true);
         }
 
-        // 1. 收集配置
         const scopeEl = document.querySelector('#lintConfigPage .radio-item[onclick*="scope"].active');
         const formatEl = document.querySelector('#lintConfigPage .radio-item[onclick*="format"].active');
         const sepEl = document.querySelector('#separatorOptions .radio-item[onclick*="sep"].active');
@@ -6348,7 +6411,6 @@
             mode: 'lint',
             scope: scopeEl ? scopeEl.dataset.value : 'selection',
             
-            // 核心命名参数
             format: formatEl ? formatEl.dataset.value : 'separator', 
             separator: sepEl ? sepEl.dataset.value : 'space',        
             casing: caseEl ? caseEl.dataset.value : 'lower',          
@@ -6356,12 +6418,15 @@
             trim: document.getElementById('opt_trim').checked,
             emoji: document.getElementById('opt_emoji').checked,
             removeId: document.getElementById('opt_id').checked,
-            // markHidden 在 Lint 模式下现在通常不启用，除非你需要在 UI 加回这个选项
-            // 🔥 新增参数
-            unmarkHidden: document.getElementById('opt_unmark_hidden').checked
+            unmarkHidden: document.getElementById('opt_unmark_hidden').checked,
+            
+            targetTypes: {
+                compName: document.getElementById('target_comp_name').checked,
+                propName: document.getElementById('target_prop_name').checked,
+                propValue: document.getElementById('target_prop_value').checked
+            }
         };
 
-        // 2. 发送给后端 (延迟一点以便显示 Loading)
         setTimeout(() => {
             postMsg('lint-variants', config);
         }, 50);

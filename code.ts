@@ -1194,7 +1194,8 @@ figma.ui.onmessage = async (msg) => {
         const cfg = msg.config || msg;
         const targets: SceneNode[] = [];
         
-        // 1. 范围收集
+        const targetTypes = cfg.targetTypes || { compName: true, propName: true, propValue: true };
+        
         let scopeNodes: readonly SceneNode[] = [];
         if (cfg.scope === 'page') {
             scopeNodes = figma.currentPage.children;
@@ -1212,7 +1213,6 @@ figma.ui.onmessage = async (msg) => {
         };
         collectTargets(scopeNodes);
 
-        // 正则准备
         let findRegex: RegExp | null = null;
         if (cfg.mode === 'find' && cfg.findText) {
              try {
@@ -1225,7 +1225,6 @@ figma.ui.onmessage = async (msg) => {
 
         const results = [];
 
-        // 辅助：通用检查函数
         const checkString = (text: string) => {
             let res = { changed: false, val: text };
             if (cfg.mode === 'lint') {
@@ -1248,113 +1247,95 @@ figma.ui.onmessage = async (msg) => {
             return res;
         };
 
-        // 2. 遍历处理
         for (const node of targets) {
             try {
-                // --- 情况 A: 组件集 (Component Set) ---
                 if (node.type === 'COMPONENT_SET') {
-                    const res = checkString(node.name);
-                    if (res.changed) {
-                        results.push({
-                            id: node.id, compId: node.id, compName: node.name,
-                            // 🔥 1. 明确标记类型
-                            type: 'COMPONENT_SET',
-                            targetType: 'CompName', // 🏷️ 组件名
-                            propName: 'Name', oldVal: node.name, newVal: res.val
-                        });
+                    if (targetTypes.compName) {
+                        const res = checkString(node.name);
+                        if (res.changed) {
+                            results.push({
+                                id: node.id, compId: node.id, compName: node.name,
+                                type: 'COMPONENT_SET',
+                                targetType: 'CompName',
+                                propName: 'Name', oldVal: node.name, newVal: res.val
+                            });
+                        }
                     }
                 } 
                 
-                // --- 情况 B: 组件 (Component) ---
                 else if (node.type === 'COMPONENT') {
                     const isVariant = node.parent && node.parent.type === 'COMPONENT_SET';
                     const compId = isVariant ? node.parent!.id : node.id;
                     const CompName = isVariant ? node.parent!.name : node.name;
-
-                    // 🔥 2. 动态决定分组的类型图标
-                    // 如果是变体，它属于组件集(COMPONENT_SET)；如果是独立组件，它就是 COMPONENT
                     const groupType = isVariant ? 'COMPONENT_SET' : 'COMPONENT';
-                    // 🔥 关键分流：如果是变体，走下面的逻辑；如果不是，走上面的逻辑。
                     
                     if (!isVariant) {
-                        // === B1. 独立组件 (非变体) ===
-                        // 只有这里才检查 node.name
-                        const res = checkString(node.name);
-                        if (res.changed) {
-                            results.push({
-                                id: node.id, compId: compId, compName: CompName,
-                                // 🔥 1. 明确标记类型
-                                type: groupType,
-                                targetType: 'CompName', // 🏷️ 组件名
-                                propName: 'Name', oldVal: node.name, newVal: res.val
-                            });
+                        if (targetTypes.compName) {
+                            const res = checkString(node.name);
+                            if (res.changed) {
+                                results.push({
+                                    id: node.id, compId: compId, compName: CompName,
+                                    type: groupType,
+                                    targetType: 'CompName',
+                                    propName: 'Name', oldVal: node.name, newVal: res.val
+                                });
+                            }
                         }
                     } else {
-                        // === B2. 变体 (Variant) ===
-                        // 🔥 绝对不要检查 node.name (因为那是整个属性串)
-                        // 而是拆解后检查 Key 和 Value
-                        
                          const rawProps = node.name.split(',').map(p => p.trim());
                          const newProps: string[] = [];
                          let hasAnyChange = false;
 
                          rawProps.forEach(pair => {
                              const parts = pair.split('=');
-                             // 容错：如果没等号，就不处理
                              if (parts.length < 2) {
                                  newProps.push(pair); 
                                  return;
                              }
                              
-                             const key = parts[0].trim(); // 属性名
-                             const val = parts[1].trim(); // 属性值
+                             const key = parts[0].trim();
+                             const val = parts[1].trim();
                              
-                             // 2.1 检查属性名 (Key)
-                             const resKey = checkString(key);
-                             if (resKey.changed) {
-                                 results.push({
-                                     id: node.id, compId: compId, compName: CompName,
-                                     // 🔥 1. 明确标记类型
-                                     type: groupType,
-                                     targetType: 'PropName', // 🏷️ 属性名
-                                     propName: 'Property',
-                                     oldVal: key, newVal: resKey.val
-                                 });
-                                 hasAnyChange = true;
+                             if (targetTypes.propName) {
+                                 const resKey = checkString(key);
+                                 if (resKey.changed) {
+                                     results.push({
+                                         id: node.id, compId: compId, compName: CompName,
+                                         type: groupType,
+                                         targetType: 'PropName',
+                                         propName: 'Property',
+                                         oldVal: key, newVal: resKey.val
+                                     });
+                                     hasAnyChange = true;
+                                 }
                              }
 
-                             // 2.2 检查属性值 (Value)
-                             const resVal = checkString(val);
-                             if (resVal.changed) {
-                                 console.log("【调试】准备推入属性值，key是：", key);
-                                 results.push({
-                                     id: node.id, compId: compId, compName: CompName,
-                                     // 🔥 1. 明确标记类型
-                                     type: groupType,
-                                     targetType: 'PropValue', // 🏷️ 属性值
-                                     propName: key,
-                                     oldVal: val, newVal: resVal.val
-                                 });
-                                 hasAnyChange = true;
+                             if (targetTypes.propValue) {
+                                 const resVal = checkString(val);
+                                 if (resVal.changed) {
+                                     results.push({
+                                         id: node.id, compId: compId, compName: CompName,
+                                         type: groupType,
+                                         targetType: 'PropValue',
+                                         propName: key,
+                                         oldVal: val, newVal: resVal.val
+                                     });
+                                     hasAnyChange = true;
+                                 }
                              }
                              
-                             // 拼装修复用的全名
-                             const finalKey = resKey.changed ? resKey.val : key;
-                             const finalVal = resVal.changed ? resVal.val : val;
+                             const finalKey = (targetTypes.propName && checkString(key).changed) ? checkString(key).val : key;
+                             const finalVal = (targetTypes.propValue && checkString(val).changed) ? checkString(val).val : val;
                              newProps.push(`${finalKey}=${finalVal}`);
                          });
                          
-                         // 如果有改动，需要把完整的变体字符串存下来，用于修复
                          if (hasAnyChange) {
                              const fullNewName = newProps.join(', ');
-                             // 倒序查找刚刚 push 进去的记录，给它们补上 fullResult
-                             // 这样前端点修复时，知道怎么改整个节点
                              for (let k = results.length - 1; k >= 0; k--) {
                                  if (results[k].id === node.id) {
-                                     // 防止覆盖：如果已经有了就不加了（其实都一样）
                                      if(!results[k].fullResult) results[k].fullResult = fullNewName;
                                  } else {
-                                     break; // 已经过了当前节点的记录区域
+                                     break;
                                  }
                              }
                          }
