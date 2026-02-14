@@ -361,7 +361,7 @@ figma.ui.onmessage = async (msg) => {
       try { await figma.loadFontAsync(font); } catch (e) { figma.notify("字体加载失败"); return; }
       const txt = tNodes.map(n => n.characters).join('\n');
       const nt = tNodes[0].clone(); nt.characters = txt; nt.textAutoResize = 'HEIGHT';
-      for (let i = 1; i < tNodes.length; i++) tNodes[i].remove();
+      tNodes.forEach(n => n.remove());
       figma.currentPage.selection = [nt];
       break;
     }
