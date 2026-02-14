@@ -1,1874 +1,2645 @@
-"use strict";
-(() => {
-  // code.ts
-  var convertNameAdvanced = (str, format, sepMode, casing, keepEmoji, removeId, unmarkHidden) => {
-    let s = str;
-    if (removeId)
-      s = s.replace(/#\d+:\d+$/, "").trim();
-    let hiddenPrefix = "";
-    const hiddenMatch = s.match(/^[\._]/);
-    if (hiddenMatch) {
-      hiddenPrefix = hiddenMatch[0];
-      s = s.substring(1);
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
-    let emojiPrefix = "";
+};
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
+var _this = this;
+// -------------------------------------------------------------
+// 【更新】高级命名转换函数 (支持清除隐藏标记)
+// -------------------------------------------------------------
+var convertNameAdvanced = function (str, format, sepMode, casing, keepEmoji, removeId, unmarkHidden) {
+    var s = str;
+    // 1. 移除 ID
+    if (removeId)
+        s = s.replace(/#\d+:\d+$/, '').trim();
+    // 2. 处理隐藏标记 (. 或 _)
+    // 逻辑：先提取出来，如果不清除，最后再加回去
+    var hiddenPrefix = "";
+    var hiddenMatch = s.match(/^[\._]/);
+    if (hiddenMatch) {
+        hiddenPrefix = hiddenMatch[0];
+        // 暂时去掉以便后续分词处理
+        s = s.substring(1);
+    }
+    // 3. 处理 Emoji
+    var emojiPrefix = "";
     if (keepEmoji) {
-      const match = s.match(new RegExp("^(\\p{Emoji_Presentation}|\\p{Extended_Pictographic}|[\\u2000-\\u3300]|[\\uF000-\\uF0FF])+\\s*", "u"));
-      if (match) {
-        emojiPrefix = match[0].trim();
-        s = s.replace(match[0], "");
-      }
+        var match = s.match(/^(\p{Emoji_Presentation}|\p{Extended_Pictographic}|[\u2000-\u3300]|[\uF000-\uF0FF])+\s*/u);
+        if (match) {
+            emojiPrefix = match[0].trim();
+            s = s.replace(match[0], '');
+        }
     }
     s = s.trim();
-    const words = s.match(/[A-Z]?[a-z]+|[0-9]+|[A-Z]+|[\u4e00-\u9fa5]+/g);
-    let newVal = s;
+    // 4. 分词与重组
+    var words = s.match(/[A-Z]?[a-z]+|[0-9]+|[A-Z]+|[\u4e00-\u9fa5]+/g);
+    var newVal = s;
     if (words && words.length > 0) {
-      let processedWords = words;
-      if (format === "camelCase") {
-        processedWords = words.map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
-        newVal = processedWords.join("");
-      } else if (format === "PascalCase") {
-        processedWords = words.map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
-        newVal = processedWords.join("");
-      } else {
-        if (casing === "upper")
-          processedWords = words.map((w) => w.toUpperCase());
-        else if (casing === "lower")
-          processedWords = words.map((w) => w.toLowerCase());
-        let separatorChar = " ";
-        if (sepMode === "snake")
-          separatorChar = "_";
-        if (sepMode === "kebab")
-          separatorChar = "-";
-        newVal = processedWords.join(separatorChar);
-      }
+        var processedWords = words;
+        if (format === 'camelCase') {
+            processedWords = words.map(function (w, i) { return i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); });
+            newVal = processedWords.join('');
+        }
+        else if (format === 'PascalCase') {
+            processedWords = words.map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); });
+            newVal = processedWords.join('');
+        }
+        else {
+            if (casing === 'upper')
+                processedWords = words.map(function (w) { return w.toUpperCase(); });
+            else if (casing === 'lower')
+                processedWords = words.map(function (w) { return w.toLowerCase(); });
+            var separatorChar = ' ';
+            if (sepMode === 'snake')
+                separatorChar = '_';
+            if (sepMode === 'kebab')
+                separatorChar = '-';
+            newVal = processedWords.join(separatorChar);
+        }
     }
+    // 5. 加回 Emoji
     if (keepEmoji && emojiPrefix) {
-      const joiner = format === "separator" && sepMode !== "space" ? sepMode === "snake" ? "_" : "-" : " ";
-      newVal = emojiPrefix + joiner + newVal;
+        var joiner = (format === 'separator' && sepMode !== 'space') ? (sepMode === 'snake' ? '_' : '-') : ' ';
+        newVal = emojiPrefix + joiner + newVal;
     }
+    // 6. 加回隐藏标记 (如果未勾选清除)
     if (!unmarkHidden && hiddenPrefix) {
-      newVal = hiddenPrefix + newVal;
+        newVal = hiddenPrefix + newVal;
     }
     return { changed: newVal !== str, val: newVal };
-  };
-  figma.showUI("<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <style>/* =========================================\n  1. 设计系统变量 (Design System Variables)\n  现代极简风格 - 支持明暗模式\n  ========================================= */\n:root {\n  --primary: #6366F1;\n  --primary-hover: #818CF8;\n  --primary-active: #4F46E5;\n  --primary-light: rgba(99, 102, 241, 0.1);\n  --primary-lighter: rgba(99, 102, 241, 0.05);\n  \n  --success: #10B981;\n  --success-light: rgba(16, 185, 129, 0.1);\n  --warning: #F59E0B;\n  --warning-light: rgba(245, 158, 11, 0.1);\n  --danger: #EF4444;\n  --danger-light: rgba(239, 68, 68, 0.1);\n  --info: #3B82F6;\n  --info-light: rgba(59, 130, 246, 0.1);\n  \n  --bg-body: #F8FAFC;\n  --bg-white: #FFFFFF;\n  --bg-elevated: #FFFFFF;\n  --bg-muted: #F1F5F9;\n  --bg-hover: #F1F5F9;\n  --bg-active: #E2E8F0;\n  \n  --text-primary: #1E293B;\n  --text-secondary: #64748B;\n  --text-tertiary: #94A3B8;\n  --text-disabled: #CBD5E1;\n  --text-inverse: #FFFFFF;\n  \n  --border: #E2E8F0;\n  --border-light: #F1F5F9;\n  --border-focus: var(--primary);\n  \n  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);\n  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);\n  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);\n  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);\n  \n  --sidebar-w: 140px;\n  --sidebar-w-mini: 56px;\n  --radius-sm: 6px;\n  --radius-md: 8px;\n  --radius-lg: 12px;\n  --radius-xl: 16px;\n  --radius-full: 9999px;\n  \n  --transition-fast: 0.15s ease;\n  --transition-normal: 0.2s ease;\n  --transition-slow: 0.3s ease;\n  \n  --card-orange-bg: #FFF7ED;\n  --card-orange-text: #C2410C;\n  --card-orange-border: rgba(194, 65, 12, 0.1);\n  --card-blue-bg: #EFF6FF;\n  --card-blue-text: #1D4ED8;\n  --card-blue-border: rgba(29, 78, 216, 0.1);\n  --card-purple-bg: #F5F3FF;\n  --card-purple-text: #6D28D9;\n  --card-purple-border: rgba(109, 40, 217, 0.1);\n  --card-green-bg: #ECFDF5;\n  --card-green-text: #047857;\n  --card-green-border: rgba(4, 120, 87, 0.1);\n  --card-pink-bg: #FDF2F8;\n  --card-pink-text: #BE185D;\n  --card-pink-border: rgba(190, 24, 93, 0.1);\n}\n\n[data-theme=\"dark\"] {\n  --bg-body: #0F172A;\n  --bg-white: #1E293B;\n  --bg-elevated: #334155;\n  --bg-muted: #1E293B;\n  --bg-hover: #334155;\n  --bg-active: #475569;\n  \n  --text-primary: #F1F5F9;\n  --text-secondary: #94A3B8;\n  --text-tertiary: #64748B;\n  --text-disabled: #475569;\n  --text-inverse: #0F172A;\n  \n  --border: #334155;\n  --border-light: #1E293B;\n  \n  --card-orange-bg: rgba(194, 65, 12, 0.15);\n  --card-orange-text: #FDBA74;\n  --card-orange-border: rgba(194, 65, 12, 0.2);\n  --card-blue-bg: rgba(29, 78, 216, 0.15);\n  --card-blue-text: #93C5FD;\n  --card-blue-border: rgba(29, 78, 216, 0.2);\n  --card-purple-bg: rgba(109, 40, 217, 0.15);\n  --card-purple-text: #C4B5FD;\n  --card-purple-border: rgba(109, 40, 217, 0.2);\n  --card-green-bg: rgba(4, 120, 87, 0.15);\n  --card-green-text: #6EE7B7;\n  --card-green-border: rgba(4, 120, 87, 0.2);\n  --card-pink-bg: rgba(190, 24, 93, 0.15);\n  --card-pink-text: #F9A8D4;\n  --card-pink-border: rgba(190, 24, 93, 0.2);\n}\n\n* {\n  margin: 0;\n  padding: 0;\n  box-sizing: border-box;\n}\n\nhtml, body {\n  width: 100%;\n  height: 100%;\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;\n  font-size: 13px;\n  color: var(--text-primary);\n  background: var(--bg-body);\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale;\n}\n\n#root {\n  width: 100%;\n  height: 100%;\n}\n\nbutton {\n  font-family: inherit;\n}\n\ninput {\n  font-family: inherit;\n}\n\nselect {\n  font-family: inherit;\n}\n\n::-webkit-scrollbar {\n  width: 6px;\n  height: 6px;\n}\n\n::-webkit-scrollbar-track {\n  background: var(--bg-muted);\n  border-radius: 3px;\n}\n\n::-webkit-scrollbar-thumb {\n  background: var(--text-tertiary);\n  border-radius: 3px;\n}\n\n::-webkit-scrollbar-thumb:hover {\n  background: var(--text-secondary);\n}\n</style>\n</head>\n<body>\n  <div id=\"root\"></div>\n  <script>(function(){\"use strict\";var se=document.createElement(\"style\");se.textContent=`._card_1dmxw_1{background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;transition:all var(--transition-fast)}._clickable_1dmxw_9{cursor:pointer}._clickable_1dmxw_9:hover{border-color:var(--primary);box-shadow:var(--shadow-md)}._clickable_1dmxw_9:active{transform:scale(.98)}._icon_1dmxw_22{font-size:24px;margin-bottom:8px;display:block}._title_1dmxw_28{font-size:14px;font-weight:600;color:var(--text-primary);margin:0 0 4px}._subtitle_1dmxw_35{font-size:12px;color:var(--text-secondary);margin:0}._orange_1dmxw_41{background:var(--card-orange-bg);border-color:var(--card-orange-border)}._orange_1dmxw_41 ._title_1dmxw_28{color:var(--card-orange-text)}._blue_1dmxw_50{background:var(--card-blue-bg);border-color:var(--card-blue-border)}._blue_1dmxw_50 ._title_1dmxw_28{color:var(--card-blue-text)}._purple_1dmxw_59{background:var(--card-purple-bg);border-color:var(--card-purple-border)}._purple_1dmxw_59 ._title_1dmxw_28{color:var(--card-purple-text)}._green_1dmxw_68{background:var(--card-green-bg);border-color:var(--card-green-border)}._green_1dmxw_68 ._title_1dmxw_28{color:var(--card-green-text)}._pink_1dmxw_77{background:var(--card-pink-bg);border-color:var(--card-pink-border)}._pink_1dmxw_77 ._title_1dmxw_28{color:var(--card-pink-text)}._panel_1vcsp_1{display:flex;flex-direction:column;height:100%;background:var(--bg-white);padding:16px}._header_1vcsp_9{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}._title_1vcsp_16{font-size:16px;font-weight:600;color:var(--text-primary);margin:0}._count_1vcsp_23{font-size:12px;color:var(--text-secondary);background:var(--bg-muted);padding:4px 8px;border-radius:var(--radius-sm)}._grid_1vcsp_31{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}._app_8w68u_1{display:flex;width:100%;height:100%;background:var(--bg-body)}._sidebar_8w68u_8{width:var(--sidebar-w);background:var(--bg-white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}._nav_8w68u_17{flex:1;padding:8px;display:flex;flex-direction:column;gap:4px}._navItem_8w68u_25{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 8px;border-radius:var(--radius-md);cursor:pointer;transition:all var(--transition-fast);background:transparent;border:none;color:var(--text-secondary)}._navItem_8w68u_25:hover{background:var(--bg-hover);color:var(--text-primary)}._navItem_8w68u_25._active_8w68u_44{background:var(--primary-light);color:var(--primary)}._navIcon_8w68u_49{font-size:20px;margin-bottom:4px}._navLabel_8w68u_54{font-size:11px;font-weight:500;text-align:center}._settings_8w68u_60{padding:8px;border-top:1px solid var(--border);display:flex;gap:8px}._settingBtn_8w68u_67{flex:1;padding:8px;border-radius:var(--radius-md);background:var(--bg-muted);border:none;cursor:pointer;font-size:12px;color:var(--text-secondary);transition:all var(--transition-fast)}._settingBtn_8w68u_67:hover{background:var(--bg-hover);color:var(--text-primary)}._content_8w68u_84{flex:1;overflow:hidden}._placeholder_8w68u_89{display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-tertiary);font-size:14px}:root{--primary: #6366F1;--primary-hover: #818CF8;--primary-active: #4F46E5;--primary-light: rgba(99, 102, 241, .1);--primary-lighter: rgba(99, 102, 241, .05);--success: #10B981;--success-light: rgba(16, 185, 129, .1);--warning: #F59E0B;--warning-light: rgba(245, 158, 11, .1);--danger: #EF4444;--danger-light: rgba(239, 68, 68, .1);--info: #3B82F6;--info-light: rgba(59, 130, 246, .1);--bg-body: #F8FAFC;--bg-white: #FFFFFF;--bg-elevated: #FFFFFF;--bg-muted: #F1F5F9;--bg-hover: #F1F5F9;--bg-active: #E2E8F0;--text-primary: #1E293B;--text-secondary: #64748B;--text-tertiary: #94A3B8;--text-disabled: #CBD5E1;--text-inverse: #FFFFFF;--border: #E2E8F0;--border-light: #F1F5F9;--border-focus: var(--primary);--shadow-sm: 0 1px 2px rgba(0, 0, 0, .05);--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, .05), 0 2px 4px -1px rgba(0, 0, 0, .03);--shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, .05), 0 4px 6px -2px rgba(0, 0, 0, .03);--shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, .05), 0 10px 10px -5px rgba(0, 0, 0, .02);--sidebar-w: 140px;--sidebar-w-mini: 56px;--radius-sm: 6px;--radius-md: 8px;--radius-lg: 12px;--radius-xl: 16px;--radius-full: 9999px;--transition-fast: .15s ease;--transition-normal: .2s ease;--transition-slow: .3s ease;--card-orange-bg: #FFF7ED;--card-orange-text: #C2410C;--card-orange-border: rgba(194, 65, 12, .1);--card-blue-bg: #EFF6FF;--card-blue-text: #1D4ED8;--card-blue-border: rgba(29, 78, 216, .1);--card-purple-bg: #F5F3FF;--card-purple-text: #6D28D9;--card-purple-border: rgba(109, 40, 217, .1);--card-green-bg: #ECFDF5;--card-green-text: #047857;--card-green-border: rgba(4, 120, 87, .1);--card-pink-bg: #FDF2F8;--card-pink-text: #BE185D;--card-pink-border: rgba(190, 24, 93, .1)}[data-theme=dark]{--bg-body: #0F172A;--bg-white: #1E293B;--bg-elevated: #334155;--bg-muted: #1E293B;--bg-hover: #334155;--bg-active: #475569;--text-primary: #F1F5F9;--text-secondary: #94A3B8;--text-tertiary: #64748B;--text-disabled: #475569;--text-inverse: #0F172A;--border: #334155;--border-light: #1E293B;--card-orange-bg: rgba(194, 65, 12, .15);--card-orange-text: #FDBA74;--card-orange-border: rgba(194, 65, 12, .2);--card-blue-bg: rgba(29, 78, 216, .15);--card-blue-text: #93C5FD;--card-blue-border: rgba(29, 78, 216, .2);--card-purple-bg: rgba(109, 40, 217, .15);--card-purple-text: #C4B5FD;--card-purple-border: rgba(109, 40, 217, .2);--card-green-bg: rgba(4, 120, 87, .15);--card-green-text: #6EE7B7;--card-green-border: rgba(4, 120, 87, .2);--card-pink-bg: rgba(190, 24, 93, .15);--card-pink-text: #F9A8D4;--card-pink-border: rgba(190, 24, 93, .2)}*{margin:0;padding:0;box-sizing:border-box}html,body{width:100%;height:100%;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif;font-size:13px;color:var(--text-primary);background:var(--bg-body);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}#root{width:100%;height:100%}button,input,select{font-family:inherit}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:var(--bg-muted);border-radius:3px}::-webkit-scrollbar-thumb{background:var(--text-tertiary);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--text-secondary)}\n/*$vite$:1*/`,document.head.appendChild(se);var z,f,ce,C,de,pe,ue,fe,Z,Q,ee,I={},ge=[],Re=/acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i,R=Array.isArray;function S(e,t){for(var _ in t)e[_]=t[_];return e}function te(e){e&&e.parentNode&&e.parentNode.removeChild(e)}function Me(e,t,_){var n,a,r,l={};for(r in t)r==\"key\"?n=t[r]:r==\"ref\"?a=t[r]:l[r]=t[r];if(arguments.length>2&&(l.children=arguments.length>3?z.call(arguments,2):_),typeof e==\"function\"&&e.defaultProps!=null)for(r in e.defaultProps)l[r]===void 0&&(l[r]=e.defaultProps[r]);return M(e,l,n,a,null)}function M(e,t,_,n,a){var r={type:e,props:t,key:_,ref:n,__k:null,__:null,__b:0,__e:null,__c:null,constructor:void 0,__v:a??++ce,__i:-1,__u:0};return a==null&&f.vnode!=null&&f.vnode(r),r}function U(e){return e.children}function W(e,t){this.props=e,this.context=t}function A(e,t){if(t==null)return e.__?A(e.__,e.__i+1):null;for(var _;t<e.__k.length;t++)if((_=e.__k[t])!=null&&_.__e!=null)return _.__e;return typeof e.type==\"function\"?A(e):null}function he(e){var t,_;if((e=e.__)!=null&&e.__c!=null){for(e.__e=e.__c.base=null,t=0;t<e.__k.length;t++)if((_=e.__k[t])!=null&&_.__e!=null){e.__e=e.__c.base=_.__e;break}return he(e)}}function be(e){(!e.__d&&(e.__d=!0)&&C.push(e)&&!j.__r++||de!=f.debounceRendering)&&((de=f.debounceRendering)||pe)(j)}function j(){for(var e,t,_,n,a,r,l,s=1;C.length;)C.length>s&&C.sort(ue),e=C.shift(),s=C.length,e.__d&&(_=void 0,n=void 0,a=(n=(t=e).__v).__e,r=[],l=[],t.__P&&((_=S({},n)).__v=n.__v+1,f.vnode&&f.vnode(_),_e(t.__P,_,n,t.__n,t.__P.namespaceURI,32&n.__u?[a]:null,r,a??A(n),!!(32&n.__u),l),_.__v=n.__v,_.__.__k[_.__i]=_,ke(r,_,l),n.__e=n.__=null,_.__e!=a&&he(_)));j.__r=0}function me(e,t,_,n,a,r,l,s,c,i,p){var o,u,d,y,w,x,b,h=n&&n.__k||ge,E=t.length;for(c=Ue(_,t,h,c,E),o=0;o<E;o++)(d=_.__k[o])!=null&&(u=d.__i==-1?I:h[d.__i]||I,d.__i=o,x=_e(e,d,u,a,r,l,s,c,i,p),y=d.__e,d.ref&&u.ref!=d.ref&&(u.ref&&ne(u.ref,null,d),p.push(d.ref,d.__c||y,d)),w==null&&y!=null&&(w=y),(b=!!(4&d.__u))||u.__k===d.__k?c=ve(d,c,e,b):typeof d.type==\"function\"&&x!==void 0?c=x:y&&(c=y.nextSibling),d.__u&=-7);return _.__e=w,c}function Ue(e,t,_,n,a){var r,l,s,c,i,p=_.length,o=p,u=0;for(e.__k=new Array(a),r=0;r<a;r++)(l=t[r])!=null&&typeof l!=\"boolean\"&&typeof l!=\"function\"?(typeof l==\"string\"||typeof l==\"number\"||typeof l==\"bigint\"||l.constructor==String?l=e.__k[r]=M(null,l,null,null,null):R(l)?l=e.__k[r]=M(U,{children:l},null,null,null):l.constructor===void 0&&l.__b>0?l=e.__k[r]=M(l.type,l.props,l.key,l.ref?l.ref:null,l.__v):e.__k[r]=l,c=r+u,l.__=e,l.__b=e.__b+1,s=null,(i=l.__i=We(l,_,c,o))!=-1&&(o--,(s=_[i])&&(s.__u|=2)),s==null||s.__v==null?(i==-1&&(a>p?u--:a<p&&u++),typeof l.type!=\"function\"&&(l.__u|=4)):i!=c&&(i==c-1?u--:i==c+1?u++:(i>c?u--:u++,l.__u|=4))):e.__k[r]=null;if(o)for(r=0;r<p;r++)(s=_[r])!=null&&!(2&s.__u)&&(s.__e==n&&(n=A(s)),Fe(s,s));return n}function ve(e,t,_,n){var a,r;if(typeof e.type==\"function\"){for(a=e.__k,r=0;a&&r<a.length;r++)a[r]&&(a[r].__=e,t=ve(a[r],t,_,n));return t}e.__e!=t&&(n&&(t&&e.type&&!t.parentNode&&(t=A(e)),_.insertBefore(e.__e,t||null)),t=e.__e);do t=t&&t.nextSibling;while(t!=null&&t.nodeType==8);return t}function We(e,t,_,n){var a,r,l,s=e.key,c=e.type,i=t[_],p=i!=null&&(2&i.__u)==0;if(i===null&&s==null||p&&s==i.key&&c==i.type)return _;if(n>(p?1:0)){for(a=_-1,r=_+1;a>=0||r<t.length;)if((i=t[l=a>=0?a--:r++])!=null&&!(2&i.__u)&&s==i.key&&c==i.type)return l}return-1}function ye(e,t,_){t[0]==\"-\"?e.setProperty(t,_??\"\"):e[t]=_==null?\"\":typeof _!=\"number\"||Re.test(t)?_:_+\"px\"}function K(e,t,_,n,a){var r,l;e:if(t==\"style\")if(typeof _==\"string\")e.style.cssText=_;else{if(typeof n==\"string\"&&(e.style.cssText=n=\"\"),n)for(t in n)_&&t in _||ye(e.style,t,\"\");if(_)for(t in _)n&&_[t]==n[t]||ye(e.style,t,_[t])}else if(t[0]==\"o\"&&t[1]==\"n\")r=t!=(t=t.replace(fe,\"$1\")),l=t.toLowerCase(),t=l in e||t==\"onFocusOut\"||t==\"onFocusIn\"?l.slice(2):t.slice(2),e.l||(e.l={}),e.l[t+r]=_,_?n?_.u=n.u:(_.u=Z,e.addEventListener(t,r?ee:Q,r)):e.removeEventListener(t,r?ee:Q,r);else{if(a==\"http://www.w3.org/2000/svg\")t=t.replace(/xlink(H|:h)/,\"h\").replace(/sName$/,\"s\");else if(t!=\"width\"&&t!=\"height\"&&t!=\"href\"&&t!=\"list\"&&t!=\"form\"&&t!=\"tabIndex\"&&t!=\"download\"&&t!=\"rowSpan\"&&t!=\"colSpan\"&&t!=\"role\"&&t!=\"popover\"&&t in e)try{e[t]=_??\"\";break e}catch{}typeof _==\"function\"||(_==null||_===!1&&t[4]!=\"-\"?e.removeAttribute(t):e.setAttribute(t,t==\"popover\"&&_==1?\"\":_))}}function xe(e){return function(t){if(this.l){var _=this.l[t.type+e];if(t.t==null)t.t=Z++;else if(t.t<_.u)return;return _(f.event?f.event(t):t)}}}function _e(e,t,_,n,a,r,l,s,c,i){var p,o,u,d,y,w,x,b,h,E,P,Y,L,ze,X,N,ie,F=t.type;if(t.constructor!==void 0)return null;128&_.__u&&(c=!!(32&_.__u),r=[s=t.__e=_.__e]),(p=f.__b)&&p(t);e:if(typeof F==\"function\")try{if(b=t.props,h=\"prototype\"in F&&F.prototype.render,E=(p=F.contextType)&&n[p.__c],P=p?E?E.props.value:p.__:n,_.__c?x=(o=t.__c=_.__c).__=o.__E:(h?t.__c=o=new F(b,P):(t.__c=o=new W(b,P),o.constructor=F,o.render=Ke),E&&E.sub(o),o.state||(o.state={}),o.__n=n,u=o.__d=!0,o.__h=[],o._sb=[]),h&&o.__s==null&&(o.__s=o.state),h&&F.getDerivedStateFromProps!=null&&(o.__s==o.state&&(o.__s=S({},o.__s)),S(o.__s,F.getDerivedStateFromProps(b,o.__s))),d=o.props,y=o.state,o.__v=t,u)h&&F.getDerivedStateFromProps==null&&o.componentWillMount!=null&&o.componentWillMount(),h&&o.componentDidMount!=null&&o.__h.push(o.componentDidMount);else{if(h&&F.getDerivedStateFromProps==null&&b!==d&&o.componentWillReceiveProps!=null&&o.componentWillReceiveProps(b,P),t.__v==_.__v||!o.__e&&o.shouldComponentUpdate!=null&&o.shouldComponentUpdate(b,o.__s,P)===!1){for(t.__v!=_.__v&&(o.props=b,o.state=o.__s,o.__d=!1),t.__e=_.__e,t.__k=_.__k,t.__k.some(function(D){D&&(D.__=t)}),Y=0;Y<o._sb.length;Y++)o.__h.push(o._sb[Y]);o._sb=[],o.__h.length&&l.push(o);break e}o.componentWillUpdate!=null&&o.componentWillUpdate(b,o.__s,P),h&&o.componentDidUpdate!=null&&o.__h.push(function(){o.componentDidUpdate(d,y,w)})}if(o.context=P,o.props=b,o.__P=e,o.__e=!1,L=f.__r,ze=0,h){for(o.state=o.__s,o.__d=!1,L&&L(t),p=o.render(o.props,o.state,o.context),X=0;X<o._sb.length;X++)o.__h.push(o._sb[X]);o._sb=[]}else do o.__d=!1,L&&L(t),p=o.render(o.props,o.state,o.context),o.state=o.__s;while(o.__d&&++ze<25);o.state=o.__s,o.getChildContext!=null&&(n=S(S({},n),o.getChildContext())),h&&!u&&o.getSnapshotBeforeUpdate!=null&&(w=o.getSnapshotBeforeUpdate(d,y)),N=p,p!=null&&p.type===U&&p.key==null&&(N=we(p.props.children)),s=me(e,R(N)?N:[N],t,_,n,a,r,l,s,c,i),o.base=t.__e,t.__u&=-161,o.__h.length&&l.push(o),x&&(o.__E=o.__=null)}catch(D){if(t.__v=null,c||r!=null)if(D.then){for(t.__u|=c?160:128;s&&s.nodeType==8&&s.nextSibling;)s=s.nextSibling;r[r.indexOf(s)]=null,t.__e=s}else{for(ie=r.length;ie--;)te(r[ie]);re(t)}else t.__e=_.__e,t.__k=_.__k,D.then||re(t);f.__e(D,t,_)}else r==null&&t.__v==_.__v?(t.__k=_.__k,t.__e=_.__e):s=t.__e=je(_.__e,t,_,n,a,r,l,c,i);return(p=f.diffed)&&p(t),128&t.__u?void 0:s}function re(e){e&&e.__c&&(e.__c.__e=!0),e&&e.__k&&e.__k.forEach(re)}function ke(e,t,_){for(var n=0;n<_.length;n++)ne(_[n],_[++n],_[++n]);f.__c&&f.__c(t,e),e.some(function(a){try{e=a.__h,a.__h=[],e.some(function(r){r.call(a)})}catch(r){f.__e(r,a.__v)}})}function we(e){return typeof e!=\"object\"||e==null||e.__b&&e.__b>0?e:R(e)?e.map(we):S({},e)}function je(e,t,_,n,a,r,l,s,c){var i,p,o,u,d,y,w,x=_.props||I,b=t.props,h=t.type;if(h==\"svg\"?a=\"http://www.w3.org/2000/svg\":h==\"math\"?a=\"http://www.w3.org/1998/Math/MathML\":a||(a=\"http://www.w3.org/1999/xhtml\"),r!=null){for(i=0;i<r.length;i++)if((d=r[i])&&\"setAttribute\"in d==!!h&&(h?d.localName==h:d.nodeType==3)){e=d,r[i]=null;break}}if(e==null){if(h==null)return document.createTextNode(b);e=document.createElementNS(a,h,b.is&&b),s&&(f.__m&&f.__m(t,r),s=!1),r=null}if(h==null)x===b||s&&e.data==b||(e.data=b);else{if(r=r&&z.call(e.childNodes),!s&&r!=null)for(x={},i=0;i<e.attributes.length;i++)x[(d=e.attributes[i]).name]=d.value;for(i in x)if(d=x[i],i!=\"children\"){if(i==\"dangerouslySetInnerHTML\")o=d;else if(!(i in b)){if(i==\"value\"&&\"defaultValue\"in b||i==\"checked\"&&\"defaultChecked\"in b)continue;K(e,i,null,d,a)}}for(i in b)d=b[i],i==\"children\"?u=d:i==\"dangerouslySetInnerHTML\"?p=d:i==\"value\"?y=d:i==\"checked\"?w=d:s&&typeof d!=\"function\"||x[i]===d||K(e,i,d,x[i],a);if(p)s||o&&(p.__html==o.__html||p.__html==e.innerHTML)||(e.innerHTML=p.__html),t.__k=[];else if(o&&(e.innerHTML=\"\"),me(t.type==\"template\"?e.content:e,R(u)?u:[u],t,_,n,h==\"foreignObject\"?\"http://www.w3.org/1999/xhtml\":a,r,l,r?r[0]:_.__k&&A(_,0),s,c),r!=null)for(i=r.length;i--;)te(r[i]);s||(i=\"value\",h==\"progress\"&&y==null?e.removeAttribute(\"value\"):y!=null&&(y!==e[i]||h==\"progress\"&&!y||h==\"option\"&&y!=x[i])&&K(e,i,y,x[i],a),i=\"checked\",w!=null&&w!=e[i]&&K(e,i,w,x[i],a))}return e}function ne(e,t,_){try{if(typeof e==\"function\"){var n=typeof e.__u==\"function\";n&&e.__u(),n&&t==null||(e.__u=e(t))}else e.current=t}catch(a){f.__e(a,_)}}function Fe(e,t,_){var n,a;if(f.unmount&&f.unmount(e),(n=e.ref)&&(n.current&&n.current!=e.__e||ne(n,null,t)),(n=e.__c)!=null){if(n.componentWillUnmount)try{n.componentWillUnmount()}catch(r){f.__e(r,t)}n.base=n.__P=null}if(n=e.__k)for(a=0;a<n.length;a++)n[a]&&Fe(n[a],t,_||typeof e.type!=\"function\");_||te(e.__e),e.__c=e.__=e.__e=void 0}function Ke(e,t,_){return this.constructor(e,_)}function Oe(e,t,_){var n,a,r,l;t==document&&(t=document.documentElement),f.__&&f.__(e,t),a=(n=!1)?null:t.__k,r=[],l=[],_e(t,e=t.__k=Me(U,null,[e]),a||I,I,t.namespaceURI,a?null:t.firstChild?z.call(t.childNodes):null,r,a?a.__e:t.firstChild,n,l),ke(r,e,l)}z=ge.slice,f={__e:function(e,t,_,n){for(var a,r,l;t=t.__;)if((a=t.__c)&&!a.__)try{if((r=a.constructor)&&r.getDerivedStateFromError!=null&&(a.setState(r.getDerivedStateFromError(e)),l=a.__d),a.componentDidCatch!=null&&(a.componentDidCatch(e,n||{}),l=a.__d),l)return a.__E=a}catch(s){e=s}throw e}},ce=0,W.prototype.setState=function(e,t){var _;_=this.__s!=null&&this.__s!=this.state?this.__s:this.__s=S({},this.state),typeof e==\"function\"&&(e=e(S({},_),this.props)),e&&S(_,e),e!=null&&this.__v&&(t&&this._sb.push(t),be(this))},W.prototype.forceUpdate=function(e){this.__v&&(this.__e=!0,e&&this.__h.push(e),be(this))},W.prototype.render=U,C=[],pe=typeof Promise==\"function\"?Promise.prototype.then.bind(Promise.resolve()):setTimeout,ue=function(e,t){return e.__v.__b-t.__v.__b},j.__r=0,fe=/(PointerCapture)$|Capture$/i,Z=0,Q=xe(!1),ee=xe(!0);var qe=0;function g(e,t,_,n,a,r){t||(t={});var l,s,c=t;if(\"ref\"in c)for(s in c={},t)s==\"ref\"?l=t[s]:c[s]=t[s];var i={type:e,props:c,key:_,ref:l,__k:null,__:null,__b:0,__e:null,__c:null,constructor:void 0,__v:--qe,__i:-1,__u:0,__source:a,__self:r};if(typeof e==\"function\"&&(l=e.defaultProps))for(s in l)c[s]===void 0&&(c[s]=l[s]);return f.vnode&&f.vnode(i),i}var T,m,ae,Se,O=0,Ee=[],v=f,Ce=v.__b,Pe=v.__r,Ae=v.diffed,$e=v.__c,De=v.unmount,Ie=v.__;function oe(e,t){v.__h&&v.__h(m,e,O||t),O=0;var _=m.__H||(m.__H={__:[],__h:[]});return e>=_.__.length&&_.__.push({}),_.__[e]}function q(e){return O=1,Ge(He,e)}function Ge(e,t,_){var n=oe(T++,2);if(n.t=e,!n.__c&&(n.__=[He(void 0,t),function(s){var c=n.__N?n.__N[0]:n.__[0],i=n.t(c,s);c!==i&&(n.__N=[i,n.__[1]],n.__c.setState({}))}],n.__c=m,!m.__f)){var a=function(s,c,i){if(!n.__c.__H)return!0;var p=n.__c.__H.__.filter(function(u){return!!u.__c});if(p.every(function(u){return!u.__N}))return!r||r.call(this,s,c,i);var o=n.__c.props!==s;return p.forEach(function(u){if(u.__N){var d=u.__[0];u.__=u.__N,u.__N=void 0,d!==u.__[0]&&(o=!0)}}),r&&r.call(this,s,c,i)||o};m.__f=!0;var r=m.shouldComponentUpdate,l=m.componentWillUpdate;m.componentWillUpdate=function(s,c,i){if(this.__e){var p=r;r=void 0,a(s,c,i),r=p}l&&l.call(this,s,c,i)},m.shouldComponentUpdate=a}return n.__N||n.__}function Je(e,t){var _=oe(T++,3);!v.__s&&Be(_.__H,t)&&(_.__=e,_.u=t,m.__H.__h.push(_))}function Ve(e,t){var _=oe(T++,7);return Be(_.__H,t)&&(_.__=e(),_.__H=t,_.__h=e),_.__}function B(e,t){return O=8,Ve(function(){return e},t)}function Ye(){for(var e;e=Ee.shift();)if(e.__P&&e.__H)try{e.__H.__h.forEach(G),e.__H.__h.forEach(le),e.__H.__h=[]}catch(t){e.__H.__h=[],v.__e(t,e.__v)}}v.__b=function(e){m=null,Ce&&Ce(e)},v.__=function(e,t){e&&t.__k&&t.__k.__m&&(e.__m=t.__k.__m),Ie&&Ie(e,t)},v.__r=function(e){Pe&&Pe(e),T=0;var t=(m=e.__c).__H;t&&(ae===m?(t.__h=[],m.__h=[],t.__.forEach(function(_){_.__N&&(_.__=_.__N),_.u=_.__N=void 0})):(t.__h.forEach(G),t.__h.forEach(le),t.__h=[],T=0)),ae=m},v.diffed=function(e){Ae&&Ae(e);var t=e.__c;t&&t.__H&&(t.__H.__h.length&&(Ee.push(t)!==1&&Se===v.requestAnimationFrame||((Se=v.requestAnimationFrame)||Xe)(Ye)),t.__H.__.forEach(function(_){_.u&&(_.__H=_.u),_.u=void 0})),ae=m=null},v.__c=function(e,t){t.some(function(_){try{_.__h.forEach(G),_.__h=_.__h.filter(function(n){return!n.__||le(n)})}catch(n){t.some(function(a){a.__h&&(a.__h=[])}),t=[],v.__e(n,_.__v)}}),$e&&$e(e,t)},v.unmount=function(e){De&&De(e);var t,_=e.__c;_&&_.__H&&(_.__H.__.forEach(function(n){try{G(n)}catch(a){t=a}}),_.__H=void 0,t&&v.__e(t,_.__v))};var Te=typeof requestAnimationFrame==\"function\";function Xe(e){var t,_=function(){clearTimeout(n),Te&&cancelAnimationFrame(t),setTimeout(e)},n=setTimeout(_,35);Te&&(t=requestAnimationFrame(_))}function G(e){var t=m,_=e.__c;typeof _==\"function\"&&(e.__c=void 0,_()),m=t}function le(e){var t=m;e.__c=e.__(),m=t}function Be(e,t){return!e||e.length!==t.length||t.some(function(_,n){return _!==e[n]})}function He(e,t){return typeof t==\"function\"?t(e):t}const J=\"allinone_\",V={get(e){try{const t=localStorage.getItem(J+e);return t?JSON.parse(t):null}catch{return console.warn(\"[Cache] Read error:\",e),null}},set(e,t){try{return localStorage.setItem(J+e,JSON.stringify(t)),t}catch{return console.warn(\"[Cache] Write error:\",e),null}},remove(e){try{localStorage.removeItem(J+e)}catch{console.warn(\"[Cache] Remove error:\",e)}},clear(){try{Object.keys(localStorage).filter(e=>e.startsWith(J)).forEach(e=>localStorage.removeItem(e))}catch{console.warn(\"[Cache] Clear error\")}}};function Ze(){const[e,t]=q(()=>V.get(\"user_theme\")||\"light\"),_=B(a=>{t(a),V.set(\"user_theme\",a),document.documentElement.setAttribute(\"data-theme\",a)},[]),n=B(()=>{_(e===\"light\"?\"dark\":\"light\")},[e]);return Je(()=>{document.documentElement.setAttribute(\"data-theme\",e)},[e]),{theme:e,setTheme:_,toggleTheme:n}}const Le={zh:{nav_select:\"选择工具\",nav_smart:\"智能填充\",nav_text:\"文本查找\",nav_ppt:\"PPT生成\",nav_refiner:\"智能检查\",nav_theory:\"设计理论\",sf_tab_basic:\"基础填充\",sf_tab_ai:\"AI 生成\",sf_tab_custom:\"自定义字段\",sf_prefix:\"加为前缀\",sf_suffix:\"加为后缀\",sf_btn_add_custom:\"+ 自定义\",sf_ai_title:\"AI 对话生成\",sf_btn_gen:\"生成内容\",sf_btn_seq:\"⬇ 顺序录入\",sf_btn_rnd:\"🔀 随机录入\",sf_btn_save_list:\"💾 存为自定义列表\",sf_tag_cn:\"中文\",sf_tag_en:\"英文\",sf_tag_same:\"同地区\",sf_tag_zip:\"带邮编\",sf_tag_male:\"男\",sf_tag_female:\"女\",sf_tag_comma:\"千分号\",sf_tag_year:\"年\",sf_tag_month:\"月\",sf_tag_day:\"日\",sf_lbl_provider:\"服务商\",sf_lbl_baseurl:\"API 地址\",sf_lbl_model:\"模型名称\",sf_lbl_key:\"API Key\",sf_privacy_note:\"隐私说明：本插件没有后台服务器，API Key 仅保存在本地。\",sf_cfg_range:\"数值范围\",sf_cfg_time_range:\"时间范围\",sf_cfg_date_range:\"日期范围\",sf_cfg_time_help:\"* 仅支持设置时分，秒数随机\",sf_cfg_decimal:\"小数位数\",sf_cfg_thous:\"使用千分位分隔符\",sf_cfg_sort:\"排序方式\",sf_sort_rand:\"随机\",sf_sort_asc:\"升序\",sf_sort_desc:\"降序\",sf_cfg_date_fmt:\"日期格式\",sf_cfg_time_fmt:\"时间格式\",sf_dialog_title:\"保存列表\",sf_mode_new:\"列表标题\",sf_mode_append:\"选择目标列表\",sf_btn_cancel:\"取消\",sf_btn_confirm:\"确定\",txt_ph_find:\"请输入查找关键词\",txt_ph_replace:\"请输入替换内容\",txt_btn_find:\"开始查找\",txt_btn_finding:\"搜索中...\",txt_btn_replace:\"替换选中项\",txt_btn_replace_all:\"全部替换\",txt_btn_select_all:\"全选\",txt_err_no_input:\"请输入查找内容\",txt_scope_page:\"当前页\",txt_scope_sel:\"选中项\",ppt_title:\"PPT 生成器\",ppt_step_content:\"内容生成\",ppt_step_layout:\"布局设计\",ppt_step_style:\"样式调整\",ppt_btn_generate:\"生成 PPT\",ppt_btn_auto:\"自动执行\",ppt_btn_reset:\"重置\",refiner_title:\"智能检查\",refiner_tab_lint:\"设计规范\",refiner_tab_find:\"查找替换\",refiner_btn_start:\"开始检查\",refiner_btn_fix:\"一键修复\",refiner_btn_locate:\"定位\",theory_title:\"设计理论\",theory_search:\"搜索理论...\",theory_all:\"全部\",theme_light:\"浅色\",theme_dark:\"深色\",lang_zh:\"中文\",lang_en:\"English\",btn_close:\"关闭\",btn_save:\"保存\",btn_delete:\"删除\",btn_edit:\"编辑\",btn_copy:\"复制\",btn_clear:\"清空\",err_generic:\"发生错误，请重试\",err_no_selection:\"请先选择元素\",err_no_results:\"未找到结果\",success_saved:\"保存成功\",success_copied:\"已复制到剪贴板\"},en:{nav_select:\"Selection\",nav_smart:\"Smart Fill\",nav_text:\"Text Find\",nav_ppt:\"PPT Generator\",nav_refiner:\"Smart Check\",nav_theory:\"Design Theory\",sf_tab_basic:\"Basic Fill\",sf_tab_ai:\"AI Generate\",sf_tab_custom:\"Custom Fields\",sf_prefix:\"Add Prefix\",sf_suffix:\"Add Suffix\",sf_btn_add_custom:\"+ Custom\",sf_ai_title:\"AI Generation\",sf_btn_gen:\"Generate\",sf_btn_seq:\"⬇ Sequential\",sf_btn_rnd:\"🔀 Random\",sf_btn_save_list:\"💾 Save as List\",sf_tag_cn:\"Chinese\",sf_tag_en:\"English\",sf_tag_same:\"Same Region\",sf_tag_zip:\"With Zip\",sf_tag_male:\"Male\",sf_tag_female:\"Female\",sf_tag_comma:\"Thousands\",sf_tag_year:\"Year\",sf_tag_month:\"Month\",sf_tag_day:\"Day\",sf_lbl_provider:\"Provider\",sf_lbl_baseurl:\"API URL\",sf_lbl_model:\"Model Name\",sf_lbl_key:\"API Key\",sf_privacy_note:\"Privacy: No backend server. API Key is stored locally only.\",sf_cfg_range:\"Number Range\",sf_cfg_time_range:\"Time Range\",sf_cfg_date_range:\"Date Range\",sf_cfg_time_help:\"* Only hours and minutes, seconds are random\",sf_cfg_decimal:\"Decimal Places\",sf_cfg_thous:\"Use Thousands Separator\",sf_cfg_sort:\"Sort Order\",sf_sort_rand:\"Random\",sf_sort_asc:\"Ascending\",sf_sort_desc:\"Descending\",sf_cfg_date_fmt:\"Date Format\",sf_cfg_time_fmt:\"Time Format\",sf_dialog_title:\"Save List\",sf_mode_new:\"List Title\",sf_mode_append:\"Select Target List\",sf_btn_cancel:\"Cancel\",sf_btn_confirm:\"Confirm\",txt_ph_find:\"Enter search keyword\",txt_ph_replace:\"Enter replacement\",txt_btn_find:\"Find\",txt_btn_finding:\"Searching...\",txt_btn_replace:\"Replace Selected\",txt_btn_replace_all:\"Replace All\",txt_btn_select_all:\"Select All\",txt_err_no_input:\"Please enter search text\",txt_scope_page:\"Current Page\",txt_scope_sel:\"Selection\",ppt_title:\"PPT Generator\",ppt_step_content:\"Content\",ppt_step_layout:\"Layout\",ppt_step_style:\"Style\",ppt_btn_generate:\"Generate PPT\",ppt_btn_auto:\"Auto Run\",ppt_btn_reset:\"Reset\",refiner_title:\"Smart Check\",refiner_tab_lint:\"Design Rules\",refiner_tab_find:\"Find & Replace\",refiner_btn_start:\"Start Check\",refiner_btn_fix:\"Auto Fix\",refiner_btn_locate:\"Locate\",theory_title:\"Design Theory\",theory_search:\"Search theory...\",theory_all:\"All\",theme_light:\"Light\",theme_dark:\"Dark\",lang_zh:\"中文\",lang_en:\"English\",btn_close:\"Close\",btn_save:\"Save\",btn_delete:\"Delete\",btn_edit:\"Edit\",btn_copy:\"Copy\",btn_clear:\"Clear\",err_generic:\"An error occurred\",err_no_selection:\"Please select elements first\",err_no_results:\"No results found\",success_saved:\"Saved successfully\",success_copied:\"Copied to clipboard\"}};function Ne(){const[e,t]=q(()=>V.get(\"user_lang\")||\"zh\"),_=B(r=>{t(r),V.set(\"user_lang\",r)},[]),n=B(()=>{_(e===\"zh\"?\"en\":\"zh\")},[e]),a=B(r=>Le[e][r]||Le.zh[r]||r,[e]);return{lang:e,setLang:_,toggleLang:n,t:a}}const $={card:\"_card_1dmxw_1\",clickable:\"_clickable_1dmxw_9\",icon:\"_icon_1dmxw_22\",title:\"_title_1dmxw_28\",subtitle:\"_subtitle_1dmxw_35\",orange:\"_orange_1dmxw_41\",blue:\"_blue_1dmxw_50\",purple:\"_purple_1dmxw_59\",green:\"_green_1dmxw_68\",pink:\"_pink_1dmxw_77\"},Qe=({title:e,subtitle:t,icon:_,variant:n=\"default\",onClick:a,className:r=\"\",children:l})=>{const s=[$.card,$[n],a?$.clickable:\"\",r].filter(Boolean).join(\" \");return g(\"div\",{class:s,onClick:a,children:[_&&g(\"span\",{class:$.icon,children:_}),e&&g(\"h3\",{class:$.title,children:e}),t&&g(\"p\",{class:$.subtitle,children:t}),l]})},H={panel:\"_panel_1vcsp_1\",header:\"_header_1vcsp_9\",title:\"_title_1vcsp_16\",count:\"_count_1vcsp_23\",grid:\"_grid_1vcsp_31\"},et=()=>{const{t:e}=Ne(),[t,_]=q(0),n=[{key:\"selectAll\",icon:\"☑️\",label:\"全选\"},{key:\"deselectAll\",icon:\"⬜\",label:\"取消选择\"},{key:\"invertSelection\",icon:\"🔄\",label:\"反选\"},{key:\"selectSameFill\",icon:\"🎨\",label:\"相同填充\"},{key:\"selectSameStroke\",icon:\"✏️\",label:\"相同描边\"},{key:\"selectSameFont\",icon:\"🔤\",label:\"相同字体\"},{key:\"selectSameEffect\",icon:\"✨\",label:\"相同效果\"},{key:\"selectSameOpacity\",icon:\"👁️\",label:\"相同透明度\"}],a=r=>{parent.postMessage({pluginMessage:{type:r}},\"*\")};return g(\"div\",{class:H.panel,children:[g(\"div\",{class:H.header,children:[g(\"h2\",{class:H.title,children:e(\"nav_select\")}),g(\"span\",{class:H.count,children:[t,\" 选中\"]})]}),g(\"div\",{class:H.grid,children:n.map(r=>g(Qe,{icon:r.icon,title:r.label,variant:\"default\",onClick:()=>a(r.key)},r.key))})]})},k={app:\"_app_8w68u_1\",sidebar:\"_sidebar_8w68u_8\",nav:\"_nav_8w68u_17\",navItem:\"_navItem_8w68u_25\",active:\"_active_8w68u_44\",navIcon:\"_navIcon_8w68u_49\",navLabel:\"_navLabel_8w68u_54\",settings:\"_settings_8w68u_60\",settingBtn:\"_settingBtn_8w68u_67\",content:\"_content_8w68u_84\",placeholder:\"_placeholder_8w68u_89\"},tt=[{key:\"select\",icon:\"⬚\",labelKey:\"nav_select\"},{key:\"smartFill\",icon:\"✨\",labelKey:\"nav_smart\"},{key:\"text\",icon:\"🔍\",labelKey:\"nav_text\"},{key:\"ppt\",icon:\"📊\",labelKey:\"nav_ppt\"},{key:\"refiner\",icon:\"🔧\",labelKey:\"nav_refiner\"},{key:\"theory\",icon:\"📚\",labelKey:\"nav_theory\"}],_t=()=>{const[e,t]=q(\"select\"),{theme:_,toggleTheme:n}=Ze(),{lang:a,toggleLang:r,t:l}=Ne(),s=()=>{switch(e){case\"select\":return g(et,{});case\"smartFill\":return g(\"div\",{class:k.placeholder,children:\"智能填充面板 (开发中)\"});case\"text\":return g(\"div\",{class:k.placeholder,children:\"文本查找面板 (开发中)\"});case\"ppt\":return g(\"div\",{class:k.placeholder,children:\"PPT 生成面板 (开发中)\"});case\"refiner\":return g(\"div\",{class:k.placeholder,children:\"智能检查面板 (开发中)\"});case\"theory\":return g(\"div\",{class:k.placeholder,children:\"设计理论面板 (开发中)\"});default:return null}};return g(\"div\",{class:k.app,children:[g(\"aside\",{class:k.sidebar,children:[g(\"div\",{class:k.nav,children:tt.map(c=>g(\"button\",{class:`${k.navItem} ${e===c.key?k.active:\"\"}`,onClick:()=>t(c.key),children:[g(\"span\",{class:k.navIcon,children:c.icon}),g(\"span\",{class:k.navLabel,children:l(c.labelKey)})]},c.key))}),g(\"div\",{class:k.settings,children:[g(\"button\",{class:k.settingBtn,onClick:n,children:_===\"light\"?\"🌙\":\"☀️\"}),g(\"button\",{class:k.settingBtn,onClick:r,children:a===\"zh\"?\"EN\":\"中\"})]})]}),g(\"main\",{class:k.content,children:s()})]})};({errors:[],maxErrors:50,init(){window.onerror=(e,t,_,n,a)=>(this.handleError({type:\"sync\",message:String(e),source:t,line:_,col:n,stack:a==null?void 0:a.stack,time:Date.now()}),!1),window.addEventListener(\"unhandledrejection\",e=>{var t,_;this.handleError({type:\"promise\",message:((t=e.reason)==null?void 0:t.message)||String(e.reason),stack:(_=e.reason)==null?void 0:_.stack,time:Date.now()})}),window.addEventListener(\"error\",e=>{e.error&&this.handleError({type:\"resource\",message:e.message,source:e.filename,line:e.lineno,col:e.colno,time:Date.now()})},!0)},handleError(e){this.errors.push(e),this.errors.length>this.maxErrors&&this.errors.shift(),console.error(\"[ErrorHandler]\",e)},getErrors(){return this.errors},clearErrors(){this.errors=[]}}).init(),Oe(g(_t,{}),document.getElementById(\"root\"))})();\n</script>\n</body>\n</html>", { width: 460, height: 640, themeColors: true });
-  var highlightCache = {};
-  var layerSortDirection = "asc";
-  figma.ui.onmessage = async (msg) => {
-    console.log("\u30102\u3011\u540E\u7AEF\uFF1A\u6536\u5230\u4E86\u6D88\u606F ->", msg.type);
-    const selection = figma.currentPage.selection;
-    switch (msg.type) {
-      case "get-selection-count": {
-        const textNodes = [];
-        const traverse = (n) => {
-          if (n.type === "TEXT" && !n.removed && n.visible)
-            textNodes.push(n);
-          if ("children" in n)
-            n.children.forEach(traverse);
-        };
-        const scope = figma.currentPage.selection.length > 0 ? figma.currentPage.selection : [figma.currentPage];
-        scope.forEach(traverse);
-        figma.ui.postMessage({ type: "selection-count-res", count: textNodes.length });
-        break;
-      }
-      case "smart-fill-exec": {
-        const { dataList, mode, distribution } = msg;
-        const textNodes = [];
-        const traverse = (n) => {
-          if (n.type === "TEXT" && !n.removed && n.visible)
-            textNodes.push(n);
-          if ("children" in n)
-            n.children.forEach(traverse);
-        };
-        if (figma.currentPage.selection.length > 0) {
-          figma.currentPage.selection.forEach(traverse);
-        } else {
-          figma.notify("\u8BF7\u5148\u9009\u62E9\u5305\u542B\u6587\u672C\u7684\u56FE\u5C42");
-          return;
+};
+figma.showUI(__html__, { width: 460, height: 640, themeColors: true });
+// 用于存储高亮前的原始样式： Key = "NodeID_Index", Value = OriginalFills
+var highlightCache = {};
+var layerSortDirection = 'asc'; // 用于图层排序切换
+figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, function () {
+    function rm(n) {
+        if (n.layoutMode && n.layoutMode !== 'NONE') {
+            n.layoutMode = 'NONE';
+            count_1++;
         }
-        if (textNodes.length === 0) {
-          figma.notify("\u672A\u627E\u5230\u6587\u672C\u56FE\u5C42");
-          return;
-        }
-        textNodes.sort((a, b) => {
-          const aAbs = a.absoluteBoundingBox || { x: a.x, y: a.y };
-          const bAbs = b.absoluteBoundingBox || { x: b.x, y: b.y };
-          if (Math.abs(aAbs.y - bAbs.y) > 10)
-            return aAbs.y - bAbs.y;
-          return aAbs.x - bAbs.x;
-        });
-        let changeCount = 0;
-        for (let i = 0; i < textNodes.length; i++) {
-          const node = textNodes[i];
-          try {
-            await figma.loadFontAsync(node.fontName);
-            let textToFill = "";
-            if (distribution === "random") {
-              textToFill = dataList[Math.floor(Math.random() * dataList.length)];
-            } else {
-              textToFill = dataList[i % dataList.length];
-            }
-            if (mode === "prefix") {
-              node.characters = textToFill + node.characters;
-            } else if (mode === "suffix") {
-              node.characters = node.characters + textToFill;
-            } else {
-              node.characters = textToFill;
-            }
-            changeCount++;
-          } catch (e) {
-            console.error("Fill error", e);
-          }
-        }
-        figma.notify(`\u5DF2\u586B\u5145 ${changeCount} \u4E2A\u6587\u672C`);
-        break;
-      }
-      case "save-storage": {
-        await figma.clientStorage.setAsync(msg.key, msg.value);
-        if (msg.notify)
-          figma.notify("\u914D\u7F6E\u5DF2\u4FDD\u5B58");
-        figma.ui.postMessage({ type: "storage-saved", key: msg.key, value: msg.value });
-        break;
-      }
-      case "load-storage": {
-        const value = await figma.clientStorage.getAsync(msg.key);
-        figma.ui.postMessage({ type: "storage-loaded", key: msg.key, value });
-        break;
-      }
-      case "to-frame": {
-        if (selection.length === 0) {
-          figma.notify("\u8BF7\u9009\u62E9\u5F62\u72B6");
-          return;
-        }
-        const newSelection = [];
-        for (const node of selection) {
-          if (node.removed)
-            continue;
-          const frame = figma.createFrame();
-          frame.x = node.x;
-          frame.y = node.y;
-          frame.resize(node.width, node.height);
-          frame.rotation = node.rotation;
-          frame.name = node.name;
-          if ("fills" in node)
-            frame.fills = node.fills;
-          if ("strokes" in node) {
-            frame.strokes = node.strokes;
-            frame.strokeWeight = node.strokeWeight;
-          }
-          if ("cornerRadius" in node && node.cornerRadius !== figma.mixed)
-            frame.cornerRadius = node.cornerRadius;
-          if ("cornerSmoothing" in node)
-            frame.cornerSmoothing = node.cornerSmoothing;
-          if (node.parent) {
-            node.parent.appendChild(frame);
-            const idx = node.parent.children.indexOf(node);
-            if (idx > -1)
-              frame.parent.insertChild(idx, frame);
-          }
-          if ("children" in node) {
-            const children = [...node.children];
-            for (const child of children) {
-              if (!child.removed)
-                frame.appendChild(child);
-            }
-          }
-          if (!node.removed)
-            node.remove();
-          newSelection.push(frame);
-        }
-        figma.currentPage.selection = newSelection;
-        figma.notify("\u5DF2\u8F6C\u6362\u4E3A Frame");
-        break;
-      }
-      case "to-rect": {
-        const newSelection = [];
-        for (const node of selection) {
-          if ((node.type === "FRAME" || node.type === "GROUP") && !node.removed) {
-            const r = figma.createRectangle();
-            r.x = node.x;
-            r.y = node.y;
-            r.resize(node.width, node.height);
-            r.rotation = node.rotation;
-            r.name = node.name;
-            if ("fills" in node && node.fills !== figma.mixed)
-              r.fills = node.fills;
-            if ("strokes" in node) {
-              r.strokes = node.strokes;
-              r.strokeWeight = node.strokeWeight;
-            }
-            if ("cornerRadius" in node && node.cornerRadius !== figma.mixed)
-              r.cornerRadius = node.cornerRadius;
-            if ("cornerSmoothing" in node)
-              r.cornerSmoothing = node.cornerSmoothing;
-            if (node.parent) {
-              node.parent.appendChild(r);
-              const idx = node.parent.children.indexOf(node);
-              if (idx > -1)
-                node.parent.insertChild(idx, r);
-            }
-            node.remove();
-            newSelection.push(r);
-          }
-        }
-        if (newSelection.length > 0)
-          figma.currentPage.selection = newSelection;
-        break;
-      }
-      case "swap-fs": {
-        let count = 0;
-        for (const node of selection) {
-          if ("fills" in node && "strokes" in node) {
-            const temp = node.fills;
-            node.fills = node.strokes;
-            node.strokes = temp;
-            if (node.strokes.length > 0 && node.strokeWeight === 0)
-              node.strokeWeight = 1;
-            count++;
-          }
-        }
-        if (count > 0)
-          figma.notify("\u5DF2\u4EA4\u6362\u586B\u5145/\u63CF\u8FB9");
-        break;
-      }
-      case "reset-image": {
-        for (const node of selection) {
-          if ("fills" in node && Array.isArray(node.fills)) {
-            const img = node.fills.find((f) => f.type === "IMAGE");
-            if (img && img.imageHash) {
-              const asyncImg = figma.getImageByHash(img.imageHash);
-              const size = await asyncImg.getSizeAsync();
-              if (size && size.width)
-                node.resize(node.width, node.width * (size.height / size.width));
-            }
-          }
-        }
-        break;
-      }
-      case "select-text": {
-        let t = [];
-        const pool = selection.length > 0 ? selection : [figma.currentPage];
-        for (const n of pool) {
-          if (n.type === "TEXT")
-            t.push(n);
-          if ("findAll" in n)
-            t = t.concat(n.findAll((x) => x.type === "TEXT"));
-        }
-        if (t.length > 0) {
-          figma.currentPage.selection = t;
-          figma.notify(`\u9009\u4E2D ${t.length} \u4E2A\u6587\u672C`);
-        } else {
-          figma.notify("\u672A\u627E\u5230\u6587\u672C");
-        }
-        break;
-      }
-      case "remove-al": {
-        let rm2 = function(n) {
-          if (n.layoutMode && n.layoutMode !== "NONE") {
-            n.layoutMode = "NONE";
-            count++;
-          }
-          if (n.children)
-            n.children.forEach(rm2);
-        };
-        var rm = rm2;
-        let count = 0;
-        selection.forEach(rm2);
-        figma.notify(`\u79FB\u9664 ${count} \u4E2A\u81EA\u52A8\u5E03\u5C40`);
-        break;
-      }
-      case "add-al-wrapper": {
-        const newSelection = [];
-        if (selection.length === 0) {
-          figma.notify("\u8BF7\u9009\u62E9\u56FE\u5C42");
-          return;
-        }
-        for (const node of selection) {
-          if (node.removed || !node.parent)
-            continue;
-          const frame = figma.createFrame();
-          frame.name = "Auto Layout Wrapper";
-          frame.layoutMode = "VERTICAL";
-          frame.itemSpacing = 10;
-          frame.paddingLeft = 0;
-          frame.paddingRight = 0;
-          frame.paddingTop = 0;
-          frame.paddingBottom = 0;
-          frame.primaryAxisSizingMode = "AUTO";
-          frame.counterAxisSizingMode = "AUTO";
-          frame.fills = [{ type: "SOLID", color: { r: 1, g: 0, b: 0 } }];
-          frame.strokes = [];
-          frame.x = node.x;
-          frame.y = node.y;
-          const parent = node.parent;
-          const index = parent.children.indexOf(node);
-          parent.insertChild(index, frame);
-          frame.appendChild(node);
-          newSelection.push(frame);
-        }
-        if (newSelection.length > 0) {
-          figma.currentPage.selection = newSelection;
-          figma.notify(msg.successMsg || "\u5DF2\u6DFB\u52A0\u81EA\u52A8\u5E03\u5C40\u5916\u5957");
-        }
-        break;
-      }
-      case "split-text": {
-        const newSel = [];
-        for (const node of selection) {
-          if (node.type !== "TEXT")
-            continue;
-          const lines = node.characters.split(/\r\n|\r|\n/);
-          if (lines.length <= 1)
-            continue;
-          let font = node.fontName;
-          if (font === figma.mixed)
-            font = node.getRangeFontName(0, 1);
-          try {
-            await figma.loadFontAsync(font);
-          } catch (e) {
-            figma.notify("\u5B57\u4F53\u52A0\u8F7D\u5931\u8D25");
-            continue;
-          }
-          let cy = node.y;
-          for (const l of lines) {
-            if (!l.trim())
-              continue;
-            const t = node.clone();
-            t.characters = l;
-            t.textAutoResize = "WIDTH_AND_HEIGHT";
-            t.y = cy;
-            node.parent.appendChild(t);
-            newSel.push(t);
-            cy += t.height + 10;
-          }
-          node.remove();
-        }
-        if (newSel.length > 0)
-          figma.currentPage.selection = newSel;
-        break;
-      }
-      case "join-text": {
-        const tNodes = selection.filter((n) => n.type === "TEXT").sort((a, b) => Math.abs(a.y - b.y) > 5 ? a.y - b.y : a.x - b.x);
-        if (tNodes.length < 2) {
-          figma.notify("\u8BF7\u90092\u4E2A\u4EE5\u4E0A\u6587\u672C");
-          return;
-        }
-        let font = tNodes[0].fontName;
-        if (font === figma.mixed)
-          font = tNodes[0].getRangeFontName(0, 1);
-        try {
-          await figma.loadFontAsync(font);
-        } catch (e) {
-          figma.notify("\u5B57\u4F53\u52A0\u8F7D\u5931\u8D25");
-          return;
-        }
-        const txt = tNodes.map((n) => n.characters).join("\n");
-        const nt = tNodes[0].clone();
-        nt.characters = txt;
-        nt.textAutoResize = "HEIGHT";
-        for (let i = 1; i < tNodes.length; i++)
-          tNodes[i].remove();
-        figma.currentPage.selection = [nt];
-        break;
-      }
-      case "up-one": {
-        const arr = [];
-        selection.forEach((n) => {
-          if (n.parent && n.parent.parent && n.parent !== figma.currentPage) {
-            n.parent.parent.appendChild(n);
-            arr.push(n);
-          }
-        });
-        if (arr.length > 0)
-          figma.currentPage.selection = arr;
-        break;
-      }
-      case "up-all": {
-        const arr = [];
-        selection.forEach((n) => {
-          figma.currentPage.appendChild(n);
-          arr.push(n);
-        });
-        figma.currentPage.selection = arr;
-        break;
-      }
-      case "rename-content": {
-        selection.forEach((n) => {
-          let name = "";
-          if (n.type === "TEXT")
-            name = n.characters;
-          else if ("findOne" in n) {
-            const t = n.findOne((x) => x.type === "TEXT");
-            if (t)
-              name = t.characters;
-          }
-          if (name)
-            n.name = name.substring(0, 20);
-        });
-        figma.notify("\u5DF2\u91CD\u547D\u540D");
-        break;
-      }
-      case "detach-all": {
-        const sel = figma.currentPage.selection;
-        if (sel.length === 0) {
-          figma.notify("\u8BF7\u5148\u9009\u4E2D\u56FE\u5C42");
-          return;
-        }
-        const targets = [];
-        const scan = (n) => {
-          if ("children" in n) {
-            const children = n.children;
-            for (const child of children) {
-              scan(child);
-            }
-          }
-          if (n.type === "INSTANCE") {
-            targets.push(n);
-          }
-        };
-        sel.forEach(scan);
-        if (targets.length === 0) {
-          figma.notify("\u672A\u627E\u5230\u53EF\u89E3\u7ED1\u7684\u5B9E\u4F8B");
-          return;
-        }
-        let count = 0;
-        for (const node of targets) {
-          if (!node.removed) {
-            try {
-              node.detachInstance();
-              count++;
-            } catch (e) {
-              console.error("\u89E3\u7ED1\u51FA\u9519:", e);
-            }
-          }
-        }
-        figma.notify(`\u5DF2\u5F7B\u5E95\u89E3\u7ED1 ${count} \u4E2A\u7EC4\u4EF6`);
-        break;
-      }
-      case "remove-hidden": {
-        let h = [];
-        const pool = selection.length > 0 ? selection : [figma.currentPage];
-        for (const n of pool) {
-          if ("visible" in n && !n.visible)
-            h.push(n);
-          if ("findAll" in n)
-            h = h.concat(n.findAll((x) => !x.visible));
-        }
-        let count = 0;
-        h.reverse().forEach((n) => {
-          if (!n.removed) {
-            n.remove();
-            count++;
-          }
-        });
-        figma.notify(`\u5DF2\u5220\u9664 ${count} \u4E2A\u9690\u85CF\u56FE\u5C42`);
-        break;
-      }
-      case "sort-layers": {
-        if (selection.length > 1) {
-          const p = selection[0].parent;
-          if (selection.every((n) => n.parent === p)) {
-            const isReverse = layerSortDirection === "desc";
-            [...selection].sort((a, b) => {
-              const diffY = a.y - b.y;
-              const diffX = a.x - b.x;
-              const result = Math.abs(diffY) > 2 ? diffY : diffX;
-              return isReverse ? -result : result;
-            }).forEach((n) => p.appendChild(n));
-            figma.notify(isReverse ? "\u5DF2\u3010\u5012\u5E8F\u3011\u6392\u5217\u56FE\u5C42 (Z->A)" : "\u5DF2\u3010\u6B63\u5E8F\u3011\u6392\u5217\u56FE\u5C42 (A->Z)");
-            layerSortDirection = isReverse ? "asc" : "desc";
-          }
-        } else {
-          figma.notify("\u8BF7\u81F3\u5C11\u9009\u62E9\u4E24\u4E2A\u540C\u7EA7\u56FE\u5C42");
-        }
-        break;
-      }
-      case "ungroup-all": {
-        let count = 0;
-        selection.forEach((n) => {
-          if ("findAll" in n) {
-            let gs = n.findAll((x) => x.type === "GROUP");
-            while (gs.length > 0) {
-              gs.forEach((x) => {
-                if (!x.removed) {
-                  figma.ungroup(x);
-                  count++;
-                }
-              });
-              gs = n.findAll((x) => x.type === "GROUP");
-            }
-          }
-        });
-        figma.notify(`\u5DF2\u89E3\u6563 ${count} \u4E2A\u7EC4`);
-        break;
-      }
-      case "unlock-all": {
-        let ul2 = function(n) {
-          if ("locked" in n && n.locked) {
+        if (n.children)
+            n.children.forEach(rm);
+    }
+    function ul(n) {
+        if ('locked' in n && n.locked) {
             n.locked = false;
-            count++;
-          }
-          if ("children" in n)
-            n.children.forEach(ul2);
-        };
-        var ul = ul2;
-        let count = 0;
-        selection.forEach(ul2);
-        figma.notify(`\u5DF2\u89E3\u9501 ${count} \u4E2A\u56FE\u5C42`);
-        break;
-      }
-      case "pixel-perfect": {
-        if (selection.length === 0) {
-          figma.notify("\u8BF7\u9009\u62E9\u56FE\u5C42");
-          return;
+            count_2++;
         }
-        let count = 0;
-        for (const node of selection) {
-          if (!node.removed) {
-            const newX = Math.round(node.x);
-            const newY = Math.round(node.y);
-            const newW = Math.round(node.width);
-            const newH = Math.round(node.height);
-            if (node.x !== newX || node.y !== newY)
-              node.x = newX, node.y = newY;
-            if (node.width !== newW || node.height !== newH)
-              node.resize(newW, newH);
-            count++;
-          }
-        }
-        figma.notify(`\u5DF2\u5BF9\u9F50 ${count} \u4E2A\u56FE\u5C42`);
-        break;
-      }
-      case "fetch-selection-name": {
-        const sel = figma.currentPage.selection;
-        if (sel.length > 0) {
-          figma.ui.postMessage({ type: "update-name-input", name: sel[0].name });
-        } else {
-          figma.notify("\u8BF7\u5148\u9009\u62E9\u4E00\u4E2A\u56FE\u5C42\u4EE5\u83B7\u53D6\u540D\u79F0");
-        }
-        break;
-      }
-      case "find-and-select": {
-        const f = msg.filters;
-        const sel = figma.currentPage.selection;
-        console.log(`=== \u5F00\u59CB\u67E5\u627E (v3\u4FEE\u590D\u7248) ===`);
-        console.log(`Scope: ${f.scope} | \u9009\u4E2D\u56FE\u5C42: ${sel.length}`);
-        let searchTargets = [];
-        if (f.scope === "inside") {
-          if (sel.length === 0) {
-            figma.notify("\u26A0\uFE0F \u8BF7\u5148\u9009\u62E9\u4E00\u4E2A\u5BB9\u5668(Frame/Group)");
-            return;
-          }
-          for (const node of sel) {
-            if ("findAll" in node) {
-              const children = node.findAll(() => true);
-              searchTargets.push(...children);
-            }
-          }
-        } else if (f.scope === "children") {
-          if (sel.length === 0) {
-            figma.notify("\u26A0\uFE0F \u8BF7\u5148\u9009\u62E9\u4E00\u4E2A\u5BB9\u5668(Frame/Group)");
-            return;
-          }
-          for (const node of sel) {
-            if ("children" in node) {
-              searchTargets.push(...node.children);
-            }
-          }
-        } else if (f.scope === "sibling") {
-          if (sel.length > 0 && sel[0].parent) {
-            const siblings = sel[0].parent.children.filter((n) => !sel.includes(n));
-            searchTargets.push(...siblings);
-          } else {
-            figma.notify("\u26A0\uFE0F \u8BF7\u5148\u9009\u62E9\u4E00\u4E2A\u56FE\u5C42");
-            return;
-          }
-        } else {
-          if (sel.length > 0) {
-            console.log(">> \u7B56\u7565: \u67E5\u627E\u9009\u4E2D\u9879\u53CA\u5176\u540E\u4EE3");
-            for (const node of sel) {
-              searchTargets.push(node);
-              if ("findAll" in node) {
-                const children = node.findAll(() => true);
-                searchTargets.push(...children);
-              }
-            }
-          } else {
-            console.log(">> \u7B56\u7565: \u5168\u9875\u9762\u67E5\u627E");
-            const allPageNodes = figma.currentPage.findAll(() => true);
-            searchTargets.push(...allPageNodes);
-          }
-        }
-        const uniqueMap = /* @__PURE__ */ new Map();
-        searchTargets.forEach((node) => uniqueMap.set(node.id, node));
-        const finalPool = Array.from(uniqueMap.values());
-        console.log(`\u{1F50D} \u5F85\u7B5B\u9009\u6C60\u6700\u7EC8\u5927\u5C0F: ${finalPool.length}`);
-        const results = [];
-        for (const node of finalPool) {
-          let match = true;
-          if (f.name && f.name.val) {
-            let n = node.name;
-            let q = f.name.val;
-            if (!f.name.caseSensitive) {
-              n = n.toLowerCase();
-              q = q.toLowerCase();
-            }
-            if (!n.includes(q))
-              match = false;
-          }
-          if (match && f.types && f.types.vals.length > 0) {
-            const t = node.type;
-            const ts = f.types.vals;
-            let isType = false;
-            if (ts.includes(t))
-              isType = true;
-            if (ts.includes("AUTOLAYOUT") && t === "FRAME" && node.layoutMode !== "NONE")
-              isType = true;
-            if (ts.includes("IMAGE") && "fills" in node && node.fills !== figma.mixed && Array.isArray(node.fills)) {
-              if (node.fills.some((p) => p.type === "IMAGE" && p.visible !== false))
-                isType = true;
-            }
-            if (ts.includes("COMPONENT_SET") && t === "COMPONENT_SET")
-              isType = true;
-            if (ts.includes("SECTION") && t === "SECTION")
-              isType = true;
-            if (f.types.logic === "include") {
-              if (!isType)
-                match = false;
-            } else {
-              if (isType)
-                match = false;
-            }
-          }
-          if (match && f.states && f.states.vals.length > 0) {
-            let isState = false;
-            const s = f.states.vals;
-            if (s.includes("hidden") && !node.visible)
-              isState = true;
-            if (s.includes("locked") && node.locked)
-              isState = true;
-            if (s.includes("mask") && node.isMask)
-              isState = true;
-            if (s.includes("export") && node.exportSettings && node.exportSettings.length > 0)
-              isState = true;
-            if (s.includes("no-fill") && "fills" in node && node.fills !== figma.mixed) {
-              if (Array.isArray(node.fills) && node.fills.length === 0)
-                isState = true;
-            }
-            if (s.includes("no-stroke") && "strokes" in node && node.strokes !== figma.mixed) {
-              if (Array.isArray(node.strokes) && node.strokes.length === 0)
-                isState = true;
-            }
-            if (s.includes("clip") && "clipsContent" in node && node.clipsContent)
-              isState = true;
-            if (s.includes("no-children") && "children" in node) {
-              if (node.children.length === 0)
-                isState = true;
-            }
-            if (f.states.logic === "include") {
-              if (!isState)
-                match = false;
-            } else {
-              if (isState)
-                match = false;
-            }
-          }
-          if (match && f.props && f.props.length > 0) {
-            for (const p of f.props) {
-              let val = void 0;
-              try {
-                if (p.key === "name")
-                  val = node.name;
-                else if (p.key === "fillCount" && "fills" in node && node.fills !== figma.mixed)
-                  val = node.fills.length;
-                else if (p.key === "strokeCount" && "strokes" in node && node.strokes !== figma.mixed)
-                  val = node.strokes.length;
-                else if (p.key in node) {
-                  const v = node[p.key];
-                  if (v !== figma.mixed)
-                    val = v;
+        if ('children' in n)
+            n.children.forEach(ul);
+    }
+    var selection, _a, textNodes_2, traverse_1, scope, dataList, mode, distribution, textNodes_3, traverse_2, changeCount, i, node, textToFill, e_1, value, newSelection, _i, selection_1, node, frame, idx, children, _b, children_1, child, newSelection, _c, selection_2, node, r, idx, count, _d, selection_3, node, temp, _e, selection_4, node, img, asyncImg, size, t, pool, _f, pool_1, n, count_1, newSelection, _g, selection_5, node, frame, parent_1, index, newSel, _h, selection_6, node, lines, font, e_2, cy, _j, lines_1, l, t, tNodes, font, e_3, txt, nt, i, arr_1, arr_2, sel, targets_3, scan_1, count, _k, targets_1, node, h, pool, _l, pool_2, n, count_3, p_1, isReverse_1, count_4, count_2, count, _m, selection_7, node, newX, newY, newW, newH, sel, f, sel_5, searchTargets, _o, sel_1, node, children, _p, sel_2, node, siblings, _q, sel_3, node, children, allPageNodes, uniqueMap_1, finalPool, results, _r, finalPool_1, node, match, n, q, t, ts, isType, isState, s, _s, _t, p, val, v, tgt, runFocus, createdCount, conflicts, errors, localPaints, localTexts, localEffects, _loop_1, _u, selection_8, node, e_4, parts, sel, countFill_1, countStroke_1, countText_1, countEffect_1, paints, texts, effects, paintMap_1, effectMap_1, textMap_1, traverse_3, _v, sel_4, node, e_5, total, n1, n2, x1, y1, x2, y2, findText, replaceText, scope, count, textNodes_4, collect_1, _w, textNodes_1, node, font, e_6, pageName, slides, slides, slides, slides, slides, cfg_1, targets_4, scopeNodes, collectTargets_1, findRegex_1, escape_1, pat, results_1, checkString_1, _loop_2, _x, targets_2, node, items, count, _y, items_1, item, node, err_1, scope, findText_1, results_2, searchPool, traverse_4, node, cacheKey, font, cachedData, currentFills, highlightPaint, e_7, tasks, replaceText, successCount, processedIds, groups_1, _z, _0, _1, _2, nodeId, node, groupTasks, _3, groupTasks_1, task, currentStr, err_2, count, _4, _5, _6, _7, key, _8, nodeId, indexStr, index, data, node, font, e_8, ids, findText, replaceText, count, _9, ids_1, id, node, regex, err_3;
+    var _this = this;
+    return __generator(this, function (_10) {
+        switch (_10.label) {
+            case 0:
+                console.log("【2】后端：收到了消息 ->", msg.type);
+                selection = figma.currentPage.selection;
+                _a = msg.type;
+                switch (_a) {
+                    case 'get-selection-count': return [3 /*break*/, 1];
+                    case 'smart-fill-exec': return [3 /*break*/, 2];
+                    case 'save-storage': return [3 /*break*/, 9];
+                    case 'load-storage': return [3 /*break*/, 11];
+                    case 'to-frame': return [3 /*break*/, 13];
+                    case 'to-rect': return [3 /*break*/, 14];
+                    case 'swap-fs': return [3 /*break*/, 15];
+                    case 'reset-image': return [3 /*break*/, 16];
+                    case 'select-text': return [3 /*break*/, 21];
+                    case 'remove-al': return [3 /*break*/, 22];
+                    case 'add-al-wrapper': return [3 /*break*/, 23];
+                    case 'split-text': return [3 /*break*/, 24];
+                    case 'join-text': return [3 /*break*/, 32];
+                    case 'up-one': return [3 /*break*/, 37];
+                    case 'up-all': return [3 /*break*/, 38];
+                    case 'rename-content': return [3 /*break*/, 39];
+                    case 'detach-all': return [3 /*break*/, 40];
+                    case 'remove-hidden': return [3 /*break*/, 41];
+                    case 'sort-layers': return [3 /*break*/, 42];
+                    case 'ungroup-all': return [3 /*break*/, 43];
+                    case 'unlock-all': return [3 /*break*/, 44];
+                    case 'pixel-perfect': return [3 /*break*/, 45];
+                    case 'fetch-selection-name': return [3 /*break*/, 46];
+                    case 'find-and-select': return [3 /*break*/, 47];
+                    case 'focus-layers': return [3 /*break*/, 48];
+                    case 'create-styles': return [3 /*break*/, 49];
+                    case 'match-styles': return [3 /*break*/, 60];
+                    case 'swap-positions': return [3 /*break*/, 71];
+                    case 'find-replace': return [3 /*break*/, 72];
+                    case 'ppt-step-1': return [3 /*break*/, 82];
+                    case 'ppt-step-2': return [3 /*break*/, 84];
+                    case 'ppt-step-3': return [3 /*break*/, 86];
+                    case 'ppt-step-4': return [3 /*break*/, 88];
+                    case 'ppt-step-5': return [3 /*break*/, 90];
+                    case 'lint-variants': return [3 /*break*/, 92];
+                    case 'fix-variants': return [3 /*break*/, 93];
+                    case 'text-find-matches': return [3 /*break*/, 100];
+                    case 'locate-node': return [3 /*break*/, 101];
+                    case 'text-replace-batch': return [3 /*break*/, 109];
+                    case 'clear-all-highlights': return [3 /*break*/, 117];
+                    case 'text-replace-batch': return [3 /*break*/, 126];
+                    case 'resize-drag': return [3 /*break*/, 134];
+                    case 'resize-window': return [3 /*break*/, 134];
                 }
-              } catch (e) {
-              }
-              if (val === void 0) {
-                match = false;
-                break;
-              }
-              const tgt = p.val;
-              if (p.op === "=") {
-                if (val != tgt)
-                  match = false;
-              } else if (p.op === "!=") {
-                if (val == tgt)
-                  match = false;
-              } else if (p.op === ">") {
-                if (Number(val) <= Number(tgt))
-                  match = false;
-              } else if (p.op === "<") {
-                if (Number(val) >= Number(tgt))
-                  match = false;
-              } else if (p.op === "has") {
-                if (!String(val).toLowerCase().includes(String(tgt).toLowerCase()))
-                  match = false;
-              }
-            }
-          }
-          if (match) {
-            results.push(node);
-          }
-        }
-        console.log(`\u2705 \u6700\u7EC8\u5339\u914D: ${results.length}`);
-        if (results.length > 0) {
-          figma.currentPage.selection = results;
-          figma.viewport.scrollAndZoomIntoView(results);
-          figma.notify(`\u2705 \u5DF2\u9009\u4E2D ${results.length} \u4E2A\u56FE\u5C42`);
-          figma.ui.postMessage({
-            type: "found-layers-result",
-            count: results.length,
-            layers: results.map((n) => ({ id: n.id, name: n.name, type: n.type }))
-          });
-        } else {
-          figma.notify("\u26A0\uFE0F \u672A\u627E\u5230\u56FE\u5C42\uFF0C\u8BF7\u68C0\u67E5 Console\u7684\u7B5B\u9009\u6C60\u5927\u5C0F");
-          figma.ui.postMessage({ type: "found-layers-result", count: 0, layers: [] });
-        }
-        break;
-      }
-      case "focus-layers": {
-        const runFocus = async () => {
-          try {
-            const ids = msg.ids;
-            if (!ids || ids.length === 0)
-              return;
-            const nodes = await Promise.all(ids.map((id) => figma.getNodeByIdAsync(id)));
-            const targets = [];
-            const selection2 = [];
-            const currentPageId = figma.currentPage.id;
-            for (const node of nodes) {
-              if (!node || node.removed)
-                continue;
-              if (node.type === "DOCUMENT" || node.type === "PAGE")
-                continue;
-              let p = node.parent;
-              let isCurrent = false;
-              if (p && p.type === "PAGE") {
-                isCurrent = p.id === currentPageId;
-              } else {
-                while (p) {
-                  if (p.type === "PAGE") {
-                    isCurrent = p.id === currentPageId;
-                    break;
-                  }
-                  p = p.parent;
+                return [3 /*break*/, 135];
+            case 1:
+                {
+                    textNodes_2 = [];
+                    traverse_1 = function (n) {
+                        if (n.type === 'TEXT' && !n.removed && n.visible)
+                            textNodes_2.push(n);
+                        if ('children' in n)
+                            n.children.forEach(traverse_1);
+                    };
+                    scope = figma.currentPage.selection.length > 0 ? figma.currentPage.selection : [figma.currentPage];
+                    scope.forEach(traverse_1);
+                    figma.ui.postMessage({ type: 'selection-count-res', count: textNodes_2.length });
+                    return [3 /*break*/, 135];
                 }
-              }
-              if (isCurrent) {
-                targets.push(node);
-                if (!node.locked && node.visible) {
-                  selection2.push(node);
+                _10.label = 2;
+            case 2:
+                dataList = msg.dataList, mode = msg.mode, distribution = msg.distribution;
+                textNodes_3 = [];
+                traverse_2 = function (n) {
+                    if (n.type === 'TEXT' && !n.removed && n.visible)
+                        textNodes_3.push(n);
+                    if ('children' in n)
+                        n.children.forEach(traverse_2);
+                };
+                // 优先处理选中项，没选中则不处理（防止误操作全页）
+                if (figma.currentPage.selection.length > 0) {
+                    figma.currentPage.selection.forEach(traverse_2);
                 }
-              }
-            }
-            if (targets.length > 0) {
-              figma.currentPage.selection = selection2;
-              figma.viewport.scrollAndZoomIntoView(targets);
-              if (targets.length > 1) {
-                figma.notify(`\u5DF2\u5B9A\u4F4D ${targets.length} \u9879`);
-              }
-            }
-          } catch (e) {
-            console.log("\u5B9A\u4F4D\u9519\u8BEF (\u5DF2\u5FFD\u7565):", e);
-          }
-        };
-        runFocus();
-        break;
-      }
-      case "create-styles": {
-        console.log("=== \u5F00\u59CB\u6267\u884C\u521B\u5EFA\u6837\u5F0F (Async\u6A21\u5F0F) ===");
-        if (selection.length === 0) {
-          figma.notify("\u8BF7\u9009\u62E9\u56FE\u5C42");
-          return;
-        }
-        let createdCount = 0;
-        const conflicts = [];
-        const errors = [];
-        try {
-          const localPaints = await figma.getLocalPaintStylesAsync();
-          const localTexts = await figma.getLocalTextStylesAsync();
-          const localEffects = await figma.getLocalEffectStylesAsync();
-          for (const node of selection) {
-            if (node.removed)
-              continue;
-            const name = node.name;
-            console.log(`\u5904\u7406\u56FE\u5C42: ${name}`);
-            if ("fills" in node && node.type !== "GROUP" && node.fills !== figma.mixed && Array.isArray(node.fills) && node.fills.length > 0) {
-              if (node.fills[0].type !== "IMAGE") {
-                const exist = localPaints.find((s) => s.name === name);
-                if (exist) {
-                  if (!conflicts.includes(name))
-                    conflicts.push(name + " (\u989C\u8272)");
-                } else {
-                  try {
-                    const style = figma.createPaintStyle();
-                    style.name = name;
-                    style.paints = JSON.parse(JSON.stringify(node.fills));
-                    node.fillStyleId = style.id;
-                    createdCount++;
-                  } catch (err) {
-                    errors.push(name);
-                    console.error("\u989C\u8272\u521B\u5EFA\u5931\u8D25:", err);
-                  }
+                else {
+                    figma.notify("请先选择包含文本的图层");
+                    return [2 /*return*/];
                 }
-              }
-            }
-            if (node.type === "TEXT") {
-              const exist = localTexts.find((s) => s.name === name);
-              if (exist) {
-                if (!conflicts.includes(name))
-                  conflicts.push(name + " (\u6587\u672C)");
-              } else {
-                try {
-                  const style = figma.createTextStyle();
-                  style.name = name;
-                  const font = node.fontName;
-                  if (font !== figma.mixed) {
-                    await figma.loadFontAsync(font);
-                    style.fontName = font;
-                    style.fontSize = node.fontSize !== figma.mixed ? node.fontSize : 12;
-                    if (node.letterSpacing !== figma.mixed)
-                      style.letterSpacing = node.letterSpacing;
-                    if (node.lineHeight !== figma.mixed)
-                      style.lineHeight = node.lineHeight;
-                    if (node.textDecoration !== figma.mixed)
-                      style.textDecoration = node.textDecoration;
-                    node.textStyleId = style.id;
-                    createdCount++;
-                  }
-                } catch (err) {
-                  errors.push(name);
-                  console.error("\u6587\u672C\u521B\u5EFA\u5931\u8D25:", err);
+                if (textNodes_3.length === 0) {
+                    figma.notify("未找到文本图层");
+                    return [2 /*return*/];
                 }
-              }
-            }
-            if ("effects" in node && node.effects !== figma.mixed && Array.isArray(node.effects) && node.effects.length > 0) {
-              const exist = localEffects.find((s) => s.name === name);
-              if (exist) {
-                if (!conflicts.includes(name))
-                  conflicts.push(name + " (\u6548\u679C)");
-              } else {
-                try {
-                  const style = figma.createEffectStyle();
-                  style.name = name;
-                  style.effects = JSON.parse(JSON.stringify(node.effects));
-                  node.effectStyleId = style.id;
-                  createdCount++;
-                } catch (err) {
-                  errors.push(name);
-                  console.error("\u6548\u679C\u521B\u5EFA\u5931\u8D25:", err);
-                }
-              }
-            }
-          }
-        } catch (e) {
-          console.error("\u5168\u5C40\u9519\u8BEF:", e);
-          figma.notify("\u53D1\u751F\u9519\u8BEF\uFF0C\u8BF7\u67E5\u770B\u63A7\u5236\u53F0");
-        }
-        const parts = [];
-        if (createdCount > 0)
-          parts.push(`\u65B0\u5EFA ${createdCount} \u4E2A`);
-        if (conflicts.length > 0)
-          parts.push(`\u8DF3\u8FC7\u91CD\u590D ${conflicts.length} \u4E2A`);
-        if (parts.length > 0) {
-          figma.notify(parts.join("\uFF0C"));
-        } else {
-          figma.notify("\u672A\u6267\u884C\u64CD\u4F5C (\u53EF\u80FD\u662F\u65E0\u6837\u5F0F\u5C5E\u6027\u6216\u5DF2\u91CD\u590D)");
-        }
-        console.log("=== \u7ED3\u675F ===");
-        break;
-      }
-      case "match-styles": {
-        console.log("=== \u5F00\u59CB\u5339\u914D\u6837\u5F0F (Async\u4FEE\u590D\u7248) ===");
-        const sel = figma.currentPage.selection;
-        if (sel.length === 0) {
-          figma.notify("\u8BF7\u5148\u9009\u62E9\u8303\u56F4 (\u652F\u6301\u5305\u542B\u5B50\u56FE\u5C42)");
-          return;
-        }
-        let countFill = 0, countStroke = 0, countText = 0, countEffect = 0;
-        try {
-          const paints = await figma.getLocalPaintStylesAsync();
-          const texts = await figma.getLocalTextStylesAsync();
-          const effects = await figma.getLocalEffectStylesAsync();
-          const paintMap = /* @__PURE__ */ new Map();
-          paints.forEach((s) => paintMap.set(JSON.stringify(s.paints), s.id));
-          const effectMap = /* @__PURE__ */ new Map();
-          effects.forEach((s) => effectMap.set(JSON.stringify(s.effects), s.id));
-          const textMap = /* @__PURE__ */ new Map();
-          texts.forEach((s) => {
-            const fingerprint = JSON.stringify({
-              family: s.fontName.family,
-              style: s.fontName.style,
-              size: s.fontSize,
-              lh: s.lineHeight,
-              ls: s.letterSpacing,
-              td: s.textDecoration,
-              pi: s.paragraphIndent,
-              ps: s.paragraphSpacing
-            });
-            textMap.set(fingerprint, s.id);
-          });
-          const traverse = async (node) => {
-            if (node.removed)
-              return;
-            if ("fills" in node && node.fills !== figma.mixed && node.fills.length > 0 && node.fillStyleId === "") {
-              const key = JSON.stringify(node.fills);
-              if (paintMap.has(key)) {
-                try {
-                  await node.setFillStyleIdAsync(paintMap.get(key));
-                  countFill++;
-                } catch (e) {
-                }
-              }
-            }
-            if ("strokes" in node && node.strokes !== figma.mixed && node.strokes.length > 0 && node.strokeStyleId === "") {
-              const key = JSON.stringify(node.strokes);
-              if (paintMap.has(key)) {
-                try {
-                  await node.setStrokeStyleIdAsync(paintMap.get(key));
-                  countStroke++;
-                } catch (e) {
-                }
-              }
-            }
-            if ("effects" in node && node.effects !== figma.mixed && node.effects.length > 0 && node.effectStyleId === "") {
-              const key = JSON.stringify(node.effects);
-              if (effectMap.has(key)) {
-                try {
-                  await node.setEffectStyleIdAsync(effectMap.get(key));
-                  countEffect++;
-                } catch (e) {
-                }
-              }
-            }
-            if (node.type === "TEXT" && node.textStyleId === "" && node.fontName !== figma.mixed && node.fontSize !== figma.mixed) {
-              const key = JSON.stringify({
-                family: node.fontName.family,
-                style: node.fontName.style,
-                size: node.fontSize,
-                lh: node.lineHeight,
-                ls: node.letterSpacing,
-                td: node.textDecoration,
-                pi: node.paragraphIndent,
-                ps: node.paragraphSpacing
-              });
-              if (textMap.has(key)) {
-                try {
-                  await node.setTextStyleIdAsync(textMap.get(key));
-                  countText++;
-                } catch (e) {
-                }
-              }
-            }
-            if ("children" in node) {
-              for (const child of node.children) {
-                await traverse(child);
-              }
-            }
-          };
-          for (const node of sel) {
-            await traverse(node);
-          }
-        } catch (e) {
-          console.error("\u5339\u914D\u8FC7\u7A0B\u51FA\u9519:", e);
-          figma.notify("\u5339\u914D\u51FA\u9519\uFF0C\u8BF7\u68C0\u67E5\u63A7\u5236\u53F0");
-          return;
-        }
-        const total = countFill + countStroke + countText + countEffect;
-        if (total > 0) {
-          figma.notify(`\u5339\u914D\u6210\u529F: \u586B\u5145${countFill} / \u63CF\u8FB9${countStroke} / \u6587\u672C${countText} / \u6548\u679C${countEffect}`);
-        } else {
-          figma.notify("\u672A\u53D1\u73B0\u53EF\u5339\u914D\u7684\u6837\u5F0F");
-        }
-        break;
-      }
-      case "swap-positions": {
-        if (selection.length !== 2) {
-          figma.notify("\u8BF7\u4E25\u683C\u9009\u62E9 2 \u4E2A\u56FE\u5C42\u8FDB\u884C\u4EA4\u6362");
-          return;
-        }
-        const n1 = selection[0];
-        const n2 = selection[1];
-        const x1 = n1.x, y1 = n1.y;
-        const x2 = n2.x, y2 = n2.y;
-        n1.x = x2;
-        n1.y = y2;
-        n2.x = x1;
-        n2.y = y1;
-        figma.notify("\u4F4D\u7F6E\u5DF2\u4E92\u6362");
-        break;
-      }
-      case "find-replace": {
-        const { findText, replaceText } = msg;
-        if (!findText) {
-          figma.notify("\u8BF7\u8F93\u5165\u67E5\u627E\u5185\u5BB9\uFF0C\u6CE8\u610F\u533A\u5206\u5927\u5C0F\u5199");
-          return;
-        }
-        const scope = selection.length > 0 ? selection : [figma.currentPage];
-        let count = 0;
-        const textNodes = [];
-        const collect = (n) => {
-          if (n.type === "TEXT")
-            textNodes.push(n);
-          if ("children" in n)
-            n.children.forEach(collect);
-        };
-        scope.forEach(collect);
-        if (textNodes.length === 0) {
-          figma.notify("\u8303\u56F4\u5185\u6CA1\u6709\u6587\u672C");
-          return;
-        }
-        for (const node of textNodes) {
-          if (node.characters.includes(findText)) {
-            try {
-              const font = node.fontName;
-              if (font === figma.mixed) {
-                await figma.loadFontAsync(node.getRangeFontName(0, 1));
-              } else {
-                await figma.loadFontAsync(font);
-              }
-              node.characters = node.characters.split(findText).join(replaceText);
-              count++;
-            } catch (e) {
-              console.error("\u5B57\u4F53\u52A0\u8F7D\u5931\u8D25\u6216\u66FF\u6362\u51FA\u9519", e);
-            }
-          }
-        }
-        if (count > 0)
-          figma.notify(`\u5DF2\u66FF\u6362 ${count} \u5904\u6587\u672C`);
-        else
-          figma.notify("\u672A\u627E\u5230\u5339\u914D\u5185\u5BB9");
-        break;
-      }
-      case "ppt-step-1": {
-        const pageName = figma.currentPage.name.toLowerCase();
-        if (!pageName.includes("copy") && !pageName.includes("\u526F\u672C")) {
-          figma.notify("\u26A0\uFE0F \u8BF7\u5148\u5C06 Page \u91CD\u547D\u540D\u4E3A 'xxx \u526F\u672C' \u4EE5\u786E\u4FDD\u5B89\u5168\uFF01", { error: true });
-          figma.ui.postMessage({ type: "step-error", step: 1 });
-          return;
-        }
-        const slides = getSlides();
-        if (slides.length === 0) {
-          figma.notify("\u8BF7\u81F3\u5C11\u9009\u62E9\u4E00\u4E2A Frame \u753B\u677F");
-          figma.ui.postMessage({ type: "step-error", step: 1 });
-          return;
-        }
-        await pptStep1_Init(slides);
-        break;
-      }
-      case "ppt-step-2": {
-        const slides = getSlides();
-        await pptStep2_Rasterize(slides);
-        break;
-      }
-      case "ppt-step-3": {
-        const slides = getSlides();
-        await pptStep3_Flatten(slides);
-        break;
-      }
-      case "ppt-step-4": {
-        let slides = getSlides();
-        slides = sortNodesByVisualPosition(slides);
-        await pptStep4_Extract(slides);
-        break;
-      }
-      case "ppt-step-5": {
-        let slides = getSlides();
-        slides = sortNodesByVisualPosition(slides);
-        await pptStep5_ExportImages(slides);
-        break;
-      }
-      case "lint-variants": {
-        console.log("\u30103\u3011\u540E\u7AEF\uFF1A\u8FDB\u5165\u4E25\u683C\u5206\u7C7B\u903B\u8F91...");
-        const cfg = msg.config || msg;
-        const targets = [];
-        let scopeNodes = [];
-        if (cfg.scope === "page") {
-          scopeNodes = figma.currentPage.children;
-        } else {
-          scopeNodes = figma.currentPage.selection;
-        }
-        const collectTargets = (nodes) => {
-          for (const node of nodes) {
-            if (node.type === "COMPONENT_SET" || node.type === "COMPONENT") {
-              targets.push(node);
-            }
-            if ("children" in node)
-              collectTargets(node.children);
-          }
-        };
-        collectTargets(scopeNodes);
-        let findRegex = null;
-        if (cfg.mode === "find" && cfg.findText) {
-          try {
-            const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-            let pat = escape(cfg.findText);
-            if (cfg.wholeWord)
-              pat = `\\b${pat}\\b`;
-            findRegex = new RegExp(pat, cfg.caseSensitive ? "g" : "gi");
-          } catch (e) {
-          }
-        }
-        const results = [];
-        const checkString = (text) => {
-          let res = { changed: false, val: text };
-          if (cfg.mode === "lint") {
-            res = convertNameAdvanced(text, cfg.format, cfg.separator, cfg.casing, cfg.emoji, cfg.removeId, cfg.unmarkHidden);
-          } else if (findRegex) {
-            if (findRegex.test(text)) {
-              res.val = text.replace(findRegex, cfg.replaceText || "");
-              res.changed = true;
-            }
-            if (res.changed && cfg.markHidden) {
-              if (!res.val.startsWith(".") && !res.val.startsWith("_"))
-                res.val = "." + res.val;
-            }
-            if (cfg.unmarkHidden) {
-              if (res.val.startsWith(".") || res.val.startsWith("_")) {
-                res.val = res.val.substring(1);
-                res.changed = true;
-              }
-            }
-          }
-          return res;
-        };
-        for (const node of targets) {
-          try {
-            if (node.type === "COMPONENT_SET") {
-              const res = checkString(node.name);
-              if (res.changed) {
-                results.push({
-                  id: node.id,
-                  compId: node.id,
-                  compName: node.name,
-                  // 🔥 1. 明确标记类型
-                  type: "COMPONENT_SET",
-                  targetType: "CompName",
-                  // 🏷️ 组件名
-                  propName: "Name",
-                  oldVal: node.name,
-                  newVal: res.val
+                // 视觉排序 (从左到右，从上到下)
+                textNodes_3.sort(function (a, b) {
+                    var aAbs = a.absoluteBoundingBox || { x: a.x, y: a.y };
+                    var bAbs = b.absoluteBoundingBox || { x: b.x, y: b.y };
+                    if (Math.abs(aAbs.y - bAbs.y) > 10)
+                        return aAbs.y - bAbs.y;
+                    return aAbs.x - bAbs.x;
                 });
-              }
-            } else if (node.type === "COMPONENT") {
-              const isVariant = node.parent && node.parent.type === "COMPONENT_SET";
-              const compId = isVariant ? node.parent.id : node.id;
-              const CompName = isVariant ? node.parent.name : node.name;
-              const groupType = isVariant ? "COMPONENT_SET" : "COMPONENT";
-              if (!isVariant) {
-                const res = checkString(node.name);
-                if (res.changed) {
-                  results.push({
-                    id: node.id,
-                    compId,
-                    compName: CompName,
-                    // 🔥 1. 明确标记类型
-                    type: groupType,
-                    targetType: "CompName",
-                    // 🏷️ 组件名
-                    propName: "Name",
-                    oldVal: node.name,
-                    newVal: res.val
-                  });
+                changeCount = 0;
+                i = 0;
+                _10.label = 3;
+            case 3:
+                if (!(i < textNodes_3.length)) return [3 /*break*/, 8];
+                node = textNodes_3[i];
+                _10.label = 4;
+            case 4:
+                _10.trys.push([4, 6, , 7]);
+                // 加载字体
+                return [4 /*yield*/, figma.loadFontAsync(node.fontName)];
+            case 5:
+                // 加载字体
+                _10.sent(); // 简单处理，假设非混合字体
+                textToFill = "";
+                if (distribution === 'random') {
+                    textToFill = dataList[Math.floor(Math.random() * dataList.length)];
                 }
-              } else {
-                const rawProps = node.name.split(",").map((p) => p.trim());
-                const newProps = [];
-                let hasAnyChange = false;
-                rawProps.forEach((pair) => {
-                  const parts = pair.split("=");
-                  if (parts.length < 2) {
-                    newProps.push(pair);
-                    return;
-                  }
-                  const key = parts[0].trim();
-                  const val = parts[1].trim();
-                  const resKey = checkString(key);
-                  if (resKey.changed) {
-                    results.push({
-                      id: node.id,
-                      compId,
-                      compName: CompName,
-                      // 🔥 1. 明确标记类型
-                      type: groupType,
-                      targetType: "PropName",
-                      // 🏷️ 属性名
-                      propName: "Property",
-                      oldVal: key,
-                      newVal: resKey.val
-                    });
-                    hasAnyChange = true;
-                  }
-                  const resVal = checkString(val);
-                  if (resVal.changed) {
-                    console.log("\u3010\u8C03\u8BD5\u3011\u51C6\u5907\u63A8\u5165\u5C5E\u6027\u503C\uFF0Ckey\u662F\uFF1A", key);
-                    results.push({
-                      id: node.id,
-                      compId,
-                      compName: CompName,
-                      // 🔥 1. 明确标记类型
-                      type: groupType,
-                      targetType: "PropValue",
-                      // 🏷️ 属性值
-                      propName: key,
-                      oldVal: val,
-                      newVal: resVal.val
-                    });
-                    hasAnyChange = true;
-                  }
-                  const finalKey = resKey.changed ? resKey.val : key;
-                  const finalVal = resVal.changed ? resVal.val : val;
-                  newProps.push(`${finalKey}=${finalVal}`);
-                });
-                if (hasAnyChange) {
-                  const fullNewName = newProps.join(", ");
-                  for (let k = results.length - 1; k >= 0; k--) {
-                    if (results[k].id === node.id) {
-                      if (!results[k].fullResult)
-                        results[k].fullResult = fullNewName;
-                    } else {
-                      break;
+                else {
+                    // 顺序循环
+                    textToFill = dataList[i % dataList.length];
+                }
+                // 根据模式应用
+                if (mode === 'prefix') {
+                    node.characters = textToFill + node.characters;
+                }
+                else if (mode === 'suffix') {
+                    node.characters = node.characters + textToFill;
+                }
+                else {
+                    // replace
+                    node.characters = textToFill;
+                }
+                changeCount++;
+                return [3 /*break*/, 7];
+            case 6:
+                e_1 = _10.sent();
+                console.error("Fill error", e_1);
+                return [3 /*break*/, 7];
+            case 7:
+                i++;
+                return [3 /*break*/, 3];
+            case 8:
+                figma.notify("\u5DF2\u586B\u5145 ".concat(changeCount, " \u4E2A\u6587\u672C"));
+                return [3 /*break*/, 135];
+            case 9: return [4 /*yield*/, figma.clientStorage.setAsync(msg.key, msg.value)];
+            case 10:
+                _10.sent();
+                if (msg.notify)
+                    figma.notify("配置已保存");
+                // 回传以确认更新
+                figma.ui.postMessage({ type: 'storage-saved', key: msg.key, value: msg.value });
+                return [3 /*break*/, 135];
+            case 11: return [4 /*yield*/, figma.clientStorage.getAsync(msg.key)];
+            case 12:
+                value = _10.sent();
+                figma.ui.postMessage({ type: 'storage-loaded', key: msg.key, value: value });
+                return [3 /*break*/, 135];
+            case 13:
+                {
+                    if (selection.length === 0) {
+                        figma.notify("请选择形状");
+                        return [2 /*return*/];
                     }
-                  }
+                    newSelection = [];
+                    for (_i = 0, selection_1 = selection; _i < selection_1.length; _i++) {
+                        node = selection_1[_i];
+                        if (node.removed)
+                            continue;
+                        frame = figma.createFrame();
+                        frame.x = node.x;
+                        frame.y = node.y;
+                        frame.resize(node.width, node.height);
+                        frame.rotation = node.rotation;
+                        frame.name = node.name;
+                        if ('fills' in node)
+                            frame.fills = node.fills;
+                        if ('strokes' in node) {
+                            frame.strokes = node.strokes;
+                            frame.strokeWeight = node.strokeWeight;
+                        }
+                        if ('cornerRadius' in node && node.cornerRadius !== figma.mixed)
+                            frame.cornerRadius = node.cornerRadius;
+                        if ('cornerSmoothing' in node)
+                            frame.cornerSmoothing = node.cornerSmoothing;
+                        if (node.parent) {
+                            node.parent.appendChild(frame);
+                            idx = node.parent.children.indexOf(node);
+                            if (idx > -1)
+                                frame.parent.insertChild(idx, frame);
+                        }
+                        if ('children' in node) {
+                            children = __spreadArray([], node.children, true);
+                            for (_b = 0, children_1 = children; _b < children_1.length; _b++) {
+                                child = children_1[_b];
+                                if (!child.removed)
+                                    frame.appendChild(child);
+                            }
+                        }
+                        if (!node.removed)
+                            node.remove();
+                        newSelection.push(frame);
+                    }
+                    figma.currentPage.selection = newSelection;
+                    figma.notify("已转换为 Frame");
+                    return [3 /*break*/, 135];
                 }
-              }
-            }
-          } catch (e) {
-            console.error(e);
-          }
-        }
-        figma.ui.postMessage({ type: "lint-results", data: results });
-        break;
-      }
-      case "fix-variants": {
-        const items = msg.items;
-        let count = 0;
-        for (const item of items) {
-          try {
-            const node = await figma.getNodeByIdAsync(item.id);
-            if (node) {
-              node.name = item.fullResult || item.newVal;
-              count++;
-            }
-          } catch (err) {
-          }
-        }
-        figma.notify(`\u2728 \u5DF2\u6210\u529F\u4FEE\u590D ${count} \u9879\u547D\u540D`);
-        break;
-      }
-      case "text-find-matches": {
-        const { scope, findText } = msg;
-        console.log("\u3010\u540E\u7AEF\u3011\u6536\u5230\u6587\u672C\u67E5\u627E\u8BF7\u6C42:", scope, findText);
-        const results = [];
-        let searchPool = [];
-        if (scope === "selection") {
-          searchPool = figma.currentPage.selection;
-        } else {
-          searchPool = [figma.currentPage];
-        }
-        if (searchPool.length === 0 && scope === "selection") {
-          figma.notify("\u8BF7\u5148\u9009\u62E9\u56FE\u5C42");
-          figma.ui.postMessage({ type: "text-find-results", data: [] });
-          return;
-        }
-        const traverse = (node) => {
-          if (node.type === "TEXT" && node.visible) {
-            const fullText = node.characters;
-            const escapedFindText = findText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-            const regex = new RegExp(escapedFindText, "gi");
-            let match;
-            while ((match = regex.exec(fullText)) !== null) {
-              results.push({
-                id: node.id,
-                fullText,
-                index: match.index,
-                length: match[0].length,
-                matchText: match[0]
-              });
-            }
-          }
-          if ("children" in node) {
-            node.children.forEach(traverse);
-          }
-        };
-        searchPool.forEach(traverse);
-        console.log(`\u3010\u540E\u7AEF\u3011\u67E5\u627E\u5B8C\u6210\uFF0C\u627E\u5230 ${results.length} \u9879`);
-        figma.ui.postMessage({ type: "text-find-results", data: results });
-        if (results.length === 0) {
-          figma.notify("\u672A\u627E\u5230\u5339\u914D\u6587\u672C");
-        }
-        break;
-      }
-      case "locate-node": {
-        try {
-          const node = await figma.getNodeByIdAsync(msg.id);
-          if (node) {
-            figma.currentPage.selection = [node];
-            figma.viewport.scrollAndZoomIntoView([node]);
-            if (node.type === "TEXT" && typeof msg.index === "number" && typeof msg.length === "number") {
-              const cacheKey = `${msg.id}_${msg.index}`;
-              const font = node.fontName === figma.mixed ? node.getRangeFontName(0, 1) : node.fontName;
-              await figma.loadFontAsync(font);
-              if (highlightCache[cacheKey]) {
-                const cachedData = highlightCache[cacheKey];
-                node.setRangeFills(msg.index, msg.index + cachedData.length, cachedData.fills);
-                delete highlightCache[cacheKey];
-                figma.notify("\u5DF2\u8FD8\u539F\u989C\u8272");
-                figma.ui.postMessage({ type: "highlight-status", key: cacheKey, status: false });
-              } else {
-                const currentFills = node.getRangeFills(msg.index, msg.index + 1);
-                highlightCache[cacheKey] = { fills: currentFills, length: msg.length };
-                const highlightPaint = [{ type: "SOLID", color: { r: 1, g: 0, b: 0 } }];
-                node.setRangeFills(msg.index, msg.index + msg.length, highlightPaint);
-                figma.notify("\u5DF2\u6807\u8BB0 (\u518D\u6B21\u70B9\u51FB\u53EF\u8FD8\u539F)");
-                figma.ui.postMessage({ type: "highlight-status", key: cacheKey, status: true });
-              }
-            }
-          } else {
-            figma.notify("\u56FE\u5C42\u4E0D\u5B58\u5728 (\u53EF\u80FD\u5DF2\u88AB\u5220\u9664)");
-          }
-        } catch (e) {
-          console.error("\u5B9A\u4F4D\u5931\u8D25:", e);
-        }
-        break;
-      }
-      case "text-replace-batch": {
-        const { tasks, replaceText } = msg;
-        let successCount = 0;
-        const processedIds = /* @__PURE__ */ new Set();
-        const groups = {};
-        tasks.forEach((task) => {
-          if (!groups[task.id])
-            groups[task.id] = [];
-          groups[task.id].push(task);
-        });
-        for (const nodeId in groups) {
-          const node = await figma.getNodeByIdAsync(nodeId);
-          if (!node || node.type !== "TEXT")
-            continue;
-          const groupTasks = groups[nodeId];
-          groupTasks.sort((a, b) => b.index - a.index);
-          try {
-            await figma.loadFontAsync(node.fontName === figma.mixed ? node.getRangeFontName(0, 1) : node.fontName);
-            for (const task of groupTasks) {
-              const currentStr = node.characters.substring(task.index, task.index + task.length);
-              node.deleteCharacters(task.index, task.index + task.length);
-              node.insertCharacters(task.index, replaceText);
-              successCount++;
-              if (task.uid)
-                processedIds.add(task.uid);
-            }
-          } catch (err) {
-            console.error(`\u66FF\u6362\u5931\u8D25 ${nodeId}:`, err);
-          }
-        }
-        figma.ui.postMessage({
-          type: "text-replace-success",
-          count: successCount,
-          processedUids: Array.from(processedIds)
-        });
-        figma.notify(`\u5DF2\u66FF\u6362 ${successCount} \u5904\u6587\u672C`);
-        break;
-      }
-      case "clear-all-highlights": {
-        let count = 0;
-        for (const key in highlightCache) {
-          const [nodeId, indexStr] = key.split("_");
-          const index = parseInt(indexStr);
-          const data = highlightCache[key];
-          try {
-            const node = await figma.getNodeByIdAsync(nodeId);
-            if (node && node.type === "TEXT") {
-              const font = node.fontName === figma.mixed ? node.getRangeFontName(0, 1) : node.fontName;
-              await figma.loadFontAsync(font);
-              node.setRangeFills(index, index + data.length, data.fills);
-              count++;
-            }
-          } catch (e) {
-            console.log("\u8FD8\u539F\u5931\u8D25", e);
-          }
-        }
-        highlightCache = {};
-        figma.notify(`\u5DF2\u8FD8\u539F ${count} \u5904\u9AD8\u4EAE`);
-        figma.ui.postMessage({ type: "clear-all-highlights-ui" });
-        break;
-      }
-      case "text-replace-batch": {
-        const { ids, findText, replaceText } = msg;
-        let count = 0;
-        for (const id of ids) {
-          const node = await figma.getNodeByIdAsync(id);
-          if (node && node.type === "TEXT") {
-            try {
-              await figma.loadFontAsync(node.fontName === figma.mixed ? node.getRangeFontName(0, 1) : node.fontName);
-              const regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
-              if (regex.test(node.characters)) {
-                node.characters = node.characters.replace(regex, replaceText);
+                _10.label = 14;
+            case 14:
+                {
+                    newSelection = [];
+                    for (_c = 0, selection_2 = selection; _c < selection_2.length; _c++) {
+                        node = selection_2[_c];
+                        if ((node.type === "FRAME" || node.type === "GROUP") && !node.removed) {
+                            r = figma.createRectangle();
+                            r.x = node.x;
+                            r.y = node.y;
+                            r.resize(node.width, node.height);
+                            r.rotation = node.rotation;
+                            r.name = node.name;
+                            if ('fills' in node && node.fills !== figma.mixed)
+                                r.fills = node.fills;
+                            if ('strokes' in node) {
+                                r.strokes = node.strokes;
+                                r.strokeWeight = node.strokeWeight;
+                            }
+                            if ('cornerRadius' in node && node.cornerRadius !== figma.mixed)
+                                r.cornerRadius = node.cornerRadius;
+                            if ('cornerSmoothing' in node)
+                                r.cornerSmoothing = node.cornerSmoothing;
+                            if (node.parent) {
+                                node.parent.appendChild(r);
+                                idx = node.parent.children.indexOf(node);
+                                if (idx > -1)
+                                    node.parent.insertChild(idx, r);
+                            }
+                            node.remove();
+                            newSelection.push(r);
+                        }
+                    }
+                    if (newSelection.length > 0)
+                        figma.currentPage.selection = newSelection;
+                    return [3 /*break*/, 135];
+                }
+                _10.label = 15;
+            case 15:
+                {
+                    count = 0;
+                    for (_d = 0, selection_3 = selection; _d < selection_3.length; _d++) {
+                        node = selection_3[_d];
+                        if ('fills' in node && 'strokes' in node) {
+                            temp = node.fills;
+                            node.fills = node.strokes;
+                            node.strokes = temp;
+                            if (node.strokes.length > 0 && node.strokeWeight === 0)
+                                node.strokeWeight = 1;
+                            count++;
+                        }
+                    }
+                    if (count > 0)
+                        figma.notify("已交换填充/描边");
+                    return [3 /*break*/, 135];
+                }
+                _10.label = 16;
+            case 16:
+                _e = 0, selection_4 = selection;
+                _10.label = 17;
+            case 17:
+                if (!(_e < selection_4.length)) return [3 /*break*/, 20];
+                node = selection_4[_e];
+                if (!('fills' in node && Array.isArray(node.fills))) return [3 /*break*/, 19];
+                img = node.fills.find(function (f) { return f.type === 'IMAGE'; });
+                if (!(img && img.imageHash)) return [3 /*break*/, 19];
+                asyncImg = figma.getImageByHash(img.imageHash);
+                return [4 /*yield*/, asyncImg.getSizeAsync()];
+            case 18:
+                size = _10.sent();
+                if (size && size.width)
+                    node.resize(node.width, node.width * (size.height / size.width));
+                _10.label = 19;
+            case 19:
+                _e++;
+                return [3 /*break*/, 17];
+            case 20: return [3 /*break*/, 135];
+            case 21:
+                {
+                    t = [];
+                    pool = selection.length > 0 ? selection : [figma.currentPage];
+                    for (_f = 0, pool_1 = pool; _f < pool_1.length; _f++) {
+                        n = pool_1[_f];
+                        if (n.type === 'TEXT')
+                            t.push(n);
+                        if ('findAll' in n)
+                            t = t.concat(n.findAll(function (x) { return x.type === 'TEXT'; }));
+                    }
+                    if (t.length > 0) {
+                        figma.currentPage.selection = t;
+                        figma.notify("\u9009\u4E2D ".concat(t.length, " \u4E2A\u6587\u672C"));
+                    }
+                    else {
+                        figma.notify("未找到文本");
+                    }
+                    return [3 /*break*/, 135];
+                }
+                _10.label = 22;
+            case 22:
+                {
+                    count_1 = 0;
+                    selection.forEach(rm);
+                    figma.notify("\u79FB\u9664 ".concat(count_1, " \u4E2A\u81EA\u52A8\u5E03\u5C40"));
+                    return [3 /*break*/, 135];
+                }
+                _10.label = 23;
+            case 23:
+                {
+                    newSelection = [];
+                    if (selection.length === 0) {
+                        figma.notify("请选择图层");
+                        return [2 /*return*/];
+                    }
+                    for (_g = 0, selection_5 = selection; _g < selection_5.length; _g++) {
+                        node = selection_5[_g];
+                        if (node.removed || !node.parent)
+                            continue;
+                        frame = figma.createFrame();
+                        frame.name = "Auto Layout Wrapper";
+                        // 设置自动布局属性
+                        frame.layoutMode = "VERTICAL";
+                        frame.itemSpacing = 10;
+                        frame.paddingLeft = 0;
+                        frame.paddingRight = 0;
+                        frame.paddingTop = 0;
+                        frame.paddingBottom = 0;
+                        frame.primaryAxisSizingMode = "AUTO"; // Hug
+                        frame.counterAxisSizingMode = "AUTO"; // Hug
+                        // 设置样式：红底、无描边
+                        frame.fills = [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 } }];
+                        frame.strokes = [];
+                        // 保持位置并包裹
+                        frame.x = node.x;
+                        frame.y = node.y;
+                        parent_1 = node.parent;
+                        index = parent_1.children.indexOf(node);
+                        parent_1.insertChild(index, frame);
+                        frame.appendChild(node);
+                        newSelection.push(frame);
+                    }
+                    if (newSelection.length > 0) {
+                        figma.currentPage.selection = newSelection;
+                        figma.notify(msg.successMsg || "已添加自动布局外套");
+                    }
+                    return [3 /*break*/, 135];
+                }
+                _10.label = 24;
+            case 24:
+                newSel = [];
+                _h = 0, selection_6 = selection;
+                _10.label = 25;
+            case 25:
+                if (!(_h < selection_6.length)) return [3 /*break*/, 31];
+                node = selection_6[_h];
+                if (node.type !== "TEXT")
+                    return [3 /*break*/, 30];
+                lines = node.characters.split(/\r\n|\r|\n/);
+                if (lines.length <= 1)
+                    return [3 /*break*/, 30];
+                font = node.fontName;
+                if (font === figma.mixed)
+                    font = node.getRangeFontName(0, 1);
+                _10.label = 26;
+            case 26:
+                _10.trys.push([26, 28, , 29]);
+                return [4 /*yield*/, figma.loadFontAsync(font)];
+            case 27:
+                _10.sent();
+                return [3 /*break*/, 29];
+            case 28:
+                e_2 = _10.sent();
+                figma.notify("字体加载失败");
+                return [3 /*break*/, 30];
+            case 29:
+                cy = node.y;
+                for (_j = 0, lines_1 = lines; _j < lines_1.length; _j++) {
+                    l = lines_1[_j];
+                    if (!l.trim())
+                        continue;
+                    t = node.clone();
+                    t.characters = l;
+                    t.textAutoResize = "WIDTH_AND_HEIGHT";
+                    t.y = cy;
+                    node.parent.appendChild(t);
+                    newSel.push(t);
+                    cy += t.height + 10;
+                }
+                node.remove();
+                _10.label = 30;
+            case 30:
+                _h++;
+                return [3 /*break*/, 25];
+            case 31:
+                if (newSel.length > 0)
+                    figma.currentPage.selection = newSel;
+                return [3 /*break*/, 135];
+            case 32:
+                tNodes = selection.filter(function (n) { return n.type === 'TEXT'; }).sort(function (a, b) { return Math.abs(a.y - b.y) > 5 ? a.y - b.y : a.x - b.x; });
+                if (tNodes.length < 2) {
+                    figma.notify("请选2个以上文本");
+                    return [2 /*return*/];
+                }
+                font = tNodes[0].fontName;
+                if (font === figma.mixed)
+                    font = tNodes[0].getRangeFontName(0, 1);
+                _10.label = 33;
+            case 33:
+                _10.trys.push([33, 35, , 36]);
+                return [4 /*yield*/, figma.loadFontAsync(font)];
+            case 34:
+                _10.sent();
+                return [3 /*break*/, 36];
+            case 35:
+                e_3 = _10.sent();
+                figma.notify("字体加载失败");
+                return [2 /*return*/];
+            case 36:
+                txt = tNodes.map(function (n) { return n.characters; }).join('\n');
+                nt = tNodes[0].clone();
+                nt.characters = txt;
+                nt.textAutoResize = 'HEIGHT';
+                for (i = 1; i < tNodes.length; i++)
+                    tNodes[i].remove();
+                figma.currentPage.selection = [nt];
+                return [3 /*break*/, 135];
+            case 37:
+                {
+                    arr_1 = [];
+                    selection.forEach(function (n) {
+                        if (n.parent && n.parent.parent && n.parent !== figma.currentPage) {
+                            n.parent.parent.appendChild(n);
+                            arr_1.push(n);
+                        }
+                    });
+                    if (arr_1.length > 0)
+                        figma.currentPage.selection = arr_1;
+                    return [3 /*break*/, 135];
+                }
+                _10.label = 38;
+            case 38:
+                {
+                    arr_2 = [];
+                    selection.forEach(function (n) {
+                        figma.currentPage.appendChild(n);
+                        arr_2.push(n);
+                    });
+                    figma.currentPage.selection = arr_2;
+                    return [3 /*break*/, 135];
+                }
+                _10.label = 39;
+            case 39:
+                {
+                    selection.forEach(function (n) {
+                        var name = "";
+                        if (n.type === 'TEXT')
+                            name = n.characters;
+                        else if ('findOne' in n) {
+                            var t = n.findOne(function (x) { return x.type === 'TEXT'; });
+                            if (t)
+                                name = t.characters;
+                        }
+                        if (name)
+                            n.name = name.substring(0, 20);
+                    });
+                    figma.notify("已重命名");
+                    return [3 /*break*/, 135];
+                }
+                _10.label = 40;
+            case 40:
+                {
+                    sel = figma.currentPage.selection;
+                    if (sel.length === 0) {
+                        figma.notify("请先选中图层");
+                        return [2 /*return*/];
+                    }
+                    targets_3 = [];
+                    scan_1 = function (n) {
+                        // 1. 先递归找子级
+                        if ('children' in n) {
+                            // 复制一份 children 避免遍历时索引问题
+                            var children = n.children;
+                            for (var _i = 0, children_2 = children; _i < children_2.length; _i++) {
+                                var child = children_2[_i];
+                                scan_1(child);
+                            }
+                        }
+                        // 2. 子级找完了，再看自己是不是组件实例
+                        if (n.type === 'INSTANCE') {
+                            targets_3.push(n);
+                        }
+                    };
+                    // 开始扫描
+                    sel.forEach(scan_1);
+                    if (targets_3.length === 0) {
+                        figma.notify("未找到可解绑的实例");
+                        return [2 /*return*/];
+                    }
+                    count = 0;
+                    // 按顺序解绑 (因为已经是“从内到外”的顺序，所以直接执行即可)
+                    for (_k = 0, targets_1 = targets_3; _k < targets_1.length; _k++) {
+                        node = targets_1[_k];
+                        // 再次检查节点是否还存在（防止父级解绑导致子级引用变化，虽然此算法能最大程度避免）
+                        if (!node.removed) {
+                            try {
+                                node.detachInstance();
+                                count++;
+                            }
+                            catch (e) {
+                                console.error("解绑出错:", e);
+                            }
+                        }
+                    }
+                    figma.notify("\u5DF2\u5F7B\u5E95\u89E3\u7ED1 ".concat(count, " \u4E2A\u7EC4\u4EF6"));
+                    return [3 /*break*/, 135];
+                }
+                _10.label = 41;
+            case 41:
+                {
+                    h = [];
+                    pool = selection.length > 0 ? selection : [figma.currentPage];
+                    for (_l = 0, pool_2 = pool; _l < pool_2.length; _l++) {
+                        n = pool_2[_l];
+                        if ('visible' in n && !n.visible)
+                            h.push(n);
+                        if ('findAll' in n)
+                            h = h.concat(n.findAll(function (x) { return !x.visible; }));
+                    }
+                    count_3 = 0;
+                    h.reverse().forEach(function (n) { if (!n.removed) {
+                        n.remove();
+                        count_3++;
+                    } });
+                    figma.notify("\u5DF2\u5220\u9664 ".concat(count_3, " \u4E2A\u9690\u85CF\u56FE\u5C42"));
+                    return [3 /*break*/, 135];
+                }
+                _10.label = 42;
+            case 42:
+                {
+                    if (selection.length > 1) {
+                        p_1 = selection[0].parent;
+                        if (selection.every(function (n) { return n.parent === p_1; })) {
+                            isReverse_1 = layerSortDirection === 'desc';
+                            __spreadArray([], selection, true).sort(function (a, b) {
+                                var diffY = a.y - b.y;
+                                var diffX = a.x - b.x;
+                                var result = Math.abs(diffY) > 2 ? diffY : diffX;
+                                return isReverse_1 ? -result : result;
+                            }).forEach(function (n) { return p_1.appendChild(n); });
+                            figma.notify(isReverse_1 ? "已【倒序】排列图层 (Z->A)" : "已【正序】排列图层 (A->Z)");
+                            // 切换下次点击的方向
+                            layerSortDirection = isReverse_1 ? 'asc' : 'desc';
+                        }
+                    }
+                    else {
+                        figma.notify("请至少选择两个同级图层");
+                    }
+                    return [3 /*break*/, 135];
+                }
+                _10.label = 43;
+            case 43:
+                {
+                    count_4 = 0;
+                    selection.forEach(function (n) {
+                        if ('findAll' in n) {
+                            var gs = n.findAll(function (x) { return x.type === 'GROUP'; });
+                            while (gs.length > 0) {
+                                gs.forEach(function (x) { if (!x.removed) {
+                                    figma.ungroup(x);
+                                    count_4++;
+                                } });
+                                gs = n.findAll(function (x) { return x.type === 'GROUP'; });
+                            }
+                        }
+                    });
+                    figma.notify("\u5DF2\u89E3\u6563 ".concat(count_4, " \u4E2A\u7EC4"));
+                    return [3 /*break*/, 135];
+                }
+                _10.label = 44;
+            case 44:
+                {
+                    count_2 = 0;
+                    selection.forEach(ul);
+                    figma.notify("\u5DF2\u89E3\u9501 ".concat(count_2, " \u4E2A\u56FE\u5C42"));
+                    return [3 /*break*/, 135];
+                }
+                _10.label = 45;
+            case 45:
+                {
+                    if (selection.length === 0) {
+                        figma.notify("请选择图层");
+                        return [2 /*return*/];
+                    }
+                    count = 0;
+                    for (_m = 0, selection_7 = selection; _m < selection_7.length; _m++) {
+                        node = selection_7[_m];
+                        if (!node.removed) {
+                            newX = Math.round(node.x);
+                            newY = Math.round(node.y);
+                            newW = Math.round(node.width);
+                            newH = Math.round(node.height);
+                            // 只有发生变化时才操作
+                            if (node.x !== newX || node.y !== newY)
+                                node.x = newX, node.y = newY;
+                            if (node.width !== newW || node.height !== newH)
+                                node.resize(newW, newH);
+                            count++;
+                        }
+                    }
+                    figma.notify("\u5DF2\u5BF9\u9F50 ".concat(count, " \u4E2A\u56FE\u5C42"));
+                    return [3 /*break*/, 135];
+                }
+                _10.label = 46;
+            case 46:
+                {
+                    sel = figma.currentPage.selection;
+                    if (sel.length > 0) {
+                        figma.ui.postMessage({ type: 'update-name-input', name: sel[0].name });
+                    }
+                    else {
+                        figma.notify("请先选择一个图层以获取名称");
+                    }
+                    return [3 /*break*/, 135];
+                }
+                _10.label = 47;
+            case 47:
+                {
+                    f = msg.filters;
+                    sel_5 = figma.currentPage.selection;
+                    console.log("=== \u5F00\u59CB\u67E5\u627E (v3\u4FEE\u590D\u7248) ===");
+                    console.log("Scope: ".concat(f.scope, " | \u9009\u4E2D\u56FE\u5C42: ").concat(sel_5.length));
+                    searchTargets = [];
+                    // =========================================================
+                    // A. 构建查找池 (Pool Construction)
+                    // =========================================================
+                    if (f.scope === 'inside') {
+                        // 模式：内在元素 (不包含选中项本身)
+                        if (sel_5.length === 0) {
+                            figma.notify("⚠️ 请先选择一个容器(Frame/Group)");
+                            return [2 /*return*/];
+                        }
+                        for (_o = 0, sel_1 = sel_5; _o < sel_1.length; _o++) {
+                            node = sel_1[_o];
+                            if ('findAll' in node) {
+                                children = node.findAll(function () { return true; });
+                                searchTargets.push.apply(searchTargets, children);
+                            }
+                        }
+                    }
+                    else if (f.scope === 'children') {
+                        // 模式：仅直系子级
+                        if (sel_5.length === 0) {
+                            figma.notify("⚠️ 请先选择一个容器(Frame/Group)");
+                            return [2 /*return*/];
+                        }
+                        for (_p = 0, sel_2 = sel_5; _p < sel_2.length; _p++) {
+                            node = sel_2[_p];
+                            if ('children' in node) {
+                                searchTargets.push.apply(searchTargets, node.children);
+                            }
+                        }
+                    }
+                    else if (f.scope === 'sibling') {
+                        // 模式：同级
+                        if (sel_5.length > 0 && sel_5[0].parent) {
+                            siblings = sel_5[0].parent.children.filter(function (n) { return !sel_5.includes(n); });
+                            searchTargets.push.apply(searchTargets, siblings);
+                        }
+                        else {
+                            figma.notify("⚠️ 请先选择一个图层");
+                            return [2 /*return*/];
+                        }
+                    }
+                    else {
+                        // 模式：子孙元素 (descendants) - 默认模式
+                        // 逻辑：如果选了图层，查“选中项+选中项内部”；如果没选，查“全页”
+                        if (sel_5.length > 0) {
+                            console.log(">> 策略: 查找选中项及其后代");
+                            // 1. 先把【选中项本身】加进去
+                            // (使用 for 循环最稳妥)
+                            for (_q = 0, sel_3 = sel_5; _q < sel_3.length; _q++) {
+                                node = sel_3[_q];
+                                searchTargets.push(node);
+                                // 2. 再把【选中项的子孙】加进去
+                                if ('findAll' in node) {
+                                    children = node.findAll(function () { return true; });
+                                    searchTargets.push.apply(searchTargets, children);
+                                }
+                            }
+                        }
+                        else {
+                            console.log(">> 策略: 全页面查找");
+                            allPageNodes = figma.currentPage.findAll(function () { return true; });
+                            searchTargets.push.apply(searchTargets, allPageNodes);
+                        }
+                    }
+                    uniqueMap_1 = new Map();
+                    searchTargets.forEach(function (node) { return uniqueMap_1.set(node.id, node); });
+                    finalPool = Array.from(uniqueMap_1.values());
+                    console.log("\uD83D\uDD0D \u5F85\u7B5B\u9009\u6C60\u6700\u7EC8\u5927\u5C0F: ".concat(finalPool.length));
+                    results = [];
+                    // =========================================================
+                    // C. 遍历筛选 (Filtering)
+                    // =========================================================
+                    for (_r = 0, finalPool_1 = finalPool; _r < finalPool_1.length; _r++) {
+                        node = finalPool_1[_r];
+                        match = true;
+                        // 1. 名称匹配
+                        if (f.name && f.name.val) {
+                            n = node.name;
+                            q = f.name.val;
+                            if (!f.name.caseSensitive) {
+                                n = n.toLowerCase();
+                                q = q.toLowerCase();
+                            }
+                            if (!n.includes(q))
+                                match = false;
+                        }
+                        // 2. 类型匹配
+                        if (match && f.types && f.types.vals.length > 0) {
+                            t = node.type;
+                            ts = f.types.vals;
+                            isType = false;
+                            if (ts.includes(t))
+                                isType = true;
+                            if (ts.includes('AUTOLAYOUT') && t === 'FRAME' && node.layoutMode !== 'NONE')
+                                isType = true;
+                            if (ts.includes('IMAGE') && 'fills' in node && node.fills !== figma.mixed && Array.isArray(node.fills)) {
+                                if (node.fills.some(function (p) { return p.type === 'IMAGE' && p.visible !== false; }))
+                                    isType = true;
+                            }
+                            if (ts.includes('COMPONENT_SET') && t === 'COMPONENT_SET')
+                                isType = true;
+                            if (ts.includes('SECTION') && t === 'SECTION')
+                                isType = true;
+                            if (f.types.logic === 'include') {
+                                if (!isType)
+                                    match = false;
+                            }
+                            else {
+                                if (isType)
+                                    match = false;
+                            }
+                        }
+                        // 3. 状态匹配
+                        if (match && f.states && f.states.vals.length > 0) {
+                            isState = false;
+                            s = f.states.vals;
+                            if (s.includes('hidden') && !node.visible)
+                                isState = true;
+                            if (s.includes('locked') && node.locked)
+                                isState = true;
+                            if (s.includes('mask') && node.isMask)
+                                isState = true;
+                            if (s.includes('export') && node.exportSettings && node.exportSettings.length > 0)
+                                isState = true;
+                            if (s.includes('no-fill') && 'fills' in node && node.fills !== figma.mixed) {
+                                if (Array.isArray(node.fills) && node.fills.length === 0)
+                                    isState = true;
+                            }
+                            if (s.includes('no-stroke') && 'strokes' in node && node.strokes !== figma.mixed) {
+                                if (Array.isArray(node.strokes) && node.strokes.length === 0)
+                                    isState = true;
+                            }
+                            if (s.includes('clip') && 'clipsContent' in node && node.clipsContent)
+                                isState = true;
+                            if (s.includes('no-children') && 'children' in node) {
+                                if (node.children.length === 0)
+                                    isState = true;
+                            }
+                            if (f.states.logic === 'include') {
+                                if (!isState)
+                                    match = false;
+                            }
+                            else {
+                                if (isState)
+                                    match = false;
+                            }
+                        }
+                        // 4. 属性匹配 (Props) - 加强容错
+                        if (match && f.props && f.props.length > 0) {
+                            for (_s = 0, _t = f.props; _s < _t.length; _s++) {
+                                p = _t[_s];
+                                val = undefined;
+                                try {
+                                    if (p.key === 'name')
+                                        val = node.name;
+                                    else if (p.key === 'fillCount' && 'fills' in node && node.fills !== figma.mixed)
+                                        val = node.fills.length;
+                                    else if (p.key === 'strokeCount' && 'strokes' in node && node.strokes !== figma.mixed)
+                                        val = node.strokes.length;
+                                    else if (p.key in node) {
+                                        v = node[p.key];
+                                        if (v !== figma.mixed)
+                                            val = v;
+                                    }
+                                }
+                                catch (e) { }
+                                if (val === undefined) {
+                                    match = false;
+                                    break;
+                                }
+                                tgt = p.val;
+                                // 数字比较 vs 字符串比较
+                                if (p.op === '=') {
+                                    if (val != tgt)
+                                        match = false;
+                                }
+                                else if (p.op === '!=') {
+                                    if (val == tgt)
+                                        match = false;
+                                }
+                                else if (p.op === '>') {
+                                    if (Number(val) <= Number(tgt))
+                                        match = false;
+                                }
+                                else if (p.op === '<') {
+                                    if (Number(val) >= Number(tgt))
+                                        match = false;
+                                }
+                                else if (p.op === 'has') {
+                                    if (!String(val).toLowerCase().includes(String(tgt).toLowerCase()))
+                                        match = false;
+                                }
+                            }
+                        }
+                        if (match) {
+                            results.push(node);
+                        }
+                    }
+                    console.log("\u2705 \u6700\u7EC8\u5339\u914D: ".concat(results.length));
+                    if (results.length > 0) {
+                        figma.currentPage.selection = results;
+                        figma.viewport.scrollAndZoomIntoView(results);
+                        figma.notify("\u2705 \u5DF2\u9009\u4E2D ".concat(results.length, " \u4E2A\u56FE\u5C42"));
+                        // 🔥 新增：将结果回传给 UI
+                        figma.ui.postMessage({
+                            type: 'found-layers-result',
+                            count: results.length,
+                            layers: results.map(function (n) { return ({ id: n.id, name: n.name, type: n.type }); })
+                        });
+                    }
+                    else {
+                        figma.notify("⚠️ 未找到图层，请检查 Console的筛选池大小");
+                        figma.ui.postMessage({ type: 'found-layers-result', count: 0, layers: [] });
+                    }
+                    return [3 /*break*/, 135];
+                }
+                _10.label = 48;
+            case 48:
+                {
+                    runFocus = function () { return __awaiter(_this, void 0, void 0, function () {
+                        var ids, nodes, targets, selection_9, currentPageId, _i, nodes_1, node, p, isCurrent, e_9;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    _a.trys.push([0, 2, , 3]);
+                                    ids = msg.ids;
+                                    if (!ids || ids.length === 0)
+                                        return [2 /*return*/];
+                                    return [4 /*yield*/, Promise.all(ids.map(function (id) { return figma.getNodeByIdAsync(id); }))];
+                                case 1:
+                                    nodes = _a.sent();
+                                    targets = [];
+                                    selection_9 = [];
+                                    currentPageId = figma.currentPage.id;
+                                    // 2. 快速筛选
+                                    for (_i = 0, nodes_1 = nodes; _i < nodes_1.length; _i++) {
+                                        node = nodes_1[_i];
+                                        if (!node || node.removed)
+                                            continue;
+                                        if (node.type === 'DOCUMENT' || node.type === 'PAGE')
+                                            continue;
+                                        p = node.parent;
+                                        isCurrent = false;
+                                        // 大多数情况父级就是 Page，优化判断速度
+                                        if (p && p.type === 'PAGE') {
+                                            isCurrent = (p.id === currentPageId);
+                                        }
+                                        else {
+                                            // 深度查找
+                                            while (p) {
+                                                if (p.type === 'PAGE') {
+                                                    isCurrent = (p.id === currentPageId);
+                                                    break;
+                                                }
+                                                p = p.parent;
+                                            }
+                                        }
+                                        if (isCurrent) {
+                                            // 只要在当前页，就加入“视图定位目标”
+                                            targets.push(node);
+                                            // 如果没锁且可见，也加入“选中目标”
+                                            if (!node.locked && node.visible) {
+                                                selection_9.push(node);
+                                            }
+                                        }
+                                    }
+                                    if (targets.length > 0) {
+                                        // A. 尝试选中 (如果全是锁定的，这里就是空数组，会清空选择，是正确的表现)
+                                        figma.currentPage.selection = selection_9;
+                                        // B. 视图定位 (这是你要的核心功能)
+                                        figma.viewport.scrollAndZoomIntoView(targets);
+                                        // C. 只有多选时才提示，单选静默，体验最好
+                                        if (targets.length > 1) {
+                                            figma.notify("\u5DF2\u5B9A\u4F4D ".concat(targets.length, " \u9879"));
+                                        }
+                                    }
+                                    return [3 /*break*/, 3];
+                                case 2:
+                                    e_9 = _a.sent();
+                                    console.log("定位错误 (已忽略):", e_9);
+                                    return [3 /*break*/, 3];
+                                case 3: return [2 /*return*/];
+                            }
+                        });
+                    }); };
+                    runFocus();
+                    return [3 /*break*/, 135];
+                }
+                _10.label = 49;
+            case 49:
+                console.log("=== 开始执行创建样式 (Async模式) ===");
+                if (selection.length === 0) {
+                    figma.notify("请选择图层");
+                    return [2 /*return*/];
+                }
+                createdCount = 0;
+                conflicts = [];
+                errors = [];
+                _10.label = 50;
+            case 50:
+                _10.trys.push([50, 58, , 59]);
+                return [4 /*yield*/, figma.getLocalPaintStylesAsync()];
+            case 51:
+                localPaints = _10.sent();
+                return [4 /*yield*/, figma.getLocalTextStylesAsync()];
+            case 52:
+                localTexts = _10.sent();
+                return [4 /*yield*/, figma.getLocalEffectStylesAsync()];
+            case 53:
+                localEffects = _10.sent();
+                _loop_1 = function (node) {
+                    var name_1, exist, style, exist, style, font, err_4, exist, style;
+                    return __generator(this, function (_11) {
+                        switch (_11.label) {
+                            case 0:
+                                if (node.removed)
+                                    return [2 /*return*/, "continue"];
+                                name_1 = node.name;
+                                console.log("\u5904\u7406\u56FE\u5C42: ".concat(name_1));
+                                // --- 1. 处理颜色样式 (Fills) ---
+                                if ('fills' in node && node.type !== 'GROUP' && node.fills !== figma.mixed && Array.isArray(node.fills) && node.fills.length > 0) {
+                                    if (node.fills[0].type !== 'IMAGE') {
+                                        exist = localPaints.find(function (s) { return s.name === name_1; });
+                                        if (exist) {
+                                            if (!conflicts.includes(name_1))
+                                                conflicts.push(name_1 + " (颜色)");
+                                        }
+                                        else {
+                                            try {
+                                                style = figma.createPaintStyle();
+                                                style.name = name_1;
+                                                style.paints = JSON.parse(JSON.stringify(node.fills)); // 克隆防报错
+                                                node.fillStyleId = style.id;
+                                                createdCount++;
+                                            }
+                                            catch (err) {
+                                                errors.push(name_1);
+                                                console.error("颜色创建失败:", err);
+                                            }
+                                        }
+                                    }
+                                }
+                                if (!(node.type === 'TEXT')) return [3 /*break*/, 5];
+                                exist = localTexts.find(function (s) { return s.name === name_1; });
+                                if (!exist) return [3 /*break*/, 1];
+                                if (!conflicts.includes(name_1))
+                                    conflicts.push(name_1 + " (文本)");
+                                return [3 /*break*/, 5];
+                            case 1:
+                                _11.trys.push([1, 4, , 5]);
+                                style = figma.createTextStyle();
+                                style.name = name_1;
+                                font = node.fontName;
+                                if (!(font !== figma.mixed)) return [3 /*break*/, 3];
+                                return [4 /*yield*/, figma.loadFontAsync(font)];
+                            case 2:
+                                _11.sent();
+                                style.fontName = font;
+                                style.fontSize = node.fontSize !== figma.mixed ? node.fontSize : 12;
+                                if (node.letterSpacing !== figma.mixed)
+                                    style.letterSpacing = node.letterSpacing;
+                                if (node.lineHeight !== figma.mixed)
+                                    style.lineHeight = node.lineHeight;
+                                if (node.textDecoration !== figma.mixed)
+                                    style.textDecoration = node.textDecoration;
+                                node.textStyleId = style.id;
+                                createdCount++;
+                                _11.label = 3;
+                            case 3: return [3 /*break*/, 5];
+                            case 4:
+                                err_4 = _11.sent();
+                                errors.push(name_1);
+                                console.error("文本创建失败:", err_4);
+                                return [3 /*break*/, 5];
+                            case 5:
+                                // --- 3. 处理效果样式 (Effects) ---
+                                if ('effects' in node && node.effects !== figma.mixed && Array.isArray(node.effects) && node.effects.length > 0) {
+                                    exist = localEffects.find(function (s) { return s.name === name_1; });
+                                    if (exist) {
+                                        if (!conflicts.includes(name_1))
+                                            conflicts.push(name_1 + " (效果)");
+                                    }
+                                    else {
+                                        try {
+                                            style = figma.createEffectStyle();
+                                            style.name = name_1;
+                                            style.effects = JSON.parse(JSON.stringify(node.effects));
+                                            node.effectStyleId = style.id;
+                                            createdCount++;
+                                        }
+                                        catch (err) {
+                                            errors.push(name_1);
+                                            console.error("效果创建失败:", err);
+                                        }
+                                    }
+                                }
+                                return [2 /*return*/];
+                        }
+                    });
+                };
+                _u = 0, selection_8 = selection;
+                _10.label = 54;
+            case 54:
+                if (!(_u < selection_8.length)) return [3 /*break*/, 57];
+                node = selection_8[_u];
+                return [5 /*yield**/, _loop_1(node)];
+            case 55:
+                _10.sent();
+                _10.label = 56;
+            case 56:
+                _u++;
+                return [3 /*break*/, 54];
+            case 57: return [3 /*break*/, 59];
+            case 58:
+                e_4 = _10.sent();
+                console.error("全局错误:", e_4);
+                figma.notify("发生错误，请查看控制台");
+                return [3 /*break*/, 59];
+            case 59:
+                parts = [];
+                if (createdCount > 0)
+                    parts.push("\u65B0\u5EFA ".concat(createdCount, " \u4E2A"));
+                if (conflicts.length > 0)
+                    parts.push("\u8DF3\u8FC7\u91CD\u590D ".concat(conflicts.length, " \u4E2A"));
+                if (parts.length > 0) {
+                    figma.notify(parts.join('，'));
+                }
+                else {
+                    figma.notify("未执行操作 (可能是无样式属性或已重复)");
+                }
+                console.log("=== 结束 ===");
+                return [3 /*break*/, 135];
+            case 60:
+                console.log("=== 开始匹配样式 (Async修复版) ===");
+                sel = figma.currentPage.selection;
+                if (sel.length === 0) {
+                    figma.notify("请先选择范围 (支持包含子图层)");
+                    return [2 /*return*/];
+                }
+                countFill_1 = 0, countStroke_1 = 0, countText_1 = 0, countEffect_1 = 0;
+                _10.label = 61;
+            case 61:
+                _10.trys.push([61, 69, , 70]);
+                return [4 /*yield*/, figma.getLocalPaintStylesAsync()];
+            case 62:
+                paints = _10.sent();
+                return [4 /*yield*/, figma.getLocalTextStylesAsync()];
+            case 63:
+                texts = _10.sent();
+                return [4 /*yield*/, figma.getLocalEffectStylesAsync()];
+            case 64:
+                effects = _10.sent();
+                paintMap_1 = new Map();
+                paints.forEach(function (s) { return paintMap_1.set(JSON.stringify(s.paints), s.id); });
+                effectMap_1 = new Map();
+                effects.forEach(function (s) { return effectMap_1.set(JSON.stringify(s.effects), s.id); });
+                textMap_1 = new Map();
+                texts.forEach(function (s) {
+                    var fingerprint = JSON.stringify({
+                        family: s.fontName.family,
+                        style: s.fontName.style,
+                        size: s.fontSize,
+                        lh: s.lineHeight,
+                        ls: s.letterSpacing,
+                        td: s.textDecoration,
+                        pi: s.paragraphIndent,
+                        ps: s.paragraphSpacing
+                    });
+                    textMap_1.set(fingerprint, s.id);
+                });
+                traverse_3 = function (node) { return __awaiter(_this, void 0, void 0, function () {
+                    var key, e_10, key, e_11, key, e_12, key, e_13, _i, _a, child;
+                    return __generator(this, function (_b) {
+                        switch (_b.label) {
+                            case 0:
+                                if (node.removed)
+                                    return [2 /*return*/];
+                                if (!('fills' in node && node.fills !== figma.mixed && node.fills.length > 0 && node.fillStyleId === '')) return [3 /*break*/, 4];
+                                key = JSON.stringify(node.fills);
+                                if (!paintMap_1.has(key)) return [3 /*break*/, 4];
+                                _b.label = 1;
+                            case 1:
+                                _b.trys.push([1, 3, , 4]);
+                                // 修复点：使用 setFillStyleIdAsync
+                                return [4 /*yield*/, node.setFillStyleIdAsync(paintMap_1.get(key))];
+                            case 2:
+                                // 修复点：使用 setFillStyleIdAsync
+                                _b.sent();
+                                countFill_1++;
+                                return [3 /*break*/, 4];
+                            case 3:
+                                e_10 = _b.sent();
+                                return [3 /*break*/, 4];
+                            case 4:
+                                if (!('strokes' in node && node.strokes !== figma.mixed && node.strokes.length > 0 && node.strokeStyleId === '')) return [3 /*break*/, 8];
+                                key = JSON.stringify(node.strokes);
+                                if (!paintMap_1.has(key)) return [3 /*break*/, 8];
+                                _b.label = 5;
+                            case 5:
+                                _b.trys.push([5, 7, , 8]);
+                                // 修复点：使用 setStrokeStyleIdAsync
+                                return [4 /*yield*/, node.setStrokeStyleIdAsync(paintMap_1.get(key))];
+                            case 6:
+                                // 修复点：使用 setStrokeStyleIdAsync
+                                _b.sent();
+                                countStroke_1++;
+                                return [3 /*break*/, 8];
+                            case 7:
+                                e_11 = _b.sent();
+                                return [3 /*break*/, 8];
+                            case 8:
+                                if (!('effects' in node && node.effects !== figma.mixed && node.effects.length > 0 && node.effectStyleId === '')) return [3 /*break*/, 12];
+                                key = JSON.stringify(node.effects);
+                                if (!effectMap_1.has(key)) return [3 /*break*/, 12];
+                                _b.label = 9;
+                            case 9:
+                                _b.trys.push([9, 11, , 12]);
+                                // 修复点：使用 setEffectStyleIdAsync
+                                return [4 /*yield*/, node.setEffectStyleIdAsync(effectMap_1.get(key))];
+                            case 10:
+                                // 修复点：使用 setEffectStyleIdAsync
+                                _b.sent();
+                                countEffect_1++;
+                                return [3 /*break*/, 12];
+                            case 11:
+                                e_12 = _b.sent();
+                                return [3 /*break*/, 12];
+                            case 12:
+                                if (!(node.type === 'TEXT' && node.textStyleId === '' && node.fontName !== figma.mixed && node.fontSize !== figma.mixed)) return [3 /*break*/, 16];
+                                key = JSON.stringify({
+                                    family: node.fontName.family,
+                                    style: node.fontName.style,
+                                    size: node.fontSize,
+                                    lh: node.lineHeight,
+                                    ls: node.letterSpacing,
+                                    td: node.textDecoration,
+                                    pi: node.paragraphIndent,
+                                    ps: node.paragraphSpacing
+                                });
+                                if (!textMap_1.has(key)) return [3 /*break*/, 16];
+                                _b.label = 13;
+                            case 13:
+                                _b.trys.push([13, 15, , 16]);
+                                // 修复点：使用 setTextStyleIdAsync
+                                return [4 /*yield*/, node.setTextStyleIdAsync(textMap_1.get(key))];
+                            case 14:
+                                // 修复点：使用 setTextStyleIdAsync
+                                _b.sent();
+                                countText_1++;
+                                return [3 /*break*/, 16];
+                            case 15:
+                                e_13 = _b.sent();
+                                return [3 /*break*/, 16];
+                            case 16:
+                                if (!('children' in node)) return [3 /*break*/, 20];
+                                _i = 0, _a = node.children;
+                                _b.label = 17;
+                            case 17:
+                                if (!(_i < _a.length)) return [3 /*break*/, 20];
+                                child = _a[_i];
+                                return [4 /*yield*/, traverse_3(child)];
+                            case 18:
+                                _b.sent();
+                                _b.label = 19;
+                            case 19:
+                                _i++;
+                                return [3 /*break*/, 17];
+                            case 20: return [2 /*return*/];
+                        }
+                    });
+                }); };
+                _v = 0, sel_4 = sel;
+                _10.label = 65;
+            case 65:
+                if (!(_v < sel_4.length)) return [3 /*break*/, 68];
+                node = sel_4[_v];
+                return [4 /*yield*/, traverse_3(node)];
+            case 66:
+                _10.sent();
+                _10.label = 67;
+            case 67:
+                _v++;
+                return [3 /*break*/, 65];
+            case 68: return [3 /*break*/, 70];
+            case 69:
+                e_5 = _10.sent();
+                console.error("匹配过程出错:", e_5);
+                figma.notify("匹配出错，请检查控制台");
+                return [2 /*return*/];
+            case 70:
+                total = countFill_1 + countStroke_1 + countText_1 + countEffect_1;
+                if (total > 0) {
+                    figma.notify("\u5339\u914D\u6210\u529F: \u586B\u5145".concat(countFill_1, " / \u63CF\u8FB9").concat(countStroke_1, " / \u6587\u672C").concat(countText_1, " / \u6548\u679C").concat(countEffect_1));
+                }
+                else {
+                    figma.notify("未发现可匹配的样式");
+                }
+                return [3 /*break*/, 135];
+            case 71:
+                {
+                    if (selection.length !== 2) {
+                        figma.notify("请严格选择 2 个图层进行交换");
+                        return [2 /*return*/];
+                    }
+                    n1 = selection[0];
+                    n2 = selection[1];
+                    x1 = n1.x, y1 = n1.y;
+                    x2 = n2.x, y2 = n2.y;
+                    n1.x = x2;
+                    n1.y = y2;
+                    n2.x = x1;
+                    n2.y = y1;
+                    figma.notify("位置已互换");
+                    return [3 /*break*/, 135];
+                }
+                _10.label = 72;
+            case 72:
+                findText = msg.findText, replaceText = msg.replaceText;
+                if (!findText) {
+                    figma.notify("请输入查找内容，注意区分大小写");
+                    return [2 /*return*/];
+                }
+                scope = selection.length > 0 ? selection : [figma.currentPage];
+                count = 0;
+                textNodes_4 = [];
+                collect_1 = function (n) {
+                    if (n.type === 'TEXT')
+                        textNodes_4.push(n);
+                    if ('children' in n)
+                        n.children.forEach(collect_1);
+                };
+                scope.forEach(collect_1);
+                if (textNodes_4.length === 0) {
+                    figma.notify("范围内没有文本");
+                    return [2 /*return*/];
+                }
+                _w = 0, textNodes_1 = textNodes_4;
+                _10.label = 73;
+            case 73:
+                if (!(_w < textNodes_1.length)) return [3 /*break*/, 81];
+                node = textNodes_1[_w];
+                if (!node.characters.includes(findText)) return [3 /*break*/, 80];
+                _10.label = 74;
+            case 74:
+                _10.trys.push([74, 79, , 80]);
+                font = node.fontName;
+                if (!(font === figma.mixed)) return [3 /*break*/, 76];
+                // 简化处理：如果是混合字体，尝试加载第一段的字体（复杂情况可能报错，暂跳过）
+                return [4 /*yield*/, figma.loadFontAsync(node.getRangeFontName(0, 1))];
+            case 75:
+                // 简化处理：如果是混合字体，尝试加载第一段的字体（复杂情况可能报错，暂跳过）
+                _10.sent();
+                return [3 /*break*/, 78];
+            case 76: return [4 /*yield*/, figma.loadFontAsync(font)];
+            case 77:
+                _10.sent();
+                _10.label = 78;
+            case 78:
+                // 执行替换
+                node.characters = node.characters.split(findText).join(replaceText);
                 count++;
-              }
-            } catch (err) {
-              console.error(`\u66FF\u6362\u6587\u672C\u5931\u8D25 (ID: ${id}):`, err);
-            }
-          }
+                return [3 /*break*/, 80];
+            case 79:
+                e_6 = _10.sent();
+                console.error("字体加载失败或替换出错", e_6);
+                return [3 /*break*/, 80];
+            case 80:
+                _w++;
+                return [3 /*break*/, 73];
+            case 81:
+                if (count > 0)
+                    figma.notify("\u5DF2\u66FF\u6362 ".concat(count, " \u5904\u6587\u672C"));
+                else
+                    figma.notify("未找到匹配内容");
+                return [3 /*break*/, 135];
+            case 82:
+                pageName = figma.currentPage.name.toLowerCase();
+                // --- 修复点 1：安全检查不通过时，要告诉 UI 重置按钮 ---
+                if (!pageName.includes('copy') && !pageName.includes('副本')) {
+                    figma.notify("⚠️ 请先将 Page 重命名为 'xxx 副本' 以确保安全！", { error: true });
+                    // 发送一个 'step-error' 消息给 UI，让它停止转圈
+                    figma.ui.postMessage({ type: 'step-error', step: 1 });
+                    return [2 /*return*/];
+                }
+                slides = getSlides();
+                // --- 修复点 2：没选图层时，也要告诉 UI 重置按钮 ---
+                if (slides.length === 0) {
+                    figma.notify("请至少选择一个 Frame 画板");
+                    figma.ui.postMessage({ type: 'step-error', step: 1 });
+                    return [2 /*return*/];
+                }
+                // 执行 Step 1 函数
+                return [4 /*yield*/, pptStep1_Init(slides)];
+            case 83:
+                // 执行 Step 1 函数
+                _10.sent();
+                return [3 /*break*/, 135];
+            case 84:
+                slides = getSlides();
+                return [4 /*yield*/, pptStep2_Rasterize(slides)];
+            case 85:
+                _10.sent();
+                return [3 /*break*/, 135];
+            case 86:
+                slides = getSlides();
+                return [4 /*yield*/, pptStep3_Flatten(slides)];
+            case 87:
+                _10.sent();
+                return [3 /*break*/, 135];
+            case 88:
+                slides = getSlides();
+                // === 修复：使用绝对坐标排序 ===
+                slides = sortNodesByVisualPosition(slides);
+                // 函数内部会发送 step-done，这里不需要再发了
+                return [4 /*yield*/, pptStep4_Extract(slides)];
+            case 89:
+                // 函数内部会发送 step-done，这里不需要再发了
+                _10.sent();
+                return [3 /*break*/, 135];
+            case 90:
+                slides = getSlides();
+                // === 修复：使用绝对坐标排序 (保持顺序一致) ===
+                slides = sortNodesByVisualPosition(slides);
+                // 同上，内部已发消息
+                return [4 /*yield*/, pptStep5_ExportImages(slides)];
+            case 91:
+                // 同上，内部已发消息
+                _10.sent();
+                return [3 /*break*/, 135];
+            case 92:
+                {
+                    console.log("【3】后端：进入严格分类逻辑...");
+                    cfg_1 = msg.config || msg;
+                    targets_4 = [];
+                    scopeNodes = [];
+                    if (cfg_1.scope === 'page') {
+                        scopeNodes = figma.currentPage.children;
+                    }
+                    else {
+                        scopeNodes = figma.currentPage.selection;
+                    }
+                    collectTargets_1 = function (nodes) {
+                        for (var _i = 0, nodes_2 = nodes; _i < nodes_2.length; _i++) {
+                            var node = nodes_2[_i];
+                            if (node.type === 'COMPONENT_SET' || node.type === 'COMPONENT') {
+                                targets_4.push(node);
+                            }
+                            if ('children' in node)
+                                collectTargets_1(node.children);
+                        }
+                    };
+                    collectTargets_1(scopeNodes);
+                    findRegex_1 = null;
+                    if (cfg_1.mode === 'find' && cfg_1.findText) {
+                        try {
+                            escape_1 = function (s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); };
+                            pat = escape_1(cfg_1.findText);
+                            if (cfg_1.wholeWord)
+                                pat = "\\b".concat(pat, "\\b");
+                            findRegex_1 = new RegExp(pat, cfg_1.caseSensitive ? 'g' : 'gi');
+                        }
+                        catch (e) { }
+                    }
+                    results_1 = [];
+                    checkString_1 = function (text) {
+                        var res = { changed: false, val: text };
+                        if (cfg_1.mode === 'lint') {
+                            res = convertNameAdvanced(text, cfg_1.format, cfg_1.separator, cfg_1.casing, cfg_1.emoji, cfg_1.removeId, cfg_1.unmarkHidden);
+                        }
+                        else if (findRegex_1) {
+                            if (findRegex_1.test(text)) {
+                                res.val = text.replace(findRegex_1, cfg_1.replaceText || '');
+                                res.changed = true;
+                            }
+                            if (res.changed && cfg_1.markHidden) {
+                                if (!res.val.startsWith('.') && !res.val.startsWith('_'))
+                                    res.val = '.' + res.val;
+                            }
+                            if (cfg_1.unmarkHidden) {
+                                if (res.val.startsWith('.') || res.val.startsWith('_')) {
+                                    res.val = res.val.substring(1);
+                                    res.changed = true;
+                                }
+                            }
+                        }
+                        return res;
+                    };
+                    _loop_2 = function (node) {
+                        try {
+                            // --- 情况 A: 组件集 (Component Set) ---
+                            if (node.type === 'COMPONENT_SET') {
+                                var res = checkString_1(node.name);
+                                if (res.changed) {
+                                    results_1.push({
+                                        id: node.id, compId: node.id, compName: node.name,
+                                        // 🔥 1. 明确标记类型
+                                        type: 'COMPONENT_SET',
+                                        targetType: 'CompName', // 🏷️ 组件名
+                                        propName: 'Name', oldVal: node.name, newVal: res.val
+                                    });
+                                }
+                            }
+                            // --- 情况 B: 组件 (Component) ---
+                            else if (node.type === 'COMPONENT') {
+                                var isVariant = node.parent && node.parent.type === 'COMPONENT_SET';
+                                var compId_1 = isVariant ? node.parent.id : node.id;
+                                var CompName_1 = isVariant ? node.parent.name : node.name;
+                                // 🔥 2. 动态决定分组的类型图标
+                                // 如果是变体，它属于组件集(COMPONENT_SET)；如果是独立组件，它就是 COMPONENT
+                                var groupType_1 = isVariant ? 'COMPONENT_SET' : 'COMPONENT';
+                                // 🔥 关键分流：如果是变体，走下面的逻辑；如果不是，走上面的逻辑。
+                                if (!isVariant) {
+                                    // === B1. 独立组件 (非变体) ===
+                                    // 只有这里才检查 node.name
+                                    var res = checkString_1(node.name);
+                                    if (res.changed) {
+                                        results_1.push({
+                                            id: node.id, compId: compId_1, compName: CompName_1,
+                                            // 🔥 1. 明确标记类型
+                                            type: groupType_1,
+                                            targetType: 'CompName', // 🏷️ 组件名
+                                            propName: 'Name', oldVal: node.name, newVal: res.val
+                                        });
+                                    }
+                                }
+                                else {
+                                    // === B2. 变体 (Variant) ===
+                                    // 🔥 绝对不要检查 node.name (因为那是整个属性串)
+                                    // 而是拆解后检查 Key 和 Value
+                                    var rawProps = node.name.split(',').map(function (p) { return p.trim(); });
+                                    var newProps_1 = [];
+                                    var hasAnyChange_1 = false;
+                                    rawProps.forEach(function (pair) {
+                                        var parts = pair.split('=');
+                                        // 容错：如果没等号，就不处理
+                                        if (parts.length < 2) {
+                                            newProps_1.push(pair);
+                                            return;
+                                        }
+                                        var key = parts[0].trim(); // 属性名
+                                        var val = parts[1].trim(); // 属性值
+                                        // 2.1 检查属性名 (Key)
+                                        var resKey = checkString_1(key);
+                                        if (resKey.changed) {
+                                            results_1.push({
+                                                id: node.id, compId: compId_1, compName: CompName_1,
+                                                // 🔥 1. 明确标记类型
+                                                type: groupType_1,
+                                                targetType: 'PropName', // 🏷️ 属性名
+                                                propName: 'Property',
+                                                oldVal: key, newVal: resKey.val
+                                            });
+                                            hasAnyChange_1 = true;
+                                        }
+                                        // 2.2 检查属性值 (Value)
+                                        var resVal = checkString_1(val);
+                                        if (resVal.changed) {
+                                            console.log("【调试】准备推入属性值，key是：", key);
+                                            results_1.push({
+                                                id: node.id, compId: compId_1, compName: CompName_1,
+                                                // 🔥 1. 明确标记类型
+                                                type: groupType_1,
+                                                targetType: 'PropValue', // 🏷️ 属性值
+                                                propName: key,
+                                                oldVal: val, newVal: resVal.val
+                                            });
+                                            hasAnyChange_1 = true;
+                                        }
+                                        // 拼装修复用的全名
+                                        var finalKey = resKey.changed ? resKey.val : key;
+                                        var finalVal = resVal.changed ? resVal.val : val;
+                                        newProps_1.push("".concat(finalKey, "=").concat(finalVal));
+                                    });
+                                    // 如果有改动，需要把完整的变体字符串存下来，用于修复
+                                    if (hasAnyChange_1) {
+                                        var fullNewName = newProps_1.join(', ');
+                                        // 倒序查找刚刚 push 进去的记录，给它们补上 fullResult
+                                        // 这样前端点修复时，知道怎么改整个节点
+                                        for (var k = results_1.length - 1; k >= 0; k--) {
+                                            if (results_1[k].id === node.id) {
+                                                // 防止覆盖：如果已经有了就不加了（其实都一样）
+                                                if (!results_1[k].fullResult)
+                                                    results_1[k].fullResult = fullNewName;
+                                            }
+                                            else {
+                                                break; // 已经过了当前节点的记录区域
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        catch (e) {
+                            console.error(e);
+                        }
+                    };
+                    // 2. 遍历处理
+                    for (_x = 0, targets_2 = targets_4; _x < targets_2.length; _x++) {
+                        node = targets_2[_x];
+                        _loop_2(node);
+                    }
+                    figma.ui.postMessage({ type: 'lint-results', data: results_1 });
+                    return [3 /*break*/, 135];
+                }
+                _10.label = 93;
+            case 93:
+                items = msg.items;
+                count = 0;
+                _y = 0, items_1 = items;
+                _10.label = 94;
+            case 94:
+                if (!(_y < items_1.length)) return [3 /*break*/, 99];
+                item = items_1[_y];
+                _10.label = 95;
+            case 95:
+                _10.trys.push([95, 97, , 98]);
+                return [4 /*yield*/, figma.getNodeByIdAsync(item.id)];
+            case 96:
+                node = _10.sent();
+                if (node) {
+                    node.name = item.fullResult || item.newVal;
+                    count++;
+                }
+                return [3 /*break*/, 98];
+            case 97:
+                err_1 = _10.sent();
+                return [3 /*break*/, 98];
+            case 98:
+                _y++;
+                return [3 /*break*/, 94];
+            case 99:
+                figma.notify("\u2728 \u5DF2\u6210\u529F\u4FEE\u590D ".concat(count, " \u9879\u547D\u540D"));
+                return [3 /*break*/, 135];
+            case 100:
+                {
+                    scope = msg.scope, findText_1 = msg.findText;
+                    console.log("【后端】收到文本查找请求:", scope, findText_1); // 调试日志
+                    results_2 = [];
+                    searchPool = [];
+                    // 1. 确定搜索范围
+                    if (scope === 'selection') {
+                        searchPool = figma.currentPage.selection;
+                    }
+                    else {
+                        // 搜索整个页面 (包含页面本身)
+                        searchPool = [figma.currentPage];
+                    }
+                    if (searchPool.length === 0 && scope === 'selection') {
+                        figma.notify("请先选择图层");
+                        // 即使失败，也要发回空结果，以此重置前端按钮状态
+                        figma.ui.postMessage({ type: 'text-find-results', data: [] });
+                        return [2 /*return*/];
+                    }
+                    traverse_4 = function (node) {
+                        // 只有可见的文本层才参与查找
+                        if (node.type === 'TEXT' && node.visible) {
+                            var fullText = node.characters;
+                            // 转义正则特殊字符
+                            var escapedFindText = findText_1.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                            // 全局、不区分大小写匹配
+                            var regex = new RegExp(escapedFindText, 'gi');
+                            var match = void 0;
+                            while ((match = regex.exec(fullText)) !== null) {
+                                results_2.push({
+                                    id: node.id,
+                                    fullText: fullText,
+                                    index: match.index,
+                                    length: match[0].length,
+                                    matchText: match[0]
+                                });
+                            }
+                        }
+                        // 递归子级
+                        if ('children' in node) {
+                            node.children.forEach(traverse_4);
+                        }
+                    };
+                    // 3. 执行查找
+                    searchPool.forEach(traverse_4);
+                    console.log("\u3010\u540E\u7AEF\u3011\u67E5\u627E\u5B8C\u6210\uFF0C\u627E\u5230 ".concat(results_2.length, " \u9879"));
+                    // 4. 发送结果给前端
+                    figma.ui.postMessage({ type: 'text-find-results', data: results_2 });
+                    if (results_2.length === 0) {
+                        figma.notify("未找到匹配文本");
+                    }
+                    return [3 /*break*/, 135];
+                }
+                _10.label = 101;
+            case 101:
+                _10.trys.push([101, 107, , 108]);
+                return [4 /*yield*/, figma.getNodeByIdAsync(msg.id)];
+            case 102:
+                node = _10.sent();
+                if (!node) return [3 /*break*/, 105];
+                // === 第一步：通用操作 (先选中并聚焦) ===
+                // 这一步对组件、矩形、文本都有效，修复了组件清洗无法定位的问题
+                // 检查节点是否在当前页面，如果在不同页面可能需要切换（但插件API限制通常只能操作当前页）
+                figma.currentPage.selection = [node];
+                figma.viewport.scrollAndZoomIntoView([node]);
+                if (!(node.type === 'TEXT' && typeof msg.index === 'number' && typeof msg.length === 'number')) return [3 /*break*/, 104];
+                cacheKey = "".concat(msg.id, "_").concat(msg.index);
+                font = node.fontName === figma.mixed
+                    ? node.getRangeFontName(0, 1)
+                    : node.fontName;
+                return [4 /*yield*/, figma.loadFontAsync(font)];
+            case 103:
+                _10.sent();
+                // A. 还原颜色
+                if (highlightCache[cacheKey]) {
+                    cachedData = highlightCache[cacheKey];
+                    node.setRangeFills(msg.index, msg.index + cachedData.length, cachedData.fills);
+                    delete highlightCache[cacheKey];
+                    figma.notify("已还原颜色");
+                    figma.ui.postMessage({ type: 'highlight-status', key: cacheKey, status: false });
+                }
+                else {
+                    currentFills = node.getRangeFills(msg.index, msg.index + 1);
+                    highlightCache[cacheKey] = { fills: currentFills, length: msg.length };
+                    highlightPaint = [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 } }];
+                    node.setRangeFills(msg.index, msg.index + msg.length, highlightPaint);
+                    figma.notify("已标记 (再次点击可还原)");
+                    figma.ui.postMessage({ type: 'highlight-status', key: cacheKey, status: true });
+                }
+                _10.label = 104;
+            case 104: return [3 /*break*/, 106];
+            case 105:
+                figma.notify("图层不存在 (可能已被删除)");
+                _10.label = 106;
+            case 106: return [3 /*break*/, 108];
+            case 107:
+                e_7 = _10.sent();
+                console.error("定位失败:", e_7);
+                return [3 /*break*/, 108];
+            case 108: return [3 /*break*/, 135];
+            case 109:
+                tasks = msg.tasks, replaceText = msg.replaceText;
+                successCount = 0;
+                processedIds = new Set();
+                groups_1 = {};
+                tasks.forEach(function (task) {
+                    if (!groups_1[task.id])
+                        groups_1[task.id] = [];
+                    groups_1[task.id].push(task);
+                });
+                _z = groups_1;
+                _0 = [];
+                for (_1 in _z)
+                    _0.push(_1);
+                _2 = 0;
+                _10.label = 110;
+            case 110:
+                if (!(_2 < _0.length)) return [3 /*break*/, 116];
+                _1 = _0[_2];
+                if (!(_1 in _z)) return [3 /*break*/, 115];
+                nodeId = _1;
+                return [4 /*yield*/, figma.getNodeByIdAsync(nodeId)];
+            case 111:
+                node = _10.sent();
+                if (!node || node.type !== 'TEXT')
+                    return [3 /*break*/, 115];
+                groupTasks = groups_1[nodeId];
+                // 🌟 倒序排序
+                groupTasks.sort(function (a, b) { return b.index - a.index; });
+                _10.label = 112;
+            case 112:
+                _10.trys.push([112, 114, , 115]);
+                // 加载字体
+                return [4 /*yield*/, figma.loadFontAsync(node.fontName === figma.mixed
+                        ? node.getRangeFontName(0, 1)
+                        : node.fontName)];
+            case 113:
+                // 加载字体
+                _10.sent();
+                // 执行替换
+                for (_3 = 0, groupTasks_1 = groupTasks; _3 < groupTasks_1.length; _3++) {
+                    task = groupTasks_1[_3];
+                    currentStr = node.characters.substring(task.index, task.index + task.length);
+                    // 简单的校验，略过严格校验以允许大小写差异
+                    node.deleteCharacters(task.index, task.index + task.length);
+                    node.insertCharacters(task.index, replaceText);
+                    successCount++;
+                    // 记录前端传来的唯一标识 (uid)，以便前端禁用
+                    if (task.uid)
+                        processedIds.add(task.uid);
+                }
+                return [3 /*break*/, 115];
+            case 114:
+                err_2 = _10.sent();
+                console.error("\u66FF\u6362\u5931\u8D25 ".concat(nodeId, ":"), err_2);
+                return [3 /*break*/, 115];
+            case 115:
+                _2++;
+                return [3 /*break*/, 110];
+            case 116:
+                // 通知前端哪些任务完成了
+                figma.ui.postMessage({
+                    type: 'text-replace-success',
+                    count: successCount,
+                    processedUids: Array.from(processedIds)
+                });
+                figma.notify("\u5DF2\u66FF\u6362 ".concat(successCount, " \u5904\u6587\u672C"));
+                return [3 /*break*/, 135];
+            case 117:
+                count = 0;
+                _4 = highlightCache;
+                _5 = [];
+                for (_6 in _4)
+                    _5.push(_6);
+                _7 = 0;
+                _10.label = 118;
+            case 118:
+                if (!(_7 < _5.length)) return [3 /*break*/, 125];
+                _6 = _5[_7];
+                if (!(_6 in _4)) return [3 /*break*/, 124];
+                key = _6;
+                _8 = key.split('_'), nodeId = _8[0], indexStr = _8[1];
+                index = parseInt(indexStr);
+                data = highlightCache[key];
+                _10.label = 119;
+            case 119:
+                _10.trys.push([119, 123, , 124]);
+                return [4 /*yield*/, figma.getNodeByIdAsync(nodeId)];
+            case 120:
+                node = _10.sent();
+                if (!(node && node.type === 'TEXT')) return [3 /*break*/, 122];
+                font = node.fontName === figma.mixed ? node.getRangeFontName(0, 1) : node.fontName;
+                return [4 /*yield*/, figma.loadFontAsync(font)];
+            case 121:
+                _10.sent();
+                node.setRangeFills(index, index + data.length, data.fills);
+                count++;
+                _10.label = 122;
+            case 122: return [3 /*break*/, 124];
+            case 123:
+                e_8 = _10.sent();
+                console.log("还原失败", e_8);
+                return [3 /*break*/, 124];
+            case 124:
+                _7++;
+                return [3 /*break*/, 118];
+            case 125:
+                highlightCache = {}; // 清空池子
+                figma.notify("\u5DF2\u8FD8\u539F ".concat(count, " \u5904\u9AD8\u4EAE"));
+                // 通知前端清除所有高亮样式
+                figma.ui.postMessage({ type: 'clear-all-highlights-ui' });
+                return [3 /*break*/, 135];
+            case 126:
+                ids = msg.ids, findText = msg.findText, replaceText = msg.replaceText;
+                count = 0;
+                _9 = 0, ids_1 = ids;
+                _10.label = 127;
+            case 127:
+                if (!(_9 < ids_1.length)) return [3 /*break*/, 133];
+                id = ids_1[_9];
+                return [4 /*yield*/, figma.getNodeByIdAsync(id)];
+            case 128:
+                node = _10.sent();
+                if (!(node && node.type === 'TEXT')) return [3 /*break*/, 132];
+                _10.label = 129;
+            case 129:
+                _10.trys.push([129, 131, , 132]);
+                // 加载字体 (必要步骤)
+                return [4 /*yield*/, figma.loadFontAsync(node.fontName === figma.mixed
+                        ? node.getRangeFontName(0, 1)
+                        : node.fontName)];
+            case 130:
+                // 加载字体 (必要步骤)
+                _10.sent();
+                regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                if (regex.test(node.characters)) {
+                    node.characters = node.characters.replace(regex, replaceText);
+                    count++;
+                }
+                return [3 /*break*/, 132];
+            case 131:
+                err_3 = _10.sent();
+                console.error("\u66FF\u6362\u6587\u672C\u5931\u8D25 (ID: ".concat(id, "):"), err_3);
+                return [3 /*break*/, 132];
+            case 132:
+                _9++;
+                return [3 /*break*/, 127];
+            case 133:
+                figma.notify("\u5DF2\u66FF\u6362 ".concat(count, " \u4E2A\u6587\u672C\u56FE\u5C42"));
+                return [3 /*break*/, 135];
+            case 134:
+                figma.ui.resize(msg.width, msg.height);
+                return [3 /*break*/, 135];
+            case 135: return [2 /*return*/];
         }
-        figma.notify(`\u5DF2\u66FF\u6362 ${count} \u4E2A\u6587\u672C\u56FE\u5C42`);
-        break;
-      }
-      case "resize-drag":
-      case "resize-window":
-        figma.ui.resize(msg.width, msg.height);
-        break;
+    });
+}); };
+// -------------------------------------------------------------
+// 【新增】高级命名转换函数 (支持 格式+分隔符+大小写 组合)
+// -------------------------------------------------------------
+// --- PPT 工具辅助函数 ---
+// 获取用户选中的 Frame (ID去重版)
+function getSlides() {
+    var selection = figma.currentPage.selection;
+    var uniqueMap = new Map();
+    // 1. 只找选中的 Frame
+    for (var _i = 0, selection_10 = selection; _i < selection_10.length; _i++) {
+        var node = selection_10[_i];
+        if (node.type === 'FRAME') {
+            uniqueMap.set(node.id, node);
+        }
     }
-  };
-  function getSlides() {
-    const selection = figma.currentPage.selection;
-    const uniqueMap = /* @__PURE__ */ new Map();
-    for (const node of selection) {
-      if (node.type === "FRAME") {
-        uniqueMap.set(node.id, node);
-      }
-    }
-    const frames = Array.from(uniqueMap.values());
-    const finalSlides = frames.filter((node) => {
-      let parent = node.parent;
-      while (parent && parent.type !== "PAGE" && parent.type !== "DOCUMENT") {
-        if (uniqueMap.has(parent.id))
-          return false;
-        parent = parent.parent;
-      }
-      return true;
+    var frames = Array.from(uniqueMap.values());
+    // 2. 简单的嵌套过滤 (防止选了画板又选了里面的按钮)
+    // 如果一个 Frame 的父级也在选中列表里，那它就是子元素，删掉
+    var finalSlides = frames.filter(function (node) {
+        var parent = node.parent;
+        while (parent && parent.type !== 'PAGE' && parent.type !== 'DOCUMENT') {
+            if (uniqueMap.has(parent.id))
+                return false;
+            parent = parent.parent;
+        }
+        return true;
     });
     return finalSlides;
-  }
-  async function pptStep1_Init(slides) {
-    for (const slide of slides) {
-      let loopCount = 0;
-      let instances = slide.findAll((n) => n.type === "INSTANCE");
-      while (instances.length > 0) {
-        loopCount++;
-        if (loopCount > 5e3) {
-          console.warn("\u89E3\u7ED1\u5C42\u7EA7\u8FC7\u6DF1\uFF0C\u5F3A\u5236\u8DF3\u51FA");
-          break;
-        }
-        const target = instances[0];
-        try {
-          target.detachInstance();
-        } catch (e) {
-          console.warn("\u89E3\u7ED1\u5355\u4E2A\u8282\u70B9\u5931\u8D25:", e);
-        }
-        instances = slide.findAll((n) => n.type === "INSTANCE");
-      }
-    }
-    const traverse = (node) => {
-      if (node.removed)
-        return;
-      if (node.name.toLowerCase().startsWith("p_img")) {
-        return;
-      }
-      if ("locked" in node && node.locked) {
-        node.locked = false;
-      }
-      if ("visible" in node && !node.visible) {
-        node.remove();
-        return;
-      }
-      if (node.type === "FRAME" && node.layoutMode !== "NONE") {
-        node.layoutMode = "NONE";
-      }
-      if ("children" in node) {
-        [...node.children].forEach((child) => traverse(child));
-      }
-    };
-    slides.forEach((slide) => traverse(slide));
-    figma.ui.postMessage({ type: "step-done", step: 1 });
-  }
-  async function pptStep2_Rasterize(slides) {
-    let count = 0;
-    const generateHexId = () => "p_" + Math.random().toString(16).substring(2, 8);
-    const isLineLike = (node) => {
-      if (node.type === "LINE")
-        return true;
-      if (node.type === "VECTOR") {
-        if (node.width < 2 || node.height < 2)
-          return true;
-        const ratio = node.width / node.height;
-        if (ratio > 50 || ratio < 0.02)
-          return true;
-      }
-      return false;
-    };
-    const traverse = async (node) => {
-      var _a;
-      if (node.removed || !node.visible)
-        return;
-      const name = node.name.toLowerCase();
-      const isUserTarget = name.startsWith("p_img");
-      let isTechTarget = false;
-      if ("effects" in node && node.effects.some((e) => e.type === "LAYER_BLUR" && e.visible))
-        isTechTarget = true;
-      else if (node.type === "BOOLEAN_OPERATION")
-        isTechTarget = true;
-      else if (node.type === "VECTOR" && !isLineLike(node))
-        isTechTarget = true;
-      else if (node.type === "ELLIPSE" && "fills" in node && node.fills.some((p) => p.type === "IMAGE"))
-        isTechTarget = true;
-      if (isUserTarget || isTechTarget) {
-        try {
-          const bytes = await node.exportAsync({ format: "PNG", constraint: { type: "SCALE", value: 3 } });
-          const image = figma.createImage(bytes);
-          const rect = figma.createRectangle();
-          rect.x = node.x;
-          rect.y = node.y;
-          rect.resize(node.width, node.height);
-          rect.name = generateHexId();
-          rect.fills = [{ type: "IMAGE", scaleMode: "FIT", imageHash: image.hash }];
-          rect.rotation = node.rotation;
-          (_a = node.parent) == null ? void 0 : _a.insertChild(node.parent.children.indexOf(node), rect);
-          node.remove();
-          count++;
-          return;
-        } catch (e) {
-        }
-      }
-      if ("children" in node) {
-        const children = [...node.children];
-        for (const child of children)
-          await traverse(child);
-      }
-    };
-    for (const slide of slides)
-      await traverse(slide);
-    figma.ui.postMessage({ type: "step-done", step: 2 });
-  }
-  async function pptStep3_Flatten(slides) {
-    for (const slide of slides) {
-      let hasNested = true;
-      let loopCount = 0;
-      while (hasNested) {
-        hasNested = false;
-        loopCount++;
-        if (loopCount % 100 === 0) {
-          await new Promise((r) => setTimeout(r, 20));
-        }
-        const children = slide.children;
-        for (let i = children.length - 1; i >= 0; i--) {
-          const node = children[i];
-          if (node.type !== "GROUP" && node.type !== "FRAME" && isNodeInvisible(node)) {
-            node.remove();
-            continue;
-          }
-          if (node.type === "GROUP") {
-            figma.ungroup(node);
-            hasNested = true;
-          } else if (node.type === "FRAME") {
-            try {
-              if (!isNodeInvisible(node)) {
-                const rect = figma.createRectangle();
-                rect.x = node.x;
-                rect.y = node.y;
-                rect.resize(node.width, node.height);
-                if (node.fills !== figma.mixed)
-                  rect.fills = node.fills;
-                if (node.strokes !== figma.mixed)
-                  rect.strokes = node.strokes;
-                if (node.strokeWeight !== figma.mixed)
-                  rect.strokeWeight = node.strokeWeight;
-                else
-                  rect.strokeWeight = 0;
-                if (node.cornerRadius !== figma.mixed)
-                  rect.cornerRadius = node.cornerRadius;
-                else
-                  rect.cornerRadius = 0;
-                if (node.effects !== figma.mixed)
-                  rect.effects = node.effects;
-                rect.opacity = node.opacity;
-                rect.rotation = node.rotation;
-                node.parent.insertChild(i, rect);
-              }
-              if (node.children.length > 0) {
-                figma.ungroup(node);
-                hasNested = true;
-              } else {
-                node.remove();
-              }
-            } catch (err) {
-              console.error("Layer flatten error:", err);
-              if (node.children.length > 0) {
-                figma.ungroup(node);
-                hasNested = true;
-              } else {
-                node.remove();
-              }
+}
+// Step 1: 初始化 (解锁、解组实例、移除隐藏)
+// Step 1: 初始化 (防崩溃稳健版)
+// 将 "解绑" 和 "清理" 分离，彻底解决 WASM 内存越界问题
+function pptStep1_Init(slides) {
+    return __awaiter(this, void 0, void 0, function () {
+        var _i, slides_1, slide, loopCount, instances, target, traverse;
+        return __generator(this, function (_a) {
+            // === 阶段一：暴力解绑 (Iterative Detach) ===
+            // 只要还有 Instance，就一直循环处理，直到解绑干净
+            for (_i = 0, slides_1 = slides; _i < slides_1.length; _i++) {
+                slide = slides_1[_i];
+                loopCount = 0;
+                instances = slide.findAll(function (n) { return n.type === 'INSTANCE'; });
+                while (instances.length > 0) {
+                    // 安全熔断机制：防止极个别情况下的死循环
+                    loopCount++;
+                    if (loopCount > 5000) {
+                        console.warn("解绑层级过深，强制跳出");
+                        break;
+                    }
+                    target = instances[0];
+                    try {
+                        // 执行解绑
+                        // 注意：解绑后，target 这个变量就“死”了，不能再访问它的属性
+                        target.detachInstance();
+                    }
+                    catch (e) {
+                        console.warn("解绑单个节点失败:", e);
+                    }
+                    // === 关键点 ===
+                    // 解绑一个后，整个图层树结构变了，之前的 instances 数组里的引用全都失效了
+                    // 必须立刻重新扫描，获取最新的列表
+                    instances = slide.findAll(function (n) { return n.type === 'INSTANCE'; });
+                }
             }
-          }
-        }
-      }
-      for (const node of slide.children) {
-        if (node.type === "TEXT" && node.visible) {
-          try {
-            const font = node.fontName;
-            if (font !== figma.mixed) {
-              await figma.loadFontAsync(font);
-              node.textAutoResize = "HEIGHT";
-              node.resize(node.width + 10, node.height);
-            }
-          } catch (e) {
-          }
-        }
-      }
-    }
-    figma.ui.postMessage({ type: "step-done", step: 3 });
-  }
-  async function pptStep4_Extract(slides) {
-    const rgbToHex = (color) => {
-      const toHex = (v) => {
-        const hex = Math.round(v * 255).toString(16);
-        return hex.length === 1 ? "0" + hex : hex;
-      };
-      return toHex(color.r) + toHex(color.g) + toHex(color.b);
-    };
-    figma.ui.postMessage({ type: "ppt-init-total", count: slides.length });
-    for (let i = 0; i < slides.length; i++) {
-      const slide = slides[i];
-      await new Promise((r) => setTimeout(r, 50));
-      const slideAbs = slide.absoluteBoundingBox;
-      const slideX = slideAbs ? slideAbs.x : slide.x;
-      const slideY = slideAbs ? slideAbs.y : slide.y;
-      figma.ui.postMessage({
-        type: "ppt-start-slide",
-        index: i,
-        width: slide.width,
-        height: slide.height
-      });
-      let chunkBuffer = [];
-      const children = slide.children;
-      for (let j = 0; j < children.length; j++) {
-        const node = children[j];
-        if (!node.visible)
-          continue;
-        const nodeAbs = node.absoluteBoundingBox;
-        if (!nodeAbs)
-          continue;
-        const centerX = nodeAbs.x + nodeAbs.width / 2 - slideX;
-        const centerY = nodeAbs.y + nodeAbs.height / 2 - slideY;
-        const el = {
-          cx: centerX,
-          cy: centerY,
-          w: node.width,
-          h: node.height,
-          rotation: node.rotation
-        };
-        if ("opacity" in node)
-          el.opacity = node.opacity;
-        if ("cornerRadius" in node && node.cornerRadius !== figma.mixed)
-          el.cornerRadius = node.cornerRadius;
-        try {
-          if ("strokes" in node && node.strokes !== figma.mixed && node.strokes.length > 0) {
-            const stroke = node.strokes.find((s) => s.type === "SOLID" && s.visible !== false && s.opacity > 0);
-            if (stroke) {
-              el.strokeColor = rgbToHex(stroke.color);
-              el.strokeWeight = node.strokeWeight;
-              el.strokeAlpha = (el.opacity || 1) * stroke.opacity;
-            }
-          }
-          if ("effects" in node && node.effects.length > 0) {
-            const shadow = node.effects.find((e) => e.type === "DROP_SHADOW" && e.visible);
-            if (shadow) {
-              el.shadow = {
-                color: rgbToHex(shadow.color),
-                opacity: shadow.color.a,
-                blur: shadow.radius,
-                x: shadow.offset.x,
-                y: shadow.offset.y
-              };
-            }
-          }
-          let visibleFill = null;
-          if ("fills" in node && node.fills !== figma.mixed && node.fills.length > 0) {
-            visibleFill = node.fills.find((f) => f.type === "SOLID" && f.visible !== false && f.opacity > 0);
-          }
-          if (visibleFill) {
-            el.color = rgbToHex(visibleFill.color);
-            el.fillAlpha = (el.opacity || 1) * visibleFill.opacity;
-          } else {
-            el.color = null;
-            el.fillAlpha = 0;
-          }
-          const isLineLike = node.type === "LINE" || node.type === "CONNECTOR";
-          if (isLineLike) {
-            el.type = "line";
-            if ("dashPattern" in node && node.dashPattern.length > 0)
-              el.dashPattern = node.dashPattern;
-            const arrowCaps = ["ARROW_LINES", "ARROW_EQUILATERAL", "TRIANGLE_FILLED", "TRIANGLE_WIRED", "DIAMOND_FILLED", "CIRCLE_FILLED"];
-            if ("lineStartCap" in node && arrowCaps.includes(node.lineStartCap))
-              el.headArrow = "triangle";
-            if ("lineEndCap" in node && arrowCaps.includes(node.lineEndCap))
-              el.tailArrow = "triangle";
-            if (!el.strokeColor)
-              continue;
-            chunkBuffer.push(el);
-          } else if (node.type === "TEXT") {
-            el.type = "text";
-            el.text = node.characters.substring(0, 2e3);
-            let baseSize = 12;
-            if (node.fontSize !== figma.mixed) {
-              baseSize = node.fontSize;
-            } else {
-              const firstCharFont = node.getRangeFontSize(0, 1);
-              if (firstCharFont && firstCharFont !== figma.mixed)
-                baseSize = firstCharFont;
-            }
-            el.fontSize = baseSize;
-            let lh = node.lineHeight;
-            if (lh === figma.mixed) {
-              lh = node.getRangeLineHeight(0, 1);
-            }
-            if (!lh || lh === figma.mixed) {
-              lh = { unit: "AUTO" };
-            }
-            let finalPx = baseSize * 1.3;
-            if (lh.unit === "PIXELS") {
-              finalPx = lh.value;
-            } else if (lh.unit === "PERCENT") {
-              finalPx = baseSize * (lh.value / 100);
-            }
-            el.lineHeightPx = finalPx;
-            if (node.fontName !== figma.mixed) {
-              el.fontFace = node.fontName.family;
-              const style = node.fontName.style.toLowerCase();
-              if (/bold|heavy|black|strong/.test(style))
-                el.isBold = true;
-            }
-            let isMultiLine = node.characters.includes("\n");
-            if (!isMultiLine && node.fontSize !== figma.mixed) {
-              if (node.height > node.fontSize * 1.5)
-                isMultiLine = true;
-            }
-            el.isMultiLine = isMultiLine;
-            if (node.textAlignHorizontal === "CENTER")
-              el.align = "center";
-            else if (node.textAlignHorizontal === "RIGHT")
-              el.align = "right";
-            else if (node.textAlignHorizontal === "JUSTIFIED")
-              el.align = "justify";
-            else
-              el.align = "left";
-            if (node.textAlignVertical === "CENTER")
-              el.vAlignFigma = "middle";
-            else if (node.textAlignVertical === "BOTTOM")
-              el.vAlignFigma = "bottom";
-            else
-              el.vAlignFigma = "top";
-            if (!visibleFill)
-              el.fillAlpha = el.opacity || 1;
-            chunkBuffer.push(el);
-          } else if (node.type === "RECTANGLE" && node.fills !== figma.mixed && node.fills.length > 0 && node.fills.some((p) => p.type === "IMAGE" && p.visible !== false)) {
-            el.type = "placeholder";
-            el.imageName = node.name;
-            el.fillAlpha = el.opacity || 1;
-            chunkBuffer.push(el);
-          } else if (node.type === "RECTANGLE" || node.type === "ELLIPSE" || node.type === "VECTOR" || node.type === "STAR" || node.type === "POLYGON" || node.type === "BOOLEAN_OPERATION") {
-            el.type = "shape";
-            el.pptShape = "rect";
-            if (node.type === "ELLIPSE")
-              el.pptShape = "ellipse";
-            else if (node.type === "STAR") {
-              const c = node.pointCount;
-              if (c >= 4 && c <= 32)
-                el.pptShape = "star" + c;
-              else
-                el.pptShape = "star5";
-            } else if (node.type === "POLYGON") {
-              const c = node.pointCount;
-              if (c === 3)
-                el.pptShape = "triangle";
-              else if (c === 5)
-                el.pptShape = "pentagon";
-              else if (c === 6)
-                el.pptShape = "hexagon";
-              else if (c === 8)
-                el.pptShape = "octagon";
-            }
-            if (!el.color && !el.strokeColor)
-              continue;
-            chunkBuffer.push(el);
-          }
-          if (chunkBuffer.length >= 200) {
-            figma.ui.postMessage({ type: "ppt-element-batch", data: chunkBuffer });
-            chunkBuffer = [];
-            await new Promise((r) => setTimeout(r, 15));
-          }
-        } catch (err) {
-        }
-      }
-      if (chunkBuffer.length > 0) {
-        figma.ui.postMessage({ type: "ppt-element-batch", data: chunkBuffer });
-      }
-      figma.ui.postMessage({ type: "ppt-end-slide" });
-    }
-    figma.ui.postMessage({ type: "step-done", step: 4, data: { done: true } });
-  }
-  async function pptStep5_ExportImages(slides) {
-    figma.ui.postMessage({ type: "ppt-asset-start", totalSlides: slides.length });
-    let imgCount = 0;
-    for (let i = 0; i < slides.length; i++) {
-      const slide = slides[i];
-      const children = slide.children;
-      for (let j = 0; j < children.length; j++) {
-        const node = children[j];
-        if (!node.visible)
-          continue;
-        let isTarget = false;
-        if ("effects" in node && node.effects.some((e) => e.type === "LAYER_BLUR" && e.visible))
-          isTarget = true;
-        if (!isTarget && node.type === "RECTANGLE" && node.fills !== figma.mixed && node.fills.some((p) => p.type === "IMAGE"))
-          isTarget = true;
-        if (isTarget) {
-          await new Promise((r) => setTimeout(r, 50));
-          try {
-            const bytes = await node.exportAsync({ format: "PNG", constraint: { type: "SCALE", value: 1.5 } });
-            const fileName = `${node.name}.png`;
-            figma.ui.postMessage({ type: "ppt-asset-chunk", fileName, data: bytes });
-            imgCount++;
-          } catch (e) {
-            console.error(e);
-          }
-        }
-      }
-    }
-    figma.ui.postMessage({ type: "step-done", step: 5, data: { count: imgCount } });
-  }
-  function isNodeInvisible(node) {
-    if ("visible" in node && !node.visible)
-      return true;
-    if ("opacity" in node && node.opacity === 0)
-      return true;
-    if (node.type === "TEXT" && node.characters.trim().length === 0)
-      return true;
-    if ("fills" in node && "strokes" in node) {
-      const hasFill = node.fills !== figma.mixed && node.fills.length > 0 && node.fills.some((p) => p.visible !== false && p.opacity > 0);
-      const hasStroke = node.strokes !== figma.mixed && node.strokes.length > 0 && node.strokeWeight > 0 && node.strokes.some((p) => p.visible !== false && p.opacity > 0);
-      if (!hasFill && !hasStroke)
-        return true;
-    }
-    return false;
-  }
-  function sortNodesByVisualPosition(nodes) {
-    return nodes.sort((a, b) => {
-      const aAbs = a.absoluteBoundingBox || { x: a.x, y: a.y };
-      const bAbs = b.absoluteBoundingBox || { x: b.x, y: b.y };
-      if (Math.abs(aAbs.y - bAbs.y) > 50) {
-        return aAbs.y - bAbs.y;
-      }
-      return aAbs.x - bAbs.x;
+            traverse = function (node) {
+                // 防御性检查
+                if (node.removed)
+                    return;
+                // === 新增：黑盒保护 ===
+                // 如果名字以 p_img 开头，视为用户指定的整体图标，不清洗内部，直接跳过子级遍历
+                if (node.name.toLowerCase().startsWith('p_img')) {
+                    return;
+                }
+                // 1. 解锁
+                if ('locked' in node && node.locked) {
+                    node.locked = false;
+                }
+                // 2. 移除隐藏图层
+                if ('visible' in node && !node.visible) {
+                    node.remove();
+                    return; // 删了就不用看子级了
+                }
+                // 3. 移除 AutoLayout
+                if (node.type === 'FRAME' && node.layoutMode !== 'NONE') {
+                    node.layoutMode = 'NONE';
+                }
+                // 4. 递归子级
+                if ('children' in node) {
+                    // 浅拷贝 children，避免遍历时的索引干扰
+                    __spreadArray([], node.children, true).forEach(function (child) { return traverse(child); });
+                }
+            };
+            // 对所有 Slide 执行清洗
+            slides.forEach(function (slide) { return traverse(slide); });
+            // 通知 UI 完成
+            figma.ui.postMessage({ type: 'step-done', step: 1 });
+            return [2 /*return*/];
+        });
     });
-  }
-})();
+}
+// Step 2: 智能栅格化 (性能优化 + Hex ID)
+function pptStep2_Rasterize(slides) {
+    return __awaiter(this, void 0, void 0, function () {
+        var count, generateHexId, isLineLike, traverse, _i, slides_2, slide;
+        var _this = this;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    count = 0;
+                    generateHexId = function () { return 'p_' + Math.random().toString(16).substring(2, 8); };
+                    isLineLike = function (node) {
+                        if (node.type === 'LINE')
+                            return true;
+                        if (node.type === 'VECTOR') {
+                            if (node.width < 2 || node.height < 2)
+                                return true;
+                            var ratio = node.width / node.height;
+                            if (ratio > 50 || ratio < 0.02)
+                                return true;
+                        }
+                        return false;
+                    };
+                    traverse = function (node) { return __awaiter(_this, void 0, void 0, function () {
+                        var name, isUserTarget, isTechTarget, bytes, image, rect, e_14, children, _i, children_3, child;
+                        var _a;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0:
+                                    if (node.removed || !node.visible)
+                                        return [2 /*return*/];
+                                    name = node.name.toLowerCase();
+                                    isUserTarget = name.startsWith('p_img');
+                                    isTechTarget = false;
+                                    if ('effects' in node && node.effects.some(function (e) { return e.type === 'LAYER_BLUR' && e.visible; }))
+                                        isTechTarget = true;
+                                    else if (node.type === 'BOOLEAN_OPERATION')
+                                        isTechTarget = true;
+                                    else if (node.type === 'VECTOR' && !isLineLike(node))
+                                        isTechTarget = true;
+                                    else if (node.type === 'ELLIPSE' && 'fills' in node && node.fills.some(function (p) { return p.type === 'IMAGE'; }))
+                                        isTechTarget = true;
+                                    if (!(isUserTarget || isTechTarget)) return [3 /*break*/, 4];
+                                    _b.label = 1;
+                                case 1:
+                                    _b.trys.push([1, 3, , 4]);
+                                    return [4 /*yield*/, node.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 3 } })];
+                                case 2:
+                                    bytes = _b.sent();
+                                    image = figma.createImage(bytes);
+                                    rect = figma.createRectangle();
+                                    rect.x = node.x;
+                                    rect.y = node.y;
+                                    rect.resize(node.width, node.height);
+                                    // === 使用 Hex ID 重命名 ===
+                                    rect.name = generateHexId();
+                                    rect.fills = [{ type: 'IMAGE', scaleMode: 'FIT', imageHash: image.hash }];
+                                    rect.rotation = node.rotation;
+                                    (_a = node.parent) === null || _a === void 0 ? void 0 : _a.insertChild(node.parent.children.indexOf(node), rect);
+                                    node.remove();
+                                    count++;
+                                    return [2 /*return*/];
+                                case 3:
+                                    e_14 = _b.sent();
+                                    return [3 /*break*/, 4];
+                                case 4:
+                                    if (!('children' in node)) return [3 /*break*/, 8];
+                                    children = __spreadArray([], node.children, true);
+                                    _i = 0, children_3 = children;
+                                    _b.label = 5;
+                                case 5:
+                                    if (!(_i < children_3.length)) return [3 /*break*/, 8];
+                                    child = children_3[_i];
+                                    return [4 /*yield*/, traverse(child)];
+                                case 6:
+                                    _b.sent();
+                                    _b.label = 7;
+                                case 7:
+                                    _i++;
+                                    return [3 /*break*/, 5];
+                                case 8: return [2 /*return*/];
+                            }
+                        });
+                    }); };
+                    _i = 0, slides_2 = slides;
+                    _a.label = 1;
+                case 1:
+                    if (!(_i < slides_2.length)) return [3 /*break*/, 4];
+                    slide = slides_2[_i];
+                    return [4 /*yield*/, traverse(slide)];
+                case 2:
+                    _a.sent();
+                    _a.label = 3;
+                case 3:
+                    _i++;
+                    return [3 /*break*/, 1];
+                case 4:
+                    figma.ui.postMessage({ type: 'step-done', step: 2 });
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+// Step 3: 深度扁平化 (修复混合属性导致的崩溃)
+function pptStep3_Flatten(slides) {
+    return __awaiter(this, void 0, void 0, function () {
+        var _i, slides_3, slide, hasNested, loopCount, children, i, node, rect, _a, _b, node, font, e_15;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    _i = 0, slides_3 = slides;
+                    _c.label = 1;
+                case 1:
+                    if (!(_i < slides_3.length)) return [3 /*break*/, 13];
+                    slide = slides_3[_i];
+                    hasNested = true;
+                    loopCount = 0;
+                    _c.label = 2;
+                case 2:
+                    if (!hasNested) return [3 /*break*/, 5];
+                    hasNested = false;
+                    loopCount++;
+                    if (!(loopCount % 100 === 0)) return [3 /*break*/, 4];
+                    return [4 /*yield*/, new Promise(function (r) { return setTimeout(r, 20); })];
+                case 3:
+                    _c.sent();
+                    _c.label = 4;
+                case 4:
+                    children = slide.children;
+                    // 倒序遍历
+                    // 倒序遍历
+                    for (i = children.length - 1; i >= 0; i--) {
+                        node = children[i];
+                        // 1. === 新增：垃圾清理 (针对普通形状) ===
+                        // 如果不是容器(Group/Frame)，且视觉不可见，直接删除
+                        if (node.type !== 'GROUP' && node.type !== 'FRAME' && isNodeInvisible(node)) {
+                            node.remove();
+                            continue;
+                        }
+                        // 情况 A: Group -> 直接解散
+                        if (node.type === 'GROUP') {
+                            figma.ungroup(node);
+                            hasNested = true;
+                        }
+                        // 情况 B: Frame -> 转换为背景矩形(如需要) + 解散
+                        else if (node.type === 'FRAME') {
+                            try {
+                                // 2. === 修改：判断是否生成背景 ===
+                                // 使用 isNodeInvisible 判断：如果不透明且有填充/描边，才生成背景矩形
+                                // 如果是透明容器，则跳过此步，直接进入下面的 ungroup
+                                if (!isNodeInvisible(node)) {
+                                    rect = figma.createRectangle();
+                                    rect.x = node.x;
+                                    rect.y = node.y;
+                                    rect.resize(node.width, node.height);
+                                    // 复制样式
+                                    if (node.fills !== figma.mixed)
+                                        rect.fills = node.fills;
+                                    if (node.strokes !== figma.mixed)
+                                        rect.strokes = node.strokes;
+                                    // 安全复制粗细
+                                    if (node.strokeWeight !== figma.mixed)
+                                        rect.strokeWeight = node.strokeWeight;
+                                    else
+                                        rect.strokeWeight = 0;
+                                    // 安全复制圆角
+                                    if (node.cornerRadius !== figma.mixed)
+                                        rect.cornerRadius = node.cornerRadius;
+                                    else
+                                        rect.cornerRadius = 0;
+                                    // 复制特效
+                                    if (node.effects !== figma.mixed)
+                                        rect.effects = node.effects;
+                                    // 复制透明度
+                                    rect.opacity = node.opacity;
+                                    // === 关键修复：复制旋转角度 ===
+                                    rect.rotation = node.rotation;
+                                    // 将矩形插入到 Frame 所在位置
+                                    node.parent.insertChild(i, rect);
+                                }
+                                // 3. 处理子元素 (核心扁平化逻辑)
+                                if (node.children.length > 0) {
+                                    figma.ungroup(node);
+                                    hasNested = true; // 结构变了，标记需要继续循环
+                                }
+                                else {
+                                    node.remove(); // 空 Frame 删掉
+                                }
+                            }
+                            catch (err) {
+                                console.error("Layer flatten error:", err);
+                                // 容错：出错了也尝试解开，防止死循环
+                                if (node.children.length > 0) {
+                                    figma.ungroup(node);
+                                    hasNested = true;
+                                }
+                                else {
+                                    node.remove();
+                                }
+                            }
+                        }
+                    }
+                    return [3 /*break*/, 2];
+                case 5:
+                    _a = 0, _b = slide.children;
+                    _c.label = 6;
+                case 6:
+                    if (!(_a < _b.length)) return [3 /*break*/, 12];
+                    node = _b[_a];
+                    if (!(node.type === 'TEXT' && node.visible)) return [3 /*break*/, 11];
+                    _c.label = 7;
+                case 7:
+                    _c.trys.push([7, 10, , 11]);
+                    font = node.fontName;
+                    if (!(font !== figma.mixed)) return [3 /*break*/, 9];
+                    return [4 /*yield*/, figma.loadFontAsync(font)];
+                case 8:
+                    _c.sent();
+                    node.textAutoResize = "HEIGHT";
+                    node.resize(node.width + 10, node.height);
+                    _c.label = 9;
+                case 9: return [3 /*break*/, 11];
+                case 10:
+                    e_15 = _c.sent();
+                    return [3 /*break*/, 11];
+                case 11:
+                    _a++;
+                    return [3 /*break*/, 6];
+                case 12:
+                    _i++;
+                    return [3 /*break*/, 1];
+                case 13:
+                    figma.ui.postMessage({ type: 'step-done', step: 3 });
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+// Step 4: 提取结构 (高性能优化版：大批次 + 零丢弃)
+function pptStep4_Extract(slides) {
+    return __awaiter(this, void 0, void 0, function () {
+        var rgbToHex, i, slide, slideAbs, slideX, slideY, chunkBuffer, children, j, node, nodeAbs, centerX, centerY, el, stroke, shadow, visibleFill, isLineLike, arrowCaps, baseSize, firstCharFont, lh, finalPx, style, isMultiLine, c, c, err_5;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    rgbToHex = function (color) {
+                        var toHex = function (v) {
+                            var hex = Math.round(v * 255).toString(16);
+                            return hex.length === 1 ? "0" + hex : hex;
+                        };
+                        return toHex(color.r) + toHex(color.g) + toHex(color.b);
+                    };
+                    // 通知前端总数
+                    figma.ui.postMessage({ type: 'ppt-init-total', count: slides.length });
+                    i = 0;
+                    _a.label = 1;
+                case 1:
+                    if (!(i < slides.length)) return [3 /*break*/, 11];
+                    slide = slides[i];
+                    // 强制休息，释放上一页内存
+                    return [4 /*yield*/, new Promise(function (r) { return setTimeout(r, 50); })];
+                case 2:
+                    // 强制休息，释放上一页内存
+                    _a.sent();
+                    slideAbs = slide.absoluteBoundingBox;
+                    slideX = slideAbs ? slideAbs.x : slide.x;
+                    slideY = slideAbs ? slideAbs.y : slide.y;
+                    figma.ui.postMessage({
+                        type: 'ppt-start-slide', index: i, width: slide.width, height: slide.height
+                    });
+                    chunkBuffer = [];
+                    children = slide.children;
+                    j = 0;
+                    _a.label = 3;
+                case 3:
+                    if (!(j < children.length)) return [3 /*break*/, 9];
+                    node = children[j];
+                    // 1. 基础过滤：只过滤不可见图层，保留所有尺寸的元素
+                    if (!node.visible)
+                        return [3 /*break*/, 8];
+                    nodeAbs = node.absoluteBoundingBox;
+                    if (!nodeAbs)
+                        return [3 /*break*/, 8];
+                    centerX = (nodeAbs.x + nodeAbs.width / 2) - slideX;
+                    centerY = (nodeAbs.y + nodeAbs.height / 2) - slideY;
+                    el = {
+                        cx: centerX, cy: centerY, w: node.width, h: node.height, rotation: node.rotation
+                    };
+                    if ('opacity' in node)
+                        el.opacity = node.opacity;
+                    if ('cornerRadius' in node && node.cornerRadius !== figma.mixed)
+                        el.cornerRadius = node.cornerRadius;
+                    _a.label = 4;
+                case 4:
+                    _a.trys.push([4, 7, , 8]);
+                    // --- 样式提取 ---
+                    if ('strokes' in node && node.strokes !== figma.mixed && node.strokes.length > 0) {
+                        stroke = node.strokes.find(function (s) { return s.type === 'SOLID' && s.visible !== false && s.opacity > 0; });
+                        if (stroke) {
+                            el.strokeColor = rgbToHex(stroke.color);
+                            el.strokeWeight = node.strokeWeight;
+                            el.strokeAlpha = (el.opacity || 1) * stroke.opacity;
+                        }
+                    }
+                    if ('effects' in node && node.effects.length > 0) {
+                        shadow = node.effects.find(function (e) { return e.type === 'DROP_SHADOW' && e.visible; });
+                        if (shadow) {
+                            el.shadow = {
+                                color: rgbToHex(shadow.color),
+                                opacity: shadow.color.a,
+                                blur: shadow.radius,
+                                x: shadow.offset.x,
+                                y: shadow.offset.y
+                            };
+                        }
+                    }
+                    visibleFill = null;
+                    if ('fills' in node && node.fills !== figma.mixed && node.fills.length > 0) {
+                        visibleFill = node.fills.find(function (f) { return f.type === 'SOLID' && f.visible !== false && f.opacity > 0; });
+                    }
+                    if (visibleFill) {
+                        el.color = rgbToHex(visibleFill.color);
+                        el.fillAlpha = (el.opacity || 1) * visibleFill.opacity;
+                    }
+                    else {
+                        el.color = null;
+                        el.fillAlpha = 0;
+                    }
+                    isLineLike = (node.type === 'LINE' || node.type === 'CONNECTOR');
+                    if (isLineLike) {
+                        el.type = 'line';
+                        if ('dashPattern' in node && node.dashPattern.length > 0)
+                            el.dashPattern = node.dashPattern;
+                        arrowCaps = ['ARROW_LINES', 'ARROW_EQUILATERAL', 'TRIANGLE_FILLED', 'TRIANGLE_WIRED', 'DIAMOND_FILLED', 'CIRCLE_FILLED'];
+                        if ('lineStartCap' in node && arrowCaps.includes(node.lineStartCap))
+                            el.headArrow = 'triangle';
+                        if ('lineEndCap' in node && arrowCaps.includes(node.lineEndCap))
+                            el.tailArrow = 'triangle';
+                        // 必须要有一条可见的描边，否则跳过
+                        if (!el.strokeColor)
+                            return [3 /*break*/, 8];
+                        chunkBuffer.push(el);
+                    }
+                    // B. 文本
+                    else if (node.type === 'TEXT') {
+                        el.type = 'text';
+                        el.text = node.characters.substring(0, 2000);
+                        baseSize = 12;
+                        if (node.fontSize !== figma.mixed) {
+                            baseSize = node.fontSize;
+                        }
+                        else {
+                            firstCharFont = node.getRangeFontSize(0, 1);
+                            if (firstCharFont && firstCharFont !== figma.mixed)
+                                baseSize = firstCharFont;
+                        }
+                        el.fontSize = baseSize;
+                        lh = node.lineHeight;
+                        if (lh === figma.mixed) {
+                            // 如果混合，强制读取第一个字符的行高
+                            lh = node.getRangeLineHeight(0, 1);
+                        }
+                        // 如果还是读不到(极罕见)，造一个默认值
+                        if (!lh || lh === figma.mixed) {
+                            lh = { unit: 'AUTO' };
+                        }
+                        finalPx = baseSize * 1.3;
+                        if (lh.unit === 'PIXELS') {
+                            finalPx = lh.value;
+                        }
+                        else if (lh.unit === 'PERCENT') {
+                            finalPx = baseSize * (lh.value / 100);
+                        }
+                        // 存入变量
+                        el.lineHeightPx = finalPx;
+                        // 4. 其他属性
+                        if (node.fontName !== figma.mixed) {
+                            el.fontFace = node.fontName.family;
+                            style = node.fontName.style.toLowerCase();
+                            if (/bold|heavy|black|strong/.test(style))
+                                el.isBold = true;
+                        }
+                        isMultiLine = node.characters.includes('\n');
+                        // 如果没有换行符，但高度超过 1.5 倍字号，也视为多行（折行）
+                        if (!isMultiLine && node.fontSize !== figma.mixed) {
+                            if (node.height > node.fontSize * 1.5)
+                                isMultiLine = true;
+                        }
+                        el.isMultiLine = isMultiLine;
+                        // 5. 获取水平对齐 (Horizontal Align)
+                        if (node.textAlignHorizontal === 'CENTER')
+                            el.align = 'center';
+                        else if (node.textAlignHorizontal === 'RIGHT')
+                            el.align = 'right';
+                        else if (node.textAlignHorizontal === 'JUSTIFIED')
+                            el.align = 'justify';
+                        else
+                            el.align = 'left'; // 默认左对齐
+                        // 6. (可选) 获取垂直对齐，虽然你的需求是强制覆盖，但获取一下也没坏处
+                        if (node.textAlignVertical === 'CENTER')
+                            el.vAlignFigma = 'middle';
+                        else if (node.textAlignVertical === 'BOTTOM')
+                            el.vAlignFigma = 'bottom';
+                        else
+                            el.vAlignFigma = 'top';
+                        if (!visibleFill)
+                            el.fillAlpha = el.opacity || 1;
+                        chunkBuffer.push(el);
+                    }
+                    // C. 占位符 (图片)
+                    else if (node.type === 'RECTANGLE' && node.fills !== figma.mixed && node.fills.length > 0 && node.fills.some(function (p) { return p.type === 'IMAGE' && p.visible !== false; })) {
+                        el.type = 'placeholder';
+                        // 直接使用图层名 (p_xxxxxx)
+                        el.imageName = node.name;
+                        el.fillAlpha = el.opacity || 1;
+                        chunkBuffer.push(el);
+                    }
+                    // D. 形状 (矩形、圆、星形、多边形) - 排除 LINE/CONNECTOR
+                    else if (node.type === 'RECTANGLE' || node.type === 'ELLIPSE' ||
+                        node.type === 'VECTOR' || node.type === 'STAR' ||
+                        node.type === 'POLYGON' || node.type === 'BOOLEAN_OPERATION') {
+                        el.type = 'shape';
+                        el.pptShape = 'rect'; // 默认
+                        if (node.type === 'ELLIPSE')
+                            el.pptShape = 'ellipse';
+                        else if (node.type === 'STAR') {
+                            c = node.pointCount;
+                            if (c >= 4 && c <= 32)
+                                el.pptShape = 'star' + c;
+                            else
+                                el.pptShape = 'star5';
+                        }
+                        else if (node.type === 'POLYGON') {
+                            c = node.pointCount;
+                            if (c === 3)
+                                el.pptShape = 'triangle';
+                            else if (c === 5)
+                                el.pptShape = 'pentagon';
+                            else if (c === 6)
+                                el.pptShape = 'hexagon';
+                            else if (c === 8)
+                                el.pptShape = 'octagon';
+                        }
+                        if (!el.color && !el.strokeColor)
+                            return [3 /*break*/, 8];
+                        chunkBuffer.push(el);
+                    }
+                    if (!(chunkBuffer.length >= 200)) return [3 /*break*/, 6];
+                    figma.ui.postMessage({ type: 'ppt-element-batch', data: chunkBuffer });
+                    chunkBuffer = [];
+                    // 强制休息 15ms，让 UI 线程有机会渲染 Loading 动画
+                    return [4 /*yield*/, new Promise(function (r) { return setTimeout(r, 15); })];
+                case 5:
+                    // 强制休息 15ms，让 UI 线程有机会渲染 Loading 动画
+                    _a.sent();
+                    _a.label = 6;
+                case 6: return [3 /*break*/, 8];
+                case 7:
+                    err_5 = _a.sent();
+                    return [3 /*break*/, 8];
+                case 8:
+                    j++;
+                    return [3 /*break*/, 3];
+                case 9:
+                    if (chunkBuffer.length > 0) {
+                        figma.ui.postMessage({ type: 'ppt-element-batch', data: chunkBuffer });
+                    }
+                    figma.ui.postMessage({ type: 'ppt-end-slide' });
+                    _a.label = 10;
+                case 10:
+                    i++;
+                    return [3 /*break*/, 1];
+                case 11:
+                    figma.ui.postMessage({ type: 'step-done', step: 4, data: { done: true } });
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+// Step 5: 导出资源 (Hex ID 版)
+function pptStep5_ExportImages(slides) {
+    return __awaiter(this, void 0, void 0, function () {
+        var imgCount, i, slide, children, j, node, isTarget, bytes, fileName, e_16;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    figma.ui.postMessage({ type: 'ppt-asset-start', totalSlides: slides.length });
+                    imgCount = 0;
+                    i = 0;
+                    _a.label = 1;
+                case 1:
+                    if (!(i < slides.length)) return [3 /*break*/, 9];
+                    slide = slides[i];
+                    children = slide.children;
+                    j = 0;
+                    _a.label = 2;
+                case 2:
+                    if (!(j < children.length)) return [3 /*break*/, 8];
+                    node = children[j];
+                    if (!node.visible)
+                        return [3 /*break*/, 7];
+                    isTarget = false;
+                    if ('effects' in node && node.effects.some(function (e) { return e.type === 'LAYER_BLUR' && e.visible; }))
+                        isTarget = true;
+                    if (!isTarget && node.type === 'RECTANGLE' && node.fills !== figma.mixed && node.fills.some(function (p) { return p.type === 'IMAGE'; }))
+                        isTarget = true;
+                    if (!isTarget) return [3 /*break*/, 7];
+                    return [4 /*yield*/, new Promise(function (r) { return setTimeout(r, 50); })];
+                case 3:
+                    _a.sent();
+                    _a.label = 4;
+                case 4:
+                    _a.trys.push([4, 6, , 7]);
+                    return [4 /*yield*/, node.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 1.5 } })];
+                case 5:
+                    bytes = _a.sent();
+                    fileName = "".concat(node.name, ".png");
+                    figma.ui.postMessage({ type: 'ppt-asset-chunk', fileName: fileName, data: bytes });
+                    imgCount++;
+                    return [3 /*break*/, 7];
+                case 6:
+                    e_16 = _a.sent();
+                    console.error(e_16);
+                    return [3 /*break*/, 7];
+                case 7:
+                    j++;
+                    return [3 /*break*/, 2];
+                case 8:
+                    i++;
+                    return [3 /*break*/, 1];
+                case 9:
+                    figma.ui.postMessage({ type: 'step-done', step: 5, data: { count: imgCount } });
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+// 辅助：RGB 转 Hex
+function rgbToHex(color) {
+    var toHex = function (v) {
+        var hex = Math.round(v * 255).toString(16);
+        return hex.length === 1 ? "0" + hex : hex;
+    };
+    return toHex(color.r) + toHex(color.g) + toHex(color.b);
+}
+// 判断节点是否“视觉不可见” (无有效填充且无有效描边，或全局隐藏/全透)
+function isNodeInvisible(node) {
+    // 1. 全局检查：被隐藏 或 透明度为0
+    if ('visible' in node && !node.visible)
+        return true;
+    if ('opacity' in node && node.opacity === 0)
+        return true;
+    // 2. 文本特殊处理：无内容即不可见
+    if (node.type === 'TEXT' && node.characters.trim().length === 0)
+        return true;
+    // 3. 样式检查：针对有 fills/strokes 的节点
+    if ('fills' in node && 'strokes' in node) {
+        // 有效填充：存在 + 可见 + 不透明
+        var hasFill = node.fills !== figma.mixed &&
+            node.fills.length > 0 &&
+            node.fills.some(function (p) { return p.visible !== false && p.opacity > 0; });
+        // 有效描边：存在 + 粗细>0 + 可见 + 不透明
+        var hasStroke = node.strokes !== figma.mixed &&
+            node.strokes.length > 0 &&
+            node.strokeWeight > 0 &&
+            node.strokes.some(function (p) { return p.visible !== false && p.opacity > 0; });
+        // 如果既无有效填充，也无有效描边 -> 视为不可见 (忽略特效)
+        if (!hasFill && !hasStroke)
+            return true;
+    }
+    // 其他情况（如 Group/Frame/Slice）暂时视为可见，交给后续逻辑处理
+    return false;
+}
+// 辅助：按视觉位置排序 (Z字形：先上后下，同行先左后右)
+function sortNodesByVisualPosition(nodes) {
+    return nodes.sort(function (a, b) {
+        // 获取绝对坐标 (降级处理：如果没有绝对坐标，用相对坐标兜底)
+        var aAbs = a.absoluteBoundingBox || { x: a.x, y: a.y };
+        var bAbs = b.absoluteBoundingBox || { x: b.x, y: b.y };
+        // 1. 先判断 Y 轴 (行)
+        // 容差设为 50px，只要高度差在 50px 以内，视为同一行
+        if (Math.abs(aAbs.y - bAbs.y) > 50) {
+            return aAbs.y - bAbs.y; // 谁 y 小谁在上面
+        }
+        // 2. 同一行，判断 X 轴 (列)
+        return aAbs.x - bAbs.x; // 谁 x 小谁在左边
+    });
+}

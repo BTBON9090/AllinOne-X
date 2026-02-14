@@ -3,6 +3,7 @@ import { useState, useCallback } from 'preact/hooks';
 import { useLanguage, useTheme, useCompact } from '../hooks';
 import { t } from '../utils/i18n';
 import { Button, IconButton, Toggle } from '../components';
+import { PPTPanel } from './PPT';
 
 export interface SidebarProps {
   currentPanel: string;

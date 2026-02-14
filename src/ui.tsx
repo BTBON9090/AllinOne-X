@@ -1,6 +1,7 @@
 import { h, render } from 'preact';
 import { useState, useCallback } from 'preact/hooks';
 import { Sidebar, Header, SettingsPanel } from './panels/Layout';
+import { PPTPanel } from './panels/PPT';
 import { ErrorHandler } from './utils/errorHandler';
 import { showErrorToast } from './components/Toast';
 import './styles/base.css';
@@ -12,7 +13,7 @@ window.showErrorToast = showErrorToast;
 const panels = {
   toolPanel: () => <div class="panel">Tool Panel</div>,
   textPanel: () => <div class="panel">Text Panel</div>,
-  pptPanel: () => <div class="panel">PPT Panel</div>,
+  pptPanel: PPTPanel,
   refinerPanel: () => <div class="panel">Refiner Panel</div>,
   theoryPanel: () => <div class="panel">Theory Panel</div>,
   settingsPanel: SettingsPanel,
