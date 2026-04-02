@@ -1027,7 +1027,7 @@
           box-shadow: var(--shadow-sm);
       }
       .result-btn:hover {
-          background: var(--bg-active);
+          background: var(--text-secondary);
           transform: translateY(-1px);
           box-shadow: var(--shadow-md);
       }
@@ -3315,38 +3315,42 @@
             </div>
             <div style="padding:16px; display:flex; flex-direction:column; gap:12px;">
               
-              <div>
-                <label class="config-label" data-key="sf_lbl_provider">服务商</label>
+              <div style="margin-bottom: 12px;">
+                <label class="config-label" data-key="sf_lbl_provider">服务商 (API Provider)</label>
                 <select id="aiProvider" class="search-box" onchange="updateAiConfigDefaults()">
-                  <!-- 默认选中 GLM -->
-                  <option value="glm" selected>智谱 GLM (默认)</option>
-                  
-                  <option value="deepseek">DeepSeek</option>
-                  <option value="kimi">Kimi (Moonshot)</option>
-                  <option value="qwen">通义千问 (Qwen)</option>
-                  <option value="openai">OpenAI</option>
-                  <option value="gemini">Google Gemini</option>
-                  <option value="claude">Anthropic Claude</option>
-                  <option value="grok">xAI Grok</option>
-                  <option value="ollama">Ollama (Local)</option>
-                  <option value="siliconflow">硅基流动 (SiliconFlow)</option>
-                  
-                  <option value="custom">Custom (自定义)</option>
+                  <optgroup label="热门推荐 (推荐)">
+                    <option value="glm" selected>智谱 GLM (官方 API)</option>
+                    <option value="deepseek">DeepSeek (深度求索)</option>
+                    <option value="kimi">Kimi (Moonshot API)</option>
+                    <option value="volcengine-coding">火山方舟 (doubao)</option>
+                    <option value="aliyun">阿里云百炼 (通义千问等)</option>
+                  </optgroup>
+                  <optgroup label="国内其他优秀平台">
+                    <option value="minimax">MiniMax (名之梦)</option>
+                    <option value="siliconflow">硅基流动 (SiliconFlow)</option>
+                    <option value="tencent">腾讯混元 (Hunyuan)</option>
+                  </optgroup>
+                  <optgroup label="国际平台与聚合">
+                    <option value="openai">OpenAI</option>
+                    <option value="anthropic">Anthropic (原生或第三方)</option>
+                    <option value="gemini">Google Gemini</option>
+                  </optgroup>
                 </select>
               </div>
 
-              <div>
+              <div style="margin-bottom: 12px;">
                 <label class="config-label" data-key="sf_lbl_baseurl">API 地址 (Base URL)</label>
                 <input type="text" id="aiBaseUrl" class="search-box">
+                <div style="font-size: 10px; color: #888; margin-top: 4px;">通常以 /v1 结尾。如果使用中转或代理，请填写代理地址。</div>
               </div>
 
-              <div>
-                <label class="config-label" data-key="sf_lbl_model">模型名称 (Model)</label>
+              <div style="margin-bottom: 12px;">
+                <label class="config-label" data-key="sf_lbl_model">模型名称 (Model / Endpoint ID)</label>
                 <input type="text" id="aiModelName" class="search-box">
               </div>
 
-              <div>
-                <label class="config-label">API Key</label>
+              <div style="margin-bottom: 12px;">
+                <label class="config-label">API Key / Auth Token</label>
                 <input type="password" id="aiKey" class="search-box" placeholder="sk-...">
               </div>
 
@@ -8014,7 +8018,7 @@
         provider: 'glm', 
         baseUrl: 'https://open.bigmodel.cn/api/paas/v4', 
         model: 'glm-4-flash', 
-        key: '' 
+        key: '0f0448fcf32847d7b8ad87f9775ccc81.qYKFBI0ZEx9gcGeT' 
     };
     let dateFormat = 'YYYY-MM-DD';
 
@@ -8740,68 +8744,90 @@
     }
     
     // --- AI 逻辑 ---
-    // 补全后的模型配置字典 (OpenAI 兼容格式)
+    // 补全后的模型配置字典 (全部采用 OpenAI 兼容接口格式)
     const aiProviders = {
-      // 1. 智谱 AI (GLM) - 默认推荐
+      // --- 国内大厂 ---
       'glm': { 
           url: 'https://open.bigmodel.cn/api/paas/v4', 
-          model: 'glm-4-flash' 
+          model: 'glm-4-flash', // 智谱高性价比模型
+          key: '0f0448fcf32847d7b8ad87f9775ccc81.qYKFBI0ZEx9gcGeT'
       },
-      // 2. DeepSeek
       'deepseek': { 
-          url: 'https://api.deepseek.com/v1', 
+          url: 'https://api.deepseek.com', 
           model: 'deepseek-chat' 
       },
-      // 3. Kimi (Moonshot AI)
       'kimi': { 
           url: 'https://api.moonshot.cn/v1', 
           model: 'moonshot-v1-8k' 
       },
-      // 4. 通义千问 (Qwen / DashScope) - 需使用兼容端点
-      'qwen': { 
-          url: 'https://dashscope.aliyuncs.com/compatible-mode/v1', 
-          model: 'qwen-plus' 
+      'volcengine-coding': { 
+          // 严格遵循火山 Coding Plan 官方文档，必须使用 /api/coding/v3 走 OpenAI 兼容协议免扣费
+          url: 'https://ark.cn-beijing.volces.com/api/v3/chat/completions', 
+          model: 'ep-m-20260310174440-67tw7' // 火山推荐的 Auto 模式模型，也可按需改为 deepseek-v3.2 等
       },
-      // 5. OpenAI
+      'aliyun': { 
+          url: 'https://dashscope.aliyuncs.com/compatible-mode/v1', 
+          model: 'qwen-plus' // 阿里云百炼 OpenAI 兼容接口
+      },
+      'minimax': {
+          url: 'https://api.minimax.chat/v1',
+          model: 'abab6.5s-chat'
+      },
+      'siliconflow': { 
+          url: 'https://api.siliconflow.cn/v1', 
+          model: 'Qwen/Qwen2.5-7B-Instruct' 
+      },
+      'tencent': {
+          url: 'https://api.hunyuan.cloud.tencent.com/v1',
+          model: 'hunyuan-lite'
+      },
+
+      // --- 国际与聚合 ---
       'openai': { 
           url: 'https://api.openai.com/v1', 
           model: 'gpt-4o-mini' 
       },
-      // 6. Google Gemini (OpenAI 兼容模式需特定网关，此处为通用格式)
-      'gemini': { 
-          url: 'https://generativelanguage.googleapis.com/v1beta/openai', 
-          model: 'gemini-1.5-flash' 
-      },
-      // 7. Anthropic Claude (通常需要中转，此处填常用中转格式，或官方API)
-      // 注意：Claude 原生API不兼容OpenAI格式，这里假设你使用类似 one-api 的中转
-      // 如果直连，地址通常不同。这里提供一个通用占位。
-      'claude': { 
+      'anthropic': { 
+          // 注：Anthropic官方API格式与OpenAI不同。如果你的代码只有一套用 fetch 请求 /v1/chat/completions 的逻辑，
+          // 这里建议留给用户填支持 OpenAI 兼容格式的第三方中转地址。如果是官方API，需要额外处理 Headers。
           url: 'https://api.anthropic.com/v1', 
           model: 'claude-3-5-sonnet-20240620' 
       },
-      // 8. xAI Grok
-      'grok': { 
-          url: 'https://api.x.ai/v1', 
-          model: 'grok-beta' 
+      'gemini': { 
+          url: 'https://generativelanguage.googleapis.com/v1beta/openai', // 谷歌官方提供的 OpenAI 兼容网关
+          model: 'gemini-1.5-flash' 
       },
-      // 9. Ollama (本地运行)
+      'openrouter': {
+          url: 'https://openrouter.ai/api/v1',
+          model: 'anthropic/claude-3.5-sonnet' // OpenRouter 要求带厂商前缀
+      },
+
+      // --- 本地与自定义 ---
+      'litellm': {
+          url: 'http://localhost:4000/v1',
+          model: 'gpt-3.5-turbo'
+      },
       'ollama': { 
           url: 'http://localhost:11434/v1', 
           model: 'llama3' 
       },
-      // 10. 硅基流动 (SiliconFlow) - 聚合了多种开源模型
-      'siliconflow': { 
-          url: 'https://api.siliconflow.cn/v1', 
-          model: 'Qwen/Qwen2.5-7B-Instruct' 
+      'custom': { 
+          url: 'https://你的接口地址/v1', 
+          model: '填写模型名称' 
       }
     };
 
+    // 切换下拉框时自动填入数据
     function updateAiConfigDefaults() {
-       const p = document.getElementById('aiProvider').value;
-       if (aiProviders[p]) {
-         document.getElementById('aiBaseUrl').value = aiProviders[p].url;
-         document.getElementById('aiModelName').value = aiProviders[p].model;
-       }
+      const provider = document.getElementById('aiProvider').value;
+      const cfg = aiProviders[provider];
+      if (cfg) {
+        document.getElementById('aiBaseUrl').value = cfg.url;
+        document.getElementById('aiModelName').value = cfg.model;
+        if (cfg.key) {
+          document.getElementById('aiKey').value = cfg.key;
+        }
+      }
     }
 
     function saveAiConfig() {
@@ -8848,148 +8874,194 @@
         aiAbortController = null;
     }
 
+
     async function runAiGenerate() {
-       const btn = document.getElementById('btnAiGen');
-       
-       // --- 1. 如果正在运行，则执行【停止】逻辑 ---
-       if (aiAbortController) {
-           aiAbortController.abort(); // 发送中断信号
-           resetAiInterface();        // 立即重置 UI
-           return;                    // 退出函数
-       }
-       
-       const promptText = document.getElementById('aiPrompt').value;
-       if(!promptText) return alert("请输入提示词");
-       if(!aiConfig.key) return alert("请先配置 API Key");
+    const btn = document.getElementById('btnAiGen');
+    
+    // 中止机制
+    if (typeof aiAbortController !== 'undefined' && aiAbortController) {
+        aiAbortController.abort(); 
+        if (typeof resetAiInterface === 'function') resetAiInterface();        
+        return;                    
+    }
+    
+    const promptText = document.getElementById('aiPrompt').value;
+    if (!promptText) return alert("请输入提示词");
+    if (!aiConfig.key) return alert("请先配置 API Key");
+    if (!aiConfig.baseUrl) return alert("请先配置 API 接口地址");
 
-      
-       // UI 切换为【停止】状态
-       btn.innerText = "生成中...点击停止";
-       btn.style.backgroundColor = "#ff4d4f"; // 红色警告色
-       btn.style.borderColor = "#ff4d4f";
-       // 禁用清空按钮防止冲突
-       document.querySelector('button[title="清空"]').disabled = true;
-       
-       // 初始化控制器
-       aiAbortController = new AbortController();
-       const signal = aiAbortController.signal;
+    btn.innerText = "生成中...点击停止";
+    btn.style.backgroundColor = "#ff4d4f"; 
+    btn.style.borderColor = "#ff4d4f";
+    const clearBtn = document.querySelector('button[title="清空"]');
+    if (clearBtn) clearBtn.disabled = true;
+    
+    window.aiAbortController = new AbortController();
+    const signal = window.aiAbortController.signal;
 
+    const thinkingToggle = document.getElementById('aiThinkingToggle');
+    const enableThinking = thinkingToggle ? thinkingToggle.checked : false;
 
-       // 1. 获取思考模式开关状态 - 【修改1：默认关闭深度推理】
-       // 开关未找到/未勾选 → 均为false（禁用推理），勾选后为true（开启推理）
-       const thinkingToggle = document.getElementById('aiThinkingToggle');
-       const enableThinking = thinkingToggle ? thinkingToggle.checked : false;
+    let systemPrompt = "你是一个拥有丰富现实世界知识的顶尖数据生成专家。你的唯一任务是生成高质量、高随机性、极具差异化的假数据，并严格输出合法的 JSON 数组。";
+    if (!enableThinking) {
+        systemPrompt += " 严格禁止任何逻辑推理、分析、推导和延伸思考，仅对输入做直接响应，按要求直接输出结果，无需任何额外解释。";
+    }
+    
+    const userPrompt = `请根据提示词：【${promptText}】随机生成数据。如果提示词未指定数量，默认生成20个。
+核心要求（必须严格遵守）：
+1. 绝对禁止连续性、规律性或偷懒的命名。
+2. 每一个结果必须是完全独立、极具差异化、符合现实逻辑的词汇。
+3. 请只返回结果本身，不要任何多余的解释。
+4. 【最重要】必须按严格的 JSON 字符串数组格式返回，格式如：["结果一", "结果二", "结果三"]，不要包含任何其它字符或Markdown标记。
 
-       // 2. 强化 Prompt：【修改2：根据推理开关动态拼接，禁用时追加强制无思考指令（全模型兜底）】
-       let systemPrompt = "你是一个严格的数据生成器。用户会要求生成列表，请直接输出内容，每行一条。严禁输出标题、序号、Markdown符号、开场白或结束语。";
-       // 禁用深度推理时，追加通用禁思考指令，所有模型都生效（兜底）
-       if (!enableThinking) {
-          systemPrompt += " 严格禁止任何逻辑推理、分析、推导和延伸思考，仅对输入做直接响应，按要求直接输出结果，无需任何额外解释。";
-       }
-       
-       const userPrompt = `${promptText}。如果未指定数量，默认生成20条。
-【严格格式要求】：
-1. 只输出内容本身，不要带任何前缀（如 "Subject:", "Title:", "1." 等）。
-2. 不要输出任何解释性文字。
-3. 纯文本格式，每行一条。
-4. 严禁使用 Markdown 格式。`;
+请输出 JSON 数组：`;
 
-       // 3. 构建请求体
-       const requestBody = {
-          model: aiConfig.model,
-          messages: [
-             { role: "system", content: systemPrompt },
-             { role: "user", content: userPrompt }
-          ],
-          temperature: enableThinking ? 0.7 : 0 // 核心：推理开关联动温度值
-       };
+    const requestBody = {
+        model: aiConfig.model,
+        messages:[
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+        ],
+        temperature: enableThinking ? 0.7 : 0.8,
+        stream: false 
+    };
 
-       // 4. 处理所有模型的推理控制参数 - 【修改4：扩展GLM逻辑，适配Qwen/Deepseek/OpenAI等所有模型】
-       // 提取厂商标识并转小写，避免大小写不一致导致适配失败（兼容GLM/Glm/glm、Qwen/qwen等）
-       const provider = aiConfig.provider?.toLowerCase() || '';
-       const modelName = aiConfig.model?.toLowerCase() || '';
-       // 仅在禁用深度推理时，添加各模型专属的禁思考参数；开启时用模型默认逻辑，不做任何处理
-       if (!enableThinking) {
-          // 4.1 GLM模型（智谱AI）- 保留原有原生thinking参数
-          if (provider === 'glm' || modelName.includes('glm')) {
+    const provider = (aiConfig.provider || '').toLowerCase();
+    const modelName = (aiConfig.model || '').trim().toLowerCase();
+
+    // 针对不同厂商的思考模式参数兼容
+    if (!enableThinking) {
+        if (provider.includes('glm') || modelName.includes('glm')) {
             requestBody.thinking = { type: "disabled" };
-          }
-          // 4.2 通义千问（Qwen）- 原生推理模式开关，direct=直接输出（无思考）
-          else if (provider === 'qwen' || modelName.includes('qwen') || provider === 'ali') {
+        } else if (provider.includes('qwen') || modelName.includes('qwen') || provider.includes('ali')) {
             requestBody.inference_mode = "direct";
-          }
-          // 4.3 Deepseek（深度求索）- 官方专属[NO_REASONING]标识 + top_p=0（无概率采样）
-          else if (provider === 'deepseek' || modelName.includes('deepseek')) {
-            requestBody.messages[0].content += " [NO_REASONING]";
-            requestBody.top_p = 0;
-          }
-          // 4.4 OpenAI/GPT/Claude/Gemini/Grok/文心一言 - 通用配置：top_p=0+top_k=1（禁用多路径推理）
-          else if (
-            provider === 'openai' || modelName.includes('gpt') ||
-            provider === 'anthropic' || modelName.includes('claude') ||
-            provider === 'google' || modelName.includes('gemini') ||
-            provider === 'xai' || modelName.includes('grok') ||
-            provider === 'baidu' || modelName.includes('ernie')
-          ) {
-            requestBody.top_p = 0; // 禁用概率性采样，仅选最优解
-            requestBody.top_k = 1; // 仅保留1个候选，彻底禁用多路径思考
-          }
-          // 4.5 Kimi（月之暗面）- 无专属API参数，已通过「提示词+temperature=0」兜底，效果稳定
-          // 若后续Kimi开放推理参数，可在此处补充
+        } else if (provider.includes('deepseek') || modelName.includes('deepseek')) {
+            requestBody.messages[0].content += "[NO_REASONING]";
+        }
+    }
+
+    try {
+        // 自动处理 URL：如果用户直接填了 /chat/completions 则保留，否则自动追加
+        let targetUrl = aiConfig.baseUrl.trim().replace(/\/+$/, '');
+        if (!targetUrl.includes('/chat/completions')) {
+            targetUrl += '/chat/completions';
         }
 
+        const reqId = Date.now().toString(); 
 
-       try {
-         const res = await fetch(`${aiConfig.baseUrl}/chat/completions`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${aiConfig.key}`
-            },
-            body: JSON.stringify(requestBody),
-            signal: signal // 绑定信号
-         });
-         
-         const data = await res.json();
-         if (data.error) throw new Error(data.error.message);
-         
-         let content = data.choices[0].message.content;
-         
-         // 5. 【核心修复】强力清洗数据 (Regex Cleaning)
-         // 正则清洗
-         content = content
-            // 1. 去除 Markdown 加粗 (**text**)
-            .replace(/\*\*/g, '')
-            // 2. 去除行首的序号 (1. 2. - • )
-            .replace(/^[\s\t]*(\d+\.|-|•)\s*/gm, '')
-            // 3. 去除常见的键值对前缀 (Subject:, Title:, 姓名: 等)
-            .replace(/^[\s\t]*[^:\n]{1,20}[:：]\s*/gm, '')
-            // 4. 去除引用符号 (>)
-            .replace(/^>\s*/gm, '')
-            // 5. 去除空行
-            .split('\n').filter(l => l.trim() !== '').join('\n');
+        const fetchPromise = new Promise((resolve, reject) => {
+            const messageHandler = (event) => {
+                const msg = event.data?.pluginMessage || event.data;
+                if (msg && msg.type === 'api-response' && msg.reqId === reqId) {
+                    window.removeEventListener('message', messageHandler);
+                    signal.removeEventListener('abort', abortHandler);
+                    if (msg.error) reject(new Error(msg.error));
+                    else resolve(msg.data);
+                }
+            };
+            const abortHandler = () => {
+                window.removeEventListener('message', messageHandler);
+                signal.removeEventListener('abort', abortHandler); 
+                const e = new Error('AbortError');
+                e.name = 'AbortError';
+                reject(e);
+            };
 
-         document.getElementById('aiResultArea').innerText = content;
-         
-       } catch(e) {
-         if (e.name === 'AbortError') {
-             // 用户主动取消，不弹窗报错
-             console.log('用户取消生成');
-         } else {
-             alert("AI 请求失败: " + e.message);
-         }
-       } finally {
-         // 3. 【最终清理】
-         // 无论成功还是失败，只要这个请求结束了，且当前控制器还是它自己，就重置 UI
-         // (防止极端情况下，用户快速点击停止后又点了开始，导致新请求被旧的 finally 覆盖)
-         if (aiAbortController && aiAbortController.signal === signal) {
-             resetAiInterface();
-         } else if (btn.innerText.includes("Stop")) {
-             // 兜底：如果按钮还卡在Stop状态，强制重置
-             resetAiInterface();
-         }
-       }
+            window.addEventListener('message', messageHandler);
+            signal.addEventListener('abort', abortHandler);
+        });
+
+        // 通过沙盒发送请求
+        parent.postMessage({
+            pluginMessage: {
+                type: 'do-fetch',
+                reqId: reqId,
+                url: targetUrl,
+                options: {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${aiConfig.key}`
+                    },
+                    body: JSON.stringify(requestBody)
+                }
+            }
+        }, '*');
+
+        const data = await fetchPromise;
+        
+        if (data.error) {
+            let errorMsg = typeof data.error === 'string' ? data.error : (data.error.message || JSON.stringify(data.error));
+            
+            // 🌟 强阻拦：如果是火山引擎，且模型没填 ep-，直接按要求报错拦截
+            if (targetUrl.includes('volces') && !modelName.startsWith('ep-')) {
+                throw new Error(`请求被拒绝：${errorMsg}\n\n⚠️ 注意：不支持直接填写如 Doubao-xxx 或 Coding Plan 的模型名。\n👉 请前往火山引擎控制台 ->【在线推理】页面，复制并填写以 "ep-" 开头的【推理接入点 ID】。`);
+            }
+            throw new Error(errorMsg);
+        }
+
+        if (!data.choices || !Array.isArray(data.choices) || data.choices.length === 0) {
+            throw new Error("模型未按预期返回数据：" + JSON.stringify(data));
+        }
+
+        const content = data.choices[0].message?.content;
+        if (!content) throw new Error("未能获取到生成的文本内容");
+
+        // 提取 JSON
+        let finalContent = "";
+        const jsonMatch = content.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+            try {
+                const parsedArray = JSON.parse(jsonMatch[0]);
+                if (Array.isArray(parsedArray)) {
+                    finalContent = parsedArray.join('\n');
+                }
+            } catch (e) {
+                console.warn("JSON 转换异常", e);
+            }
+        }
+
+        // 托底方案：纯文本清理
+        if (!finalContent) {
+            finalContent = content
+                .replace(/```(json)?/gi, '') 
+                .replace(/\*\*/g, '')
+                .replace(/^[\s\t]*(\d+\.|-|•)\s*/gm, '') 
+                .replace(/^[\s\t]*[^:\n]{1,20}[:：]\s*/gm, '') 
+                .replace(/^>\s*/gm, '') 
+                .split('\n')
+                .map(l => l.replace(/["',]/g, '').trim()) 
+                .filter(l => l !== '')
+                .join('\n');
+        }
+
+        const resultArea = document.getElementById('aiResultArea');
+        if (resultArea) {
+            if (resultArea.tagName === 'TEXTAREA' || resultArea.tagName === 'INPUT') {
+                resultArea.value = finalContent;
+            } else {
+                resultArea.innerText = finalContent;
+            }
+        }
+        
+    } catch (e) {
+        if (e.name === 'AbortError') {
+            console.log('用户已取消当前生成任务');
+        } else {
+            console.error("AI 响应异常:", e);
+            alert("生成失败:\n\n" + e.message);
+        }
+    } finally {
+        if (typeof resetAiInterface === 'function') {
+            if (window.aiAbortController && window.aiAbortController.signal === signal) {
+                resetAiInterface();
+            } else if (btn.innerText.includes("停止") || btn.innerText.includes("Stop")) {
+                resetAiInterface();
+            }
+        }
     }
+}
+
 
     // --- 新增：清空 AI 输入和结果 ---
     function clearAiInput() {
