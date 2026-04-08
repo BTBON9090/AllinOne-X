@@ -73,6 +73,19 @@ let highlightCache = {};
 let layerSortDirection = 'asc'; // 用于图层排序切换
 
 figma.ui.onmessage = async (msg) => {
+  // 新增：专治跨域不服！拦截 'do-fetch' 指令，由后台沙箱代发请求
+  // =======================================================
+  if (msg.type === 'do-fetch') {
+      try {
+          const res = await fetch(msg.url, msg.options);
+          const json = await res.json();
+          figma.ui.postMessage({ type: 'api-response', reqId: msg.reqId, data: json });
+      } catch (e: any) {
+          figma.ui.postMessage({ type: 'api-response', reqId: msg.reqId, error: e.message || String(e) });
+      }
+      return; 
+  }
+
   console.log("【2】后端：收到了消息 ->", msg.type);
   const selection = figma.currentPage.selection;
   
