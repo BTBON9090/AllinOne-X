@@ -1629,6 +1629,220 @@ figma.ui.onmessage = async (msg) => {
         break;
     }
 
+    // ===========================
+    // === 锚点工具 (Jumpback) ===
+    // ===========================
+
+    case 'jb-init': {
+      // 初始化读取
+      const dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
+      const spots = dataStr ? JSON.parse(dataStr) :[];
+      figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
+      break;
+    }
+
+    case 'jb-save': {
+      const dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
+      let spots = dataStr ? JSON.parse(dataStr) :[];
+      
+      if (spots.length >= 5) {
+        figma.notify("最多只能保存 5 个锚点！");
+        return;
+      }
+
+      // 获取案发现场数据
+      const currentSelection = figma.currentPage.selection;
+      // 默认名字：如果选中了图层就用图层名，否则叫 Spot
+      const defaultName = currentSelection.length > 0 ? currentSelection[0].name.substring(0, 15) : `Spot ${spots.length + 1}`;
+
+      const newSpot = {
+        id: 'spot_' + Date.now(),
+        name: defaultName,
+        pageId: figma.currentPage.id,
+        pageName: figma.currentPage.name,
+        zoom: figma.viewport.zoom,
+        centerX: figma.viewport.center.x,
+        centerY: figma.viewport.center.y,
+        // 保存选中的图层 ID 数组
+        selectionIds: currentSelection.map(n => n.id)
+      };
+
+      spots.push(newSpot);
+      figma.root.setPluginData('JUMPBACK_SPOTS', JSON.stringify(spots));
+      
+      figma.notify("📍 位置已保存");
+      figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
+      break;
+    }
+
+    case 'jb-jump': {
+      const dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
+      if (!dataStr) return;
+      const spots = JSON.parse(dataStr);
+      const spot = spots.find((s: any) => s.id === msg.id);
+      
+      if (!spot) return;
+
+      try {
+        // 1. 跨页面跳转 (如果所在的 Page 不一样)
+        if (figma.currentPage.id !== spot.pageId) {
+          // === 修复点 1：使用 getNodeByIdAsync 异步获取节点 ===
+          const targetPage = await figma.getNodeByIdAsync(spot.pageId);
+          if (targetPage && targetPage.type === 'PAGE') {
+            // === 修复点 2：在 dynamic-page 模式下，必须用 setCurrentPageAsync 切换页面 ===
+            await figma.setCurrentPageAsync(targetPage as PageNode);
+          } else {
+            figma.notify("⚠️ 该位置所在的页面已被删除！");
+            return;
+          }
+        }
+
+        // 2. 恢复视角坐标和缩放
+        figma.viewport.center = { x: spot.centerX, y: spot.centerY };
+        figma.viewport.zoom = spot.zoom;
+
+        // 3. 尝试恢复离开前选中的图层
+        const nodesToSelect: SceneNode[] = [];
+        if (spot.selectionIds && Array.isArray(spot.selectionIds)) {
+           // 使用 for...of 配合 await 依次获取节点
+           for (const id of spot.selectionIds) {
+             // === 修复点 3：同样使用 getNodeByIdAsync 获取历史图层 ===
+             const node = await figma.getNodeByIdAsync(id);
+             
+             // 确保节点还存在，且不是页面本身 (防止意外)
+             if (node && !node.removed && node.type !== 'PAGE' && node.type !== 'DOCUMENT') {
+                nodesToSelect.push(node as SceneNode);
+             }
+           }
+        }
+        
+        // 4. 执行选中
+        if (nodesToSelect.length > 0) {
+           figma.currentPage.selection = nodesToSelect;
+        } else {
+           // 如果图层被删了，清空当前选中项，视角依然过去 (补全了这里)
+           figma.currentPage.selection = []; 
+        }
+
+        figma.notify("🚀 已传送！");
+      } catch (e) {
+        console.warn("Jumpback failed:", e);
+        figma.notify("传送失败，可能是图层结构已发生巨大改变");
+      }
+      break;
+    }
+
+    case 'jb-delete': {
+      const dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
+      if (!dataStr) return;
+      let spots = JSON.parse(dataStr);
+      
+      // 过滤掉要删除的 ID
+      spots = spots.filter((s: any) => s.id !== msg.id);
+      
+      // 更新保存
+      figma.root.setPluginData('JUMPBACK_SPOTS', JSON.stringify(spots));
+      
+      // 重新渲染 UI
+      figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
+      figma.notify("🗑️ 锚点已删除");
+      break;
+    }
+
+    case 'jb-rename': {
+      const dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
+      if (!dataStr) return;
+      let spots = JSON.parse(dataStr);
+      
+      const index = spots.findIndex((s: any) => s.id === msg.id);
+      if (index > -1 && msg.newName.trim() !== '') {
+        spots[index].name = msg.newName.substring(0, 20); // 限制长度
+        figma.root.setPluginData('JUMPBACK_SPOTS', JSON.stringify(spots));
+        figma.notify("已重命名");
+      } else {
+         // 如果名字为空，发回原数据恢复 UI
+         figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
+      }
+      break;
+    }
+
+    // ==========================================
+    // === 引擎：等轴形变 (Transform & Skew) ===
+    // ==========================================
+
+    case 'skew-apply': {
+      const selection = figma.currentPage.selection;
+      if (selection.length === 0) return; // 拖动滑块时高频触发，没选中就静默退出
+
+      // 1. 将角度转换为弧度
+      const r = (msg.rot * Math.PI) / 180;
+      const sx = (msg.angleX * Math.PI) / 180;
+      const sy = (msg.angleY * Math.PI) / 180;
+
+      // 2. 提前计算三角函数
+      const cosR = Math.cos(r);
+      const sinR = Math.sin(r);
+      const tanX = Math.tan(sx);
+      const tanY = Math.tan(sy);
+
+      // 3. 矩阵乘法合并 (Rotate Matrix * Skew Matrix)
+      // 这是一道图形学经典公式推导，确保了变形的无损和连贯性
+      const m00 = cosR - sinR * tanY;
+      const m01 = cosR * tanX - sinR;
+      const m10 = sinR + cosR * tanY;
+      const m11 = sinR * tanX + cosR;
+
+      try {
+        for (const node of selection) {
+          if ('relativeTransform' in node) {
+            // 获取图层当前在父级中的原点坐标 (X, Y 轴偏移量)
+            // 如果不保留这个，每次变形图层都会飞到画布左上角 (0,0)
+            const tx = node.relativeTransform[0][2];
+            const ty = node.relativeTransform[1][2];
+
+            // 4. 应用最终的 2x3 仿射变换矩阵
+            const newTransform: Transform = [
+              [m00, m01, tx], 
+              [m10, m11, ty]
+            ];
+
+            node.relativeTransform = newTransform;
+          }
+        }
+      } catch (error) {
+        console.error("Transform Engine failed:", error);
+      }
+      break;
+    }
+
+    // ==========================================
+    // === Skew 预设数据存储 (ClientStorage) ===
+    // ==========================================
+
+    // 1. UI 请求加载历史预设
+    case 'req-skew-presets': {
+      try {
+        // 读取缓存在用户 Figma 账号下的数据
+        const data = await figma.clientStorage.getAsync('MY_SKEW_PRESETS');
+        // 发送回前端渲染
+        figma.ui.postMessage({ type: 'init-skew-presets', data: data || [] });
+      } catch (e) {
+        console.warn("读取 Skew 预设失败", e);
+      }
+      break;
+    }
+
+    // 2. UI 请求保存新的预设
+    case 'save-skew-presets': {
+      try {
+        // 覆盖保存到用户的 Figma 账号下
+        await figma.clientStorage.setAsync('MY_SKEW_PRESETS', msg.data);
+      } catch (e) {
+        console.warn("保存 Skew 预设失败", e);
+      }
+      break;
+    }
+
     // --- 窗口大小调整 ---
     case 'resize-drag':
     case 'resize-window':

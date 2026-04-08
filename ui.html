@@ -2433,6 +2433,38 @@
       }
       .radio-tag input { display: none; }
 
+      /* === 锚点工具 (Jumpback) 专用样式 === */
+    .spot-item { 
+      background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 12px; 
+      display: flex; flex-direction: column; gap: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); 
+      transition: all 0.2s; animation: slideUp 0.3s ease-out;
+    }
+    .spot-item:hover { border-color: #d3adf7; box-shadow: 0 4px 12px rgba(114,46,209,0.1); }
+    
+    .spot-header { display: flex; justify-content: space-between; align-items: center; }
+    
+    /* 隐形输入框：默认像纯文本，点击即可编辑 */
+    .spot-name-input { 
+      border: 1px solid transparent; background: transparent; font-size: 14px; 
+      font-weight: 600; color: #333; outline: none; width: 160px; 
+      transition: all 0.2s; border-radius: 4px; padding: 4px; margin-left: -4px;
+    }
+    .spot-name-input:focus, .spot-name-input:hover { border-color: #d3adf7; background: #f9f0ff; }
+    
+    .spot-meta { font-size: 10px; color: #999; background: #f5f5f5; padding: 2px 6px; border-radius: 4px; }
+    
+    .spot-actions { display: flex; gap: 8px; }
+    .btn-spot-jump { 
+      flex: 1; background: #f9f0ff; color: #722ed1; border: none; padding: 8px; 
+      border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: background 0.2s;
+    }
+    .btn-spot-jump:hover { background: #efdbff; }
+    .btn-spot-del { 
+      background: #fff1f0; color: #ff4d4f; border: none; padding: 8px 12px; 
+      border-radius: 6px; cursor: pointer; font-size: 14px; transition: background 0.2s;
+    }
+    .btn-spot-del:hover { background: #ffccc7; }
+
   </style>
 </head>
 <body>
@@ -2497,6 +2529,28 @@
           </svg>
           <span class="nav-text">Variant Refiner</span>
         </div>
+
+        <!-- 锚点工具 (Jumpback) 入口 -->
+        <div class="nav-item" onclick="switchGroup('jumpback', this)" data-key="nav_jumpback">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="fill:none;stroke:currentColor">
+            <path d="M22 12a1 1 0 0 1-10 0 1 1 0 0 0-10 0"/>
+            <path d="M7 20.7a1 1 0 1 1 5-8.7 1 1 0 1 0 5-8.6"/>
+            <path d="M7 3.3a1 1 0 1 1 5 8.6 1 1 0 1 0 5 8.6"/>
+            <circle cx="12" cy="12" r="10"/>
+          </svg>
+          <span class="nav-text" data-key="nav_jumpback">时空信标</span>
+        </div>
+
+        <!-- 等轴形变 (Skew) 入口 -->
+        <div class="nav-item" onclick="switchGroup('skew', this)" data-key="nav_skew">
+          <!-- 这里画了一个代表倾斜/变形的几何 SVG -->
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="fill:none;stroke:currentColor">
+            <polygon points="1 14 15 14 19 2 5 2"></polygon>
+            <polygon points="5 22 19 22 23 10 9 10" stroke-dasharray="3 3"></polygon>
+          </svg>
+          <span class="nav-text" data-key="nav_skew">等轴形变</span>
+        </div>
+
         <!-- 设计理论 -->
         <div class="nav-item" onclick="switchGroup('theory', this)" data-key="nav_theory">
           <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
@@ -3147,6 +3201,120 @@
           </div>
         </div>
 
+        <!-- 锚点工具面板 -->
+        <div id="jumpbackPanel" style="display: none; flex-direction: column; height: 100%;">
+          
+          <!-- 顶部操作区 -->
+          <div style="padding: 16px; background: #fff; border-bottom: 1px solid #f0f0f0; z-index: 2;">
+            <button class="btn-auto-run" id="btnSaveSpot" onclick="jbSaveSpot()" style="background: linear-gradient(135deg, #722ed1 0%, #531dab 100%);">
+              <span data-key="wb_btn_save_spot">📍 保存当前位置</span>
+            </button>
+            <div style="font-size:11px; color:#999; margin-top:8px; text-align:center;" data-key="wb_note_max">最多保存 5 个位置，数据随文件永久保存</div>
+          </div>
+
+          <!-- 锚点列表区 -->
+          <div id="spotList" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+            <!-- JS 动态注入锚点卡片 -->
+          </div>
+          
+        </div>
+
+        <!-- Panel 11: 等轴形变面板 (Skew / Transform Engine) -->
+        <div id="skewPanel" style="display: none; flex-direction: column; height: 100%;">
+          
+          <!-- 顶部：变换模拟器 -->
+          <div style="height: 160px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 10px; left: 12px; color: rgba(255,255,255,0.4); font-size: 10px; font-weight: 600; letter-spacing: 1px;" data-key="skew_simulator">变换模拟器</div>
+            
+            <!-- 网格背景 -->
+            <div style="position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 20px 20px;"></div>
+            
+            <!-- 虚拟图层代理 -->
+            <div id="skewProxyBox" style="width: 70px; height: 70px; border: 2px solid #18A0FB; background: rgba(24, 160, 251, 0.1); position: relative; transition: transform 0.15s cubic-bezier(0.2, 0, 0, 1); transform-origin: center; border-radius: 6px; box-shadow: 0 0 20px rgba(24, 160, 251, 0.3);">
+               <div style="position: absolute; top: -2px; left: -2px; right: -2px; height: 4px; background: #18A0FB; border-radius: 6px 6px 0 0;"></div>
+               <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #18A0FB; font-weight: 900; font-size: 22px; pointer-events: none;">↑</div>
+            </div>
+          </div>
+
+          <div style="padding: 16px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;">
+            
+            <!-- 系统预设 -->
+            <div style="background: var(--bg-white); border-radius: var(--radius-lg); padding: 14px; border: 1px solid var(--border);">
+              <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px;" data-key="skew_planes">系统预设</div>
+              <div style="display: flex; gap: 4px; margin-bottom: 0px;">
+                <button class="card" onclick="applySkewPreset(0, 0, -30)" style="flex:1; padding: 10px 8px; min-height: auto; background: var(--bg-color); border: 1px solid var(--border);">
+                  <span style="font-size: 12px; font-weight: 500;" data-key="skew_right_wall">左立墙</span>
+                </button>
+                <button class="card" onclick="applySkewPreset(0, 0, 30)" style="flex:1; padding: 10px 8px; min-height: auto; background: var(--bg-color); border: 1px solid var(--border);">
+                  <span style="font-size: 12px; font-weight: 500;" data-key="skew_left_wall">右立墙</span>
+                </button>
+                <button class="card" onclick="applySkewPreset(0, 0, 0)" style="flex:0.8; padding: 10px 8px; min-height: auto; background: var(--primary-light); border: 1px solid var(--primary);">
+                  <span style="font-size: 12px; font-weight: 600; color: var(--primary);" data-key="skew_front">重置</span>
+                </button>
+                <button class="card" onclick="applySkewPreset(-30, 30, 0)" style="flex:1; padding: 10px 8px; min-height: auto; background: var(--bg-color); border: 1px solid var(--border);">
+                  <span style="font-size: 12px; font-weight: 500;" data-key="skew_right_lie">左侧躺</span>
+                </button>
+                <button class="card" onclick="applySkewPreset(30, -30, 0)" style="flex:1; padding: 10px 8px; min-height: auto; background: var(--bg-color); border: 1px solid var(--border);">
+                  <span style="font-size: 12px; font-weight: 500;" data-key="skew_left_lie">右侧躺</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 精准调节 -->
+            <div style="background: var(--bg-white); border-radius: var(--radius-lg); padding: 14px; border: 1px solid var(--border);">
+              <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px;" data-key="skew_engine">精准调节</div>
+              
+              <!-- 旋转 -->
+              <div style="margin-bottom: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <span style="font-size: 12px; color: var(--text-primary);" data-key="skew_rotate">旋转</span>
+                  <div style="display: flex; align-items: center; gap: 4px;">
+                    <input type="number" id="inputRot" value="0" style="width: 52px; height: 26px; text-align: center; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; background: var(--bg-color);">
+                    <span style="font-size: 11px; color: var(--text-tertiary);">°</span>
+                  </div>
+                </div>
+                <input type="range" id="rangeRot" min="-180" max="180" value="0" style="width: 100%; accent-color: var(--primary);">
+              </div>
+
+              <!-- Skew X -->
+              <div style="margin-bottom: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <span style="font-size: 12px; color: var(--text-primary);" data-key="skew_skew_x">水平倾斜</span>
+                  <div style="display: flex; align-items: center; gap: 4px;">
+                    <input type="number" id="inputSkewX" value="0" style="width: 52px; height: 26px; text-align: center; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; background: var(--bg-color);">
+                    <span style="font-size: 11px; color: var(--text-tertiary);">°</span>
+                  </div>
+                </div>
+                <input type="range" id="rangeSkewX" min="-89" max="89" value="0" style="width: 100%; accent-color: #18A0FB;">
+              </div>
+
+              <!-- Skew Y -->
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <span style="font-size: 12px; color: var(--text-primary);" data-key="skew_skew_y">垂直倾斜</span>
+                  <div style="display: flex; align-items: center; gap: 4px;">
+                    <input type="number" id="inputSkewY" value="0" style="width: 52px; height: 26px; text-align: center; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; background: var(--bg-color);">
+                    <span style="font-size: 11px; color: var(--text-tertiary);">°</span>
+                  </div>
+                </div>
+                <input type="range" id="rangeSkewY" min="-89" max="89" value="0" style="width: 100%; accent-color: #18A0FB;">
+              </div>
+            </div>
+
+            <!-- 我的预设 -->
+            <div style="background: var(--bg-white); border-radius: var(--radius-lg); padding: 14px; border: 1px solid var(--border);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary);" data-key="skew_my_presets">我的预设</span>
+                <button id="btnSavePreset" style="background: none; border: 1px solid var(--primary); color: var(--primary); cursor: pointer; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: var(--radius-sm); transition: all 0.2s;" data-key="skew_save_preset">+ 保存当前</button>
+              </div>
+              <div id="customPresetsContainer" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <!-- JS 动态注入 -->
+              </div>
+            </div>
+            
+          </div>
+        </div>
+
         <!-- Panel 8: Design Theory (设计理论) -->
         <div id="theoryPanel" style="display: none; flex-direction: column; height: 100%; background: var(--bg-white);">
           
@@ -3720,7 +3888,34 @@
         nav_style_tools: "样式工具",
         nav_ppt: "导出PPT",
         nav_refiner: "组件清洗",
+        nav_jumpback: "时空信标",
+        nav_skew: "等轴形变",
         nav_theory: "设计理论",
+        
+        skew_simulator: "变换模拟器",
+        skew_planes: "系统预设",
+        skew_left_wall: "右立",
+        skew_front: "重置",
+        skew_right_wall: "左立",
+        skew_left_lie: "右躺",
+        skew_right_lie: "左躺",
+        skew_engine: "精准调节",
+        skew_rotate: "旋转",
+        skew_skew_x: "水平倾斜",
+        skew_skew_y: "垂直倾斜",
+        skew_my_presets: "我的预设",
+        skew_save_preset: "+ 保存当前",
+        skew_empty_preset: "暂无预设，调节参数后点击保存",
+        skew_preset_name: "预设",
+        
+        wb_btn_save_spot: "📍 保存当前位置",
+        wb_note_max: "最多保存 5 个位置，数据随文件永久保存",
+        wb_empty_title: "保存当前位置",
+        wb_empty_desc: "点击上方按钮保存当前画布的视角和位置，以后可以快速跳转回来，你也可以给保存的位置命名，方便后续识别，最多可以保存 5 个位置",
+        wb_btn_jump: "🚀 传送到这里",
+        wb_slot_full: "🚫 名额已满 (最多 5 个)",
+        wb_rename: "点击重命名",
+        wb_delete: "删除",
         
         btn_switch: "精简",
         btn_compact: "精简",
@@ -4134,7 +4329,34 @@
         nav_style_tools: "Style",
         nav_ppt: "Ex-PPT",
         nav_refiner: "Comp...Refiner",
-        nav_theory: "Design Theory", 
+        nav_jumpback: "Warp Beacon",
+        nav_skew: "Isometric",
+        nav_theory: "Design Theory",
+        
+        skew_simulator: "Transform Simulator",
+        skew_planes: "System Presets",
+        skew_left_wall: "R-Wall",
+        skew_front: "Reset",
+        skew_right_wall: "L-Wall",
+        skew_left_lie: "R-Lie",
+        skew_right_lie: "L-Lie",
+        skew_engine: "Fine Tuning",
+        skew_rotate: "Rotate",
+        skew_skew_x: "Skew X",
+        skew_skew_y: "Skew Y",
+        skew_my_presets: "My Presets",
+        skew_save_preset: "+ Save Current",
+        skew_empty_preset: "No presets yet. Adjust and save.",
+        skew_preset_name: "Preset",
+        
+        wb_btn_save_spot: "📍 Save Current Spot",
+        wb_note_max: "Max 5 spots, saved permanently with file",
+        wb_empty_title: "No Warp Beacons Yet",
+        wb_empty_desc: "Click the button above to save your current viewport and position, then quickly jump back later, and you can rename the spot",
+        wb_btn_jump: "🚀 Warp Here",
+        wb_slot_full: "🚫 Slot Full (Max 5)",
+        wb_rename: "Click to rename",
+        wb_delete: "Delete",
         
         btn_switch: "Compact",
         btn_compact: "Compact",
@@ -4540,7 +4762,9 @@
         'pptPanel', 
         'refinerPanel',
         'theoryPanel',
-        'smartFillPanel'
+        'smartFillPanel',
+        'jumpbackPanel',
+        'skewPanel'
       ];
       const map = {
         'simple': ['toolPanel'],
@@ -4551,7 +4775,9 @@
         'ppt':    ['pptPanel'],
         'smartFill': ['smartFillPanel'],
         'refiner': ['refinerPanel'],
-        'theory':  ['theoryPanel']
+        'theory':  ['theoryPanel'],
+        'jumpback': ['jumpbackPanel'],
+        'skew': ['skewPanel']
       };
       
       // 1. 隐藏所有
@@ -9327,6 +9553,218 @@
         });
     }
 
+    // === Jumpback (锚点工具) 逻辑 ===
+    
+    // 发送消息让后台立刻发来最新数据
+    parent.postMessage({ pluginMessage: { type: 'jb-init' } }, '*');
+
+    // 处理后台传来的数据
+    const originalOnMessage = window.onmessage;
+    window.onmessage = (event) => {
+      // 保留原来的 PPT 等逻辑
+      if (originalOnMessage) originalOnMessage(event);
+
+      const msg = event.data.pluginMessage;
+      if (!msg) return;
+
+      // 渲染锚点列表
+      if (msg.type === 'jb-render-spots') {
+        const spots = msg.data ||[];
+        const listDiv = document.getElementById('spotList');
+        const saveBtn = document.getElementById('btnSaveSpot');
+        
+        listDiv.innerHTML = ''; // 清空
+        
+        // 限制 5 个
+        const t = i18n[curLang];
+        if (spots.length >= 5) {
+          saveBtn.disabled = true;
+          saveBtn.innerHTML = `<span data-key="wb_slot_full">${t.wb_slot_full}</span>`;
+          saveBtn.style.opacity = '0.5';
+        } else {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = `<span data-key="wb_btn_save_spot">${t.wb_btn_save_spot}</span>`;
+          saveBtn.style.opacity = '1';
+        }
+
+        if (spots.length === 0) {
+           listDiv.innerHTML = `<div style="text-align:center; padding:40px 0; color:#999; font-size:12px;"><span data-key="wb_empty_title">${t.wb_empty_title}</span><br><span data-key="wb_empty_desc">${t.wb_empty_desc}</span></div>`;
+           return;
+        }
+
+        spots.forEach(spot => {
+          const item = document.createElement('div');
+          item.className = 'spot-item';
+          item.innerHTML = `
+            <div class="spot-header">
+              <input type="text" class="spot-name-input" value="${spot.name}" onchange="jbRename('${spot.id}', this.value)" title="${t.wb_rename}">
+              <div class="spot-meta">${spot.pageName}</div>
+            </div>
+            <div class="spot-actions">
+              <button class="btn-spot-jump" onclick="jbJump('${spot.id}')"><span data-key="wb_btn_jump">${t.wb_btn_jump}</span></button>
+              <button class="btn-spot-del" onclick="jbDelete('${spot.id}')" title="${t.wb_delete}">🗑️</button>
+            </div>
+          `;
+          listDiv.appendChild(item);
+        });
+      }
+    };
+
+    // 触发后台保存
+    function jbSaveSpot() {
+      parent.postMessage({ pluginMessage: { type: 'jb-save' } }, '*');
+    }
+    // 触发后台跳转
+    function jbJump(id) {
+      parent.postMessage({ pluginMessage: { type: 'jb-jump', id: id } }, '*');
+    }
+    // 触发后台删除
+    function jbDelete(id) {
+      parent.postMessage({ pluginMessage: { type: 'jb-delete', id: id } }, '*');
+    }
+    // 触发后台重命名
+    function jbRename(id, newName) {
+      parent.postMessage({ pluginMessage: { type: 'jb-rename', id: id, newName: newName } }, '*');
+    }
+
+
+    // ==========================================
+    // === 引擎：等轴形变 (Transform & Skew) ===
+    // ==========================================
+
+    const proxyBox = document.getElementById('skewProxyBox');
+    const rangeRot = document.getElementById('rangeRot');
+    const inputRot = document.getElementById('inputRot');
+    const rangeX = document.getElementById('rangeSkewX');
+    const inputX = document.getElementById('inputSkewX');
+    const rangeY = document.getElementById('rangeSkewY');
+    const inputY = document.getElementById('inputSkewY');
+    const customPresetsContainer = document.getElementById('customPresetsContainer');
+
+    // 核心渲染器
+    function updateSkewVisuals(r, x, y) {
+      r = parseFloat(r) || 0; x = parseFloat(x) || 0; y = parseFloat(y) || 0;
+      
+      proxyBox.style.transform = `rotate(${r}deg) skewX(${x}deg) skewY(${y}deg)`;
+      
+      rangeRot.value = r; inputRot.value = r;
+      rangeX.value = x; inputX.value = x;
+      rangeY.value = y; inputY.value = y;
+
+      executeSkew(r, x, y);
+    }
+
+    [
+      { r: rangeRot, i: inputRot }, 
+      { r: rangeX, i: inputX }, 
+      { r: rangeY, i: inputY }
+    ].forEach(ctrl => {
+      if(ctrl.r && ctrl.i) {
+        ctrl.r.addEventListener('input', () => updateSkewVisuals(rangeRot.value, rangeX.value, rangeY.value));
+        ctrl.i.addEventListener('change', () => updateSkewVisuals(rangeRot.value, rangeX.value, rangeY.value));
+      }
+    });
+
+    function applySkewPreset(r, x, y) {
+      updateSkewVisuals(r, x, y);
+    }
+
+    function executeSkew(r, x, y) {
+      parent.postMessage({ pluginMessage: { 
+        type: 'skew-apply', 
+        rot: r, angleX: x, angleY: y 
+      } }, '*');
+    }
+
+    // ==========================================
+    // === 自定义预设管理系统 (Figma ClientStorage 版) ===
+    // ==========================================
+
+    window.mySkewPresets = [];
+
+    function syncPresetsToBackend() {
+      parent.postMessage({ pluginMessage: { 
+        type: 'save-skew-presets', 
+        data: window.mySkewPresets 
+      } }, '*');
+    }
+
+    function renderCustomPresets() {
+      const container = document.getElementById('customPresetsContainer');
+      if (!container) return;
+      
+      const t = i18n[curLang];
+      container.innerHTML = '';
+      
+      if (window.mySkewPresets.length === 0) {
+        container.innerHTML = `<div style="font-size: 11px; color: var(--text-tertiary); font-style: italic;" data-key="skew_empty_preset">${t.skew_empty_preset}</div>`;
+        return;
+      }
+
+      window.mySkewPresets.forEach((preset, index) => {
+        const chip = document.createElement('div');
+        chip.style.cssText = 'display: flex; align-items: center; background: var(--bg-color); border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; transition: all 0.2s;';
+        
+        const applyBtn = document.createElement('div');
+        applyBtn.innerText = preset.name;
+        applyBtn.style.cssText = 'padding: 6px 10px; font-size: 11px; cursor: pointer; color: var(--text-primary); font-weight: 500;';
+        applyBtn.onclick = () => applySkewPreset(preset.r, preset.x, preset.y);
+        
+        const delBtn = document.createElement('div');
+        delBtn.innerHTML = '×';
+        delBtn.style.cssText = 'padding: 6px 8px; font-size: 14px; cursor: pointer; color: var(--text-tertiary); border-left: 1px solid var(--border);';
+        delBtn.onclick = () => {
+          window.mySkewPresets.splice(index, 1);
+          syncPresetsToBackend(); 
+          renderCustomPresets();
+        };
+
+        chip.appendChild(applyBtn);
+        chip.appendChild(delBtn);
+        container.appendChild(chip);
+      });
+    }
+
+    function handleSavePresetClick() {
+      try {
+        const r = document.getElementById('inputRot').value || 0;
+        const x = document.getElementById('inputSkewX').value || 0;
+        const y = document.getElementById('inputSkewY').value || 0;
+        
+        const t = i18n[curLang];
+        const finalName = `${t.skew_preset_name} ${window.mySkewPresets.length + 1}`;
+        
+        window.mySkewPresets.push({ name: finalName, r: parseFloat(r), x: parseFloat(x), y: parseFloat(y) });
+        
+        syncPresetsToBackend(); 
+        renderCustomPresets();
+      } catch (error) {
+        console.error("保存预设失败:", error);
+      }
+    }
+
+    const saveBtnDom = document.getElementById('btnSavePreset');
+    if (saveBtnDom) {
+      saveBtnDom.addEventListener('click', handleSavePresetClick);
+      saveBtnDom.addEventListener('mouseenter', () => {
+        saveBtnDom.style.background = 'var(--primary)';
+        saveBtnDom.style.color = 'var(--text-inverse)';
+      });
+      saveBtnDom.addEventListener('mouseleave', () => {
+        saveBtnDom.style.background = 'none';
+        saveBtnDom.style.color = 'var(--primary)';
+      });
+    }
+
+    window.addEventListener('message', (event) => {
+      const msg = event.data.pluginMessage;
+      if (msg && msg.type === 'init-skew-presets') {
+        window.mySkewPresets = msg.data || [];
+        renderCustomPresets();
+      }
+    });
+
+    parent.postMessage({ pluginMessage: { type: 'req-skew-presets' } }, '*');
 
 
   </script>
