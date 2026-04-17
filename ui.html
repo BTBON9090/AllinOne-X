@@ -311,6 +311,45 @@
       }
 
       /* =========================================
+        设置面板样式
+        ========================================= */
+      .settings-section {
+          margin-bottom: 24px;
+      }
+      .settings-section-title {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--text-primary);
+          padding-bottom: 12px;
+      }
+      .settings-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px 0;
+          gap: 12px;
+      }
+      .settings-item-label {
+          font-size: 13px;
+          color: var(--text-primary);
+          flex-shrink: 0;
+      }
+      .settings-item-control {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+      }
+      .privacy-note {
+          font-size: 11px;
+          color: var(--text-muted);
+          background: var(--bg-muted);
+          padding: 12px;
+          border-radius: var(--radius-md);
+          margin-top: 16px;
+          line-height: 1.5;
+      }
+
+      /* =========================================
         4. 侧边栏折叠模式 (Icon Only Mode)
         ========================================= */
       body.mini-mode .sidebar { width: var(--sidebar-w-mini); }
@@ -380,6 +419,14 @@
       }
       .primary-btn:active {
           transform: translateY(0);
+      }
+      .secondary-btn:hover { 
+          background: var(--bg-muted);
+          transform: translateY(-1px);
+      }
+      .secondary-btn:active {
+          transform: translateY(0);
+          background: var(--border);
       }
 
       /* =========================================
@@ -2465,6 +2512,22 @@
     }
     .btn-spot-del:hover { background: #ffccc7; }
 
+
+    /* 语言切换专用 CSS */
+    .i18n-view { display: none; flex-direction: column; height: 100%; position: relative; animation: fadeIn var(--transition-fast); }
+    .i18n-view.active { display: flex; }
+    .segmented-control { display: flex; background: var(--border); border-radius: var(--radius-md); padding: 4px; margin-bottom: 16px;}
+    .seg-btn { flex: 1; text-align: center; padding: 8px ; font-size: 13px; color: var(--text-secondary); cursor: pointer; border-radius: var(--radius-sm); transition: var(--transition-fast); }
+    .seg-btn.active { background: var(--bg-white); color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); font-weight: 600;}
+    .trans-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .trans-item { display: flex; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-white); overflow: hidden; }
+    .trans-col { flex: 1; padding: 10px; font-size: 12px; }
+    .trans-col.source { background: var(--bg-body); border-right: 1px solid var(--border); color: var(--text-secondary); pointer-events: none; }
+    .trans-input { width: 100%; height: 100%; border: none; padding: 0; outline: none; background: transparent; color: var(--text-primary); font-family: inherit; }
+    .trans-input:focus { color: var(--primary); font-weight: 600; }
+    .badge-new { background: var(--primary-light); color: var(--primary); padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 6px; }
+    .bottom-action { padding: 16px; border-top: 1px solid var(--border); background: var(--bg-white); flex-shrink: 0; }
+
   </style>
 </head>
 <body>
@@ -2550,6 +2613,15 @@
           </svg>
           <span class="nav-text" data-key="nav_skew">等轴形变</span>
         </div>
+        <!-- 语言切换 -->
+        <div class="nav-item" onclick="switchGroup('i18n', this)" data-key="nav_i18n">
+          <svg class="nav-icon" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <span class="nav-text">语言切换</span>
+        </div>
 
         <!-- 设计理论 -->
         <div class="nav-item" onclick="switchGroup('theory', this)" data-key="nav_theory">
@@ -2561,25 +2633,11 @@
       </div>
       
       <div class="sidebar-footer">
-        <div class="footer-btn lang-btn" onclick="toggleLang()" title="切换语言">
-          <span id="langText">中/EN</span>
-        </div>
-        <div class="footer-btn theme-toggle-btn" onclick="toggleTheme()" title="切换主题">
-          <svg id="themeIconLight" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="5"></circle>
-            <line x1="12" y1="1" x2="12" y2="3"></line>
-            <line x1="12" y1="21" x2="12" y2="23"></line>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-            <line x1="1" y1="12" x2="3" y2="12"></line>
-            <line x1="21" y1="12" x2="23" y2="12"></line>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        <div class="footer-btn" onclick="openSettings()" title="设置">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
           </svg>
-          <svg id="themeIconDark" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-          </svg>
-          <span id="themeText">主题</span>
         </div>
         <div class="footer-btn" id="modeBtn" onclick="toggleMode()" title="切换精简模式" data-key="btn_switch">精简</div>
       </div>
@@ -3315,6 +3373,133 @@
           </div>
         </div>
 
+        <!-- Panel 11: 语言切换面板 (Language Switch) -->
+        <div id="i18nPanel" style="display: none; height: 100%; flex-direction: column; background: var(--bg-white);">
+                  
+            <!-- 视图 1：配置页 -->
+            <div id="i18nViewConfig" class="i18n-view active" style="flex: 1; overflow-y: auto; padding: 16px;">
+                
+                <!-- 第一步：检测范围 -->
+                <div class="settings-section" style="margin-bottom: 20px;">
+                    <div class="segmented-control" style="margin-bottom: 0;">
+                        <div class="seg-btn active" onclick="i18nSetScope('selection', this)" data-key="i18n_scope_selection">选中画板</div>
+                        <div class="seg-btn" onclick="i18nSetScope('page', this)" data-key="i18n_scope_page">当前页面</div>
+                    </div>
+                </div>
+
+                <!-- 第三步：目标文本 -->
+                <div class="settings-section" id="i18nExtractTargetSection" style="margin-bottom: 20px;">
+                    <div class="settings-section-title">
+                        <span style="background: var(--primary); color: white; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; margin-right: 8px;">1</span>
+                        <span data-key="i18n_target_text">目标文本</span>
+                    </div>
+                    <div class="segmented-control" style="margin-bottom: 0;">
+                        <div class="seg-btn active" onclick="i18nSetExtractTarget('unbound', this)" data-key="i18n_unbound_only">仅未绑定 (增量)</div>
+                        <div class="seg-btn" onclick="i18nSetExtractTarget('all', this)" data-key="i18n_all_text">画板全部文本</div>
+                    </div>
+                </div>
+
+                <!-- 第五步：检测文本 -->
+                <div class="settings-section" style="margin-bottom: 20px;">
+                    <div class="settings-section-title">
+                        <span style="background: var(--primary); color: white; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; margin-right: 8px;">2</span>
+                        <span data-key="i18n_detect_title">检测文本</span>
+                    </div>
+                    
+                    <!-- 检测结果数据看板 -->
+                    <div style="display: flex; gap: 4px; margin-bottom: 12px;">
+                        <div style="flex: 1; background: var(--bg-body); padding: 4px; border-radius: var(--radius-md); text-align: center;">
+                            <div style="font-size: 20px; font-weight: 700; color: var(--text-primary);" id="i18nTotalNodes">0</div>
+                            <div style="font-size: 11px; color: var(--text-tertiary); margin-bottom: 4px;" data-key="i18n_scan_total">扫描文本数</div>
+                        </div>
+                        <div style="flex: 1; background: var(--bg-body); padding: 4px; border-radius: var(--radius-md); text-align: center;">
+                            <div style="font-size: 20px; font-weight: 700; color: var(--success);" id="i18nBoundCount">0</div>
+                            <div style="font-size: 11px; color: var(--text-tertiary); margin-bottom: 4px;" data-key="i18n_bound_count">已绑定变量</div>
+                        </div>
+                        <div style="flex: 1; background: var(--bg-body); padding: 4px; border-radius: var(--radius-md); text-align: center;">
+                            <div style="font-size: 20px; font-weight: 700; color: var(--primary);" id="i18nNewCount">0</div>
+                            <div style="font-size: 11px; color: var(--text-tertiary); margin-bottom: 4px;" data-key="i18n_unbound_count">未绑定变量</div>
+                        </div>
+                    </div>
+                    
+                    <button class="primary-btn" onclick="i18nDetect()" style="width: 100%; padding: 10px; font-size: 13px;">
+                        <span data-key="i18n_detect_btn">检测文本</span>
+                    </button>
+                </div>
+
+                <!-- 第二步：翻译配置 -->
+                <div class="settings-section" style="margin-bottom: 12px;">
+                    <div class="settings-section-title">
+                        <span style="background: var(--primary); color: white; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; margin-right: 8px;">3</span>
+                        <span data-key="i18n_action_title">翻译配置</span>
+                    </div>
+                    <div class="segmented-control" style="margin-bottom: 0;">
+                        <div class="seg-btn active" onclick="i18nSetAction('replace', this)" style="color: var(--warning);" data-key="i18n_action_replace">⚡ 直接替换</div>
+                        <div class="seg-btn" onclick="i18nSetAction('update', this)" data-key="i18n_action_update">添加到Mode</div>
+                        <div class="seg-btn" onclick="i18nSetAction('create', this)" data-key="i18n_action_create">创建Mode</div>
+                        
+                    </div>
+                    <!-- 模式说明 -->
+                    <div style="padding: 6px 6px; background: var(--bg-body); border-radius: var(--radius-sm); ">
+                        <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.6;" id="i18nModeDesc" data-key="i18n_mode_desc_update">
+                            <b>更新Mode：</b>为已有语言Mode补充新增文本的翻译，已翻译的不再重复处理。
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第四步：目标语言和变量合集 -->
+                <div class="settings-section" id="i18nTargetConfigSection" style="margin-bottom: 20px;">
+                    <div class="settings-section-title">
+                        <span style="background: var(--primary); color: white; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; margin-right: 8px;">4</span>
+                        <span data-key="i18n_target_lang_collection">目标语言与变量合集</span>
+                    </div>
+                    
+                    <!-- 目标语言 -->
+                    <div class="settings-item" id="i18nTargetLangWrapper" style="padding: 0; border: none; margin-bottom: 8px;">
+                        <div class="settings-item-label" data-key="i18n_target_lang">目标语言</div>
+                        <select id="i18nTargetMode" class="search-box" style="flex: 1;"></select>
+                    </div>
+                    
+                    <!-- 变量合集（根据模式动态切换） -->
+                    <div class="settings-item" id="i18nCollectionWrapper" style="padding: 0; border: none;">
+                        <div class="settings-item-label" data-key="i18n_collection_prefix">变量合集</div>
+                        <div id="i18nCollectionControl">
+                            <!-- 动态渲染：下拉选择 或 输入框 -->
+                        </div>
+                    </div>
+                    
+
+                    
+                </div>
+            </div>
+
+            <!-- 视图 2：翻译校验页 -->
+            <div id="i18nViewReview" class="i18n-view" style="flex: 1; overflow: hidden; display: none; flex-direction: column;">
+                <div class="sub-header">
+                    <span class="btn-back-sub" onclick="i18nSwitchView('i18nViewConfig')">←</span>
+                    <span data-key="i18n_review_title">校验并确认</span>
+                    <span id="i18nReviewBadge" class="badge-new"></span>
+                </div>
+                
+                <div style="flex: 1; overflow-y: auto; padding: 16px;">
+                    <div class="trans-list" id="i18nTransList">
+                        <!-- 动态注入列表 -->
+                    </div>
+                </div>
+
+                <div class="bottom-action" style="display: flex; gap: 8px;">
+                    <button class="secondary-btn" style="flex: 1; background: var(--bg-body); color: var(--text-secondary); border: 1px solid var(--border); border-radius: var(--radius-md);" onclick="i18nSwitchView('i18nViewConfig')" data-key="i18n_cancel">取消</button>
+                    <button class="primary-btn" style="flex: 2;" onclick="i18nBindVariables()" id="i18nBindBtn" data-key="i18n_confirm_execute">确认并执行</button>
+                </div>
+            </div>
+            
+            <!-- 配置页底部按钮 -->
+            <div id="i18nConfigAction" class="bottom-action" style="display: flex; gap: 8px;">
+                <button class="secondary-btn" style="flex: 1; background: var(--bg-body); color: var(--text-secondary); border: 1px solid var(--border); border-radius: var(--radius-md);" onclick="i18nStop()" id="i18nStopBtn" data-key="i18n_stop_btn">⏹ 停止</button>
+                <button class="primary-btn" style="flex: 2;" onclick="i18nStartTranslation()" data-key="i18n_start_trans_btn" id="i18nStartBtn">提取并 AI 翻译</button>
+            </div>
+        </div>
+
         <!-- Panel 8: Design Theory (设计理论) -->
         <div id="theoryPanel" style="display: none; flex-direction: column; height: 100%; background: var(--bg-white);">
           
@@ -3398,7 +3583,6 @@
              <div class="ai-container">
                <div class="ai-header-row">
                  <span style="font-weight:600; font-size:13px;" data-key="sf_ai_title">AI 对话生成</span>
-                 <div class="icon-btn-square" onclick="openSubPage('pageAiConfig')" style="width:28px; height:28px;" title="配置模型">⚙️</div>
                </div>
                
                <textarea class="ai-textarea" id="aiPrompt" placeholder="例：生成20个高档小区名称..."></textarea>
@@ -3545,6 +3729,92 @@
             </div>
           </div>
 
+        </div>
+
+        <!-- Panel: 设置面板 -->
+        <div id="settingsPanel" style="display: none; flex-direction: column; height: 100%; background: var(--bg-white); position: relative; overflow: hidden;">
+          <div class="sub-header">
+            <span class="btn-back-sub" onclick="closeSettings()">←</span>
+            <span data-key="settings_title">设置</span>
+          </div>
+          
+          <div style="flex: 1; overflow-y: auto; padding: 16px;">
+            <!-- 通用设置 -->
+            <div class="settings-section">
+              <div class="settings-section-title" data-key="settings_general">通用设置</div>
+              
+              <div class="settings-item">
+                <div class="settings-item-label" data-key="settings_language">语言</div>
+                <div class="settings-item-control">
+                  <select id="settingsLang" class="search-box" style="width: 120px;" onchange="changeLanguage(this.value)">
+                    <option value="zh" data-key="settings_lang_zh">中文</option>
+                    <option value="en" data-key="settings_lang_en">English</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="settings-item">
+                <div class="settings-item-label" data-key="settings_theme">主题</div>
+                <div class="settings-item-control">
+                  <select id="settingsTheme" class="search-box" style="width: 120px;" onchange="changeTheme(this.value)">
+                    <option value="light" data-key="settings_theme_light">浅色</option>
+                    <option value="dark" data-key="settings_theme_dark">深色</option>
+                    <option value="system" data-key="settings_theme_system">跟随系统</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            
+            <!-- AI 模型配置 -->
+            <div class="settings-section">
+              <div class="settings-section-title" data-key="settings_ai">AI 模型配置</div>
+              
+              <div class="settings-item" style="flex-direction: column; align-items: stretch;">
+                <label class="config-label" data-key="sf_lbl_provider">服务商 (API Provider)</label>
+                <select id="settingsAiProvider" class="search-box" onchange="updateSettingsAiDefaults()">
+                  <optgroup label="热门推荐 (推荐)">
+                    <option value="glm" selected>智谱 GLM (官方 API)</option>
+                    <option value="deepseek">DeepSeek (深度求索)</option>
+                    <option value="kimi">Kimi (Moonshot API)</option>
+                    <option value="volcengine-coding">火山方舟 (doubao)</option>
+                    <option value="aliyun">阿里云百炼 (通义千问等)</option>
+                  </optgroup>
+                  <optgroup label="国内其他优秀平台">
+                    <option value="minimax">MiniMax (名之梦)</option>
+                    <option value="siliconflow">硅基流动 (SiliconFlow)</option>
+                    <option value="tencent">腾讯混元 (Hunyuan)</option>
+                  </optgroup>
+                  <optgroup label="国际平台与聚合">
+                    <option value="openai">OpenAI</option>
+                    <option value="anthropic">Anthropic (原生或第三方)</option>
+                    <option value="gemini">Google Gemini</option>
+                  </optgroup>
+                </select>
+              </div>
+              
+              <div class="settings-item" style="flex-direction: column; align-items: stretch;">
+                <label class="config-label" data-key="sf_lbl_baseurl">API 地址 (Base URL)</label>
+                <input type="text" id="settingsAiBaseUrl" class="search-box">
+                <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">通常以 /v1 结尾。如果使用中转或代理，请填写代理地址。</div>
+              </div>
+              
+              <div class="settings-item" style="flex-direction: column; align-items: stretch;">
+                <label class="config-label" data-key="sf_lbl_model">模型名称 (Model / Endpoint ID)</label>
+                <input type="text" id="settingsAiModelName" class="search-box">
+              </div>
+              
+              <div class="settings-item" style="flex-direction: column; align-items: stretch;">
+                <label class="config-label">API Key / Auth Token</label>
+                <input type="password" id="settingsAiKey" class="search-box" placeholder="sk-...">
+              </div>
+              
+              <button class="primary-btn" onclick="saveSettingsAiConfig()" style="margin-top: 10px;" data-key="sf_btn_save_cfg">保存配置</button>
+              
+              <div class="privacy-note" data-key="sf_privacy_note">
+                隐私说明：本插件没有后台服务器，API Key 仅保存在本地。Figma 卸载重装后需要重新填写 Key，请放心使用。
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Panel 9: 空状态 (Fallback) -->
@@ -3927,6 +4197,18 @@
         search_ph: "搜索功能...",
         empty_title: "功能开发中",
         empty_desc: "敬请期待...",
+        
+        // 设置面板
+        settings_title: "设置",
+        settings_general: "通用设置",
+        settings_ai: "AI 模型配置",
+        settings_language: "语言",
+        settings_lang_zh: "中文",
+        settings_lang_en: "English",
+        settings_theme: "主题",
+        settings_theme_light: "浅色",
+        settings_theme_dark: "深色",
+        settings_theme_system: "跟随系统",
 
         // =========================================
         // 2. Refiner 组件清洗 (Lint & Find)
@@ -4163,6 +4445,36 @@
         txt_title_config: "查找配置", // <--- 新增
         txt_err_no_input: "请输入查找内容", // <--- 新增
 
+        nav_i18n: "语言切换",
+        i18n_scope_selection: "选中画板",
+        i18n_scope_page: "当前页面",
+        i18n_target_text: "目标文本",
+        i18n_unbound_only: "仅未绑定 (增量)",
+        i18n_all_text: "画板全部文本",
+        i18n_detect_title: "检测文本",
+        i18n_detect_btn: "检测文本",
+        i18n_scan_total: "扫描文本数",
+        i18n_bound_count: "已绑定变量",
+        i18n_unbound_count: "未绑定变量",
+        i18n_action_title: "翻译配置",
+        i18n_action_update: "更新Mode",
+        i18n_action_create: "创建Mode",
+        i18n_action_replace: "⚡ 直接替换",
+        i18n_mode_desc_update: "<b>更新Mode：</b>为已有语言Mode补充新增文本的翻译，已翻译的不再重复处理。",
+        i18n_target_lang_collection: "目标语言与变量合集",
+        i18n_target_lang: "目标语言",
+        i18n_collection_prefix: "变量合集",
+        i18n_no_collection: "⚠️ 未检测到变量合集",
+        i18n_create_new_collection: "创建新变量合集",
+        i18n_new_collection_placeholder: "输入新变量合集名称",
+        i18n_start_trans_btn: "开始提取并翻译",
+        i18n_stop_btn: "⏹ 停止",
+        i18n_translating: "⏳ 翻译中...",
+        i18n_review_title: "校验翻译",
+        i18n_cancel: "取消",
+        i18n_confirm_execute: "确认并执行",
+        i18n_bind_btn: "确认并绑定 Figma 变量",
+
         // =========================================
         // 6. 工具卡片详情 (Tool Cards)
         // 格式: [标题, 简介, 详细Tooltip, 成功提示]
@@ -4368,6 +4680,18 @@
         search_ph: "Search...",
         empty_title: "Coming Soon",
         empty_desc: "Under development...",
+        
+        // Settings Panel
+        settings_title: "Settings",
+        settings_general: "General",
+        settings_ai: "AI Model Config",
+        settings_language: "Language",
+        settings_lang_zh: "中文",
+        settings_lang_en: "English",
+        settings_theme: "Theme",
+        settings_theme_light: "Light",
+        settings_theme_dark: "Dark",
+        settings_theme_system: "System",
       
         // =========================================
         // 2. Refiner (Lint & Find)
@@ -4604,6 +4928,36 @@
         txt_title_config: "Search Config", // <--- 新增
         txt_err_no_input: "Please enter text to find", // <--- 新增
 
+        nav_i18n: "i18n Converter",
+        i18n_scope_selection: "Selected Frames",
+        i18n_scope_page: "Current Page",
+        i18n_target_text: "Target Text",
+        i18n_unbound_only: "Unbound Only (Incremental)",
+        i18n_all_text: "All Text on Frames",
+        i18n_detect_title: "Detect Text",
+        i18n_detect_btn: "Detect",
+        i18n_scan_total: "Scanned Texts",
+        i18n_bound_count: "Bound Variables",
+        i18n_unbound_count: "Unbound Variables",
+        i18n_action_title: "Translation Config",
+        i18n_action_update: "Update Mode",
+        i18n_action_create: "Create Mode",
+        i18n_action_replace: "⚡ Direct Replace",
+        i18n_mode_desc_update: "<b>Update Mode:</b> Add translations for new texts to existing language Mode, skip already translated ones.",
+        i18n_target_lang_collection: "Target Language & Collection",
+        i18n_target_lang: "Target Language",
+        i18n_collection_prefix: "Collection",
+        i18n_no_collection: "⚠️ No collection detected",
+        i18n_create_new_collection: "Create New Collection",
+        i18n_new_collection_placeholder: "Enter new collection name",
+        i18n_start_trans_btn: "Extract & Translate",
+        i18n_stop_btn: "⏹ Stop",
+        i18n_translating: "⏳ Translating...",
+        i18n_review_title: "Review Translations",
+        i18n_cancel: "Cancel",
+        i18n_confirm_execute: "Confirm & Execute",
+        i18n_bind_btn: "Confirm & Bind Variables",
+
         // =========================================
         // 6. Tool Cards (English)
         // Format: [Title, Short Desc, Tooltip, Success Msg]
@@ -4764,7 +5118,9 @@
         'theoryPanel',
         'smartFillPanel',
         'jumpbackPanel',
-        'skewPanel'
+        'skewPanel',
+        'i18nPanel',
+        'settingsPanel'
       ];
       const map = {
         'simple': ['toolPanel'],
@@ -4777,7 +5133,8 @@
         'refiner': ['refinerPanel'],
         'theory':  ['theoryPanel'],
         'jumpback': ['jumpbackPanel'],
-        'skew': ['skewPanel']
+        'skew': ['skewPanel'],
+        'i18n': ['i18nPanel'] 
       };
       
       // 1. 隐藏所有
@@ -4825,6 +5182,122 @@
           mainHeader.style.display = 'none';
         }
       }
+    }
+
+    // =========================================
+    // 设置面板相关函数
+    // =========================================
+    function openSettings() {
+        const panels = ['toolPanel', 'selectPanel', 'smartFillPanel', 'textPanel', 'pptPanel', 'refinerPanel', 'jumpbackPanel', 'skewPanel', 'theoryPanel', 'emptyPanel', 'i18nPanel'];
+        panels.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+        
+        const settingsPanel = document.getElementById('settingsPanel');
+        if (settingsPanel) {
+            settingsPanel.style.display = 'flex';
+        }
+        
+        initSettingsPanel();
+    }
+
+    function closeSettings() {
+        const settingsPanel = document.getElementById('settingsPanel');
+        if (settingsPanel) {
+            settingsPanel.style.display = 'none';
+        }
+        
+        const firstNav = document.querySelector('.nav-item.active') || document.querySelector('.nav-item');
+        if (firstNav) firstNav.click();
+    }
+
+    function initSettingsPanel() {
+        const savedLang = PersistentCache.get('user_lang') || 'zh';
+        const savedTheme = PersistentCache.get('user_theme') || 'light';
+        
+        const langSelect = document.getElementById('settingsLang');
+        const themeSelect = document.getElementById('settingsTheme');
+        
+        if (langSelect) langSelect.value = savedLang;
+        if (themeSelect) themeSelect.value = savedTheme;
+        
+        loadSettingsAiConfig();
+    }
+
+    function changeLanguage(lang) {
+        curLang = lang;
+        PersistentCache.set('user_lang', lang);
+        updateLanguage();
+        if (typeof renderBasicList === 'function') renderBasicList();
+        if (typeof renderCustomList === 'function') renderCustomList();
+    }
+
+    function changeTheme(theme) {
+        if (theme === 'system') {
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+            PersistentCache.set('user_theme', 'system');
+        } else {
+            document.documentElement.setAttribute('data-theme', theme);
+            PersistentCache.set('user_theme', theme);
+        }
+    }
+
+    const AI_DEFAULTS = {
+        glm: { baseUrl: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4-flash' },
+        deepseek: { baseUrl: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
+        kimi: { baseUrl: 'https://api.moonshot.cn/v1', model: 'moonshot-v1-8k' },
+        'volcengine-coding': { baseUrl: 'https://ark.cn-beijing.volces.com/api/v3', model: '' },
+        aliyun: { baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen-turbo' },
+        minimax: { baseUrl: 'https://api.minimax.chat/v1', model: 'abab6.5s-chat' },
+        siliconflow: { baseUrl: 'https://api.siliconflow.cn/v1', model: 'Qwen/Qwen2.5-7B-Instruct' },
+        tencent: { baseUrl: 'https://api.hunyuan.cloud.tencent.com/v1', model: 'hunyuan-lite' },
+        openai: { baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
+        anthropic: { baseUrl: 'https://api.anthropic.com/v1', model: 'claude-3-haiku-20240307' },
+        gemini: { baseUrl: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-pro' }
+    };
+
+    function updateSettingsAiDefaults() {
+        const provider = document.getElementById('settingsAiProvider').value;
+        const defaults = AI_DEFAULTS[provider] || { baseUrl: '', model: '' };
+        document.getElementById('settingsAiBaseUrl').value = defaults.baseUrl;
+        document.getElementById('settingsAiModelName').value = defaults.model;
+    }
+
+    function loadSettingsAiConfig() {
+        postMsg('req-ai-config');
+    }
+
+    function saveSettingsAiConfig() {
+        const config = {
+            provider: document.getElementById('settingsAiProvider').value,
+            baseUrl: document.getElementById('settingsAiBaseUrl').value,
+            model: document.getElementById('settingsAiModelName').value,
+            key: document.getElementById('settingsAiKey').value
+        };
+        
+        aiConfig = config;
+        postMsg('save-storage', { key: 'smart_ai_config', value: config, notify: true });
+        
+        syncAiConfigToSmartFill();
+    }
+
+    function syncAiConfigToSmartFill() {
+        const provider = document.getElementById('settingsAiProvider');
+        const baseUrl = document.getElementById('settingsAiBaseUrl');
+        const model = document.getElementById('settingsAiModelName');
+        const key = document.getElementById('settingsAiKey');
+        
+        const sfProvider = document.getElementById('aiProvider');
+        const sfBaseUrl = document.getElementById('aiBaseUrl');
+        const sfModel = document.getElementById('aiModelName');
+        const sfKey = document.getElementById('aiKey');
+        
+        if (sfProvider && provider) sfProvider.value = provider.value;
+        if (sfBaseUrl && baseUrl) sfBaseUrl.value = baseUrl.value;
+        if (sfModel && model) sfModel.value = model.value;
+        if (sfKey && key) sfKey.value = key.value;
     }
 
     // 切换迷你模式
@@ -9757,14 +10230,506 @@
     }
 
     window.addEventListener('message', (event) => {
-      const msg = event.data.pluginMessage;
-      if (msg && msg.type === 'init-skew-presets') {
+      const msg = event.data?.pluginMessage;
+      // 如果 msg 不存在，或者没有 type 属性，直接 return，阻止报错！
+      if (!msg || !msg.type) return; 
+      if (msg.type === 'init-skew-presets') {
         window.mySkewPresets = msg.data || [];
         renderCustomPresets();
+      }
+      if (msg && msg.type === 'init-ai-config') {
+        const config = msg.data || {};
+        const provider = document.getElementById('settingsAiProvider');
+        const baseUrl = document.getElementById('settingsAiBaseUrl');
+        const model = document.getElementById('settingsAiModelName');
+        const key = document.getElementById('settingsAiKey');
+        
+        if (config.provider && provider) provider.value = config.provider;
+        if (config.baseUrl && baseUrl) baseUrl.value = config.baseUrl;
+        if (config.model && model) model.value = config.model;
+        if (config.key && key) key.value = config.key;
+        
+        aiConfig = config;
+        syncAiConfigToSmartFill();
+      }
+      
+      // ========== 2. 贴入最新版的 i18n 消息接收逻辑 ==========
+      if (msg.type === 'i18n-check-selection-result') {
+          if (msg.hasSelection) i18nDoDetect();
+          else alert('未选中任何画板或节点，请先在画布上框选目标');
+      }
+
+      if (msg.type === 'i18n-detect-result') {
+          i18nState.isDetecting = false;
+          i18nState.hasDetected = true;
+          
+          const detectBtn = document.querySelector('[data-key="i18n_detect_btn"]');
+          if (detectBtn) detectBtn.innerText = '✅ 重新扫描文本';
+          
+          i18nState.collections = msg.data.collections || [];
+          i18nState.existingModes = msg.data.modes || [];
+          i18nState.autoBindList = msg.data.autoBindList || [];
+          i18nState.newTextList = msg.data.newTextList || [];
+          
+          // 更新你最新界面的 ID 数据
+          const updateDom = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+          updateDom('i18nTotalNodes', msg.data.totalNodes || 0);
+          updateDom('i18nBoundCount', msg.data.boundCount || 0);
+          updateDom('i18nNewCount', msg.data.newTextList?.length || 0);
+          
+          i18nRenderCollectionControl(i18nState.action);
+          i18nUpdateStartBtnState();
+      }
+      
+      if (msg.type === 'i18n-bind-success') {
+          const btn = document.getElementById('i18nBindBtn');
+          if (btn) btn.disabled = false;
+          
+          alert(msg.message || '🎉 操作成功！');
+          i18nSwitchView('i18nViewConfig');
+          
+          // 执行完毕后主动触发一次扫描，刷新数据
+          i18nState.hasDetected = false;
+          i18nDoDetect();
+      }
+      
+      if (msg.type === 'i18n-bind-error') {
+          const btn = document.getElementById('i18nBindBtn');
+          if (btn) { btn.innerText = "重试"; btn.disabled = false; }
+          alert(`⚠️ 发生错误：\n${msg.error}`);
       }
     });
 
     parent.postMessage({ pluginMessage: { type: 'req-skew-presets' } }, '*');
+
+    // ==================== 语言切换 (i18n) 逻辑 ====================
+
+    let i18nState = {
+        scope: 'selection',
+        extractTarget: 'unbound',
+        action: 'replace',
+        collections: [],
+        existingModes: [],
+        autoBindList: [],
+        newTextList: [],
+        finalTranslations: [],
+        isTranslating: false,
+        isDetecting: false,
+        hasDetected: false
+    };
+
+    let i18nAbortController = null;
+
+    setTimeout(() => i18nInit(), 100);
+
+    function i18nInit() {
+        // 根据初始 state.action 激活对应的 UI 按钮
+        const actionBtns = document.querySelectorAll('[onclick^="i18nSetAction"]');
+        actionBtns.forEach(btn => {
+            if (btn.getAttribute('onclick').includes(`'${i18nState.action}'`)) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        
+        i18nToggleAction();
+        i18nUpdateModeDesc();
+        i18nUpdateStartBtnState();
+    }
+    
+    function i18nUpdateStartBtnState() {
+        const startBtn = document.getElementById('i18nStartBtn');
+        if (startBtn) {
+            startBtn.disabled = !i18nState.hasDetected;
+            startBtn.title = i18nState.hasDetected ? '' : '请先完成上方第2步的"检测文本"';
+            
+            // 按钮UI交互强化
+            if (i18nState.hasDetected) {
+                startBtn.style.opacity = '1';
+                startBtn.innerText = '提取并 AI 翻译';
+            } else {
+                startBtn.style.opacity = '0.6';
+                startBtn.innerText = '请先检测文本';
+            }
+        }
+    }
+
+    function i18nSetScope(scope, el) {
+        i18nState.scope = scope;
+        i18nState.hasDetected = false; // 改变范围后必须重新检测
+        i18nUpdateStartBtnState();
+        el.parentElement.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+    }
+
+    function i18nSetExtractTarget(target, el) {
+        i18nState.extractTarget = target;
+        i18nState.hasDetected = false; // 改变目标后必须重新检测
+        i18nUpdateStartBtnState();
+        el.parentElement.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+    }
+
+    function i18nSetAction(action, el) {
+        i18nState.action = action;
+        el.parentElement.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        i18nToggleAction();
+        i18nUpdateModeDesc();
+    }
+
+    function i18nUpdateModeDesc() {
+        const descEl = document.getElementById('i18nModeDesc');
+        if (!descEl) return;
+        const descs = {
+            'update': '<b>添加到Mode：</b>在已有合集中补充新增文本的翻译，已翻译的自动静默绑定，不消耗AI。',
+            'create': '<b>创建Mode：</b>在合集中创建一个全新的语言Mode，并对提取到的文本全量翻译。',
+            'replace': '<b style="color: var(--warning);">⚡ 直接替换：</b>不创建/修改Figma变量，强制将画板上的文本直接修改为目标语言。'
+        };
+        descEl.innerHTML = descs[i18nState.action] || descs['update'];
+    }
+
+    function i18nToggleAction() {
+        const action = i18nState.action;
+        const langWrapper = document.getElementById('i18nTargetLangWrapper');
+        const colWrapper = document.getElementById('i18nCollectionWrapper');
+        const extractSection = document.getElementById('i18nExtractTargetSection');
+        const select = document.getElementById('i18nTargetMode');
+
+        if (select && select.options.length === 0) {
+            // 确保包含简体中文
+            const langs = ['English', '简体中文', '繁体中文', '日本語', '한국어', 'Français', 'Deutsch', 'Español'];
+            langs.forEach(l => { select.innerHTML += `<option value="${l}">${l}</option>`; });
+        }
+
+        if (action === 'replace') {
+            if (langWrapper) langWrapper.style.display = 'flex';
+            if (colWrapper) colWrapper.style.display = 'none';
+            if (extractSection) extractSection.style.display = 'block';
+        } else if (action === 'create') {
+            if (langWrapper) langWrapper.style.display = 'flex';
+            if (colWrapper) colWrapper.style.display = 'flex';
+            if (extractSection) extractSection.style.display = 'block';
+            i18nRenderCollectionControl('create');
+            
+            // 创建 Mode 时自动切到全量提取
+            i18nState.extractTarget = 'all';
+            const allTextBtn = extractSection?.querySelector('.seg-btn:nth-child(2)');
+            const unboundBtn = extractSection?.querySelector('.seg-btn.active');
+            if (allTextBtn && unboundBtn) {
+                unboundBtn.classList.remove('active');
+                allTextBtn.classList.add('active');
+            }
+        } else if (action === 'update') {
+            if (langWrapper) langWrapper.style.display = 'none';
+            if (colWrapper) colWrapper.style.display = 'flex';
+            if (extractSection) extractSection.style.display = 'block';
+            i18nRenderCollectionControl('update');
+        }
+    }
+
+    // 修改 2: 优化合集渲染逻辑
+    function i18nRenderCollectionControl(mode) {
+        const container = document.getElementById('i18nCollectionControl');
+        if (!container) return;
+
+        // 获取所有已有合集选项
+        let existingOptions = i18nState.collections.map(c => 
+            `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`
+        ).join('');
+
+        if (mode === 'update') {
+            let options = i18nState.collections.length === 0 
+                ? `<option value="">⚠️ 未检测到变量合集</option>` 
+                : existingOptions;
+            container.innerHTML = `<select id="i18nCollectionSelect" class="search-box" style="flex: 1;">${options}</select>`;
+        } else if (mode === 'create') {
+            // 将 "创建新变量合集" 移动到最底部
+            let options = existingOptions; 
+            options += `<option value="__new__">✨ 创建新变量合集</option>`;
+            
+            container.innerHTML = `
+                <select id="i18nCollectionSelect" class="search-box" style="flex: 1; margin-bottom: 8px;" onchange="i18nToggleNewCollection()">
+                    ${options}
+                </select>
+                <input type="text" id="i18nNewCollectionName" class="search-box" style="flex: 1; display: none;" placeholder="输入新变量合集名称">
+            `;
+            
+            // 默认逻辑：如果有已有合集，默认选第一个；如果没有，才选 __new__
+            const select = document.getElementById('i18nCollectionSelect');
+            if (i18nState.collections.length > 0) {
+                select.value = i18nState.collections[0];
+            } else {
+                select.value = '__new__';
+            }
+            i18nToggleNewCollection(); 
+        }
+    }
+
+    function i18nToggleNewCollection() {
+        const select = document.getElementById('i18nCollectionSelect');
+        const input = document.getElementById('i18nNewCollectionName');
+        if (select && input) {
+            input.style.display = select.value === '__new__' ? 'block' : 'none';
+        }
+    }
+
+    function i18nGetCollectionName() {
+        const select = document.getElementById('i18nCollectionSelect');
+        const input = document.getElementById('i18nNewCollectionName');
+        if (select) {
+            if (select.value === '__new__' && input) return input.value.trim() || 'i18n Dictionary';
+            return select.value || 'i18n Dictionary';
+        }
+        return 'i18n Dictionary';
+    }
+
+    function i18nSwitchView(viewId) {
+        document.querySelectorAll('.i18n-view').forEach(v => { v.classList.remove('active'); v.style.display = 'none'; });
+        const target = document.getElementById(viewId);
+        if (target) { target.classList.add('active'); target.style.display = viewId === 'i18nViewReview' ? 'flex' : 'block'; }
+        const configAction = document.getElementById('i18nConfigAction');
+        if (configAction) { configAction.style.display = (viewId === 'i18nViewConfig') ? 'flex' : 'none'; }
+    }
+
+    function i18nDetect() {
+        if (i18nState.isDetecting) return;
+        if (i18nState.scope === 'selection') {
+            postMsg('i18n-check-selection');
+            return;
+        }
+        i18nDoDetect();
+    }
+    
+    function i18nDoDetect() {
+        i18nState.isDetecting = true;
+        i18nState.hasDetected = false;
+        i18nUpdateStartBtnState();
+        
+        const detectBtn = document.querySelector('[data-key="i18n_detect_btn"]');
+        if (detectBtn) detectBtn.innerText = '⏳ 正在全量扫描...';
+        
+        postMsg('i18n-detect', { 
+            scope: i18nState.scope, 
+            extractTarget: i18nState.extractTarget, 
+            collectionName: i18nGetCollectionName() 
+        });
+    }
+
+    function i18nStop() {
+        if (i18nState.isTranslating || i18nState.isDetecting) {
+            i18nState.isTranslating = false;
+            i18nState.isDetecting = false;
+            if (i18nAbortController) i18nAbortController.abort();
+            i18nAbortController = null;
+            
+            const startBtn = document.getElementById('i18nStartBtn');
+            if (startBtn) {
+                startBtn.innerText = '提取并 AI 翻译';
+                startBtn.disabled = !i18nState.hasDetected;
+            }
+            const detectBtn = document.querySelector('[data-key="i18n_detect_btn"]');
+            if (detectBtn) detectBtn.innerText = '检测文本';
+            i18nSwitchView('i18nViewConfig');
+        }
+    }
+
+    async function fetchAITranslation(textsToTranslate, targetLang, reqIdSuffix) {
+        if (!textsToTranslate || textsToTranslate.length === 0) return [];
+
+        const aiKey = aiConfig?.key || '';
+        const aiModel = aiConfig?.model || 'gpt-3.5-turbo';
+        let aiUrl = aiConfig?.baseUrl || 'https://api.openai.com/v1';
+        
+        if (!aiKey) throw new Error("请先在设置面板配置 AI Key");
+        aiUrl = aiUrl.trim().replace(/\/+$/, '');
+        if (!aiUrl.includes('/chat/completions')) aiUrl += '/chat/completions';
+
+        const prompt = `Translate these UI texts to ${targetLang}. Return ONLY a JSON array with objects containing 'original' and 'translated' keys. Do not add markdown backticks. Texts: ${JSON.stringify(textsToTranslate)}`;
+        const reqId = "i18n_" + Date.now().toString() + "_" + reqIdSuffix;
+
+        const fetchPromise = new Promise((resolve, reject) => {
+            const abortHandler = () => reject(new Error('用户强制中断'));
+            if (i18nAbortController) i18nAbortController.signal.addEventListener('abort', abortHandler);
+            
+            const messageHandler = (event) => {
+                const msg = event.data?.pluginMessage;
+                if (msg && msg.type === 'api-response' && msg.reqId === reqId) {
+                    window.removeEventListener('message', messageHandler);
+                    if (i18nAbortController) i18nAbortController.signal.removeEventListener('abort', abortHandler);
+                    if (msg.error) reject(new Error(msg.error));
+                    else resolve(msg.data);
+                }
+            };
+            window.addEventListener('message', messageHandler);
+        });
+
+        parent.postMessage({
+            pluginMessage: { type: 'do-fetch', reqId: reqId, url: aiUrl, options: { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${aiKey}` }, body: JSON.stringify({ model: aiModel, messages: [{ role: 'user', content: prompt }], temperature: 0.3 }) } }
+        }, '*');
+
+        const response = await fetchPromise;
+        if (response.error) throw new Error(typeof response.error === 'string' ? response.error : response.error.message);
+        if (!response.choices || response.choices.length === 0) throw new Error("模型未返回有效数据");
+
+        let content = response.choices[0].message.content.trim();
+        if (content.startsWith('```json')) content = content.replace(/```json|```/g, '');
+        return JSON.parse(content);
+    }
+
+    async function i18nStartTranslation() {
+        // --- 新增逻辑校验：创建 Mode + 仅未绑定 ---
+        if (i18nState.action === 'create' && i18nState.extractTarget === 'unbound') {
+            const confirmMsg = "⚠️ 注意：\n您选择了「创建新Mode」但仅提取「未绑定文本」。\n这意味着：\n1. 画布上已经绑定过变量的节点，在新的 Mode 下将无法获得本次翻译的值（会显示为初始默认值）。\n2. 建议切换到「全部文本」以确保新语种模式下所有文字都被正确翻译。\n\n是否坚持当前配置继续？";
+            if (!confirm(confirmMsg)) return;
+        }
+        const isUpdate = i18nState.action === 'update';
+        const isReplace = i18nState.action === 'replace';
+
+        // 【修改点】：更新模式下，不能只翻译 newTextList，
+        // 也要把 autoBindList（已存在于Original但未翻译的词）加进去
+        let textsToTranslate = [];
+        if (isReplace || i18nState.action === 'create') {
+            textsToTranslate = [...i18nState.autoBindList, ...i18nState.newTextList];
+        } else if (isUpdate) {
+            // 更新模式下，全量提取（后端会判断哪些需要补译）
+            textsToTranslate = [...i18nState.autoBindList, ...i18nState.newTextList];
+        }
+
+        if (textsToTranslate.length === 0) {
+            return alert("没有找到需要处理的文本，请先点击【检测文本】");
+        }
+
+        const btn = document.getElementById('i18nStartBtn');
+        if (btn) { btn.innerText = "⏳ 连接 AI 翻译中..."; btn.disabled = true; }
+        
+        i18nState.isTranslating = true;
+        i18nAbortController = new AbortController();
+
+        try {
+            const targetModeEl = document.getElementById('i18nTargetMode');
+            let targetMode = targetModeEl ? targetModeEl.value : 'English';
+            
+            // 动态设置校验界面的徽章和底部确认按钮的文案
+            const badge = document.getElementById('i18nReviewBadge');
+            const confirmBtn = document.getElementById('i18nBindBtn');
+            if (badge) badge.innerText = isReplace ? '⚡ 直接替换' : (isUpdate ? '补充更新 Mode' : `新建: ${targetMode}`);
+            if (confirmBtn) {
+                if (isReplace) confirmBtn.innerText = `⚡ 确认并替换画板 (${targetMode})`;
+                else if (isUpdate) confirmBtn.innerText = `🔄 确认更新到合集`;
+                else confirmBtn.innerText = `✨ 确认创建新 Mode (${targetMode})`;
+            }
+            
+            i18nState.finalTranslations = [];
+
+            if (isUpdate) {
+                if (i18nState.existingModes.length === 0) throw new Error("本地合集尚未包含任何语言Mode，请先选择「创建Mode」");
+                const aiRequests = i18nState.existingModes.map((modeName, index) => {
+                    const missingTexts = textsToTranslate.map(t => t.original);
+                    return fetchAITranslation(missingTexts, modeName, index).then(res => ({ modeName, aiResults: res }));
+                });
+                const completedRequests = await Promise.all(aiRequests);
+
+                textsToTranslate.forEach(item => {
+                    const newTranslationItem = { original: item.original, nodeIds: item.nodeIds, translations: [] };
+                    i18nState.existingModes.forEach(modeName => {
+                        let text = item.original;
+                        const matchingReq = completedRequests.find(r => r.modeName === modeName);
+                        if (matchingReq) {
+                            const match = matchingReq.aiResults.find(r => r.original === item.original);
+                            if (match) text = match.translated;
+                        }
+                        newTranslationItem.translations.push({ lang: modeName, text: text, isNew: true });
+                    });
+                    i18nState.finalTranslations.push(newTranslationItem);
+                });
+
+            } else {
+                const allTexts = textsToTranslate.map(t => t.original);
+                const aiResults = await fetchAITranslation(allTexts, targetMode, 999);
+
+                textsToTranslate.forEach(item => {
+                    const match = aiResults.find(t => t.original === item.original);
+                    i18nState.finalTranslations.push({
+                        original: item.original, nodeIds: item.nodeIds,
+                        translations: [{ lang: targetMode, text: match ? match.translated : item.original, isNew: true }]
+                    });
+                });
+            }
+
+            renderI18nReviewList();
+            i18nSwitchView('i18nViewReview');
+
+        } catch (e) {
+            if (e.message !== '用户强制中断') alert("执行失败: " + e.message);
+        } finally {
+            i18nState.isTranslating = false;
+            if (btn) { btn.innerText = '提取并 AI 翻译'; btn.disabled = false; }
+        }
+    }
+
+    function renderI18nReviewList() {
+        const list = document.getElementById('i18nTransList');
+        if (!list) return;
+        list.innerHTML = '';
+        
+        const isReplace = i18nState.action === 'replace';
+        i18nState.finalTranslations.forEach((item, itemIndex) => {
+            const transInputsHtml = item.translations.map((t, langIndex) => {
+                const highlightStyle = t.isNew ? 'border-color: var(--primary); background: var(--primary-light);' : '';
+                const langLabel = isReplace ? '译文' : t.lang.substring(0, 3).toUpperCase();
+                return `
+                    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
+                        <span style="width: 40px; font-size: 11px; color: var(--text-tertiary); font-weight: 600;">${langLabel}</span>
+                        <input type="text" class="trans-input" id="transInput_${itemIndex}_${langIndex}" value="${escapeHtml(t.text)}" style="flex: 1; ${highlightStyle}">
+                    </div>
+                `;
+            }).join('');
+
+            const itemHtml = `
+                <div class="trans-item" style="display: flex; flex-direction: column; margin-bottom: 12px; border: 1px solid var(--border); padding: 10px; border-radius: var(--radius-md); background: var(--bg-white);">
+                    <div style="font-weight: 500; font-size: 12px; color: var(--text-primary); margin-bottom: 8px; max-height: 40px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(item.original)}</div>
+                    ${transInputsHtml}
+                </div>
+            `;
+            list.innerHTML += itemHtml;
+        });
+    }
+
+    function escapeHtml(unsafe) {
+        return (unsafe || "").toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    function i18nBindVariables(isSilentAutoBind = false) {
+        const btn = document.getElementById('i18nBindBtn');
+        if (btn) { btn.innerText = "⏳ 后台写入中..."; btn.disabled = true; }
+
+        let newPayload = [];
+        if (!isSilentAutoBind) {
+            newPayload = i18nState.finalTranslations.map((item, itemIndex) => {
+                const translationsObj = {};
+                item.translations.forEach((t, langIndex) => {
+                    const input = document.getElementById(`transInput_${itemIndex}_${langIndex}`);
+                    if (input) translationsObj[t.lang] = input.value;
+                });
+                return { original: item.original, nodeIds: item.nodeIds, translations: translationsObj };
+            });
+        }
+
+        const isReplace = i18nState.action === 'replace';
+        if (isReplace) {
+            postMsg('i18n-replace-text', { payload: newPayload });
+        } else {
+            postMsg('i18n-bind-variables', {
+                newPayload: newPayload,
+                autoBindPayload: i18nState.autoBindList, 
+                isCreate: i18nState.action === 'create',
+                collectionName: i18nGetCollectionName()
+            });
+        }
+    }
+
 
 
   </script>

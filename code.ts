@@ -73,6 +73,7 @@ let highlightCache = {};
 let layerSortDirection = 'asc'; // 用于图层排序切换
 
 figma.ui.onmessage = async (msg) => {
+  if (!msg || !msg.type) return; 
   // 新增：专治跨域不服！拦截 'do-fetch' 指令，由后台沙箱代发请求
   // =======================================================
   if (msg.type === 'do-fetch') {
@@ -183,7 +184,6 @@ figma.ui.onmessage = async (msg) => {
     case 'save-storage': {
       await figma.clientStorage.setAsync(msg.key, msg.value);
       if (msg.notify) figma.notify("配置已保存");
-      // 回传以确认更新
       figma.ui.postMessage({ type: 'storage-saved', key: msg.key, value: msg.value });
       break;
     }
@@ -191,6 +191,12 @@ figma.ui.onmessage = async (msg) => {
     case 'load-storage': {
       const value = await figma.clientStorage.getAsync(msg.key);
       figma.ui.postMessage({ type: 'storage-loaded', key: msg.key, value: value });
+      break;
+    }
+
+    case 'req-ai-config': {
+      const aiConfig = await figma.clientStorage.getAsync('smart_ai_config');
+      figma.ui.postMessage({ type: 'init-ai-config', data: aiConfig || {} });
       break;
     }
 
@@ -1843,11 +1849,224 @@ figma.ui.onmessage = async (msg) => {
       break;
     }
 
+    // ==================== 语言切换 (i18n) 逻辑 ====================
+    case 'i18n-check-selection': {
+        const hasSelection = figma.currentPage.selection.length > 0;
+        figma.ui.postMessage({ type: 'i18n-check-selection-result', hasSelection: hasSelection });
+        break;
+    }
+
+    case 'i18n-detect': {
+        const { scope, extractTarget, collectionName } = msg; 
+        let nodesToScan = scope === 'selection' ? [...figma.currentPage.selection] : [...figma.currentPage.children];
+        
+        const textNodes = [];
+        async function findText(nodes) {
+            for (const node of nodes) {
+                if (node.type === 'TEXT') textNodes.push(node);
+                else if ('children' in node) await findText(node.children);
+            }
+        }
+        await findText(nodesToScan);
+
+        const allCollections = await figma.variables.getLocalVariableCollectionsAsync();
+        // 获取所有合集的名字，并把最像 i18n 的排在前面
+        const collectionNames = allCollections
+            .map(c => c.name)
+            .sort((a, b) => {
+                const aMatch = a.toLowerCase().includes('i18n') ? -1 : 1;
+                const bMatch = b.toLowerCase().includes('i18n') ? -1 : 1;
+                return aMatch - bMatch;
+            });
+        const targetColName = collectionName || "i18n Dictionary";
+        const i18nCollection = allCollections.find(c => c.name === targetColName) 
+                            || allCollections.find(c => c.name.includes("i18n") || c.name.includes("Dictionary"));
+
+        let modes = [];
+        const existingVarMap = new Map();
+
+        if (i18nCollection) {
+            const origModeId = i18nCollection.modes[0].modeId;
+            i18nCollection.modes.forEach(m => {
+                if (m.modeId !== origModeId) modes.push(m.name);
+            });
+            const localVars = await figma.variables.getLocalVariablesAsync('STRING');
+            for (const v of localVars) {
+                if (v.variableCollectionId === i18nCollection.id) {
+                    const origVal = v.valuesByMode[origModeId];
+                    if (origVal) existingVarMap.set(origVal, v); 
+                }
+            }
+        }
+
+        let boundCount = 0;
+        let mixedFonts = 0;
+        const autoBindMap = new Map(); 
+        const newTextMap = new Map();  
+
+        for (const node of textNodes) {
+            if (node.hasMissingFont) continue; 
+            if (node.fontName === figma.mixed) { mixedFonts++; continue; }
+            
+            if (extractTarget === 'unbound' && node.boundVariables && node.boundVariables['characters']) {
+                boundCount++;
+                continue;
+            }
+
+            const text = node.characters.trim();
+            if (!text) continue;
+
+            if (existingVarMap.has(text)) {
+                if (!autoBindMap.has(text)) autoBindMap.set(text, { variableId: existingVarMap.get(text).id, nodeIds: [] });
+                autoBindMap.get(text).nodeIds.push(node.id);
+            } else {
+                if (!newTextMap.has(text)) newTextMap.set(text, { nodeIds: [] });
+                newTextMap.get(text).nodeIds.push(node.id);
+            }
+        }
+
+        figma.ui.postMessage({ 
+            type: 'i18n-detect-result', 
+            data: {
+                totalNodes: textNodes.length,
+                boundCount: boundCount,
+                collections: collectionNames,
+                autoBindList: Array.from(autoBindMap.entries()).map(([orig, d]) => ({ original: orig, ...d })),
+                newTextList: Array.from(newTextMap.entries()).map(([orig, d]) => ({ original: orig, ...d })),
+                modes: modes
+            }
+        });
+        break;
+    }
+
+    case 'i18n-bind-variables': {
+        const { newPayload, autoBindPayload, isCreate, collectionName } = msg;
+        try {
+            let collections = await figma.variables.getLocalVariableCollectionsAsync();
+            let collection = collections.find(c => c.name === collectionName);
+            
+            // 1. 确保 Collection 存在
+            if (!collection) {
+                collection = figma.variables.createVariableCollection(collectionName);
+                collection.renameMode(collection.modes[0].modeId, 'Original'); 
+            }
+
+            const origModeId = collection.modes[0].modeId;
+            
+            // 2. 收集所有需要处理的语种
+            const allTargetLangs = new Set<string>();
+            newPayload.forEach(item => Object.keys(item.translations).forEach(l => allTargetLangs.add(l)));
+
+            // 3. 核心修复：创建/获取 Mode ID 映射
+            const modeIdMap: { [key: string]: string } = {};
+            collection.modes.forEach(m => modeIdMap[m.name] = m.modeId);
+
+            for (const lang of Array.from(allTargetLangs)) {
+                if (!modeIdMap[lang]) {
+                    try {
+                        // 如果是免费版，这里会报错
+                        const newModeId = collection.addMode(lang);
+                        modeIdMap[lang] = newModeId;
+                    } catch (e) {
+                        // 弹出明确的 Plan 限制提示
+                        figma.ui.postMessage({ 
+                            type: 'i18n-bind-error', 
+                            error: `无法创建 "${lang}" 列。\n原因：Figma 免费版限制每个合集只能有 1 个 Mode（当前已有 "Original"）。\n\n建议：\n1. 升级 Figma 团队版\n2. 或使用插件的 "⚡ 直接替换" 模式。` 
+                        });
+                        return; // 终止执行
+                    }
+                }
+            }
+
+            // 4. 建立变量索引 (Original Text -> Variable)
+            const localVars = await figma.variables.getLocalVariablesAsync('STRING');
+            const varMap = new Map<string, Variable>(); 
+            for (const v of localVars) {
+                if (v.variableCollectionId === collection.id) {
+                    const baseVal = v.valuesByMode[origModeId] as string;
+                    if (baseVal) varMap.set(baseVal, v);
+                }
+            }
+
+            // 5. 遍历翻译数据，写入变量并执行绑定
+            for (const item of newPayload) {
+                let variable = varMap.get(item.original);
+                
+                // 如果不存在则创建
+                if (!variable) {
+                    let safeName = item.original.slice(0, 15).replace(/[.*{}\/\\\r\n\t]/g, '_').trim() || 'text';
+                    const varName = `i18n/${safeName}_${Math.random().toString(36).substring(2,6)}`;
+                    variable = figma.variables.createVariable(varName, collection, 'STRING');
+                    variable.setValueForMode(origModeId, item.original);
+                }
+
+                // 【核心修复】：为该变量在所有目标 Mode 中设置翻译值
+                for (const [langName, translatedText] of Object.entries(item.translations)) {
+                    const targetModeId = modeIdMap[langName];
+                    if (targetModeId) {
+                        variable.setValueForMode(targetModeId, translatedText as string);
+                    }
+                }
+
+                // 执行画布节点的变量绑定
+                for (const nodeId of item.nodeIds) {
+                    const node = await figma.getNodeByIdAsync(nodeId);
+                    if (node && node.type === 'TEXT' && node.fontName !== figma.mixed) {
+                        await figma.loadFontAsync(node.fontName); 
+                        node.setBoundVariable('characters', variable);
+                    }
+                }
+            }
+
+            figma.ui.postMessage({ type: 'i18n-bind-success', message: '🎉 多语言 Mode 已同步更新！' });
+            
+        } catch (e) {
+            figma.ui.postMessage({ type: 'i18n-bind-error', error: e.message }); 
+        }
+        break;
+    }
+
+    case 'i18n-replace-text': {
+        const { payload } = msg;
+        let successCount = 0;
+        
+        try {
+            for (const item of payload) {
+                const targetText = Object.values(item.translations)[0]; 
+                
+                for (const nodeId of item.nodeIds) {
+                    try {
+                        const node = await figma.getNodeByIdAsync(nodeId);
+                        if (node && node.type === 'TEXT' && node.fontName !== figma.mixed) {
+                            await figma.loadFontAsync(node.fontName);
+                            
+                            // 【核心修复】：直接替换前，必须解除已有的变量绑定，否则必定被 Figma API 拦截失败！
+                            node.setBoundVariable('characters', null);
+                            
+                            node.characters = targetText;
+                            successCount++;
+                        }
+                    } catch (e) { 
+                        console.warn(`节点替换失败`, e); 
+                    }
+                }
+            }
+
+            figma.ui.postMessage({ type: 'i18n-bind-success', message: `🎉 成功替换了 ${successCount} 个文本节点！` });
+            
+        } catch (e) {
+            figma.ui.postMessage({ type: 'i18n-bind-error', error: e.message });
+        }
+        break;
+    }
+
     // --- 窗口大小调整 ---
     case 'resize-drag':
     case 'resize-window':
       figma.ui.resize(msg.width, msg.height);
       break;
+
+      
   }
 };
 
