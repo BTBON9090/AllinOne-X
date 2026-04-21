@@ -1,3146 +1,1107 @@
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
+// Figma Plugin Code
+var __html__ = "<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>AllinOne-CC</title>\n  <script type=\"module\" crossorigin>var kl=Object.defineProperty;var Al=(e,t,s)=>t in e?kl(e,t,{enumerable:!0,configurable:!0,writable:!0,value:s}):e[t]=s;var Rt=(e,t,s)=>Al(e,typeof t!=\"symbol\"?t+\"\":t,s);(function(){const t=document.createElement(\"link\").relList;if(t&&t.supports&&t.supports(\"modulepreload\"))return;for(const o of document.querySelectorAll('link[rel=\"modulepreload\"]'))n(o);new MutationObserver(o=>{for(const i of o)if(i.type===\"childList\")for(const l of i.addedNodes)l.tagName===\"LINK\"&&l.rel===\"modulepreload\"&&n(l)}).observe(document,{childList:!0,subtree:!0});function s(o){const i={};return o.integrity&&(i.integrity=o.integrity),o.referrerPolicy&&(i.referrerPolicy=o.referrerPolicy),o.crossOrigin===\"use-credentials\"?i.credentials=\"include\":o.crossOrigin===\"anonymous\"?i.credentials=\"omit\":i.credentials=\"same-origin\",i}function n(o){if(o.ep)return;o.ep=!0;const i=s(o);fetch(o.href,i)}})();/**\n* @vue/shared v3.5.32\n* (c) 2018-present Yuxi (Evan) You and Vue contributors\n* @license MIT\n**/function Vn(e){const t=Object.create(null);for(const s of e.split(\",\"))t[s]=1;return s=>s in t}const ie={},Ut=[],tt=()=>{},ni=()=>!1,Gs=e=>e.charCodeAt(0)===111&&e.charCodeAt(1)===110&&(e.charCodeAt(2)>122||e.charCodeAt(2)<97),qs=e=>e.startsWith(\"onUpdate:\"),he=Object.assign,Hn=(e,t)=>{const s=e.indexOf(t);s>-1&&e.splice(s,1)},Ol=Object.prototype.hasOwnProperty,ee=(e,t)=>Ol.call(e,t),j=Array.isArray,Bt=e=>ws(e)===\"[object Map]\",Jt=e=>ws(e)===\"[object Set]\",co=e=>ws(e)===\"[object Date]\",K=e=>typeof e==\"function\",de=e=>typeof e==\"string\",Pe=e=>typeof e==\"symbol\",te=e=>e!==null&&typeof e==\"object\",oi=e=>(te(e)||K(e))&&K(e.then)&&K(e.catch),ii=Object.prototype.toString,ws=e=>ii.call(e),Il=e=>ws(e).slice(8,-1),li=e=>ws(e)===\"[object Object]\",Ys=e=>de(e)&&e!==\"NaN\"&&e[0]!==\"-\"&&\"\"+parseInt(e,10)===e,rs=Vn(\",key,ref,ref_for,ref_key,onVnodeBeforeMount,onVnodeMounted,onVnodeBeforeUpdate,onVnodeUpdated,onVnodeBeforeUnmount,onVnodeUnmounted\"),Js=e=>{const t=Object.create(null);return s=>t[s]||(t[s]=e(s))},Fl=/-\\w/g,Ve=Js(e=>e.replace(Fl,t=>t.slice(1).toUpperCase())),Ml=/\\B([A-Z])/g,xt=Js(e=>e.replace(Ml,\"-$1\").toLowerCase()),ri=Js(e=>e.charAt(0).toUpperCase()+e.slice(1)),hn=Js(e=>e?`on${ri(e)}`:\"\"),et=(e,t)=>!Object.is(e,t),Ms=(e,...t)=>{for(let s=0;s<e.length;s++)e[s](...t)},ai=(e,t,s,n=!1)=>{Object.defineProperty(e,t,{configurable:!0,enumerable:!1,writable:n,value:s})},Xs=e=>{const t=parseFloat(e);return isNaN(t)?e:t},Ll=e=>{const t=de(e)?Number(e):NaN;return isNaN(t)?e:t};let uo;const Zs=()=>uo||(uo=typeof globalThis<\"u\"?globalThis:typeof self<\"u\"?self:typeof window<\"u\"?window:typeof global<\"u\"?global:{});function Un(e){if(j(e)){const t={};for(let s=0;s<e.length;s++){const n=e[s],o=de(n)?Dl(n):Un(n);if(o)for(const i in o)t[i]=o[i]}return t}else if(de(e)||te(e))return e}const Pl=/;(?![^(]*\\))/g,Rl=/:([^]+)/,Nl=/\\/\\*[^]*?\\*\\//g;function Dl(e){const t={};return e.replace(Nl,\"\").split(Pl).forEach(s=>{if(s){const n=s.split(Rl);n.length>1&&(t[n[0].trim()]=n[1].trim())}}),t}function ge(e){let t=\"\";if(de(e))t=e;else if(j(e))for(let s=0;s<e.length;s++){const n=ge(e[s]);n&&(t+=n+\" \")}else if(te(e))for(const s in e)e[s]&&(t+=s+\" \");return t.trim()}const jl=\"itemscope,allowfullscreen,formnovalidate,ismap,nomodule,novalidate,readonly\",Vl=Vn(jl);function ci(e){return!!e||e===\"\"}function Hl(e,t){if(e.length!==t.length)return!1;let s=!0;for(let n=0;s&&n<e.length;n++)s=bt(e[n],t[n]);return s}function bt(e,t){if(e===t)return!0;let s=co(e),n=co(t);if(s||n)return s&&n?e.getTime()===t.getTime():!1;if(s=Pe(e),n=Pe(t),s||n)return e===t;if(s=j(e),n=j(t),s||n)return s&&n?Hl(e,t):!1;if(s=te(e),n=te(t),s||n){if(!s||!n)return!1;const o=Object.keys(e).length,i=Object.keys(t).length;if(o!==i)return!1;for(const l in e){const r=e.hasOwnProperty(l),a=t.hasOwnProperty(l);if(r&&!a||!r&&a||!bt(e[l],t[l]))return!1}}return String(e)===String(t)}function Bn(e,t){return e.findIndex(s=>bt(s,t))}const ui=e=>!!(e&&e.__v_isRef===!0),G=e=>de(e)?e:e==null?\"\":j(e)||te(e)&&(e.toString===ii||!K(e.toString))?ui(e)?G(e.value):JSON.stringify(e,fi,2):String(e),fi=(e,t)=>ui(t)?fi(e,t.value):Bt(t)?{[`Map(${t.size})`]:[...t.entries()].reduce((s,[n,o],i)=>(s[vn(n,i)+\" =>\"]=o,s),{})}:Jt(t)?{[`Set(${t.size})`]:[...t.values()].map(s=>vn(s))}:Pe(t)?vn(t):te(t)&&!j(t)&&!li(t)?String(t):t,vn=(e,t=\"\")=>{var s;return Pe(e)?`Symbol(${(s=e.description)!=null?s:t})`:e};/**\n* @vue/reactivity v3.5.32\n* (c) 2018-present Yuxi (Evan) You and Vue contributors\n* @license MIT\n**/let Se;class di{constructor(t=!1){this.detached=t,this._active=!0,this._on=0,this.effects=[],this.cleanups=[],this._isPaused=!1,this.__v_skip=!0,this.parent=Se,!t&&Se&&(this.index=(Se.scopes||(Se.scopes=[])).push(this)-1)}get active(){return this._active}pause(){if(this._active){this._isPaused=!0;let t,s;if(this.scopes)for(t=0,s=this.scopes.length;t<s;t++)this.scopes[t].pause();for(t=0,s=this.effects.length;t<s;t++)this.effects[t].pause()}}resume(){if(this._active&&this._isPaused){this._isPaused=!1;let t,s;if(this.scopes)for(t=0,s=this.scopes.length;t<s;t++)this.scopes[t].resume();for(t=0,s=this.effects.length;t<s;t++)this.effects[t].resume()}}run(t){if(this._active){const s=Se;try{return Se=this,t()}finally{Se=s}}}on(){++this._on===1&&(this.prevScope=Se,Se=this)}off(){this._on>0&&--this._on===0&&(Se=this.prevScope,this.prevScope=void 0)}stop(t){if(this._active){this._active=!1;let s,n;for(s=0,n=this.effects.length;s<n;s++)this.effects[s].stop();for(this.effects.length=0,s=0,n=this.cleanups.length;s<n;s++)this.cleanups[s]();if(this.cleanups.length=0,this.scopes){for(s=0,n=this.scopes.length;s<n;s++)this.scopes[s].stop(!0);this.scopes.length=0}if(!this.detached&&this.parent&&!t){const o=this.parent.scopes.pop();o&&o!==this&&(this.parent.scopes[this.index]=o,o.index=this.index)}this.parent=void 0}}}function pi(e){return new di(e)}function hi(){return Se}function Ul(e,t=!1){Se&&Se.cleanups.push(e)}let ae;const gn=new WeakSet;class vi{constructor(t){this.fn=t,this.deps=void 0,this.depsTail=void 0,this.flags=5,this.next=void 0,this.cleanup=void 0,this.scheduler=void 0,Se&&Se.active&&Se.effects.push(this)}pause(){this.flags|=64}resume(){this.flags&64&&(this.flags&=-65,gn.has(this)&&(gn.delete(this),this.trigger()))}notify(){this.flags&2&&!(this.flags&32)||this.flags&8||mi(this)}run(){if(!(this.flags&1))return this.fn();this.flags|=2,fo(this),bi(this);const t=ae,s=He;ae=this,He=!0;try{return this.fn()}finally{_i(this),ae=t,He=s,this.flags&=-3}}stop(){if(this.flags&1){for(let t=this.deps;t;t=t.nextDep)zn(t);this.deps=this.depsTail=void 0,fo(this),this.onStop&&this.onStop(),this.flags&=-2}}trigger(){this.flags&64?gn.add(this):this.scheduler?this.scheduler():this.runIfDirty()}runIfDirty(){En(this)&&this.run()}get dirty(){return En(this)}}let gi=0,as,cs;function mi(e,t=!1){if(e.flags|=8,t){e.next=cs,cs=e;return}e.next=as,as=e}function Wn(){gi++}function Kn(){if(--gi>0)return;if(cs){let t=cs;for(cs=void 0;t;){const s=t.next;t.next=void 0,t.flags&=-9,t=s}}let e;for(;as;){let t=as;for(as=void 0;t;){const s=t.next;if(t.next=void 0,t.flags&=-9,t.flags&1)try{t.trigger()}catch(n){e||(e=n)}t=s}}if(e)throw e}function bi(e){for(let t=e.deps;t;t=t.nextDep)t.version=-1,t.prevActiveLink=t.dep.activeLink,t.dep.activeLink=t}function _i(e){let t,s=e.depsTail,n=s;for(;n;){const o=n.prevDep;n.version===-1?(n===s&&(s=o),zn(n),Bl(n)):t=n,n.dep.activeLink=n.prevActiveLink,n.prevActiveLink=void 0,n=o}e.deps=t,e.depsTail=s}function En(e){for(let t=e.deps;t;t=t.nextDep)if(t.dep.version!==t.version||t.dep.computed&&(yi(t.dep.computed)||t.dep.version!==t.version))return!0;return!!e._dirty}function yi(e){if(e.flags&4&&!(e.flags&16)||(e.flags&=-17,e.globalVersion===vs)||(e.globalVersion=vs,!e.isSSR&&e.flags&128&&(!e.deps&&!e._dirty||!En(e))))return;e.flags|=2;const t=e.dep,s=ae,n=He;ae=e,He=!0;try{bi(e);const o=e.fn(e._value);(t.version===0||et(o,e._value))&&(e.flags|=128,e._value=o,t.version++)}catch(o){throw t.version++,o}finally{ae=s,He=n,_i(e),e.flags&=-3}}function zn(e,t=!1){const{dep:s,prevSub:n,nextSub:o}=e;if(n&&(n.nextSub=o,e.prevSub=void 0),o&&(o.prevSub=n,e.nextSub=void 0),s.subs===e&&(s.subs=n,!n&&s.computed)){s.computed.flags&=-5;for(let i=s.computed.deps;i;i=i.nextDep)zn(i,!0)}!t&&!--s.sc&&s.map&&s.map.delete(s.key)}function Bl(e){const{prevDep:t,nextDep:s}=e;t&&(t.nextDep=s,e.prevDep=void 0),s&&(s.prevDep=t,e.nextDep=void 0)}let He=!0;const xi=[];function ft(){xi.push(He),He=!1}function dt(){const e=xi.pop();He=e===void 0?!0:e}function fo(e){const{cleanup:t}=e;if(e.cleanup=void 0,t){const s=ae;ae=void 0;try{t()}finally{ae=s}}}let vs=0;class Wl{constructor(t,s){this.sub=t,this.dep=s,this.version=s.version,this.nextDep=this.prevDep=this.nextSub=this.prevSub=this.prevActiveLink=void 0}}class Gn{constructor(t){this.computed=t,this.version=0,this.activeLink=void 0,this.subs=void 0,this.map=void 0,this.key=void 0,this.sc=0,this.__v_skip=!0}track(t){if(!ae||!He||ae===this.computed)return;let s=this.activeLink;if(s===void 0||s.sub!==ae)s=this.activeLink=new Wl(ae,this),ae.deps?(s.prevDep=ae.depsTail,ae.depsTail.nextDep=s,ae.depsTail=s):ae.deps=ae.depsTail=s,Si(s);else if(s.version===-1&&(s.version=this.version,s.nextDep)){const n=s.nextDep;n.prevDep=s.prevDep,s.prevDep&&(s.prevDep.nextDep=n),s.prevDep=ae.depsTail,s.nextDep=void 0,ae.depsTail.nextDep=s,ae.depsTail=s,ae.deps===s&&(ae.deps=n)}return s}trigger(t){this.version++,vs++,this.notify(t)}notify(t){Wn();try{for(let s=this.subs;s;s=s.prevSub)s.sub.notify()&&s.sub.dep.notify()}finally{Kn()}}}function Si(e){if(e.dep.sc++,e.sub.flags&4){const t=e.dep.computed;if(t&&!e.dep.subs){t.flags|=20;for(let n=t.deps;n;n=n.nextDep)Si(n)}const s=e.dep.subs;s!==e&&(e.prevSub=s,s&&(s.nextSub=e)),e.dep.subs=e}}const Ds=new WeakMap,Lt=Symbol(\"\"),Tn=Symbol(\"\"),gs=Symbol(\"\");function Ce(e,t,s){if(He&&ae){let n=Ds.get(e);n||Ds.set(e,n=new Map);let o=n.get(s);o||(n.set(s,o=new Gn),o.map=n,o.key=s),o.track()}}function rt(e,t,s,n,o,i){const l=Ds.get(e);if(!l){vs++;return}const r=a=>{a&&a.trigger()};if(Wn(),t===\"clear\")l.forEach(r);else{const a=j(e),d=a&&Ys(s);if(a&&s===\"length\"){const c=Number(n);l.forEach((h,v)=>{(v===\"length\"||v===gs||!Pe(v)&&v>=c)&&r(h)})}else switch((s!==void 0||l.has(void 0))&&r(l.get(s)),d&&r(l.get(gs)),t){case\"add\":a?d&&r(l.get(\"length\")):(r(l.get(Lt)),Bt(e)&&r(l.get(Tn)));break;case\"delete\":a||(r(l.get(Lt)),Bt(e)&&r(l.get(Tn)));break;case\"set\":Bt(e)&&r(l.get(Lt));break}}Kn()}function Kl(e,t){const s=Ds.get(e);return s&&s.get(t)}function Nt(e){const t=X(e);return t===e?t:(Ce(t,\"iterate\",gs),Le(e)?t:t.map(Ue))}function Qs(e){return Ce(e=X(e),\"iterate\",gs),e}function Xe(e,t){return pt(e)?Gt(ut(e)?Ue(t):t):Ue(t)}const zl={__proto__:null,[Symbol.iterator](){return mn(this,Symbol.iterator,e=>Xe(this,e))},concat(...e){return Nt(this).concat(...e.map(t=>j(t)?Nt(t):t))},entries(){return mn(this,\"entries\",e=>(e[1]=Xe(this,e[1]),e))},every(e,t){return nt(this,\"every\",e,t,void 0,arguments)},filter(e,t){return nt(this,\"filter\",e,t,s=>s.map(n=>Xe(this,n)),arguments)},find(e,t){return nt(this,\"find\",e,t,s=>Xe(this,s),arguments)},findIndex(e,t){return nt(this,\"findIndex\",e,t,void 0,arguments)},findLast(e,t){return nt(this,\"findLast\",e,t,s=>Xe(this,s),arguments)},findLastIndex(e,t){return nt(this,\"findLastIndex\",e,t,void 0,arguments)},forEach(e,t){return nt(this,\"forEach\",e,t,void 0,arguments)},includes(...e){return bn(this,\"includes\",e)},indexOf(...e){return bn(this,\"indexOf\",e)},join(e){return Nt(this).join(e)},lastIndexOf(...e){return bn(this,\"lastIndexOf\",e)},map(e,t){return nt(this,\"map\",e,t,void 0,arguments)},pop(){return ts(this,\"pop\")},push(...e){return ts(this,\"push\",e)},reduce(e,...t){return po(this,\"reduce\",e,t)},reduceRight(e,...t){return po(this,\"reduceRight\",e,t)},shift(){return ts(this,\"shift\")},some(e,t){return nt(this,\"some\",e,t,void 0,arguments)},splice(...e){return ts(this,\"splice\",e)},toReversed(){return Nt(this).toReversed()},toSorted(e){return Nt(this).toSorted(e)},toSpliced(...e){return Nt(this).toSpliced(...e)},unshift(...e){return ts(this,\"unshift\",e)},values(){return mn(this,\"values\",e=>Xe(this,e))}};function mn(e,t,s){const n=Qs(e),o=n[t]();return n!==e&&!Le(e)&&(o._next=o.next,o.next=()=>{const i=o._next();return i.done||(i.value=s(i.value)),i}),o}const Gl=Array.prototype;function nt(e,t,s,n,o,i){const l=Qs(e),r=l!==e&&!Le(e),a=l[t];if(a!==Gl[t]){const h=a.apply(e,i);return r?Ue(h):h}let d=s;l!==e&&(r?d=function(h,v){return s.call(this,Xe(e,h),v,e)}:s.length>2&&(d=function(h,v){return s.call(this,h,v,e)}));const c=a.call(l,d,n);return r&&o?o(c):c}function po(e,t,s,n){const o=Qs(e),i=o!==e&&!Le(e);let l=s,r=!1;o!==e&&(i?(r=n.length===0,l=function(d,c,h){return r&&(r=!1,d=Xe(e,d)),s.call(this,d,Xe(e,c),h,e)}):s.length>3&&(l=function(d,c,h){return s.call(this,d,c,h,e)}));const a=o[t](l,...n);return r?Xe(e,a):a}function bn(e,t,s){const n=X(e);Ce(n,\"iterate\",gs);const o=n[t](...s);return(o===-1||o===!1)&&tn(s[0])?(s[0]=X(s[0]),n[t](...s)):o}function ts(e,t,s=[]){ft(),Wn();const n=X(e)[t].apply(e,s);return Kn(),dt(),n}const ql=Vn(\"__proto__,__v_isRef,__isVue\"),Ci=new Set(Object.getOwnPropertyNames(Symbol).filter(e=>e!==\"arguments\"&&e!==\"caller\").map(e=>Symbol[e]).filter(Pe));function Yl(e){Pe(e)||(e=String(e));const t=X(this);return Ce(t,\"has\",e),t.hasOwnProperty(e)}class wi{constructor(t=!1,s=!1){this._isReadonly=t,this._isShallow=s}get(t,s,n){if(s===\"__v_skip\")return t.__v_skip;const o=this._isReadonly,i=this._isShallow;if(s===\"__v_isReactive\")return!o;if(s===\"__v_isReadonly\")return o;if(s===\"__v_isShallow\")return i;if(s===\"__v_raw\")return n===(o?i?ir:ki:i?Ti:Ei).get(t)||Object.getPrototypeOf(t)===Object.getPrototypeOf(n)?t:void 0;const l=j(t);if(!o){let a;if(l&&(a=zl[s]))return a;if(s===\"hasOwnProperty\")return Yl}const r=Reflect.get(t,s,fe(t)?t:n);if((Pe(s)?Ci.has(s):ql(s))||(o||Ce(t,\"get\",s),i))return r;if(fe(r)){const a=l&&Ys(s)?r:r.value;return o&&te(a)?An(a):a}return te(r)?o?An(r):en(r):r}}class $i extends wi{constructor(t=!1){super(!1,t)}set(t,s,n,o){let i=t[s];const l=j(t)&&Ys(s);if(!this._isShallow){const d=pt(i);if(!Le(n)&&!pt(n)&&(i=X(i),n=X(n)),!l&&fe(i)&&!fe(n))return d||(i.value=n),!0}const r=l?Number(s)<t.length:ee(t,s),a=Reflect.set(t,s,n,fe(t)?t:o);return t===X(o)&&(r?et(n,i)&&rt(t,\"set\",s,n):rt(t,\"add\",s,n)),a}deleteProperty(t,s){const n=ee(t,s);t[s];const o=Reflect.deleteProperty(t,s);return o&&n&&rt(t,\"delete\",s,void 0),o}has(t,s){const n=Reflect.has(t,s);return(!Pe(s)||!Ci.has(s))&&Ce(t,\"has\",s),n}ownKeys(t){return Ce(t,\"iterate\",j(t)?\"length\":Lt),Reflect.ownKeys(t)}}class Jl extends wi{constructor(t=!1){super(!0,t)}set(t,s){return!0}deleteProperty(t,s){return!0}}const Xl=new $i,Zl=new Jl,Ql=new $i(!0);const kn=e=>e,As=e=>Reflect.getPrototypeOf(e);function er(e,t,s){return function(...n){const o=this.__v_raw,i=X(o),l=Bt(i),r=e===\"entries\"||e===Symbol.iterator&&l,a=e===\"keys\"&&l,d=o[e](...n),c=s?kn:t?Gt:Ue;return!t&&Ce(i,\"iterate\",a?Tn:Lt),he(Object.create(d),{next(){const{value:h,done:v}=d.next();return v?{value:h,done:v}:{value:r?[c(h[0]),c(h[1])]:c(h),done:v}}})}}function Os(e){return function(...t){return e===\"delete\"?!1:e===\"clear\"?void 0:this}}function tr(e,t){const s={get(o){const i=this.__v_raw,l=X(i),r=X(o);e||(et(o,r)&&Ce(l,\"get\",o),Ce(l,\"get\",r));const{has:a}=As(l),d=t?kn:e?Gt:Ue;if(a.call(l,o))return d(i.get(o));if(a.call(l,r))return d(i.get(r));i!==l&&i.get(o)},get size(){const o=this.__v_raw;return!e&&Ce(X(o),\"iterate\",Lt),o.size},has(o){const i=this.__v_raw,l=X(i),r=X(o);return e||(et(o,r)&&Ce(l,\"has\",o),Ce(l,\"has\",r)),o===r?i.has(o):i.has(o)||i.has(r)},forEach(o,i){const l=this,r=l.__v_raw,a=X(r),d=t?kn:e?Gt:Ue;return!e&&Ce(a,\"iterate\",Lt),r.forEach((c,h)=>o.call(i,d(c),d(h),l))}};return he(s,e?{add:Os(\"add\"),set:Os(\"set\"),delete:Os(\"delete\"),clear:Os(\"clear\")}:{add(o){const i=X(this),l=As(i),r=X(o),a=!t&&!Le(o)&&!pt(o)?r:o;return l.has.call(i,a)||et(o,a)&&l.has.call(i,o)||et(r,a)&&l.has.call(i,r)||(i.add(a),rt(i,\"add\",a,a)),this},set(o,i){!t&&!Le(i)&&!pt(i)&&(i=X(i));const l=X(this),{has:r,get:a}=As(l);let d=r.call(l,o);d||(o=X(o),d=r.call(l,o));const c=a.call(l,o);return l.set(o,i),d?et(i,c)&&rt(l,\"set\",o,i):rt(l,\"add\",o,i),this},delete(o){const i=X(this),{has:l,get:r}=As(i);let a=l.call(i,o);a||(o=X(o),a=l.call(i,o)),r&&r.call(i,o);const d=i.delete(o);return a&&rt(i,\"delete\",o,void 0),d},clear(){const o=X(this),i=o.size!==0,l=o.clear();return i&&rt(o,\"clear\",void 0,void 0),l}}),[\"keys\",\"values\",\"entries\",Symbol.iterator].forEach(o=>{s[o]=er(o,e,t)}),s}function qn(e,t){const s=tr(e,t);return(n,o,i)=>o===\"__v_isReactive\"?!e:o===\"__v_isReadonly\"?e:o===\"__v_raw\"?n:Reflect.get(ee(s,o)&&o in n?s:n,o,i)}const sr={get:qn(!1,!1)},nr={get:qn(!1,!0)},or={get:qn(!0,!1)};const Ei=new WeakMap,Ti=new WeakMap,ki=new WeakMap,ir=new WeakMap;function lr(e){switch(e){case\"Object\":case\"Array\":return 1;case\"Map\":case\"Set\":case\"WeakMap\":case\"WeakSet\":return 2;default:return 0}}function rr(e){return e.__v_skip||!Object.isExtensible(e)?0:lr(Il(e))}function en(e){return pt(e)?e:Yn(e,!1,Xl,sr,Ei)}function ar(e){return Yn(e,!1,Ql,nr,Ti)}function An(e){return Yn(e,!0,Zl,or,ki)}function Yn(e,t,s,n,o){if(!te(e)||e.__v_raw&&!(t&&e.__v_isReactive))return e;const i=rr(e);if(i===0)return e;const l=o.get(e);if(l)return l;const r=new Proxy(e,i===2?n:s);return o.set(e,r),r}function ut(e){return pt(e)?ut(e.__v_raw):!!(e&&e.__v_isReactive)}function pt(e){return!!(e&&e.__v_isReadonly)}function Le(e){return!!(e&&e.__v_isShallow)}function tn(e){return e?!!e.__v_raw:!1}function X(e){const t=e&&e.__v_raw;return t?X(t):e}function Jn(e){return!ee(e,\"__v_skip\")&&Object.isExtensible(e)&&ai(e,\"__v_skip\",!0),e}const Ue=e=>te(e)?en(e):e,Gt=e=>te(e)?An(e):e;function fe(e){return e?e.__v_isRef===!0:!1}function D(e){return cr(e,!1)}function cr(e,t){return fe(e)?e:new ur(e,t)}class ur{constructor(t,s){this.dep=new Gn,this.__v_isRef=!0,this.__v_isShallow=!1,this._rawValue=s?t:X(t),this._value=s?t:Ue(t),this.__v_isShallow=s}get value(){return this.dep.track(),this._value}set value(t){const s=this._rawValue,n=this.__v_isShallow||Le(t)||pt(t);t=n?t:X(t),et(t,s)&&(this._rawValue=t,this._value=n?t:Ue(t),this.dep.trigger())}}function Ai(e){return fe(e)?e.value:e}const fr={get:(e,t,s)=>t===\"__v_raw\"?e:Ai(Reflect.get(e,t,s)),set:(e,t,s,n)=>{const o=e[t];return fe(o)&&!fe(s)?(o.value=s,!0):Reflect.set(e,t,s,n)}};function Oi(e){return ut(e)?e:new Proxy(e,fr)}function dr(e){const t=j(e)?new Array(e.length):{};for(const s in e)t[s]=hr(e,s);return t}class pr{constructor(t,s,n){this._object=t,this._defaultValue=n,this.__v_isRef=!0,this._value=void 0,this._key=Pe(s)?s:String(s),this._raw=X(t);let o=!0,i=t;if(!j(t)||Pe(this._key)||!Ys(this._key))do o=!tn(i)||Le(i);while(o&&(i=i.__v_raw));this._shallow=o}get value(){let t=this._object[this._key];return this._shallow&&(t=Ai(t)),this._value=t===void 0?this._defaultValue:t}set value(t){if(this._shallow&&fe(this._raw[this._key])){const s=this._object[this._key];if(fe(s)){s.value=t;return}}this._object[this._key]=t}get dep(){return Kl(this._raw,this._key)}}function hr(e,t,s){return new pr(e,t,s)}class vr{constructor(t,s,n){this.fn=t,this.setter=s,this._value=void 0,this.dep=new Gn(this),this.__v_isRef=!0,this.deps=void 0,this.depsTail=void 0,this.flags=16,this.globalVersion=vs-1,this.next=void 0,this.effect=this,this.__v_isReadonly=!s,this.isSSR=n}notify(){if(this.flags|=16,!(this.flags&8)&&ae!==this)return mi(this,!0),!0}get value(){const t=this.dep.track();return yi(this),t&&(t.version=this.dep.version),this._value}set value(t){this.setter&&this.setter(t)}}function gr(e,t,s=!1){let n,o;return K(e)?n=e:(n=e.get,o=e.set),new vr(n,o,s)}const Is={},js=new WeakMap;let Ot;function mr(e,t=!1,s=Ot){if(s){let n=js.get(s);n||js.set(s,n=[]),n.push(e)}}function br(e,t,s=ie){const{immediate:n,deep:o,once:i,scheduler:l,augmentJob:r,call:a}=s,d=$=>o?$:Le($)||o===!1||o===0?at($,1):at($);let c,h,v,g,b=!1,S=!1;if(fe(e)?(h=()=>e.value,b=Le(e)):ut(e)?(h=()=>d(e),b=!0):j(e)?(S=!0,b=e.some($=>ut($)||Le($)),h=()=>e.map($=>{if(fe($))return $.value;if(ut($))return d($);if(K($))return a?a($,2):$()})):K(e)?t?h=a?()=>a(e,2):e:h=()=>{if(v){ft();try{v()}finally{dt()}}const $=Ot;Ot=c;try{return a?a(e,3,[g]):e(g)}finally{Ot=$}}:h=tt,t&&o){const $=h,P=o===!0?1/0:o;h=()=>at($(),P)}const w=hi(),N=()=>{c.stop(),w&&w.active&&Hn(w.effects,c)};if(i&&t){const $=t;t=(...P)=>{$(...P),N()}}let H=S?new Array(e.length).fill(Is):Is;const z=$=>{if(!(!(c.flags&1)||!c.dirty&&!$))if(t){const P=c.run();if(o||b||(S?P.some((E,R)=>et(E,H[R])):et(P,H))){v&&v();const E=Ot;Ot=c;try{const R=[P,H===Is?void 0:S&&H[0]===Is?[]:H,g];H=P,a?a(t,3,R):t(...R)}finally{Ot=E}}}else c.run()};return r&&r(z),c=new vi(h),c.scheduler=l?()=>l(z,!1):z,g=$=>mr($,!1,c),v=c.onStop=()=>{const $=js.get(c);if($){if(a)a($,4);else for(const P of $)P();js.delete(c)}},t?n?z(!0):H=c.run():l?l(z.bind(null,!0),!0):c.run(),N.pause=c.pause.bind(c),N.resume=c.resume.bind(c),N.stop=N,N}function at(e,t=1/0,s){if(t<=0||!te(e)||e.__v_skip||(s=s||new Map,(s.get(e)||0)>=t))return e;if(s.set(e,t),t--,fe(e))at(e.value,t,s);else if(j(e))for(let n=0;n<e.length;n++)at(e[n],t,s);else if(Jt(e)||Bt(e))e.forEach(n=>{at(n,t,s)});else if(li(e)){for(const n in e)at(e[n],t,s);for(const n of Object.getOwnPropertySymbols(e))Object.prototype.propertyIsEnumerable.call(e,n)&&at(e[n],t,s)}return e}/**\n* @vue/runtime-core v3.5.32\n* (c) 2018-present Yuxi (Evan) You and Vue contributors\n* @license MIT\n**/function $s(e,t,s,n){try{return n?e(...n):e()}catch(o){sn(o,t,s)}}function Be(e,t,s,n){if(K(e)){const o=$s(e,t,s,n);return o&&oi(o)&&o.catch(i=>{sn(i,t,s)}),o}if(j(e)){const o=[];for(let i=0;i<e.length;i++)o.push(Be(e[i],t,s,n));return o}}function sn(e,t,s,n=!0){const o=t?t.vnode:null,{errorHandler:i,throwUnhandledErrorInProduction:l}=t&&t.appContext.config||ie;if(t){let r=t.parent;const a=t.proxy,d=`https://vuejs.org/error-reference/#runtime-${s}`;for(;r;){const c=r.ec;if(c){for(let h=0;h<c.length;h++)if(c[h](e,a,d)===!1)return}r=r.parent}if(i){ft(),$s(i,null,10,[e,a,d]),dt();return}}_r(e,s,o,n,l)}function _r(e,t,s,n=!0,o=!1){if(o)throw e;console.error(e)}const Te=[];let Ye=-1;const Wt=[];let mt=null,jt=0;const Ii=Promise.resolve();let Vs=null;function nn(e){const t=Vs||Ii;return e?t.then(this?e.bind(this):e):t}function yr(e){let t=Ye+1,s=Te.length;for(;t<s;){const n=t+s>>>1,o=Te[n],i=ms(o);i<e||i===e&&o.flags&2?t=n+1:s=n}return t}function Xn(e){if(!(e.flags&1)){const t=ms(e),s=Te[Te.length-1];!s||!(e.flags&2)&&t>=ms(s)?Te.push(e):Te.splice(yr(t),0,e),e.flags|=1,Fi()}}function Fi(){Vs||(Vs=Ii.then(Li))}function xr(e){j(e)?Wt.push(...e):mt&&e.id===-1?mt.splice(jt+1,0,e):e.flags&1||(Wt.push(e),e.flags|=1),Fi()}function ho(e,t,s=Ye+1){for(;s<Te.length;s++){const n=Te[s];if(n&&n.flags&2){if(e&&n.id!==e.uid)continue;Te.splice(s,1),s--,n.flags&4&&(n.flags&=-2),n(),n.flags&4||(n.flags&=-2)}}}function Mi(e){if(Wt.length){const t=[...new Set(Wt)].sort((s,n)=>ms(s)-ms(n));if(Wt.length=0,mt){mt.push(...t);return}for(mt=t,jt=0;jt<mt.length;jt++){const s=mt[jt];s.flags&4&&(s.flags&=-2),s.flags&8||s(),s.flags&=-2}mt=null,jt=0}}const ms=e=>e.id==null?e.flags&2?-1:1/0:e.id;function Li(e){try{for(Ye=0;Ye<Te.length;Ye++){const t=Te[Ye];t&&!(t.flags&8)&&(t.flags&4&&(t.flags&=-2),$s(t,t.i,t.i?15:14),t.flags&4||(t.flags&=-2))}}finally{for(;Ye<Te.length;Ye++){const t=Te[Ye];t&&(t.flags&=-2)}Ye=-1,Te.length=0,Mi(),Vs=null,(Te.length||Wt.length)&&Li()}}let $e=null,Pi=null;function Hs(e){const t=$e;return $e=e,Pi=e&&e.type.__scopeId||null,t}function Ie(e,t=$e,s){if(!t||e._n)return e;const n=(...o)=>{n._d&&Ws(-1);const i=Hs(t);let l;try{l=e(...o)}finally{Hs(i),n._d&&Ws(1)}return l};return n._n=!0,n._c=!0,n._d=!0,n}function me(e,t){if($e===null)return e;const s=un($e),n=e.dirs||(e.dirs=[]);for(let o=0;o<t.length;o++){let[i,l,r,a=ie]=t[o];i&&(K(i)&&(i={mounted:i,updated:i}),i.deep&&at(l),n.push({dir:i,instance:s,value:l,oldValue:void 0,arg:r,modifiers:a}))}return e}function $t(e,t,s,n){const o=e.dirs,i=t&&t.dirs;for(let l=0;l<o.length;l++){const r=o[l];i&&(r.oldValue=i[l].value);let a=r.dir[n];a&&(ft(),Be(a,s,8,[e.el,r,e,t]),dt())}}function Sr(e,t){if(ke){let s=ke.provides;const n=ke.parent&&ke.parent.provides;n===s&&(s=ke.provides=Object.create(n)),s[e]=t}}function us(e,t,s=!1){const n=so();if(n||Pt){let o=Pt?Pt._context.provides:n?n.parent==null||n.ce?n.vnode.appContext&&n.vnode.appContext.provides:n.parent.provides:void 0;if(o&&e in o)return o[e];if(arguments.length>1)return s&&K(t)?t.call(n&&n.proxy):t}}function Cr(){return!!(so()||Pt)}const wr=Symbol.for(\"v-scx\"),$r=()=>us(wr);function Ls(e,t,s){return Ri(e,t,s)}function Ri(e,t,s=ie){const{immediate:n,deep:o,flush:i,once:l}=s,r=he({},s),a=t&&n||!t&&i!==\"post\";let d;if(Ss){if(i===\"sync\"){const g=$r();d=g.__watcherHandles||(g.__watcherHandles=[])}else if(!a){const g=()=>{};return g.stop=tt,g.resume=tt,g.pause=tt,g}}const c=ke;r.call=(g,b,S)=>Be(g,c,b,S);let h=!1;i===\"post\"?r.scheduler=g=>{Ae(g,c&&c.suspense)}:i!==\"sync\"&&(h=!0,r.scheduler=(g,b)=>{b?g():Xn(g)}),r.augmentJob=g=>{t&&(g.flags|=4),h&&(g.flags|=2,c&&(g.id=c.uid,g.i=c))};const v=br(e,t,r);return Ss&&(d?d.push(v):a&&v()),v}function Er(e,t,s){const n=this.proxy,o=de(e)?e.includes(\".\")?Ni(n,e):()=>n[e]:e.bind(n,n);let i;K(t)?i=t:(i=t.handler,s=t);const l=Es(this),r=Ri(o,i.bind(n),s);return l(),r}function Ni(e,t){const s=t.split(\".\");return()=>{let n=e;for(let o=0;o<s.length&&n;o++)n=n[s[o]];return n}}const Tr=Symbol(\"_vte\"),Di=e=>e.__isTeleport,Je=Symbol(\"_leaveCb\"),ss=Symbol(\"_enterCb\");function kr(){const e={isMounted:!1,isLeaving:!1,isUnmounting:!1,leavingVNodes:new Map};return st(()=>{e.isMounted=!0}),zi(()=>{e.isUnmounting=!0}),e}const Re=[Function,Array],ji={mode:String,appear:Boolean,persisted:Boolean,onBeforeEnter:Re,onEnter:Re,onAfterEnter:Re,onEnterCancelled:Re,onBeforeLeave:Re,onLeave:Re,onAfterLeave:Re,onLeaveCancelled:Re,onBeforeAppear:Re,onAppear:Re,onAfterAppear:Re,onAppearCancelled:Re},Vi=e=>{const t=e.subTree;return t.component?Vi(t.component):t},Ar={name:\"BaseTransition\",props:ji,setup(e,{slots:t}){const s=so(),n=kr();return()=>{const o=t.default&&Bi(t.default(),!0);if(!o||!o.length)return;const i=Hi(o),l=X(e),{mode:r}=l;if(n.isLeaving)return _n(i);const a=vo(i);if(!a)return _n(i);let d=On(a,l,n,s,h=>d=h);a.type!==we&&bs(a,d);let c=s.subTree&&vo(s.subTree);if(c&&c.type!==we&&!It(c,a)&&Vi(s).type!==we){let h=On(c,l,n,s);if(bs(c,h),r===\"out-in\"&&a.type!==we)return n.isLeaving=!0,h.afterLeave=()=>{n.isLeaving=!1,s.job.flags&8||s.update(),delete h.afterLeave,c=void 0},_n(i);r===\"in-out\"&&a.type!==we?h.delayLeave=(v,g,b)=>{const S=Ui(n,c);S[String(c.key)]=c,v[Je]=()=>{g(),v[Je]=void 0,delete d.delayedLeave,c=void 0},d.delayedLeave=()=>{b(),delete d.delayedLeave,c=void 0}}:c=void 0}else c&&(c=void 0);return i}}};function Hi(e){let t=e[0];if(e.length>1){for(const s of e)if(s.type!==we){t=s;break}}return t}const Or=Ar;function Ui(e,t){const{leavingVNodes:s}=e;let n=s.get(t.type);return n||(n=Object.create(null),s.set(t.type,n)),n}function On(e,t,s,n,o){const{appear:i,mode:l,persisted:r=!1,onBeforeEnter:a,onEnter:d,onAfterEnter:c,onEnterCancelled:h,onBeforeLeave:v,onLeave:g,onAfterLeave:b,onLeaveCancelled:S,onBeforeAppear:w,onAppear:N,onAfterAppear:H,onAppearCancelled:z}=t,$=String(e.key),P=Ui(s,e),E=(M,q)=>{M&&Be(M,n,9,q)},R=(M,q)=>{const Q=q[1];E(M,q),j(M)?M.every(L=>L.length<=1)&&Q():M.length<=1&&Q()},B={mode:l,persisted:r,beforeEnter(M){let q=a;if(!s.isMounted)if(i)q=w||a;else return;M[Je]&&M[Je](!0);const Q=P[$];Q&&It(e,Q)&&Q.el[Je]&&Q.el[Je](),E(q,[M])},enter(M){if(P[$]===e)return;let q=d,Q=c,L=h;if(!s.isMounted)if(i)q=N||d,Q=H||c,L=z||h;else return;let se=!1;M[ss]=je=>{se||(se=!0,je?E(L,[M]):E(Q,[M]),B.delayedLeave&&B.delayedLeave(),M[ss]=void 0)};const ve=M[ss].bind(null,!1);q?R(q,[M,ve]):ve()},leave(M,q){const Q=String(e.key);if(M[ss]&&M[ss](!0),s.isUnmounting)return q();E(v,[M]);let L=!1;M[Je]=ve=>{L||(L=!0,q(),ve?E(S,[M]):E(b,[M]),M[Je]=void 0,P[Q]===e&&delete P[Q])};const se=M[Je].bind(null,!1);P[Q]=e,g?R(g,[M,se]):se()},clone(M){const q=On(M,t,s,n,o);return o&&o(q),q}};return B}function _n(e){if(on(e))return e=_t(e),e.children=null,e}function vo(e){if(!on(e))return Di(e.type)&&e.children?Hi(e.children):e;if(e.component)return e.component.subTree;const{shapeFlag:t,children:s}=e;if(s){if(t&16)return s[0];if(t&32&&K(s.default))return s.default()}}function bs(e,t){e.shapeFlag&6&&e.component?(e.transition=t,bs(e.component.subTree,t)):e.shapeFlag&128?(e.ssContent.transition=t.clone(e.ssContent),e.ssFallback.transition=t.clone(e.ssFallback)):e.transition=t}function Bi(e,t=!1,s){let n=[],o=0;for(let i=0;i<e.length;i++){let l=e[i];const r=s==null?l.key:String(s)+String(l.key!=null?l.key:i);l.type===ce?(l.patchFlag&128&&o++,n=n.concat(Bi(l.children,t,r))):(t||l.type!==we)&&n.push(r!=null?_t(l,{key:r}):l)}if(o>1)for(let i=0;i<n.length;i++)n[i].patchFlag=-2;return n}function ye(e,t){return K(e)?he({name:e.name},t,{setup:e}):e}function Wi(e){e.ids=[e.ids[0]+e.ids[2]+++\"-\",0,0]}function go(e,t){let s;return!!((s=Object.getOwnPropertyDescriptor(e,t))&&!s.configurable)}const Us=new WeakMap;function fs(e,t,s,n,o=!1){if(j(e)){e.forEach((S,w)=>fs(S,t&&(j(t)?t[w]:t),s,n,o));return}if(Kt(n)&&!o){n.shapeFlag&512&&n.type.__asyncResolved&&n.component.subTree.component&&fs(e,t,s,n.component.subTree);return}const i=n.shapeFlag&4?un(n.component):n.el,l=o?null:i,{i:r,r:a}=e,d=t&&t.r,c=r.refs===ie?r.refs={}:r.refs,h=r.setupState,v=X(h),g=h===ie?ni:S=>go(c,S)?!1:ee(v,S),b=(S,w)=>!(w&&go(c,w));if(d!=null&&d!==a){if(mo(t),de(d))c[d]=null,g(d)&&(h[d]=null);else if(fe(d)){const S=t;b(d,S.k)&&(d.value=null),S.k&&(c[S.k]=null)}}if(K(a))$s(a,r,12,[l,c]);else{const S=de(a),w=fe(a);if(S||w){const N=()=>{if(e.f){const H=S?g(a)?h[a]:c[a]:b()||!e.k?a.value:c[e.k];if(o)j(H)&&Hn(H,i);else if(j(H))H.includes(i)||H.push(i);else if(S)c[a]=[i],g(a)&&(h[a]=c[a]);else{const z=[i];b(a,e.k)&&(a.value=z),e.k&&(c[e.k]=z)}}else S?(c[a]=l,g(a)&&(h[a]=l)):w&&(b(a,e.k)&&(a.value=l),e.k&&(c[e.k]=l))};if(l){const H=()=>{N(),Us.delete(e)};H.id=-1,Us.set(e,H),Ae(H,s)}else mo(e),N()}}}function mo(e){const t=Us.get(e);t&&(t.flags|=8,Us.delete(e))}Zs().requestIdleCallback;Zs().cancelIdleCallback;const Kt=e=>!!e.type.__asyncLoader,on=e=>e.type.__isKeepAlive;function Ir(e,t){Ki(e,\"a\",t)}function Fr(e,t){Ki(e,\"da\",t)}function Ki(e,t,s=ke){const n=e.__wdc||(e.__wdc=()=>{let o=s;for(;o;){if(o.isDeactivated)return;o=o.parent}return e()});if(ln(t,n,s),s){let o=s.parent;for(;o&&o.parent;)on(o.parent.vnode)&&Mr(n,t,s,o),o=o.parent}}function Mr(e,t,s,n){const o=ln(t,e,n,!0);rn(()=>{Hn(n[t],o)},s)}function ln(e,t,s=ke,n=!1){if(s){const o=s[e]||(s[e]=[]),i=t.__weh||(t.__weh=(...l)=>{ft();const r=Es(s),a=Be(t,s,e,l);return r(),dt(),a});return n?o.unshift(i):o.push(i),i}}const ht=e=>(t,s=ke)=>{(!Ss||e===\"sp\")&&ln(e,(...n)=>t(...n),s)},Lr=ht(\"bm\"),st=ht(\"m\"),Pr=ht(\"bu\"),Rr=ht(\"u\"),zi=ht(\"bum\"),rn=ht(\"um\"),Nr=ht(\"sp\"),Dr=ht(\"rtg\"),jr=ht(\"rtc\");function Vr(e,t=ke){ln(\"ec\",e,t)}const Hr=Symbol.for(\"v-ndc\");function Ne(e,t,s,n){let o;const i=s,l=j(e);if(l||de(e)){const r=l&&ut(e);let a=!1,d=!1;r&&(a=!Le(e),d=pt(e),e=Qs(e)),o=new Array(e.length);for(let c=0,h=e.length;c<h;c++)o[c]=t(a?d?Gt(Ue(e[c])):Ue(e[c]):e[c],c,void 0,i)}else if(typeof e==\"number\"){o=new Array(e);for(let r=0;r<e;r++)o[r]=t(r+1,r,void 0,i)}else if(te(e))if(e[Symbol.iterator])o=Array.from(e,(r,a)=>t(r,a,void 0,i));else{const r=Object.keys(e);o=new Array(r.length);for(let a=0,d=r.length;a<d;a++){const c=r[a];o[a]=t(e[c],c,a,i)}}else o=[];return o}function Zn(e,t,s={},n,o){if($e.ce||$e.parent&&Kt($e.parent)&&$e.parent.ce){const d=Object.keys(s).length>0;return T(),qt(ce,null,[Y(\"slot\",s,n)],d?-2:64)}let i=e[t];i&&i._c&&(i._d=!1),T();const l=i&&Gi(i(s)),r=s.key||l&&l.key,a=qt(ce,{key:(r&&!Pe(r)?r:`_${t}`)+(!l&&n?\"_fb\":\"\")},l||[],l&&e._===1?64:-2);return i&&i._c&&(i._d=!0),a}function Gi(e){return e.some(t=>ys(t)?!(t.type===we||t.type===ce&&!Gi(t.children)):!0)?e:null}const In=e=>e?pl(e)?un(e):In(e.parent):null,ds=he(Object.create(null),{$:e=>e,$el:e=>e.vnode.el,$data:e=>e.data,$props:e=>e.props,$attrs:e=>e.attrs,$slots:e=>e.slots,$refs:e=>e.refs,$parent:e=>In(e.parent),$root:e=>In(e.root),$host:e=>e.ce,$emit:e=>e.emit,$options:e=>Yi(e),$forceUpdate:e=>e.f||(e.f=()=>{Xn(e.update)}),$nextTick:e=>e.n||(e.n=nn.bind(e.proxy)),$watch:e=>Er.bind(e)}),yn=(e,t)=>e!==ie&&!e.__isScriptSetup&&ee(e,t),Ur={get({_:e},t){if(t===\"__v_skip\")return!0;const{ctx:s,setupState:n,data:o,props:i,accessCache:l,type:r,appContext:a}=e;if(t[0]!==\"$\"){const v=l[t];if(v!==void 0)switch(v){case 1:return n[t];case 2:return o[t];case 4:return s[t];case 3:return i[t]}else{if(yn(n,t))return l[t]=1,n[t];if(o!==ie&&ee(o,t))return l[t]=2,o[t];if(ee(i,t))return l[t]=3,i[t];if(s!==ie&&ee(s,t))return l[t]=4,s[t];Fn&&(l[t]=0)}}const d=ds[t];let c,h;if(d)return t===\"$attrs\"&&Ce(e.attrs,\"get\",\"\"),d(e);if((c=r.__cssModules)&&(c=c[t]))return c;if(s!==ie&&ee(s,t))return l[t]=4,s[t];if(h=a.config.globalProperties,ee(h,t))return h[t]},set({_:e},t,s){const{data:n,setupState:o,ctx:i}=e;return yn(o,t)?(o[t]=s,!0):n!==ie&&ee(n,t)?(n[t]=s,!0):ee(e.props,t)||t[0]===\"$\"&&t.slice(1)in e?!1:(i[t]=s,!0)},has({_:{data:e,setupState:t,accessCache:s,ctx:n,appContext:o,props:i,type:l}},r){let a;return!!(s[r]||e!==ie&&r[0]!==\"$\"&&ee(e,r)||yn(t,r)||ee(i,r)||ee(n,r)||ee(ds,r)||ee(o.config.globalProperties,r)||(a=l.__cssModules)&&a[r])},defineProperty(e,t,s){return s.get!=null?e._.accessCache[t]=0:ee(s,\"value\")&&this.set(e,t,s.value,null),Reflect.defineProperty(e,t,s)}};function bo(e){return j(e)?e.reduce((t,s)=>(t[s]=null,t),{}):e}let Fn=!0;function Br(e){const t=Yi(e),s=e.proxy,n=e.ctx;Fn=!1,t.beforeCreate&&_o(t.beforeCreate,e,\"bc\");const{data:o,computed:i,methods:l,watch:r,provide:a,inject:d,created:c,beforeMount:h,mounted:v,beforeUpdate:g,updated:b,activated:S,deactivated:w,beforeDestroy:N,beforeUnmount:H,destroyed:z,unmounted:$,render:P,renderTracked:E,renderTriggered:R,errorCaptured:B,serverPrefetch:M,expose:q,inheritAttrs:Q,components:L,directives:se,filters:ve}=t;if(d&&Wr(d,n,null),l)for(const J in l){const le=l[J];K(le)&&(n[J]=le.bind(s))}if(o){const J=o.call(s,s);te(J)&&(e.data=en(J))}if(Fn=!0,i)for(const J in i){const le=i[J],Ct=K(le)?le.bind(s,s):K(le.get)?le.get.bind(s,s):tt,Ts=!K(le)&&K(le.set)?le.set.bind(s):tt,wt=be({get:Ct,set:Ts});Object.defineProperty(n,J,{enumerable:!0,configurable:!0,get:()=>wt.value,set:We=>wt.value=We})}if(r)for(const J in r)qi(r[J],n,s,J);if(a){const J=K(a)?a.call(s):a;Reflect.ownKeys(J).forEach(le=>{Sr(le,J[le])})}c&&_o(c,e,\"c\");function ue(J,le){j(le)?le.forEach(Ct=>J(Ct.bind(s))):le&&J(le.bind(s))}if(ue(Lr,h),ue(st,v),ue(Pr,g),ue(Rr,b),ue(Ir,S),ue(Fr,w),ue(Vr,B),ue(jr,E),ue(Dr,R),ue(zi,H),ue(rn,$),ue(Nr,M),j(q))if(q.length){const J=e.exposed||(e.exposed={});q.forEach(le=>{Object.defineProperty(J,le,{get:()=>s[le],set:Ct=>s[le]=Ct,enumerable:!0})})}else e.exposed||(e.exposed={});P&&e.render===tt&&(e.render=P),Q!=null&&(e.inheritAttrs=Q),L&&(e.components=L),se&&(e.directives=se),M&&Wi(e)}function Wr(e,t,s=tt){j(e)&&(e=Mn(e));for(const n in e){const o=e[n];let i;te(o)?\"default\"in o?i=us(o.from||n,o.default,!0):i=us(o.from||n):i=us(o),fe(i)?Object.defineProperty(t,n,{enumerable:!0,configurable:!0,get:()=>i.value,set:l=>i.value=l}):t[n]=i}}function _o(e,t,s){Be(j(e)?e.map(n=>n.bind(t.proxy)):e.bind(t.proxy),t,s)}function qi(e,t,s,n){let o=n.includes(\".\")?Ni(s,n):()=>s[n];if(de(e)){const i=t[e];K(i)&&Ls(o,i)}else if(K(e))Ls(o,e.bind(s));else if(te(e))if(j(e))e.forEach(i=>qi(i,t,s,n));else{const i=K(e.handler)?e.handler.bind(s):t[e.handler];K(i)&&Ls(o,i,e)}}function Yi(e){const t=e.type,{mixins:s,extends:n}=t,{mixins:o,optionsCache:i,config:{optionMergeStrategies:l}}=e.appContext,r=i.get(t);let a;return r?a=r:!o.length&&!s&&!n?a=t:(a={},o.length&&o.forEach(d=>Bs(a,d,l,!0)),Bs(a,t,l)),te(t)&&i.set(t,a),a}function Bs(e,t,s,n=!1){const{mixins:o,extends:i}=t;i&&Bs(e,i,s,!0),o&&o.forEach(l=>Bs(e,l,s,!0));for(const l in t)if(!(n&&l===\"expose\")){const r=Kr[l]||s&&s[l];e[l]=r?r(e[l],t[l]):t[l]}return e}const Kr={data:yo,props:xo,emits:xo,methods:ls,computed:ls,beforeCreate:Ee,created:Ee,beforeMount:Ee,mounted:Ee,beforeUpdate:Ee,updated:Ee,beforeDestroy:Ee,beforeUnmount:Ee,destroyed:Ee,unmounted:Ee,activated:Ee,deactivated:Ee,errorCaptured:Ee,serverPrefetch:Ee,components:ls,directives:ls,watch:Gr,provide:yo,inject:zr};function yo(e,t){return t?e?function(){return he(K(e)?e.call(this,this):e,K(t)?t.call(this,this):t)}:t:e}function zr(e,t){return ls(Mn(e),Mn(t))}function Mn(e){if(j(e)){const t={};for(let s=0;s<e.length;s++)t[e[s]]=e[s];return t}return e}function Ee(e,t){return e?[...new Set([].concat(e,t))]:t}function ls(e,t){return e?he(Object.create(null),e,t):t}function xo(e,t){return e?j(e)&&j(t)?[...new Set([...e,...t])]:he(Object.create(null),bo(e),bo(t??{})):t}function Gr(e,t){if(!e)return t;if(!t)return e;const s=he(Object.create(null),e);for(const n in t)s[n]=Ee(e[n],t[n]);return s}function Ji(){return{app:null,config:{isNativeTag:ni,performance:!1,globalProperties:{},optionMergeStrategies:{},errorHandler:void 0,warnHandler:void 0,compilerOptions:{}},mixins:[],components:{},directives:{},provides:Object.create(null),optionsCache:new WeakMap,propsCache:new WeakMap,emitsCache:new WeakMap}}let qr=0;function Yr(e,t){return function(n,o=null){K(n)||(n=he({},n)),o!=null&&!te(o)&&(o=null);const i=Ji(),l=new WeakSet,r=[];let a=!1;const d=i.app={_uid:qr++,_component:n,_props:o,_container:null,_context:i,_instance:null,version:Ta,get config(){return i.config},set config(c){},use(c,...h){return l.has(c)||(c&&K(c.install)?(l.add(c),c.install(d,...h)):K(c)&&(l.add(c),c(d,...h))),d},mixin(c){return i.mixins.includes(c)||i.mixins.push(c),d},component(c,h){return h?(i.components[c]=h,d):i.components[c]},directive(c,h){return h?(i.directives[c]=h,d):i.directives[c]},mount(c,h,v){if(!a){const g=d._ceVNode||Y(n,o);return g.appContext=i,v===!0?v=\"svg\":v===!1&&(v=void 0),e(g,c,v),a=!0,d._container=c,c.__vue_app__=d,un(g.component)}},onUnmount(c){r.push(c)},unmount(){a&&(Be(r,d._instance,16),e(null,d._container),delete d._container.__vue_app__)},provide(c,h){return i.provides[c]=h,d},runWithContext(c){const h=Pt;Pt=d;try{return c()}finally{Pt=h}}};return d}}let Pt=null;const Jr=(e,t)=>t===\"modelValue\"||t===\"model-value\"?e.modelModifiers:e[`${t}Modifiers`]||e[`${Ve(t)}Modifiers`]||e[`${xt(t)}Modifiers`];function Xr(e,t,...s){if(e.isUnmounted)return;const n=e.vnode.props||ie;let o=s;const i=t.startsWith(\"update:\"),l=i&&Jr(n,t.slice(7));l&&(l.trim&&(o=s.map(c=>de(c)?c.trim():c)),l.number&&(o=s.map(Xs)));let r,a=n[r=hn(t)]||n[r=hn(Ve(t))];!a&&i&&(a=n[r=hn(xt(t))]),a&&Be(a,e,6,o);const d=n[r+\"Once\"];if(d){if(!e.emitted)e.emitted={};else if(e.emitted[r])return;e.emitted[r]=!0,Be(d,e,6,o)}}const Zr=new WeakMap;function Xi(e,t,s=!1){const n=s?Zr:t.emitsCache,o=n.get(e);if(o!==void 0)return o;const i=e.emits;let l={},r=!1;if(!K(e)){const a=d=>{const c=Xi(d,t,!0);c&&(r=!0,he(l,c))};!s&&t.mixins.length&&t.mixins.forEach(a),e.extends&&a(e.extends),e.mixins&&e.mixins.forEach(a)}return!i&&!r?(te(e)&&n.set(e,null),null):(j(i)?i.forEach(a=>l[a]=null):he(l,i),te(e)&&n.set(e,l),l)}function an(e,t){return!e||!Gs(t)?!1:(t=t.slice(2).replace(/Once$/,\"\"),ee(e,t[0].toLowerCase()+t.slice(1))||ee(e,xt(t))||ee(e,t))}function So(e){const{type:t,vnode:s,proxy:n,withProxy:o,propsOptions:[i],slots:l,attrs:r,emit:a,render:d,renderCache:c,props:h,data:v,setupState:g,ctx:b,inheritAttrs:S}=e,w=Hs(e);let N,H;try{if(s.shapeFlag&4){const $=o||n,P=$;N=Ze(d.call(P,$,c,h,g,v,b)),H=r}else{const $=t;N=Ze($.length>1?$(h,{attrs:r,slots:l,emit:a}):$(h,null)),H=t.props?r:Qr(r)}}catch($){ps.length=0,sn($,e,1),N=Y(we)}let z=N;if(H&&S!==!1){const $=Object.keys(H),{shapeFlag:P}=z;$.length&&P&7&&(i&&$.some(qs)&&(H=ea(H,i)),z=_t(z,H,!1,!0))}return s.dirs&&(z=_t(z,null,!1,!0),z.dirs=z.dirs?z.dirs.concat(s.dirs):s.dirs),s.transition&&bs(z,s.transition),N=z,Hs(w),N}const Qr=e=>{let t;for(const s in e)(s===\"class\"||s===\"style\"||Gs(s))&&((t||(t={}))[s]=e[s]);return t},ea=(e,t)=>{const s={};for(const n in e)(!qs(n)||!(n.slice(9)in t))&&(s[n]=e[n]);return s};function ta(e,t,s){const{props:n,children:o,component:i}=e,{props:l,children:r,patchFlag:a}=t,d=i.emitsOptions;if(t.dirs||t.transition)return!0;if(s&&a>=0){if(a&1024)return!0;if(a&16)return n?Co(n,l,d):!!l;if(a&8){const c=t.dynamicProps;for(let h=0;h<c.length;h++){const v=c[h];if(Zi(l,n,v)&&!an(d,v))return!0}}}else return(o||r)&&(!r||!r.$stable)?!0:n===l?!1:n?l?Co(n,l,d):!0:!!l;return!1}function Co(e,t,s){const n=Object.keys(t);if(n.length!==Object.keys(e).length)return!0;for(let o=0;o<n.length;o++){const i=n[o];if(Zi(t,e,i)&&!an(s,i))return!0}return!1}function Zi(e,t,s){const n=e[s],o=t[s];return s===\"style\"&&te(n)&&te(o)?!bt(n,o):n!==o}function sa({vnode:e,parent:t,suspense:s},n){for(;t;){const o=t.subTree;if(o.suspense&&o.suspense.activeBranch===e&&(o.suspense.vnode.el=o.el=n,e=o),o===e)(e=t.vnode).el=n,t=t.parent;else break}s&&s.activeBranch===e&&(s.vnode.el=n)}const Qi={},el=()=>Object.create(Qi),tl=e=>Object.getPrototypeOf(e)===Qi;function na(e,t,s,n=!1){const o={},i=el();e.propsDefaults=Object.create(null),sl(e,t,o,i);for(const l in e.propsOptions[0])l in o||(o[l]=void 0);s?e.props=n?o:ar(o):e.type.props?e.props=o:e.props=i,e.attrs=i}function oa(e,t,s,n){const{props:o,attrs:i,vnode:{patchFlag:l}}=e,r=X(o),[a]=e.propsOptions;let d=!1;if((n||l>0)&&!(l&16)){if(l&8){const c=e.vnode.dynamicProps;for(let h=0;h<c.length;h++){let v=c[h];if(an(e.emitsOptions,v))continue;const g=t[v];if(a)if(ee(i,v))g!==i[v]&&(i[v]=g,d=!0);else{const b=Ve(v);o[b]=Ln(a,r,b,g,e,!1)}else g!==i[v]&&(i[v]=g,d=!0)}}}else{sl(e,t,o,i)&&(d=!0);let c;for(const h in r)(!t||!ee(t,h)&&((c=xt(h))===h||!ee(t,c)))&&(a?s&&(s[h]!==void 0||s[c]!==void 0)&&(o[h]=Ln(a,r,h,void 0,e,!0)):delete o[h]);if(i!==r)for(const h in i)(!t||!ee(t,h))&&(delete i[h],d=!0)}d&&rt(e.attrs,\"set\",\"\")}function sl(e,t,s,n){const[o,i]=e.propsOptions;let l=!1,r;if(t)for(let a in t){if(rs(a))continue;const d=t[a];let c;o&&ee(o,c=Ve(a))?!i||!i.includes(c)?s[c]=d:(r||(r={}))[c]=d:an(e.emitsOptions,a)||(!(a in n)||d!==n[a])&&(n[a]=d,l=!0)}if(i){const a=X(s),d=r||ie;for(let c=0;c<i.length;c++){const h=i[c];s[h]=Ln(o,a,h,d[h],e,!ee(d,h))}}return l}function Ln(e,t,s,n,o,i){const l=e[s];if(l!=null){const r=ee(l,\"default\");if(r&&n===void 0){const a=l.default;if(l.type!==Function&&!l.skipFactory&&K(a)){const{propsDefaults:d}=o;if(s in d)n=d[s];else{const c=Es(o);n=d[s]=a.call(null,t),c()}}else n=a;o.ce&&o.ce._setProp(s,n)}l[0]&&(i&&!r?n=!1:l[1]&&(n===\"\"||n===xt(s))&&(n=!0))}return n}const ia=new WeakMap;function nl(e,t,s=!1){const n=s?ia:t.propsCache,o=n.get(e);if(o)return o;const i=e.props,l={},r=[];let a=!1;if(!K(e)){const c=h=>{a=!0;const[v,g]=nl(h,t,!0);he(l,v),g&&r.push(...g)};!s&&t.mixins.length&&t.mixins.forEach(c),e.extends&&c(e.extends),e.mixins&&e.mixins.forEach(c)}if(!i&&!a)return te(e)&&n.set(e,Ut),Ut;if(j(i))for(let c=0;c<i.length;c++){const h=Ve(i[c]);wo(h)&&(l[h]=ie)}else if(i)for(const c in i){const h=Ve(c);if(wo(h)){const v=i[c],g=l[h]=j(v)||K(v)?{type:v}:he({},v),b=g.type;let S=!1,w=!0;if(j(b))for(let N=0;N<b.length;++N){const H=b[N],z=K(H)&&H.name;if(z===\"Boolean\"){S=!0;break}else z===\"String\"&&(w=!1)}else S=K(b)&&b.name===\"Boolean\";g[0]=S,g[1]=w,(S||ee(g,\"default\"))&&r.push(h)}}const d=[l,r];return te(e)&&n.set(e,d),d}function wo(e){return e[0]!==\"$\"&&!rs(e)}const Qn=e=>e===\"_\"||e===\"_ctx\"||e===\"$stable\",eo=e=>j(e)?e.map(Ze):[Ze(e)],la=(e,t,s)=>{if(t._n)return t;const n=Ie((...o)=>eo(t(...o)),s);return n._c=!1,n},ol=(e,t,s)=>{const n=e._ctx;for(const o in e){if(Qn(o))continue;const i=e[o];if(K(i))t[o]=la(o,i,n);else if(i!=null){const l=eo(i);t[o]=()=>l}}},il=(e,t)=>{const s=eo(t);e.slots.default=()=>s},ll=(e,t,s)=>{for(const n in t)(s||!Qn(n))&&(e[n]=t[n])},ra=(e,t,s)=>{const n=e.slots=el();if(e.vnode.shapeFlag&32){const o=t._;o?(ll(n,t,s),s&&ai(n,\"_\",o,!0)):ol(t,n)}else t&&il(e,t)},aa=(e,t,s)=>{const{vnode:n,slots:o}=e;let i=!0,l=ie;if(n.shapeFlag&32){const r=t._;r?s&&r===1?i=!1:ll(o,t,s):(i=!t.$stable,ol(t,o)),l=t}else t&&(il(e,t),l={default:1});if(i)for(const r in o)!Qn(r)&&l[r]==null&&delete o[r]},Ae=pa;function ca(e){return ua(e)}function ua(e,t){const s=Zs();s.__VUE__=!0;const{insert:n,remove:o,patchProp:i,createElement:l,createText:r,createComment:a,setText:d,setElementText:c,parentNode:h,nextSibling:v,setScopeId:g=tt,insertStaticContent:b}=e,S=(f,p,m,C=null,_=null,y=null,I=void 0,A=null,k=!!p.dynamicChildren)=>{if(f===p)return;f&&!It(f,p)&&(C=ks(f),We(f,_,y,!0),f=null),p.patchFlag===-2&&(k=!1,p.dynamicChildren=null);const{type:x,ref:U,shapeFlag:F}=p;switch(x){case cn:w(f,p,m,C);break;case we:N(f,p,m,C);break;case Ps:f==null&&H(p,m,C,I);break;case ce:L(f,p,m,C,_,y,I,A,k);break;default:F&1?P(f,p,m,C,_,y,I,A,k):F&6?se(f,p,m,C,_,y,I,A,k):(F&64||F&128)&&x.process(f,p,m,C,_,y,I,A,k,Qt)}U!=null&&_?fs(U,f&&f.ref,y,p||f,!p):U==null&&f&&f.ref!=null&&fs(f.ref,null,y,f,!0)},w=(f,p,m,C)=>{if(f==null)n(p.el=r(p.children),m,C);else{const _=p.el=f.el;p.children!==f.children&&d(_,p.children)}},N=(f,p,m,C)=>{f==null?n(p.el=a(p.children||\"\"),m,C):p.el=f.el},H=(f,p,m,C)=>{[f.el,f.anchor]=b(f.children,p,m,C,f.el,f.anchor)},z=({el:f,anchor:p},m,C)=>{let _;for(;f&&f!==p;)_=v(f),n(f,m,C),f=_;n(p,m,C)},$=({el:f,anchor:p})=>{let m;for(;f&&f!==p;)m=v(f),o(f),f=m;o(p)},P=(f,p,m,C,_,y,I,A,k)=>{if(p.type===\"svg\"?I=\"svg\":p.type===\"math\"&&(I=\"mathml\"),f==null)E(p,m,C,_,y,I,A,k);else{const x=f.el&&f.el._isVueCE?f.el:null;try{x&&x._beginPatch(),M(f,p,_,y,I,A,k)}finally{x&&x._endPatch()}}},E=(f,p,m,C,_,y,I,A)=>{let k,x;const{props:U,shapeFlag:F,transition:V,dirs:W}=f;if(k=f.el=l(f.type,y,U&&U.is,U),F&8?c(k,f.children):F&16&&B(f.children,k,null,C,_,xn(f,y),I,A),W&&$t(f,null,C,\"created\"),R(k,f,f.scopeId,I,C),U){for(const oe in U)oe!==\"value\"&&!rs(oe)&&i(k,oe,null,U[oe],y,C);\"value\"in U&&i(k,\"value\",null,U.value,y),(x=U.onVnodeBeforeMount)&&qe(x,C,f)}W&&$t(f,null,C,\"beforeMount\");const Z=fa(_,V);Z&&V.beforeEnter(k),n(k,p,m),((x=U&&U.onVnodeMounted)||Z||W)&&Ae(()=>{try{x&&qe(x,C,f),Z&&V.enter(k),W&&$t(f,null,C,\"mounted\")}finally{}},_)},R=(f,p,m,C,_)=>{if(m&&g(f,m),C)for(let y=0;y<C.length;y++)g(f,C[y]);if(_){let y=_.subTree;if(p===y||ul(y.type)&&(y.ssContent===p||y.ssFallback===p)){const I=_.vnode;R(f,I,I.scopeId,I.slotScopeIds,_.parent)}}},B=(f,p,m,C,_,y,I,A,k=0)=>{for(let x=k;x<f.length;x++){const U=f[x]=A?lt(f[x]):Ze(f[x]);S(null,U,p,m,C,_,y,I,A)}},M=(f,p,m,C,_,y,I)=>{const A=p.el=f.el;let{patchFlag:k,dynamicChildren:x,dirs:U}=p;k|=f.patchFlag&16;const F=f.props||ie,V=p.props||ie;let W;if(m&&Et(m,!1),(W=V.onVnodeBeforeUpdate)&&qe(W,m,p,f),U&&$t(p,f,m,\"beforeUpdate\"),m&&Et(m,!0),(F.innerHTML&&V.innerHTML==null||F.textContent&&V.textContent==null)&&c(A,\"\"),x?q(f.dynamicChildren,x,A,m,C,xn(p,_),y):I||le(f,p,A,null,m,C,xn(p,_),y,!1),k>0){if(k&16)Q(A,F,V,m,_);else if(k&2&&F.class!==V.class&&i(A,\"class\",null,V.class,_),k&4&&i(A,\"style\",F.style,V.style,_),k&8){const Z=p.dynamicProps;for(let oe=0;oe<Z.length;oe++){const re=Z[oe],pe=F[re],_e=V[re];(_e!==pe||re===\"value\")&&i(A,re,pe,_e,_,m)}}k&1&&f.children!==p.children&&c(A,p.children)}else!I&&x==null&&Q(A,F,V,m,_);((W=V.onVnodeUpdated)||U)&&Ae(()=>{W&&qe(W,m,p,f),U&&$t(p,f,m,\"updated\")},C)},q=(f,p,m,C,_,y,I)=>{for(let A=0;A<p.length;A++){const k=f[A],x=p[A],U=k.el&&(k.type===ce||!It(k,x)||k.shapeFlag&198)?h(k.el):m;S(k,x,U,null,C,_,y,I,!0)}},Q=(f,p,m,C,_)=>{if(p!==m){if(p!==ie)for(const y in p)!rs(y)&&!(y in m)&&i(f,y,p[y],null,_,C);for(const y in m){if(rs(y))continue;const I=m[y],A=p[y];I!==A&&y!==\"value\"&&i(f,y,A,I,_,C)}\"value\"in m&&i(f,\"value\",p.value,m.value,_)}},L=(f,p,m,C,_,y,I,A,k)=>{const x=p.el=f?f.el:r(\"\"),U=p.anchor=f?f.anchor:r(\"\");let{patchFlag:F,dynamicChildren:V,slotScopeIds:W}=p;W&&(A=A?A.concat(W):W),f==null?(n(x,m,C),n(U,m,C),B(p.children||[],m,U,_,y,I,A,k)):F>0&&F&64&&V&&f.dynamicChildren&&f.dynamicChildren.length===V.length?(q(f.dynamicChildren,V,m,_,y,I,A),(p.key!=null||_&&p===_.subTree)&&rl(f,p,!0)):le(f,p,m,U,_,y,I,A,k)},se=(f,p,m,C,_,y,I,A,k)=>{p.slotScopeIds=A,f==null?p.shapeFlag&512?_.ctx.activate(p,m,C,I,k):ve(p,m,C,_,y,I,k):je(f,p,k)},ve=(f,p,m,C,_,y,I)=>{const A=f.component=ya(f,C,_);if(on(f)&&(A.ctx.renderer=Qt),xa(A,!1,I),A.asyncDep){if(_&&_.registerDep(A,ue,I),!f.el){const k=A.subTree=Y(we);N(null,k,p,m),f.placeholder=k.el}}else ue(A,f,p,m,_,y,I)},je=(f,p,m)=>{const C=p.component=f.component;if(ta(f,p,m))if(C.asyncDep&&!C.asyncResolved){J(C,p,m);return}else C.next=p,C.update();else p.el=f.el,C.vnode=p},ue=(f,p,m,C,_,y,I)=>{const A=()=>{if(f.isMounted){let{next:F,bu:V,u:W,parent:Z,vnode:oe}=f;{const ze=al(f);if(ze){F&&(F.el=oe.el,J(f,F,I)),ze.asyncDep.then(()=>{Ae(()=>{f.isUnmounted||x()},_)});return}}let re=F,pe;Et(f,!1),F?(F.el=oe.el,J(f,F,I)):F=oe,V&&Ms(V),(pe=F.props&&F.props.onVnodeBeforeUpdate)&&qe(pe,Z,F,oe),Et(f,!0);const _e=So(f),Ke=f.subTree;f.subTree=_e,S(Ke,_e,h(Ke.el),ks(Ke),f,_,y),F.el=_e.el,re===null&&sa(f,_e.el),W&&Ae(W,_),(pe=F.props&&F.props.onVnodeUpdated)&&Ae(()=>qe(pe,Z,F,oe),_)}else{let F;const{el:V,props:W}=p,{bm:Z,m:oe,parent:re,root:pe,type:_e}=f,Ke=Kt(p);Et(f,!1),Z&&Ms(Z),!Ke&&(F=W&&W.onVnodeBeforeMount)&&qe(F,re,p),Et(f,!0);{pe.ce&&pe.ce._hasShadowRoot()&&pe.ce._injectChildStyle(_e,f.parent?f.parent.type:void 0);const ze=f.subTree=So(f);S(null,ze,m,C,f,_,y),p.el=ze.el}if(oe&&Ae(oe,_),!Ke&&(F=W&&W.onVnodeMounted)){const ze=p;Ae(()=>qe(F,re,ze),_)}(p.shapeFlag&256||re&&Kt(re.vnode)&&re.vnode.shapeFlag&256)&&f.a&&Ae(f.a,_),f.isMounted=!0,p=m=C=null}};f.scope.on();const k=f.effect=new vi(A);f.scope.off();const x=f.update=k.run.bind(k),U=f.job=k.runIfDirty.bind(k);U.i=f,U.id=f.uid,k.scheduler=()=>Xn(U),Et(f,!0),x()},J=(f,p,m)=>{p.component=f;const C=f.vnode.props;f.vnode=p,f.next=null,oa(f,p.props,C,m),aa(f,p.children,m),ft(),ho(f),dt()},le=(f,p,m,C,_,y,I,A,k=!1)=>{const x=f&&f.children,U=f?f.shapeFlag:0,F=p.children,{patchFlag:V,shapeFlag:W}=p;if(V>0){if(V&128){Ts(x,F,m,C,_,y,I,A,k);return}else if(V&256){Ct(x,F,m,C,_,y,I,A,k);return}}W&8?(U&16&&Zt(x,_,y),F!==x&&c(m,F)):U&16?W&16?Ts(x,F,m,C,_,y,I,A,k):Zt(x,_,y,!0):(U&8&&c(m,\"\"),W&16&&B(F,m,C,_,y,I,A,k))},Ct=(f,p,m,C,_,y,I,A,k)=>{f=f||Ut,p=p||Ut;const x=f.length,U=p.length,F=Math.min(x,U);let V;for(V=0;V<F;V++){const W=p[V]=k?lt(p[V]):Ze(p[V]);S(f[V],W,m,null,_,y,I,A,k)}x>U?Zt(f,_,y,!0,!1,F):B(p,m,C,_,y,I,A,k,F)},Ts=(f,p,m,C,_,y,I,A,k)=>{let x=0;const U=p.length;let F=f.length-1,V=U-1;for(;x<=F&&x<=V;){const W=f[x],Z=p[x]=k?lt(p[x]):Ze(p[x]);if(It(W,Z))S(W,Z,m,null,_,y,I,A,k);else break;x++}for(;x<=F&&x<=V;){const W=f[F],Z=p[V]=k?lt(p[V]):Ze(p[V]);if(It(W,Z))S(W,Z,m,null,_,y,I,A,k);else break;F--,V--}if(x>F){if(x<=V){const W=V+1,Z=W<U?p[W].el:C;for(;x<=V;)S(null,p[x]=k?lt(p[x]):Ze(p[x]),m,Z,_,y,I,A,k),x++}}else if(x>V)for(;x<=F;)We(f[x],_,y,!0),x++;else{const W=x,Z=x,oe=new Map;for(x=Z;x<=V;x++){const Fe=p[x]=k?lt(p[x]):Ze(p[x]);Fe.key!=null&&oe.set(Fe.key,x)}let re,pe=0;const _e=V-Z+1;let Ke=!1,ze=0;const es=new Array(_e);for(x=0;x<_e;x++)es[x]=0;for(x=W;x<=F;x++){const Fe=f[x];if(pe>=_e){We(Fe,_,y,!0);continue}let Ge;if(Fe.key!=null)Ge=oe.get(Fe.key);else for(re=Z;re<=V;re++)if(es[re-Z]===0&&It(Fe,p[re])){Ge=re;break}Ge===void 0?We(Fe,_,y,!0):(es[Ge-Z]=x+1,Ge>=ze?ze=Ge:Ke=!0,S(Fe,p[Ge],m,null,_,y,I,A,k),pe++)}const lo=Ke?da(es):Ut;for(re=lo.length-1,x=_e-1;x>=0;x--){const Fe=Z+x,Ge=p[Fe],ro=p[Fe+1],ao=Fe+1<U?ro.el||cl(ro):C;es[x]===0?S(null,Ge,m,ao,_,y,I,A,k):Ke&&(re<0||x!==lo[re]?wt(Ge,m,ao,2):re--)}}},wt=(f,p,m,C,_=null)=>{const{el:y,type:I,transition:A,children:k,shapeFlag:x}=f;if(x&6){wt(f.component.subTree,p,m,C);return}if(x&128){f.suspense.move(p,m,C);return}if(x&64){I.move(f,p,m,Qt);return}if(I===ce){n(y,p,m);for(let F=0;F<k.length;F++)wt(k[F],p,m,C);n(f.anchor,p,m);return}if(I===Ps){z(f,p,m);return}if(C!==2&&x&1&&A)if(C===0)A.beforeEnter(y),n(y,p,m),Ae(()=>A.enter(y),_);else{const{leave:F,delayLeave:V,afterLeave:W}=A,Z=()=>{f.ctx.isUnmounted?o(y):n(y,p,m)},oe=()=>{y._isLeaving&&y[Je](!0),F(y,()=>{Z(),W&&W()})};V?V(y,Z,oe):oe()}else n(y,p,m)},We=(f,p,m,C=!1,_=!1)=>{const{type:y,props:I,ref:A,children:k,dynamicChildren:x,shapeFlag:U,patchFlag:F,dirs:V,cacheIndex:W,memo:Z}=f;if(F===-2&&(_=!1),A!=null&&(ft(),fs(A,null,m,f,!0),dt()),W!=null&&(p.renderCache[W]=void 0),U&256){p.ctx.deactivate(f);return}const oe=U&1&&V,re=!Kt(f);let pe;if(re&&(pe=I&&I.onVnodeBeforeUnmount)&&qe(pe,p,f),U&6)Tl(f.component,m,C);else{if(U&128){f.suspense.unmount(m,C);return}oe&&$t(f,null,p,\"beforeUnmount\"),U&64?f.type.remove(f,p,m,Qt,C):x&&!x.hasOnce&&(y!==ce||F>0&&F&64)?Zt(x,p,m,!1,!0):(y===ce&&F&384||!_&&U&16)&&Zt(k,p,m),C&&oo(f)}const _e=Z!=null&&W==null;(re&&(pe=I&&I.onVnodeUnmounted)||oe||_e)&&Ae(()=>{pe&&qe(pe,p,f),oe&&$t(f,null,p,\"unmounted\"),_e&&(f.el=null)},m)},oo=f=>{const{type:p,el:m,anchor:C,transition:_}=f;if(p===ce){El(m,C);return}if(p===Ps){$(f);return}const y=()=>{o(m),_&&!_.persisted&&_.afterLeave&&_.afterLeave()};if(f.shapeFlag&1&&_&&!_.persisted){const{leave:I,delayLeave:A}=_,k=()=>I(m,y);A?A(f.el,y,k):k()}else y()},El=(f,p)=>{let m;for(;f!==p;)m=v(f),o(f),f=m;o(p)},Tl=(f,p,m)=>{const{bum:C,scope:_,job:y,subTree:I,um:A,m:k,a:x}=f;$o(k),$o(x),C&&Ms(C),_.stop(),y&&(y.flags|=8,We(I,f,p,m)),A&&Ae(A,p),Ae(()=>{f.isUnmounted=!0},p)},Zt=(f,p,m,C=!1,_=!1,y=0)=>{for(let I=y;I<f.length;I++)We(f[I],p,m,C,_)},ks=f=>{if(f.shapeFlag&6)return ks(f.component.subTree);if(f.shapeFlag&128)return f.suspense.next();const p=v(f.anchor||f.el),m=p&&p[Tr];return m?v(m):p};let pn=!1;const io=(f,p,m)=>{let C;f==null?p._vnode&&(We(p._vnode,null,null,!0),C=p._vnode.component):S(p._vnode||null,f,p,null,null,null,m),p._vnode=f,pn||(pn=!0,ho(C),Mi(),pn=!1)},Qt={p:S,um:We,m:wt,r:oo,mt:ve,mc:B,pc:le,pbc:q,n:ks,o:e};return{render:io,hydrate:void 0,createApp:Yr(io)}}function xn({type:e,props:t},s){return s===\"svg\"&&e===\"foreignObject\"||s===\"mathml\"&&e===\"annotation-xml\"&&t&&t.encoding&&t.encoding.includes(\"html\")?void 0:s}function Et({effect:e,job:t},s){s?(e.flags|=32,t.flags|=4):(e.flags&=-33,t.flags&=-5)}function fa(e,t){return(!e||e&&!e.pendingBranch)&&t&&!t.persisted}function rl(e,t,s=!1){const n=e.children,o=t.children;if(j(n)&&j(o))for(let i=0;i<n.length;i++){const l=n[i];let r=o[i];r.shapeFlag&1&&!r.dynamicChildren&&((r.patchFlag<=0||r.patchFlag===32)&&(r=o[i]=lt(o[i]),r.el=l.el),!s&&r.patchFlag!==-2&&rl(l,r)),r.type===cn&&(r.patchFlag===-1&&(r=o[i]=lt(r)),r.el=l.el),r.type===we&&!r.el&&(r.el=l.el)}}function da(e){const t=e.slice(),s=[0];let n,o,i,l,r;const a=e.length;for(n=0;n<a;n++){const d=e[n];if(d!==0){if(o=s[s.length-1],e[o]<d){t[n]=o,s.push(n);continue}for(i=0,l=s.length-1;i<l;)r=i+l>>1,e[s[r]]<d?i=r+1:l=r;d<e[s[i]]&&(i>0&&(t[n]=s[i-1]),s[i]=n)}}for(i=s.length,l=s[i-1];i-- >0;)s[i]=l,l=t[l];return s}function al(e){const t=e.subTree.component;if(t)return t.asyncDep&&!t.asyncResolved?t:al(t)}function $o(e){if(e)for(let t=0;t<e.length;t++)e[t].flags|=8}function cl(e){if(e.placeholder)return e.placeholder;const t=e.component;return t?cl(t.subTree):null}const ul=e=>e.__isSuspense;function pa(e,t){t&&t.pendingBranch?j(e)?t.effects.push(...e):t.effects.push(e):xr(e)}const ce=Symbol.for(\"v-fgt\"),cn=Symbol.for(\"v-txt\"),we=Symbol.for(\"v-cmt\"),Ps=Symbol.for(\"v-stc\"),ps=[];let Me=null;function T(e=!1){ps.push(Me=e?null:[])}function ha(){ps.pop(),Me=ps[ps.length-1]||null}let _s=1;function Ws(e,t=!1){_s+=e,e<0&&Me&&t&&(Me.hasOnce=!0)}function fl(e){return e.dynamicChildren=_s>0?Me||Ut:null,ha(),_s>0&&Me&&Me.push(e),e}function O(e,t,s,n,o,i){return fl(u(e,t,s,n,o,i,!0))}function qt(e,t,s,n,o){return fl(Y(e,t,s,n,o,!0))}function ys(e){return e?e.__v_isVNode===!0:!1}function It(e,t){return e.type===t.type&&e.key===t.key}const dl=({key:e})=>e??null,Rs=({ref:e,ref_key:t,ref_for:s})=>(typeof e==\"number\"&&(e=\"\"+e),e!=null?de(e)||fe(e)||K(e)?{i:$e,r:e,k:t,f:!!s}:e:null);function u(e,t=null,s=null,n=0,o=null,i=e===ce?0:1,l=!1,r=!1){const a={__v_isVNode:!0,__v_skip:!0,type:e,props:t,key:t&&dl(t),ref:t&&Rs(t),scopeId:Pi,slotScopeIds:null,children:s,component:null,suspense:null,ssContent:null,ssFallback:null,dirs:null,transition:null,el:null,anchor:null,target:null,targetStart:null,targetAnchor:null,staticCount:0,shapeFlag:i,patchFlag:n,dynamicProps:o,dynamicChildren:null,appContext:null,ctx:$e};return r?(to(a,s),i&128&&e.normalize(a)):s&&(a.shapeFlag|=de(s)?8:16),_s>0&&!l&&Me&&(a.patchFlag>0||i&6)&&a.patchFlag!==32&&Me.push(a),a}const Y=va;function va(e,t=null,s=null,n=0,o=null,i=!1){if((!e||e===Hr)&&(e=we),ys(e)){const r=_t(e,t,!0);return s&&to(r,s),_s>0&&!i&&Me&&(r.shapeFlag&6?Me[Me.indexOf(e)]=r:Me.push(r)),r.patchFlag=-2,r}if($a(e)&&(e=e.__vccOpts),t){t=ga(t);let{class:r,style:a}=t;r&&!de(r)&&(t.class=ge(r)),te(a)&&(tn(a)&&!j(a)&&(a=he({},a)),t.style=Un(a))}const l=de(e)?1:ul(e)?128:Di(e)?64:te(e)?4:K(e)?2:0;return u(e,t,s,n,o,l,i,!0)}function ga(e){return e?tn(e)||tl(e)?he({},e):e:null}function _t(e,t,s=!1,n=!1){const{props:o,ref:i,patchFlag:l,children:r,transition:a}=e,d=t?ma(o||{},t):o,c={__v_isVNode:!0,__v_skip:!0,type:e.type,props:d,key:d&&dl(d),ref:t&&t.ref?s&&i?j(i)?i.concat(Rs(t)):[i,Rs(t)]:Rs(t):i,scopeId:e.scopeId,slotScopeIds:e.slotScopeIds,children:r,target:e.target,targetStart:e.targetStart,targetAnchor:e.targetAnchor,staticCount:e.staticCount,shapeFlag:e.shapeFlag,patchFlag:t&&e.type!==ce?l===-1?16:l|16:l,dynamicProps:e.dynamicProps,dynamicChildren:e.dynamicChildren,appContext:e.appContext,dirs:e.dirs,transition:a,component:e.component,suspense:e.suspense,ssContent:e.ssContent&&_t(e.ssContent),ssFallback:e.ssFallback&&_t(e.ssFallback),placeholder:e.placeholder,el:e.el,anchor:e.anchor,ctx:e.ctx,ce:e.ce};return a&&n&&bs(c,a.clone(c)),c}function xs(e=\" \",t=0){return Y(cn,null,e,t)}function Vt(e,t){const s=Y(Ps,null,e);return s.staticCount=t,s}function ne(e=\"\",t=!1){return t?(T(),qt(we,null,e)):Y(we,null,e)}function Ze(e){return e==null||typeof e==\"boolean\"?Y(we):j(e)?Y(ce,null,e.slice()):ys(e)?lt(e):Y(cn,null,String(e))}function lt(e){return e.el===null&&e.patchFlag!==-1||e.memo?e:_t(e)}function to(e,t){let s=0;const{shapeFlag:n}=e;if(t==null)t=null;else if(j(t))s=16;else if(typeof t==\"object\")if(n&65){const o=t.default;o&&(o._c&&(o._d=!1),to(e,o()),o._c&&(o._d=!0));return}else{s=32;const o=t._;!o&&!tl(t)?t._ctx=$e:o===3&&$e&&($e.slots._===1?t._=1:(t._=2,e.patchFlag|=1024))}else K(t)?(t={default:t,_ctx:$e},s=32):(t=String(t),n&64?(s=16,t=[xs(t)]):s=8);e.children=t,e.shapeFlag|=s}function ma(...e){const t={};for(let s=0;s<e.length;s++){const n=e[s];for(const o in n)if(o===\"class\")t.class!==n.class&&(t.class=ge([t.class,n.class]));else if(o===\"style\")t.style=Un([t.style,n.style]);else if(Gs(o)){const i=t[o],l=n[o];l&&i!==l&&!(j(i)&&i.includes(l))?t[o]=i?[].concat(i,l):l:l==null&&i==null&&!qs(o)&&(t[o]=l)}else o!==\"\"&&(t[o]=n[o])}return t}function qe(e,t,s,n=null){Be(e,t,7,[s,n])}const ba=Ji();let _a=0;function ya(e,t,s){const n=e.type,o=(t?t.appContext:e.appContext)||ba,i={uid:_a++,vnode:e,type:n,parent:t,appContext:o,root:null,next:null,subTree:null,effect:null,update:null,job:null,scope:new di(!0),render:null,proxy:null,exposed:null,exposeProxy:null,withProxy:null,provides:t?t.provides:Object.create(o.provides),ids:t?t.ids:[\"\",0,0],accessCache:null,renderCache:[],components:null,directives:null,propsOptions:nl(n,o),emitsOptions:Xi(n,o),emit:null,emitted:null,propsDefaults:ie,inheritAttrs:n.inheritAttrs,ctx:ie,data:ie,props:ie,attrs:ie,slots:ie,refs:ie,setupState:ie,setupContext:null,suspense:s,suspenseId:s?s.pendingId:0,asyncDep:null,asyncResolved:!1,isMounted:!1,isUnmounted:!1,isDeactivated:!1,bc:null,c:null,bm:null,m:null,bu:null,u:null,um:null,bum:null,da:null,a:null,rtg:null,rtc:null,ec:null,sp:null};return i.ctx={_:i},i.root=t?t.root:i,i.emit=Xr.bind(null,i),e.ce&&e.ce(i),i}let ke=null;const so=()=>ke||$e;let Ks,Pn;{const e=Zs(),t=(s,n)=>{let o;return(o=e[s])||(o=e[s]=[]),o.push(n),i=>{o.length>1?o.forEach(l=>l(i)):o[0](i)}};Ks=t(\"__VUE_INSTANCE_SETTERS__\",s=>ke=s),Pn=t(\"__VUE_SSR_SETTERS__\",s=>Ss=s)}const Es=e=>{const t=ke;return Ks(e),e.scope.on(),()=>{e.scope.off(),Ks(t)}},Eo=()=>{ke&&ke.scope.off(),Ks(null)};function pl(e){return e.vnode.shapeFlag&4}let Ss=!1;function xa(e,t=!1,s=!1){t&&Pn(t);const{props:n,children:o}=e.vnode,i=pl(e);na(e,n,i,t),ra(e,o,s||t);const l=i?Sa(e,t):void 0;return t&&Pn(!1),l}function Sa(e,t){const s=e.type;e.accessCache=Object.create(null),e.proxy=new Proxy(e.ctx,Ur);const{setup:n}=s;if(n){ft();const o=e.setupContext=n.length>1?wa(e):null,i=Es(e),l=$s(n,e,0,[e.props,o]),r=oi(l);if(dt(),i(),(r||e.sp)&&!Kt(e)&&Wi(e),r){if(l.then(Eo,Eo),t)return l.then(a=>{To(e,a)}).catch(a=>{sn(a,e,0)});e.asyncDep=l}else To(e,l)}else hl(e)}function To(e,t,s){K(t)?e.type.__ssrInlineRender?e.ssrRender=t:e.render=t:te(t)&&(e.setupState=Oi(t)),hl(e)}function hl(e,t,s){const n=e.type;e.render||(e.render=n.render||tt);{const o=Es(e);ft();try{Br(e)}finally{dt(),o()}}}const Ca={get(e,t){return Ce(e,\"get\",\"\"),e[t]}};function wa(e){const t=s=>{e.exposed=s||{}};return{attrs:new Proxy(e.attrs,Ca),slots:e.slots,emit:e.emit,expose:t}}function un(e){return e.exposed?e.exposeProxy||(e.exposeProxy=new Proxy(Oi(Jn(e.exposed)),{get(t,s){if(s in t)return t[s];if(s in ds)return ds[s](e)},has(t,s){return s in t||s in ds}})):e.proxy}function $a(e){return K(e)&&\"__vccOpts\"in e}const be=(e,t)=>gr(e,t,Ss);function Ea(e,t,s){try{Ws(-1);const n=arguments.length;return n===2?te(t)&&!j(t)?ys(t)?Y(e,null,[t]):Y(e,t):Y(e,null,t):(n>3?s=Array.prototype.slice.call(arguments,2):n===3&&ys(s)&&(s=[s]),Y(e,t,s))}finally{Ws(1)}}const Ta=\"3.5.32\";/**\n* @vue/runtime-dom v3.5.32\n* (c) 2018-present Yuxi (Evan) You and Vue contributors\n* @license MIT\n**/let Rn;const ko=typeof window<\"u\"&&window.trustedTypes;if(ko)try{Rn=ko.createPolicy(\"vue\",{createHTML:e=>e})}catch{}const vl=Rn?e=>Rn.createHTML(e):e=>e,ka=\"http://www.w3.org/2000/svg\",Aa=\"http://www.w3.org/1998/Math/MathML\",it=typeof document<\"u\"?document:null,Ao=it&&it.createElement(\"template\"),Oa={insert:(e,t,s)=>{t.insertBefore(e,s||null)},remove:e=>{const t=e.parentNode;t&&t.removeChild(e)},createElement:(e,t,s,n)=>{const o=t===\"svg\"?it.createElementNS(ka,e):t===\"mathml\"?it.createElementNS(Aa,e):s?it.createElement(e,{is:s}):it.createElement(e);return e===\"select\"&&n&&n.multiple!=null&&o.setAttribute(\"multiple\",n.multiple),o},createText:e=>it.createTextNode(e),createComment:e=>it.createComment(e),setText:(e,t)=>{e.nodeValue=t},setElementText:(e,t)=>{e.textContent=t},parentNode:e=>e.parentNode,nextSibling:e=>e.nextSibling,querySelector:e=>it.querySelector(e),setScopeId(e,t){e.setAttribute(t,\"\")},insertStaticContent(e,t,s,n,o,i){const l=s?s.previousSibling:t.lastChild;if(o&&(o===i||o.nextSibling))for(;t.insertBefore(o.cloneNode(!0),s),!(o===i||!(o=o.nextSibling)););else{Ao.innerHTML=vl(n===\"svg\"?`<svg>${e}</svg>`:n===\"mathml\"?`<math>${e}</math>`:e);const r=Ao.content;if(n===\"svg\"||n===\"mathml\"){const a=r.firstChild;for(;a.firstChild;)r.appendChild(a.firstChild);r.removeChild(a)}t.insertBefore(r,s)}return[l?l.nextSibling:t.firstChild,s?s.previousSibling:t.lastChild]}},vt=\"transition\",ns=\"animation\",Cs=Symbol(\"_vtc\"),gl={name:String,type:String,css:{type:Boolean,default:!0},duration:[String,Number,Object],enterFromClass:String,enterActiveClass:String,enterToClass:String,appearFromClass:String,appearActiveClass:String,appearToClass:String,leaveFromClass:String,leaveActiveClass:String,leaveToClass:String},Ia=he({},ji,gl),Fa=e=>(e.displayName=\"Transition\",e.props=Ia,e),Ma=Fa((e,{slots:t})=>Ea(Or,La(e),t)),Tt=(e,t=[])=>{j(e)?e.forEach(s=>s(...t)):e&&e(...t)},Oo=e=>e?j(e)?e.some(t=>t.length>1):e.length>1:!1;function La(e){const t={};for(const L in e)L in gl||(t[L]=e[L]);if(e.css===!1)return t;const{name:s=\"v\",type:n,duration:o,enterFromClass:i=`${s}-enter-from`,enterActiveClass:l=`${s}-enter-active`,enterToClass:r=`${s}-enter-to`,appearFromClass:a=i,appearActiveClass:d=l,appearToClass:c=r,leaveFromClass:h=`${s}-leave-from`,leaveActiveClass:v=`${s}-leave-active`,leaveToClass:g=`${s}-leave-to`}=e,b=Pa(o),S=b&&b[0],w=b&&b[1],{onBeforeEnter:N,onEnter:H,onEnterCancelled:z,onLeave:$,onLeaveCancelled:P,onBeforeAppear:E=N,onAppear:R=H,onAppearCancelled:B=z}=t,M=(L,se,ve,je)=>{L._enterCancelled=je,kt(L,se?c:r),kt(L,se?d:l),ve&&ve()},q=(L,se)=>{L._isLeaving=!1,kt(L,h),kt(L,g),kt(L,v),se&&se()},Q=L=>(se,ve)=>{const je=L?R:H,ue=()=>M(se,L,ve);Tt(je,[se,ue]),Io(()=>{kt(se,L?a:i),ot(se,L?c:r),Oo(je)||Fo(se,n,S,ue)})};return he(t,{onBeforeEnter(L){Tt(N,[L]),ot(L,i),ot(L,l)},onBeforeAppear(L){Tt(E,[L]),ot(L,a),ot(L,d)},onEnter:Q(!1),onAppear:Q(!0),onLeave(L,se){L._isLeaving=!0;const ve=()=>q(L,se);ot(L,h),L._enterCancelled?(ot(L,v),Po(L)):(Po(L),ot(L,v)),Io(()=>{L._isLeaving&&(kt(L,h),ot(L,g),Oo($)||Fo(L,n,w,ve))}),Tt($,[L,ve])},onEnterCancelled(L){M(L,!1,void 0,!0),Tt(z,[L])},onAppearCancelled(L){M(L,!0,void 0,!0),Tt(B,[L])},onLeaveCancelled(L){q(L),Tt(P,[L])}})}function Pa(e){if(e==null)return null;if(te(e))return[Sn(e.enter),Sn(e.leave)];{const t=Sn(e);return[t,t]}}function Sn(e){return Ll(e)}function ot(e,t){t.split(/\\s+/).forEach(s=>s&&e.classList.add(s)),(e[Cs]||(e[Cs]=new Set)).add(t)}function kt(e,t){t.split(/\\s+/).forEach(n=>n&&e.classList.remove(n));const s=e[Cs];s&&(s.delete(t),s.size||(e[Cs]=void 0))}function Io(e){requestAnimationFrame(()=>{requestAnimationFrame(e)})}let Ra=0;function Fo(e,t,s,n){const o=e._endId=++Ra,i=()=>{o===e._endId&&n()};if(s!=null)return setTimeout(i,s);const{type:l,timeout:r,propCount:a}=Na(e,t);if(!l)return n();const d=l+\"end\";let c=0;const h=()=>{e.removeEventListener(d,v),i()},v=g=>{g.target===e&&++c>=a&&h()};setTimeout(()=>{c<a&&h()},r+1),e.addEventListener(d,v)}function Na(e,t){const s=window.getComputedStyle(e),n=b=>(s[b]||\"\").split(\", \"),o=n(`${vt}Delay`),i=n(`${vt}Duration`),l=Mo(o,i),r=n(`${ns}Delay`),a=n(`${ns}Duration`),d=Mo(r,a);let c=null,h=0,v=0;t===vt?l>0&&(c=vt,h=l,v=i.length):t===ns?d>0&&(c=ns,h=d,v=a.length):(h=Math.max(l,d),c=h>0?l>d?vt:ns:null,v=c?c===vt?i.length:a.length:0);const g=c===vt&&/\\b(?:transform|all)(?:,|$)/.test(n(`${vt}Property`).toString());return{type:c,timeout:h,propCount:v,hasTransform:g}}function Mo(e,t){for(;e.length<t.length;)e=e.concat(e);return Math.max(...t.map((s,n)=>Lo(s)+Lo(e[n])))}function Lo(e){return e===\"auto\"?0:Number(e.slice(0,-1).replace(\",\",\".\"))*1e3}function Po(e){return(e?e.ownerDocument:document).body.offsetHeight}function Da(e,t,s){const n=e[Cs];n&&(t=(t?[t,...n]:[...n]).join(\" \")),t==null?e.removeAttribute(\"class\"):s?e.setAttribute(\"class\",t):e.className=t}const Ro=Symbol(\"_vod\"),ja=Symbol(\"_vsh\"),Va=Symbol(\"\"),Ha=/(?:^|;)\\s*display\\s*:/;function Ua(e,t,s){const n=e.style,o=de(s);let i=!1;if(s&&!o){if(t)if(de(t))for(const l of t.split(\";\")){const r=l.slice(0,l.indexOf(\":\")).trim();s[r]==null&&Ns(n,r,\"\")}else for(const l in t)s[l]==null&&Ns(n,l,\"\");for(const l in s)l===\"display\"&&(i=!0),Ns(n,l,s[l])}else if(o){if(t!==s){const l=n[Va];l&&(s+=\";\"+l),n.cssText=s,i=Ha.test(s)}}else t&&e.removeAttribute(\"style\");Ro in e&&(e[Ro]=i?n.display:\"\",e[ja]&&(n.display=\"none\"))}const No=/\\s*!important$/;function Ns(e,t,s){if(j(s))s.forEach(n=>Ns(e,t,n));else if(s==null&&(s=\"\"),t.startsWith(\"--\"))e.setProperty(t,s);else{const n=Ba(e,t);No.test(s)?e.setProperty(xt(n),s.replace(No,\"\"),\"important\"):e[n]=s}}const Do=[\"Webkit\",\"Moz\",\"ms\"],Cn={};function Ba(e,t){const s=Cn[t];if(s)return s;let n=Ve(t);if(n!==\"filter\"&&n in e)return Cn[t]=n;n=ri(n);for(let o=0;o<Do.length;o++){const i=Do[o]+n;if(i in e)return Cn[t]=i}return t}const jo=\"http://www.w3.org/1999/xlink\";function Vo(e,t,s,n,o,i=Vl(t)){n&&t.startsWith(\"xlink:\")?s==null?e.removeAttributeNS(jo,t.slice(6,t.length)):e.setAttributeNS(jo,t,s):s==null||i&&!ci(s)?e.removeAttribute(t):e.setAttribute(t,i?\"\":Pe(s)?String(s):s)}function Ho(e,t,s,n,o){if(t===\"innerHTML\"||t===\"textContent\"){s!=null&&(e[t]=t===\"innerHTML\"?vl(s):s);return}const i=e.tagName;if(t===\"value\"&&i!==\"PROGRESS\"&&!i.includes(\"-\")){const r=i===\"OPTION\"?e.getAttribute(\"value\")||\"\":e.value,a=s==null?e.type===\"checkbox\"?\"on\":\"\":String(s);(r!==a||!(\"_value\"in e))&&(e.value=a),s==null&&e.removeAttribute(t),e._value=s;return}let l=!1;if(s===\"\"||s==null){const r=typeof e[t];r===\"boolean\"?s=ci(s):s==null&&r===\"string\"?(s=\"\",l=!0):r===\"number\"&&(s=0,l=!0)}try{e[t]=s}catch{}l&&e.removeAttribute(o||t)}function ct(e,t,s,n){e.addEventListener(t,s,n)}function Wa(e,t,s,n){e.removeEventListener(t,s,n)}const Uo=Symbol(\"_vei\");function Ka(e,t,s,n,o=null){const i=e[Uo]||(e[Uo]={}),l=i[t];if(n&&l)l.value=n;else{const[r,a]=za(t);if(n){const d=i[t]=Ya(n,o);ct(e,r,d,a)}else l&&(Wa(e,r,l,a),i[t]=void 0)}}const Bo=/(?:Once|Passive|Capture)$/;function za(e){let t;if(Bo.test(e)){t={};let n;for(;n=e.match(Bo);)e=e.slice(0,e.length-n[0].length),t[n[0].toLowerCase()]=!0}return[e[2]===\":\"?e.slice(3):xt(e.slice(2)),t]}let wn=0;const Ga=Promise.resolve(),qa=()=>wn||(Ga.then(()=>wn=0),wn=Date.now());function Ya(e,t){const s=n=>{if(!n._vts)n._vts=Date.now();else if(n._vts<=s.attached)return;Be(Ja(n,s.value),t,5,[n])};return s.value=e,s.attached=qa(),s}function Ja(e,t){if(j(t)){const s=e.stopImmediatePropagation;return e.stopImmediatePropagation=()=>{s.call(e),e._stopped=!0},t.map(n=>o=>!o._stopped&&n&&n(o))}else return t}const Wo=e=>e.charCodeAt(0)===111&&e.charCodeAt(1)===110&&e.charCodeAt(2)>96&&e.charCodeAt(2)<123,Xa=(e,t,s,n,o,i)=>{const l=o===\"svg\";t===\"class\"?Da(e,n,l):t===\"style\"?Ua(e,s,n):Gs(t)?qs(t)||Ka(e,t,s,n,i):(t[0]===\".\"?(t=t.slice(1),!0):t[0]===\"^\"?(t=t.slice(1),!1):Za(e,t,n,l))?(Ho(e,t,n),!e.tagName.includes(\"-\")&&(t===\"value\"||t===\"checked\"||t===\"selected\")&&Vo(e,t,n,l,i,t!==\"value\")):e._isVueCE&&(Qa(e,t)||e._def.__asyncLoader&&(/[A-Z]/.test(t)||!de(n)))?Ho(e,Ve(t),n,i,t):(t===\"true-value\"?e._trueValue=n:t===\"false-value\"&&(e._falseValue=n),Vo(e,t,n,l))};function Za(e,t,s,n){if(n)return!!(t===\"innerHTML\"||t===\"textContent\"||t in e&&Wo(t)&&K(s));if(t===\"spellcheck\"||t===\"draggable\"||t===\"translate\"||t===\"autocorrect\"||t===\"sandbox\"&&e.tagName===\"IFRAME\"||t===\"form\"||t===\"list\"&&e.tagName===\"INPUT\"||t===\"type\"&&e.tagName===\"TEXTAREA\")return!1;if(t===\"width\"||t===\"height\"){const o=e.tagName;if(o===\"IMG\"||o===\"VIDEO\"||o===\"CANVAS\"||o===\"SOURCE\")return!1}return Wo(t)&&de(s)?!1:t in e}function Qa(e,t){const s=e._def.props;if(!s)return!1;const n=Ve(t);return Array.isArray(s)?s.some(o=>Ve(o)===n):Object.keys(s).some(o=>Ve(o)===n)}const yt=e=>{const t=e.props[\"onUpdate:modelValue\"]||!1;return j(t)?s=>Ms(t,s):t};function ec(e){e.target.composing=!0}function Ko(e){const t=e.target;t.composing&&(t.composing=!1,t.dispatchEvent(new Event(\"input\")))}const De=Symbol(\"_assign\");function zo(e,t,s){return t&&(e=e.trim()),s&&(e=Xs(e)),e}const zt={created(e,{modifiers:{lazy:t,trim:s,number:n}},o){e[De]=yt(o);const i=n||o.props&&o.props.type===\"number\";ct(e,t?\"change\":\"input\",l=>{l.target.composing||e[De](zo(e.value,s,i))}),(s||i)&&ct(e,\"change\",()=>{e.value=zo(e.value,s,i)}),t||(ct(e,\"compositionstart\",ec),ct(e,\"compositionend\",Ko),ct(e,\"change\",Ko))},mounted(e,{value:t}){e.value=t??\"\"},beforeUpdate(e,{value:t,oldValue:s,modifiers:{lazy:n,trim:o,number:i}},l){if(e[De]=yt(l),e.composing)return;const r=(i||e.type===\"number\")&&!/^0\\d/.test(e.value)?Xs(e.value):e.value,a=t??\"\";if(r===a)return;const d=e.getRootNode();(d instanceof Document||d instanceof ShadowRoot)&&d.activeElement===e&&e.type!==\"range\"&&(n&&t===s||o&&e.value.trim()===a)||(e.value=a)}},Ht={deep:!0,created(e,t,s){e[De]=yt(s),ct(e,\"change\",()=>{const n=e._modelValue,o=Yt(e),i=e.checked,l=e[De];if(j(n)){const r=Bn(n,o),a=r!==-1;if(i&&!a)l(n.concat(o));else if(!i&&a){const d=[...n];d.splice(r,1),l(d)}}else if(Jt(n)){const r=new Set(n);i?r.add(o):r.delete(o),l(r)}else l(ml(e,i))})},mounted:Go,beforeUpdate(e,t,s){e[De]=yt(s),Go(e,t,s)}};function Go(e,{value:t,oldValue:s},n){e._modelValue=t;let o;if(j(t))o=Bn(t,n.props.value)>-1;else if(Jt(t))o=t.has(n.props.value);else{if(t===s)return;o=bt(t,ml(e,!0))}e.checked!==o&&(e.checked=o)}const os={created(e,{value:t},s){e.checked=bt(t,s.props.value),e[De]=yt(s),ct(e,\"change\",()=>{e[De](Yt(e))})},beforeUpdate(e,{value:t,oldValue:s},n){e[De]=yt(n),t!==s&&(e.checked=bt(t,n.props.value))}},tc={deep:!0,created(e,{value:t,modifiers:{number:s}},n){const o=Jt(t);ct(e,\"change\",()=>{const i=Array.prototype.filter.call(e.options,l=>l.selected).map(l=>s?Xs(Yt(l)):Yt(l));e[De](e.multiple?o?new Set(i):i:i[0]),e._assigning=!0,nn(()=>{e._assigning=!1})}),e[De]=yt(n)},mounted(e,{value:t}){qo(e,t)},beforeUpdate(e,t,s){e[De]=yt(s)},updated(e,{value:t}){e._assigning||qo(e,t)}};function qo(e,t){const s=e.multiple,n=j(t);if(!(s&&!n&&!Jt(t))){for(let o=0,i=e.options.length;o<i;o++){const l=e.options[o],r=Yt(l);if(s)if(n){const a=typeof r;a===\"string\"||a===\"number\"?l.selected=t.some(d=>String(d)===String(r)):l.selected=Bn(t,r)>-1}else l.selected=t.has(r);else if(bt(Yt(l),t)){e.selectedIndex!==o&&(e.selectedIndex=o);return}}!s&&e.selectedIndex!==-1&&(e.selectedIndex=-1)}}function Yt(e){return\"_value\"in e?e._value:e.value}function ml(e,t){const s=t?\"_trueValue\":\"_falseValue\";return s in e?e[s]:t}const sc=[\"ctrl\",\"shift\",\"alt\",\"meta\"],nc={stop:e=>e.stopPropagation(),prevent:e=>e.preventDefault(),self:e=>e.target!==e.currentTarget,ctrl:e=>!e.ctrlKey,shift:e=>!e.shiftKey,alt:e=>!e.altKey,meta:e=>!e.metaKey,left:e=>\"button\"in e&&e.button!==0,middle:e=>\"button\"in e&&e.button!==1,right:e=>\"button\"in e&&e.button!==2,exact:(e,t)=>sc.some(s=>e[`${s}Key`]&&!t.includes(s))},Ft=(e,t)=>{if(!e)return e;const s=e._withMods||(e._withMods={}),n=t.join(\".\");return s[n]||(s[n]=(o,...i)=>{for(let l=0;l<t.length;l++){const r=nc[t[l]];if(r&&r(o,t))return}return e(o,...i)})},oc={esc:\"escape\",space:\" \",up:\"arrow-up\",left:\"arrow-left\",right:\"arrow-right\",down:\"arrow-down\",delete:\"backspace\"},Yo=(e,t)=>{const s=e._withKeys||(e._withKeys={}),n=t.join(\".\");return s[n]||(s[n]=o=>{if(!(\"key\"in o))return;const i=xt(o.key);if(t.some(l=>l===i||oc[l]===i))return e(o)})},ic=he({patchProp:Xa},Oa);let Jo;function lc(){return Jo||(Jo=ca(ic))}const rc=(...e)=>{const t=lc().createApp(...e),{mount:s}=t;return t.mount=n=>{const o=cc(n);if(!o)return;const i=t._component;!K(i)&&!i.render&&!i.template&&(i.template=o.innerHTML),o.nodeType===1&&(o.textContent=\"\");const l=s(o,!1,ac(o));return o instanceof Element&&(o.removeAttribute(\"v-cloak\"),o.setAttribute(\"data-v-app\",\"\")),l},t};function ac(e){if(e instanceof SVGElement)return\"svg\";if(typeof MathMLElement==\"function\"&&e instanceof MathMLElement)return\"mathml\"}function cc(e){return de(e)?document.querySelector(e):e}/*!\n * pinia v3.0.4\n * (c) 2025 Eduardo San Martin Morote\n * @license MIT\n */let bl;const fn=e=>bl=e,_l=Symbol();function Nn(e){return e&&typeof e==\"object\"&&Object.prototype.toString.call(e)===\"[object Object]\"&&typeof e.toJSON!=\"function\"}var hs;(function(e){e.direct=\"direct\",e.patchObject=\"patch object\",e.patchFunction=\"patch function\"})(hs||(hs={}));function uc(){const e=pi(!0),t=e.run(()=>D({}));let s=[],n=[];const o=Jn({install(i){fn(o),o._a=i,i.provide(_l,o),i.config.globalProperties.$pinia=o,n.forEach(l=>s.push(l)),n=[]},use(i){return this._a?s.push(i):n.push(i),this},_p:s,_a:null,_e:e,_s:new Map,state:t});return o}const yl=()=>{};function Xo(e,t,s,n=yl){e.add(t);const o=()=>{e.delete(t)&&n()};return!s&&hi()&&Ul(o),o}function Dt(e,...t){e.forEach(s=>{s(...t)})}const fc=e=>e(),Zo=Symbol(),$n=Symbol();function Dn(e,t){e instanceof Map&&t instanceof Map?t.forEach((s,n)=>e.set(n,s)):e instanceof Set&&t instanceof Set&&t.forEach(e.add,e);for(const s in t){if(!t.hasOwnProperty(s))continue;const n=t[s],o=e[s];Nn(o)&&Nn(n)&&e.hasOwnProperty(s)&&!fe(n)&&!ut(n)?e[s]=Dn(o,n):e[s]=n}return e}const dc=Symbol();function pc(e){return!Nn(e)||!Object.prototype.hasOwnProperty.call(e,dc)}const{assign:gt}=Object;function hc(e){return!!(fe(e)&&e.effect)}function vc(e,t,s,n){const{state:o,actions:i,getters:l}=t,r=s.state.value[e];let a;function d(){r||(s.state.value[e]=o?o():{});const c=dr(s.state.value[e]);return gt(c,i,Object.keys(l||{}).reduce((h,v)=>(h[v]=Jn(be(()=>{fn(s);const g=s._s.get(e);return l[v].call(g,g)})),h),{}))}return a=xl(e,d,t,s,n,!0),a}function xl(e,t,s={},n,o,i){let l;const r=gt({actions:{}},s),a={deep:!0};let d,c,h=new Set,v=new Set,g;const b=n.state.value[e];!i&&!b&&(n.state.value[e]={});let S;function w(B){let M;d=c=!1,typeof B==\"function\"?(B(n.state.value[e]),M={type:hs.patchFunction,storeId:e,events:g}):(Dn(n.state.value[e],B),M={type:hs.patchObject,payload:B,storeId:e,events:g});const q=S=Symbol();nn().then(()=>{S===q&&(d=!0)}),c=!0,Dt(h,M,n.state.value[e])}const N=i?function(){const{state:M}=s,q=M?M():{};this.$patch(Q=>{gt(Q,q)})}:yl;function H(){l.stop(),h.clear(),v.clear(),n._s.delete(e)}const z=(B,M=\"\")=>{if(Zo in B)return B[$n]=M,B;const q=function(){fn(n);const Q=Array.from(arguments),L=new Set,se=new Set;function ve(J){L.add(J)}function je(J){se.add(J)}Dt(v,{args:Q,name:q[$n],store:P,after:ve,onError:je});let ue;try{ue=B.apply(this&&this.$id===e?this:P,Q)}catch(J){throw Dt(se,J),J}return ue instanceof Promise?ue.then(J=>(Dt(L,J),J)).catch(J=>(Dt(se,J),Promise.reject(J))):(Dt(L,ue),ue)};return q[Zo]=!0,q[$n]=M,q},$={_p:n,$id:e,$onAction:Xo.bind(null,v),$patch:w,$reset:N,$subscribe(B,M={}){const q=Xo(h,B,M.detached,()=>Q()),Q=l.run(()=>Ls(()=>n.state.value[e],L=>{(M.flush===\"sync\"?c:d)&&B({storeId:e,type:hs.direct,events:g},L)},gt({},a,M)));return q},$dispose:H},P=en($);n._s.set(e,P);const R=(n._a&&n._a.runWithContext||fc)(()=>n._e.run(()=>(l=pi()).run(()=>t({action:z}))));for(const B in R){const M=R[B];if(fe(M)&&!hc(M)||ut(M))i||(b&&pc(M)&&(fe(M)?M.value=b[B]:Dn(M,b[B])),n.state.value[e][B]=M);else if(typeof M==\"function\"){const q=z(M,B);R[B]=q,r.actions[B]=M}}return gt(P,R),gt(X(P),R),Object.defineProperty(P,\"$state\",{get:()=>n.state.value[e],set:B=>{w(M=>{gt(M,B)})}}),n._p.forEach(B=>{gt(P,l.run(()=>B({store:P,app:n._a,pinia:n,options:r})))}),b&&i&&s.hydrate&&s.hydrate(P.$state,b),d=!0,c=!0,P}/*! #__NO_SIDE_EFFECTS__ */function Sl(e,t,s){let n;const o=typeof t==\"function\";n=o?s:t;function i(l,r){const a=Cr();return l=l||(a?us(_l,null):null),l&&fn(l),l=bl,l._s.has(e)||(o?xl(e,t,n,l):vc(e,n,l)),l._s.get(e)}return i.$id=e,i}const St=Sl(\"app\",()=>{const e=D(!1),t=D(\"simple\"),s=D([]),n=be(()=>e.value),o=be(()=>s.value.length>0),i=c=>{e.value=c},l=c=>{t.value=c},r=c=>{const h=`notification_${Date.now()}_${Math.random()}`,v={...c,id:h};s.value.push(v);const g=c.duration||3e3;return setTimeout(()=>{a(h)},g),h},a=c=>{const h=s.value.findIndex(v=>v.id===c);h>-1&&s.value.splice(h,1)};return{loading:e,currentFeature:t,notifications:s,isLoading:n,hasNotifications:o,setLoading:i,setCurrentFeature:l,showNotification:r,removeNotification:a,clearNotifications:()=>{s.value=[]}}}),gc=400,mc=500,Qo=\"system\",ei=\"zh\",Cl={MEDIUM:30*60*1e3,LONG:24*60*60*1e3};class bc{constructor(){Rt(this,\"cache\",new Map)}set(t,s,n=Cl.MEDIUM){const o=Date.now()+n;this.cache.set(t,{value:s,expiry:o})}get(t){const s=this.cache.get(t);return s?Date.now()>s.expiry?(this.cache.delete(t),null):s.value:null}has(t){return this.get(t)!==null}delete(t){this.cache.delete(t)}clear(){this.cache.clear()}cleanup(){const t=Date.now();for(const[s,n]of this.cache.entries())t>n.expiry&&this.cache.delete(s)}size(){return this.cache.size}}class _c{constructor(){Rt(this,\"prefix\",\"allinone_cache_\")}set(t,s,n=Cl.LONG){const o=Date.now()+n,i={value:s,expiry:o};try{localStorage.setItem(this.prefix+t,JSON.stringify(i))}catch(l){console.error(\"Failed to set persistent cache:\",l)}}get(t){try{const s=localStorage.getItem(this.prefix+t);if(!s)return null;const n=JSON.parse(s);return Date.now()>n.expiry?(this.delete(t),null):n.value}catch(s){return console.error(\"Failed to get persistent cache:\",s),null}}has(t){return this.get(t)!==null}delete(t){localStorage.removeItem(this.prefix+t)}clear(){Object.keys(localStorage).forEach(s=>{s.startsWith(this.prefix)&&localStorage.removeItem(s)})}cleanup(){const t=Object.keys(localStorage),s=Date.now();t.forEach(n=>{if(n.startsWith(this.prefix))try{const o=localStorage.getItem(n);if(o){const i=JSON.parse(o);s>i.expiry&&localStorage.removeItem(n)}}catch{localStorage.removeItem(n)}})}}const yc=new bc,Oe=new _c;setInterval(()=>{yc.cleanup(),Oe.cleanup()},5*60*1e3);const dn=Sl(\"settings\",()=>{const e=D(Qo),t=D(ei),s=D(!1),n=D(!1),o=D(null);return{theme:e,language:t,sidebarCollapsed:s,onboardingCompleted:n,aiConfig:o,setTheme:v=>{e.value=v,Oe.set(\"theme\",v)},setLanguage:v=>{t.value=v,Oe.set(\"language\",v)},setSidebarCollapsed:v=>{s.value=v,Oe.set(\"sidebar-collapsed\",v)},setOnboardingCompleted:v=>{n.value=v,Oe.set(\"onboarding-completed\",v)},setAIConfig:v=>{o.value=v,Oe.set(\"ai-config\",v)},loadSettings:()=>{const v=Oe.get(\"theme\");v&&(e.value=v);const g=Oe.get(\"language\");g&&(t.value=g);const b=Oe.get(\"sidebar-collapsed\");b!==null&&(s.value=b);const S=Oe.get(\"onboarding-completed\");S!==null&&(n.value=S);const w=Oe.get(\"ai-config\");w&&(o.value=w)},resetSettings:()=>{e.value=Qo,t.value=ei,s.value=!1,n.value=!1,o.value=null,Oe.clear()}}}),ti={colors:{primary:{50:\"#F5F3FF\",100:\"#EDE9FE\",200:\"#DDD6FE\",300:\"#C4B5FD\",400:\"#A78BFA\",500:\"#8B7FD8\",600:\"#7C6FCC\",700:\"#6D5FB8\",800:\"#5E4FA4\",900:\"#4F3F90\"},neutral:{0:\"#FFFFFF\",50:\"#FAFAFA\",100:\"#F5F5F5\",200:\"#E5E5E5\",300:\"#D4D4D4\",400:\"#A3A3A3\",500:\"#737373\",600:\"#525252\",700:\"#404040\",800:\"#262626\",900:\"#171717\",950:\"#0A0A0A\"},semantic:{success:\"#10B981\",successLight:\"rgba(16, 185, 129, 0.1)\",warning:\"#F59E0B\",warningLight:\"rgba(245, 158, 11, 0.1)\",error:\"#EF4444\",errorLight:\"rgba(239, 68, 68, 0.1)\",info:\"#3B82F6\",infoLight:\"rgba(59, 130, 246, 0.1)\"}},spacing:{0:\"0\",1:\"4px\",2:\"8px\",3:\"12px\",4:\"16px\",5:\"20px\",6:\"24px\",8:\"32px\",10:\"40px\",12:\"48px\",16:\"64px\",20:\"80px\"},radius:{none:\"0\",sm:\"4px\",md:\"6px\",lg:\"8px\",xl:\"12px\",\"2xl\":\"16px\",full:\"9999px\"},shadow:{none:\"none\",sm:\"0 1px 2px rgba(0, 0, 0, 0.02)\",md:\"0 2px 4px rgba(0, 0, 0, 0.03)\",lg:\"0 4px 8px rgba(0, 0, 0, 0.04)\",xl:\"0 8px 16px rgba(0, 0, 0, 0.05)\"},typography:{fontFamily:{sans:'-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif',mono:'ui-monospace, SFMono-Regular, \"SF Mono\", Menlo, Consolas, monospace'},fontSize:{xs:\"11px\",sm:\"12px\",base:\"13px\",lg:\"14px\",xl:\"16px\",\"2xl\":\"18px\",\"3xl\":\"20px\"},fontWeight:{normal:400,medium:500,semibold:600,bold:700},lineHeight:{tight:1.2,normal:1.5,relaxed:1.75}},animation:{duration:{fast:\"150ms\",normal:\"200ms\",slow:\"300ms\"},easing:{default:\"cubic-bezier(0.4, 0, 0.2, 1)\",in:\"cubic-bezier(0.4, 0, 1, 1)\",out:\"cubic-bezier(0, 0, 0.2, 1)\",inOut:\"cubic-bezier(0.4, 0, 0.2, 1)\"}},layout:{sidebarWidth:\"140px\",sidebarWidthCollapsed:\"56px\",minWindowWidth:\"400px\",minWindowHeight:\"500px\"}},xc={colors:{primary:{500:\"#A78BFA\"},neutral:{0:\"#0A0A0A\",50:\"#171717\",100:\"#262626\",200:\"#404040\",300:\"#525252\",400:\"#737373\",500:\"#A3A3A3\",600:\"#D4D4D4\",700:\"#E5E5E5\",800:\"#F5F5F5\",900:\"#FAFAFA\",950:\"#FFFFFF\"}},shadow:{sm:\"0 1px 2px rgba(0, 0, 0, 0.3)\",md:\"0 2px 4px rgba(0, 0, 0, 0.4)\",lg:\"0 4px 8px rgba(0, 0, 0, 0.5)\",xl:\"0 8px 16px rgba(0, 0, 0, 0.6)\"}};function Sc(e=\"light\"){const t=e===\"dark\"?{...ti,...xc}:ti,s={};return Object.entries(t.colors.primary).forEach(([n,o])=>{s[`--color-primary-${n}`]=o}),Object.entries(t.colors.neutral).forEach(([n,o])=>{s[`--color-neutral-${n}`]=o}),Object.entries(t.colors.semantic).forEach(([n,o])=>{s[`--color-${n}`]=o}),Object.entries(t.spacing).forEach(([n,o])=>{s[`--spacing-${n}`]=o}),Object.entries(t.radius).forEach(([n,o])=>{s[`--radius-${n}`]=o}),Object.entries(t.shadow).forEach(([n,o])=>{s[`--shadow-${n}`]=o}),s[\"--font-sans\"]=t.typography.fontFamily.sans,s[\"--font-mono\"]=t.typography.fontFamily.mono,Object.entries(t.typography.fontSize).forEach(([n,o])=>{s[`--text-${n}`]=o}),Object.entries(t.typography.fontWeight).forEach(([n,o])=>{s[`--font-${n}`]=String(o)}),Object.entries(t.typography.lineHeight).forEach(([n,o])=>{s[`--leading-${n}`]=String(o)}),Object.entries(t.animation.duration).forEach(([n,o])=>{s[`--duration-${n}`]=o}),Object.entries(t.animation.easing).forEach(([n,o])=>{s[`--ease-${n}`]=o}),Object.entries(t.layout).forEach(([n,o])=>{const i=n.replace(/([A-Z])/g,\"-$1\").toLowerCase();s[`--${i}`]=o}),s}const At=D(\"system\"),is=D(!1);function Cc(){const e=r=>{let a=\"light\";r===\"system\"?a=window.matchMedia(\"(prefers-color-scheme: dark)\").matches?\"dark\":\"light\":a=r,is.value=a===\"dark\",document.documentElement.setAttribute(\"data-theme\",a);const d=Sc(a);Object.entries(d).forEach(([c,h])=>{document.documentElement.style.setProperty(c,h)})},t=r=>{At.value=r,e(r),Oe.set(\"theme\",r)},s=()=>{t(is.value?\"light\":\"dark\")},n=()=>{const r=window.matchMedia(\"(prefers-color-scheme: dark)\"),a=d=>{At.value===\"system\"&&e(\"system\")};return r.addEventListener(\"change\",a),()=>{r.removeEventListener(\"change\",a)}},o=()=>{const r=Oe.get(\"theme\");r&&(At.value=r),e(At.value),n()},i=be(()=>At.value===\"system\"?\"🖥️\":is.value?\"🌙\":\"☀️\"),l=be(()=>At.value===\"system\"?\"跟随系统\":is.value?\"暗色模式\":\"亮色模式\");return{currentTheme:At,isDark:is,themeIcon:i,themeLabel:l,setTheme:t,toggleDark:s,initTheme:o}}function no(e,t={}){parent.postMessage({pluginMessage:{type:e,...t}},\"*\")}function jn(e){const t=s=>{const n=s.data.pluginMessage;n&&e(n)};return window.addEventListener(\"message\",t),()=>{window.removeEventListener(\"message\",t)}}function wc(e,t={},s=1e4){return new Promise((n,o)=>{const i=`${e}_${Date.now()}_${Math.random()}`,l=jn(a=>{a.requestId===i&&(l(),clearTimeout(r),a.error?o(new Error(a.error)):n(a.data))}),r=setTimeout(()=>{l(),o(new Error(`Request timeout: ${e}`))},s);no(e,{...t,requestId:i})})}function $c(e,t){let s=0;return function(...n){const o=Date.now();o-s>=t&&(s=o,e.apply(this,n))}}function Ec(){const e=D(!1),t=D(!1),s=(a,d)=>{const c=Math.max(a,gc),h=Math.max(d,mc);no(\"resize\",{width:c,height:h})},n=a=>{if(!t.value)return;const d=a.clientX,c=a.clientY;s(d,c)},o=()=>{t.value=!0,document.body.style.cursor=\"nwse-resize\"},i=()=>{t.value=!1,document.body.style.cursor=\"\"},l=()=>{e.value=!e.value},r=$c(()=>{window.innerWidth<500&&!e.value&&(e.value=!0)},150);return st(()=>{window.addEventListener(\"mousemove\",n),window.addEventListener(\"mouseup\",i),window.addEventListener(\"resize\",r)}),rn(()=>{window.removeEventListener(\"mousemove\",n),window.removeEventListener(\"mouseup\",i),window.removeEventListener(\"resize\",r)}),{sidebarCollapsed:e,isResizing:t,resizeWindow:s,startResize:o,stopResize:i,toggleSidebar:l}}class Tc{constructor(){Rt(this,\"logs\",[]);Rt(this,\"maxLogs\",1e3);Rt(this,\"enabled\",!0)}debug(t,s){this.log(\"debug\",t,s)}info(t,s){this.log(\"info\",t,s)}warn(t,s){this.log(\"warn\",t,s)}error(t,s){this.log(\"error\",t,s)}log(t,s,n){if(!this.enabled)return;const o={level:t,message:s,timestamp:Date.now(),context:n};this.logs.push(o),this.logs.length>this.maxLogs&&this.logs.shift();const l=`${`[${t.toUpperCase()}] ${new Date(o.timestamp).toISOString()}`} ${s}`;switch(t){case\"debug\":console.debug(l,n);break;case\"info\":console.info(l,n);break;case\"warn\":console.warn(l,n);break;case\"error\":console.error(l,n);break}}getLogs(t){return t?this.logs.filter(s=>s.level===t):[...this.logs]}clear(){this.logs=[]}export(){return JSON.stringify(this.logs,null,2)}setEnabled(t){this.enabled=t}setMaxLogs(t){this.maxLogs=t}}const Qe=new Tc;function kc(){window.addEventListener(\"error\",e=>{Qe.error(\"Uncaught error\",{message:e.message,filename:e.filename,lineno:e.lineno,colno:e.colno,error:e.error?.stack})}),window.addEventListener(\"unhandledrejection\",e=>{Qe.error(\"Unhandled promise rejection\",{reason:e.reason,promise:e.promise})})}const Ac={class:\"sidebar-header\"},Oc={key:0,class:\"sidebar-title\"},Ic={class:\"toggle-icon\"},Fc={class:\"sidebar-nav\"},Mc=[\"onClick\"],Lc=[\"innerHTML\"],Pc={key:0,class:\"nav-text\"},Rc={class:\"sidebar-footer\"},Nc={key:0,class:\"nav-text\"},Dc=ye({__name:\"Sidebar\",props:{collapsed:{type:Boolean}},emits:[\"update:collapsed\",\"select-feature\",\"open-settings\"],setup(e,{emit:t}){const s=e,n=t,o=St(),i=dn(),l=be(()=>o.currentFeature),r=[{id:\"simple\",label:\"简易工具\",icon:\"🛠️\"},{id:\"select\",label:\"超级选择\",icon:\"🎯\"},{id:\"smartFill\",label:\"智能填充\",icon:\"✨\"},{id:\"replace\",label:\"文字替换\",icon:\"📝\"},{id:\"ai\",label:\"AI 助手\",icon:\"🤖\"},{id:\"ppt\",label:\"PPT导出\",icon:\"📊\"},{id:\"refiner\",label:\"组件清洗\",icon:\"🧹\"},{id:\"jumpback\",label:\"时空信标\",icon:\"🔖\"},{id:\"skew\",label:\"等轴形变\",icon:\"📐\"},{id:\"i18n\",label:\"语言切换\",icon:\"🌐\"},{id:\"theory\",label:\"设计理论\",icon:\"📚\"}],a=()=>{n(\"update:collapsed\",!s.collapsed),i.setSidebarCollapsed(!s.collapsed)},d=h=>{n(\"select-feature\",h),o.setCurrentFeature(h)},c=()=>{n(\"open-settings\")};return(h,v)=>(T(),O(\"aside\",{class:ge([\"sidebar\",{\"sidebar-collapsed\":e.collapsed}])},[u(\"div\",Ac,[e.collapsed?ne(\"\",!0):(T(),O(\"h1\",Oc,\"AllinOne\")),u(\"button\",{class:\"sidebar-toggle\",onClick:a},[u(\"span\",Ic,G(e.collapsed?\"→\":\"←\"),1)])]),u(\"nav\",Fc,[(T(),O(ce,null,Ne(r,g=>u(\"div\",{key:g.id,class:ge([\"nav-item\",{active:l.value===g.id}]),onClick:b=>d(g.id)},[u(\"span\",{class:\"nav-icon\",innerHTML:g.icon},null,8,Lc),e.collapsed?ne(\"\",!0):(T(),O(\"span\",Pc,G(g.label),1))],10,Mc)),64))]),u(\"div\",Rc,[u(\"button\",{class:\"footer-btn\",onClick:c},[v[0]||(v[0]=u(\"span\",{class:\"nav-icon\"},\"⚙️\",-1)),e.collapsed?ne(\"\",!0):(T(),O(\"span\",Nc,\"设置\"))])])],2))}}),xe=(e,t)=>{const s=e.__vccOpts||e;for(const[n,o]of t)s[n]=o;return s},jc=xe(Dc,[[\"__scopeId\",\"data-v-1ce96e24\"]]),Vc={class:\"main-content\"},Hc={class:\"content-scroll\"},Uc=ye({__name:\"MainContent\",setup(e){return(t,s)=>(T(),O(\"main\",Vc,[u(\"div\",Hc,[Zn(t.$slots,\"default\",{},void 0)])]))}}),Bc=xe(Uc,[[\"__scopeId\",\"data-v-efcba600\"]]),Wc=ye({__name:\"ResizeHandle\",emits:[\"start-resize\"],setup(e,{emit:t}){const s=t,n=()=>{s(\"start-resize\")};return(o,i)=>(T(),O(\"div\",{class:\"resize-handle\",onMousedown:n,title:\"拖拽调整窗口大小\"},[...i[0]||(i[0]=[u(\"div\",{class:\"resize-icon\"},null,-1)])],32))}}),Kc=xe(Wc,[[\"__scopeId\",\"data-v-33221866\"]]),zc={class:\"toast-icon\"},Gc={class:\"toast-content\"},qc={class:\"toast-message\"},Yc=ye({__name:\"Toast\",props:{type:{},message:{},duration:{default:3e3}},emits:[\"close\"],setup(e,{emit:t}){const s=e,n=t,o=D(!1),i=be(()=>{switch(s.type){case\"success\":return\"✓\";case\"error\":return\"✕\";case\"warning\":return\"⚠\";case\"info\":return\"ℹ\";default:return\"ℹ\"}}),l=()=>{o.value=!1,setTimeout(()=>{n(\"close\")},300)};return st(()=>{o.value=!0,s.duration>0&&setTimeout(()=>{l()},s.duration)}),(r,a)=>(T(),qt(Ma,{name:\"toast\"},{default:Ie(()=>[o.value?(T(),O(\"div\",{key:0,class:ge([\"toast\",`toast-${e.type}`]),onClick:l},[u(\"div\",zc,G(i.value),1),u(\"div\",Gc,[u(\"div\",qc,G(e.message),1)]),u(\"button\",{class:\"toast-close\",onClick:Ft(l,[\"stop\"])},\"×\")],2)):ne(\"\",!0)]),_:1}))}}),Jc=xe(Yc,[[\"__scopeId\",\"data-v-3ca41bd8\"]]),Xc={class:\"loading-container\"},Zc={key:0,class:\"loading-spinner\"},Qc={key:1,class:\"loading-skeleton\"},eu={key:2,class:\"loading-dots\"},tu={key:3,class:\"loading-text\"},su=ye({__name:\"Loading\",props:{type:{default:\"spinner\"},text:{default:\"\"}},setup(e){return(t,s)=>(T(),O(\"div\",Xc,[e.type===\"spinner\"?(T(),O(\"div\",Zc)):e.type===\"skeleton\"?(T(),O(\"div\",Qc,[...s[0]||(s[0]=[u(\"div\",{class:\"skeleton-line\"},null,-1),u(\"div\",{class:\"skeleton-line short\"},null,-1),u(\"div\",{class:\"skeleton-line\"},null,-1)])])):e.type===\"dots\"?(T(),O(\"div\",eu,[...s[1]||(s[1]=[u(\"span\",{class:\"dot\"},null,-1),u(\"span\",{class:\"dot\"},null,-1),u(\"span\",{class:\"dot\"},null,-1)])])):ne(\"\",!0),e.text?(T(),O(\"p\",tu,G(e.text),1)):ne(\"\",!0)]))}}),nu=xe(su,[[\"__scopeId\",\"data-v-5065d017\"]]),ou={class:\"onboarding-modal\"},iu={class:\"progress-dots\"},lu={class:\"step-content\"},ru={key:0,class:\"step\"},au={key:1,class:\"step\"},cu={key:2,class:\"step\"},uu={key:3,class:\"step\"},fu={key:4,class:\"step\"},du={class:\"actions\"},Fs=5,pu=ye({__name:\"Onboarding\",setup(e,{expose:t}){const s=dn(),n=D(!1),o=D(1),i=()=>{o.value<Fs&&o.value++},l=()=>{o.value>1&&o.value--},r=()=>{n.value=!1,s.setOnboardingCompleted(!0)},a=()=>{n.value=!1,s.setOnboardingCompleted(!0)};return st(()=>{s.onboardingCompleted||setTimeout(()=>{n.value=!0},500)}),t({show:()=>{n.value=!0,o.value=1}}),(d,c)=>n.value?(T(),O(\"div\",{key:0,class:\"onboarding-overlay\",onClick:Ft(r,[\"self\"])},[u(\"div\",ou,[u(\"div\",iu,[(T(),O(ce,null,Ne(Fs,h=>u(\"span\",{key:h,class:ge([\"dot\",{active:h===o.value}])},null,2)),64))]),u(\"div\",lu,[o.value===1?(T(),O(\"div\",ru,[...c[0]||(c[0]=[Vt('<div class=\"step-icon\" data-v-4d5ee50c>🎨</div><h2 class=\"step-title\" data-v-4d5ee50c>欢迎使用 AllinOne-Claude</h2><p class=\"step-desc\" data-v-4d5ee50c> 一个功能强大的 Figma 设计工具集，帮助你更高效地完成设计工作。 </p><div class=\"feature-grid\" data-v-4d5ee50c><div class=\"feature-item\" data-v-4d5ee50c><span class=\"feature-icon\" data-v-4d5ee50c>⚡</span><span class=\"feature-text\" data-v-4d5ee50c>18个简易工具</span></div><div class=\"feature-item\" data-v-4d5ee50c><span class=\"feature-icon\" data-v-4d5ee50c>🔍</span><span class=\"feature-text\" data-v-4d5ee50c>超级选择</span></div><div class=\"feature-item\" data-v-4d5ee50c><span class=\"feature-icon\" data-v-4d5ee50c>✏️</span><span class=\"feature-text\" data-v-4d5ee50c>智能填充</span></div><div class=\"feature-item\" data-v-4d5ee50c><span class=\"feature-icon\" data-v-4d5ee50c>🌍</span><span class=\"feature-text\" data-v-4d5ee50c>多语言支持</span></div></div>',4)])])):ne(\"\",!0),o.value===2?(T(),O(\"div\",au,[...c[1]||(c[1]=[Vt('<div class=\"step-icon\" data-v-4d5ee50c>🛠️</div><h2 class=\"step-title\" data-v-4d5ee50c>简易工具</h2><p class=\"step-desc\" data-v-4d5ee50c> 18个常用设计工具，一键完成重复性操作。 </p><div class=\"tool-examples\" data-v-4d5ee50c><div class=\"example-item\" data-v-4d5ee50c><span class=\"example-icon\" data-v-4d5ee50c>⬜</span><div class=\"example-text\" data-v-4d5ee50c><strong data-v-4d5ee50c>转Frame/矩形</strong><p data-v-4d5ee50c>快速转换图层类型</p></div></div><div class=\"example-item\" data-v-4d5ee50c><span class=\"example-icon\" data-v-4d5ee50c>✂</span><div class=\"example-text\" data-v-4d5ee50c><strong data-v-4d5ee50c>拆分/合并文本</strong><p data-v-4d5ee50c>批量处理文本图层</p></div></div><div class=\"example-item\" data-v-4d5ee50c><span class=\"example-icon\" data-v-4d5ee50c>⊞</span><div class=\"example-text\" data-v-4d5ee50c><strong data-v-4d5ee50c>像素对齐</strong><p data-v-4d5ee50c>坐标自动取整</p></div></div></div>',4)])])):ne(\"\",!0),o.value===3?(T(),O(\"div\",cu,[...c[2]||(c[2]=[Vt('<div class=\"step-icon\" data-v-4d5ee50c>🎯</div><h2 class=\"step-title\" data-v-4d5ee50c>超级选择</h2><p class=\"step-desc\" data-v-4d5ee50c> 强大的筛选功能，快速找到你需要的图层。 </p><div class=\"feature-list\" data-v-4d5ee50c><div class=\"list-item\" data-v-4d5ee50c><span class=\"list-icon\" data-v-4d5ee50c>✓</span><span data-v-4d5ee50c>按名称、类型、状态筛选</span></div><div class=\"list-item\" data-v-4d5ee50c><span class=\"list-icon\" data-v-4d5ee50c>✓</span><span data-v-4d5ee50c>支持包含/排除逻辑</span></div><div class=\"list-item\" data-v-4d5ee50c><span class=\"list-icon\" data-v-4d5ee50c>✓</span><span data-v-4d5ee50c>5种查找范围选择</span></div><div class=\"list-item\" data-v-4d5ee50c><span class=\"list-icon\" data-v-4d5ee50c>✓</span><span data-v-4d5ee50c>实时结果预览</span></div></div>',4)])])):ne(\"\",!0),o.value===4?(T(),O(\"div\",uu,[...c[3]||(c[3]=[Vt('<div class=\"step-icon\" data-v-4d5ee50c>✨</div><h2 class=\"step-title\" data-v-4d5ee50c>更多强大功能</h2><p class=\"step-desc\" data-v-4d5ee50c> 探索更多实用工具，提升设计效率。 </p><div class=\"more-features\" data-v-4d5ee50c><div class=\"more-item\" data-v-4d5ee50c><span class=\"more-icon\" data-v-4d5ee50c>📝</span><strong data-v-4d5ee50c>智能填充</strong><p data-v-4d5ee50c>批量填充文本数据</p></div><div class=\"more-item\" data-v-4d5ee50c><span class=\"more-icon\" data-v-4d5ee50c>🔄</span><strong data-v-4d5ee50c>文字替换</strong><p data-v-4d5ee50c>查找和替换文本</p></div><div class=\"more-item\" data-v-4d5ee50c><span class=\"more-icon\" data-v-4d5ee50c>📍</span><strong data-v-4d5ee50c>时空信标</strong><p data-v-4d5ee50c>保存视图位置</p></div><div class=\"more-item\" data-v-4d5ee50c><span class=\"more-icon\" data-v-4d5ee50c>🧠</span><strong data-v-4d5ee50c>设计理论</strong><p data-v-4d5ee50c>学习设计原则</p></div></div>',4)])])):ne(\"\",!0),o.value===5?(T(),O(\"div\",fu,[...c[4]||(c[4]=[Vt('<div class=\"step-icon\" data-v-4d5ee50c>🚀</div><h2 class=\"step-title\" data-v-4d5ee50c>准备就绪！</h2><p class=\"step-desc\" data-v-4d5ee50c> 现在你可以开始使用 AllinOne-Claude 了。 </p><div class=\"tips-box\" data-v-4d5ee50c><h4 class=\"tips-title\" data-v-4d5ee50c>💡 小提示</h4><ul class=\"tips-list\" data-v-4d5ee50c><li data-v-4d5ee50c>使用侧边栏快速切换功能模块</li><li data-v-4d5ee50c>大部分工具支持批量操作</li><li data-v-4d5ee50c>可以在设置中自定义主题和语言</li><li data-v-4d5ee50c>遇到问题可以查看文档或反馈</li></ul></div>',4)])])):ne(\"\",!0)]),u(\"div\",du,[o.value>1?(T(),O(\"button\",{key:0,class:\"btn-secondary\",onClick:l},\" 上一步 \")):ne(\"\",!0),u(\"button\",{class:\"btn-text\",onClick:r},G(o.value===Fs?\"关闭\":\"跳过\"),1),o.value<Fs?(T(),O(\"button\",{key:1,class:\"btn-primary\",onClick:i},\" 下一步 \")):(T(),O(\"button\",{key:2,class:\"btn-primary\",onClick:a},\" 开始使用 \"))])])])):ne(\"\",!0)}}),hu=xe(pu,[[\"__scopeId\",\"data-v-4d5ee50c\"]]),vu={class:\"settings-panel\"},gu={class:\"settings-content\"},mu={class:\"settings-section\"},bu={class:\"setting-item\"},_u={class:\"theme-options\"},yu=[\"onClick\"],xu={class:\"theme-icon\"},Su={class:\"theme-name\"},Cu={class:\"setting-item\"},wu={class:\"toggle-switch\"},$u=[\"checked\"],Eu={class:\"settings-section\"},Tu={class:\"setting-item\"},ku={class:\"settings-section\"},Au={class:\"about-links\"},Ou=ye({__name:\"Settings\",setup(e,{expose:t}){const s=dn(),n=St(),o=D(!1),i=be(()=>s.theme),l=be(()=>s.language),r=be(()=>s.sidebarCollapsed),a=[{value:\"light\",label:\"浅色\",icon:\"☀️\"},{value:\"dark\",label:\"深色\",icon:\"🌙\"},{value:\"system\",label:\"跟随系统\",icon:\"💻\"}],d=z=>{s.setTheme(z)},c=z=>{s.setLanguage(z)},h=()=>{s.setSidebarCollapsed(!r.value)},v=()=>{confirm(\"确定要清除所有缓存数据吗？\")&&n.addNotification({type:\"success\",message:\"缓存已清除\"})},g=()=>{confirm(\"确定要重置所有设置吗？此操作不可恢复。\")&&(s.resetSettings(),n.addNotification({type:\"success\",message:\"设置已重置\"}))},b=()=>{s.setOnboardingCompleted(!1),H(),setTimeout(()=>{window.location.reload()},300)},S=()=>{n.addNotification({type:\"info\",message:\"文档功能开发中\"})},w=()=>{n.addNotification({type:\"info\",message:\"反馈功能开发中\"})},N=()=>{n.addNotification({type:\"info\",message:\"GitHub链接功能开发中\"})},H=()=>{o.value=!1};return t({show:()=>{o.value=!0},close:H}),(z,$)=>o.value?(T(),O(\"div\",{key:0,class:\"settings-overlay\",onClick:Ft(H,[\"self\"])},[u(\"div\",vu,[u(\"div\",{class:\"settings-header\"},[$[2]||($[2]=u(\"h2\",{class:\"settings-title\"},\"设置\",-1)),u(\"button\",{class:\"btn-close\",onClick:H},\"✕\")]),u(\"div\",gu,[u(\"div\",mu,[$[6]||($[6]=u(\"h3\",{class:\"section-title\"},\"外观\",-1)),u(\"div\",bu,[$[3]||($[3]=u(\"div\",{class:\"setting-label\"},[u(\"span\",{class:\"label-text\"},\"主题\"),u(\"span\",{class:\"label-desc\"},\"选择界面主题\")],-1)),u(\"div\",_u,[(T(),O(ce,null,Ne(a,P=>u(\"button\",{key:P.value,class:ge([\"theme-btn\",{active:i.value===P.value}]),onClick:E=>d(P.value)},[u(\"span\",xu,G(P.icon),1),u(\"span\",Su,G(P.label),1)],10,yu)),64))])]),u(\"div\",Cu,[$[5]||($[5]=u(\"div\",{class:\"setting-label\"},[u(\"span\",{class:\"label-text\"},\"侧边栏\"),u(\"span\",{class:\"label-desc\"},\"默认展开或折叠\")],-1)),u(\"label\",wu,[u(\"input\",{type:\"checkbox\",checked:!r.value,onChange:h},null,40,$u),$[4]||($[4]=u(\"span\",{class:\"toggle-slider\"},null,-1))])])]),u(\"div\",Eu,[$[9]||($[9]=u(\"h3\",{class:\"section-title\"},\"语言\",-1)),u(\"div\",Tu,[$[8]||($[8]=u(\"div\",{class:\"setting-label\"},[u(\"span\",{class:\"label-text\"},\"界面语言\"),u(\"span\",{class:\"label-desc\"},\"选择显示语言\")],-1)),me(u(\"select\",{\"onUpdate:modelValue\":$[0]||($[0]=P=>l.value=P),class:\"select-input\",onChange:$[1]||($[1]=P=>c(l.value))},[...$[7]||($[7]=[u(\"option\",{value:\"zh-CN\"},\"简体中文\",-1),u(\"option\",{value:\"en-US\"},\"English\",-1)])],544),[[tc,l.value]])])]),u(\"div\",{class:\"settings-section\"},[$[13]||($[13]=u(\"h3\",{class:\"section-title\"},\"数据管理\",-1)),u(\"div\",{class:\"setting-item\"},[$[10]||($[10]=u(\"div\",{class:\"setting-label\"},[u(\"span\",{class:\"label-text\"},\"清除缓存\"),u(\"span\",{class:\"label-desc\"},\"清除所有本地缓存数据\")],-1)),u(\"button\",{class:\"btn-action\",onClick:v},\" 清除 \")]),u(\"div\",{class:\"setting-item\"},[$[11]||($[11]=u(\"div\",{class:\"setting-label\"},[u(\"span\",{class:\"label-text\"},\"重置设置\"),u(\"span\",{class:\"label-desc\"},\"恢复所有默认设置\")],-1)),u(\"button\",{class:\"btn-action btn-danger\",onClick:g},\" 重置 \")]),u(\"div\",{class:\"setting-item\"},[$[12]||($[12]=u(\"div\",{class:\"setting-label\"},[u(\"span\",{class:\"label-text\"},\"重新显示引导\"),u(\"span\",{class:\"label-desc\"},\"再次查看新手引导\")],-1)),u(\"button\",{class:\"btn-action\",onClick:b},\" 显示引导 \")])]),u(\"div\",ku,[$[14]||($[14]=Vt('<h3 class=\"section-title\" data-v-d80838c9>关于</h3><div class=\"about-info\" data-v-d80838c9><div class=\"info-row\" data-v-d80838c9><span class=\"info-label\" data-v-d80838c9>插件名称</span><span class=\"info-value\" data-v-d80838c9>AllinOne-Claude</span></div><div class=\"info-row\" data-v-d80838c9><span class=\"info-label\" data-v-d80838c9>版本</span><span class=\"info-value\" data-v-d80838c9>2.0.0</span></div><div class=\"info-row\" data-v-d80838c9><span class=\"info-label\" data-v-d80838c9>更新日期</span><span class=\"info-value\" data-v-d80838c9>2026-04-17</span></div></div>',2)),u(\"div\",Au,[u(\"a\",{href:\"#\",class:\"link-item\",onClick:Ft(S,[\"prevent\"])},\" 📚 使用文档 \"),u(\"a\",{href:\"#\",class:\"link-item\",onClick:Ft(w,[\"prevent\"])},\" 💬 反馈建议 \"),u(\"a\",{href:\"#\",class:\"link-item\",onClick:Ft(N,[\"prevent\"])},\" 🔗 GitHub \")])])]),u(\"div\",{class:\"settings-footer\"},[u(\"button\",{class:\"btn-primary\",onClick:H},\" 完成 \")])])])):ne(\"\",!0)}}),Iu=xe(Ou,[[\"__scopeId\",\"data-v-d80838c9\"]]);function Xt(){let e=null;const t=(i,l)=>{Qe.debug(`Sending message: ${i}`,l),no(i,l)},s=async(i,l,r)=>{Qe.debug(`Sending message with response: ${i}`,l);try{const a=await wc(i,l,r);return Qe.debug(`Received response for: ${i}`,a),a}catch(a){throw Qe.error(`Message failed: ${i}`,{error:a}),a}},n=i=>{e=jn(l=>{Qe.debug(`Received message: ${l.type}`,l),i(l)})},o=(i,l)=>{e=jn(r=>{r.type===i&&(Qe.debug(`Received message: ${i}`,r),l(r))})};return rn(()=>{e&&e()}),{send:t,sendWithResponse:s,listen:n,listenTo:o}}const Fu={class:\"simple-tools-panel\"},Mu={class:\"tools-grid\"},Lu=[\"onClick\",\"title\"],Pu={class:\"tool-icon\"},Ru={class:\"tool-name\"},Nu=ye({__name:\"SimpleToolsPanel\",setup(e){const{send:t}=Xt(),s=St(),n=D([{id:\"to-frame\",name:\"转Frame\",icon:\"⬜\",description:\"将选中的形状转换为Frame\"},{id:\"to-rect\",name:\"转矩形\",icon:\"▭\",description:\"将Frame/Group转换为矩形\"},{id:\"swap-fs\",name:\"交换填充\",icon:\"⇄\",description:\"交换填充和描边\"},{id:\"reset-image\",name:\"重置图片\",icon:\"🖼️\",description:\"恢复图片原始比例\"},{id:\"select-text\",name:\"选文本\",icon:\"T\",description:\"选中所有文本图层\"},{id:\"remove-al\",name:\"移除布局\",icon:\"⊟\",description:\"移除自动布局\"},{id:\"add-al-wrapper\",name:\"添加布局\",icon:\"⊞\",description:\"添加自动布局外套\"},{id:\"split-text\",name:\"拆分文本\",icon:\"✂\",description:\"按行拆分文本\"},{id:\"join-text\",name:\"合并文本\",icon:\"⊕\",description:\"合并多个文本\"},{id:\"up-one\",name:\"上移一层\",icon:\"↑\",description:\"移出父级一层\"},{id:\"up-all\",name:\"上移顶层\",icon:\"⇈\",description:\"移到顶层\"},{id:\"rename-content\",name:\"重命名\",icon:\"✏\",description:\"用文本内容重命名\"},{id:\"detach-all\",name:\"解绑组件\",icon:\"🔗\",description:\"解绑所有组件实例\"},{id:\"remove-hidden\",name:\"删隐藏\",icon:\"👁\",description:\"删除隐藏图层\"},{id:\"sort-layers\",name:\"排序图层\",icon:\"⇅\",description:\"按位置排序图层\"},{id:\"ungroup-all\",name:\"解组\",icon:\"⊟\",description:\"解散所有组\"},{id:\"unlock-all\",name:\"解锁\",icon:\"🔓\",description:\"解锁所有图层\"},{id:\"pixel-perfect\",name:\"像素对齐\",icon:\"⊞\",description:\"坐标取整\"}]),o=i=>{s.setLoading(!0),t(i),setTimeout(()=>{s.setLoading(!1)},500)};return(i,l)=>(T(),O(\"div\",Fu,[u(\"div\",Mu,[(T(!0),O(ce,null,Ne(n.value,r=>(T(),O(\"button\",{key:r.id,class:ge([\"tool-button\",{disabled:r.disabled}]),onClick:a=>o(r.id),title:r.description},[u(\"span\",Pu,G(r.icon),1),u(\"span\",Ru,G(r.name),1)],10,Lu))),128))])]))}}),Du=xe(Nu,[[\"__scopeId\",\"data-v-4746fa81\"]]),ju={class:\"jumpback-panel\"},Vu={class:\"panel-header\"},Hu=[\"disabled\"],Uu={key:0,class:\"empty-state\"},Bu={key:1,class:\"spots-list\"},Wu={class:\"spot-info\"},Ku=[\"onBlur\",\"onKeyup\"],zu=[\"onDblclick\"],Gu={class:\"spot-meta\"},qu={class:\"page-name\"},Yu={class:\"zoom\"},Ju={class:\"spot-actions\"},Xu=[\"onClick\"],Zu=[\"onClick\"],Qu=[\"onClick\"],ef=ye({__name:\"JumpbackPanel\",setup(e){const{send:t,listen:s}=Xt(),n=St(),o=D([]),i=D(null),l=D(\"\"),r=D(null),a=()=>{if(o.value.length>=5){n.showNotification({type:\"warning\",message:\"最多只能保存 5 个锚点\"});return}t(\"jb-save\")},d=b=>{t(\"jb-jump\",{id:b})},c=b=>{t(\"jb-delete\",{id:b})},h=b=>{i.value=b.id,l.value=b.name,nn(()=>{r.value?.focus(),r.value?.select()})},v=b=>{l.value.trim()&&t(\"jb-rename\",{id:b,newName:l.value.trim()}),i.value=null,l.value=\"\"},g=()=>{i.value=null,l.value=\"\"};return st(()=>{t(\"jb-init\"),s(b=>{b.type===\"jb-render-spots\"&&(o.value=b.data)})}),(b,S)=>(T(),O(\"div\",ju,[u(\"div\",Vu,[S[2]||(S[2]=u(\"p\",{class:\"description\"},\"保存当前视图位置和选中状态，随时跳回\",-1)),u(\"button\",{class:\"btn-save\",onClick:a,disabled:o.value.length>=5},[...S[1]||(S[1]=[u(\"span\",{class:\"icon\"},\"📍\",-1),u(\"span\",null,\"保存当前位置\",-1)])],8,Hu)]),o.value.length===0?(T(),O(\"div\",Uu,[...S[3]||(S[3]=[u(\"span\",{class:\"empty-icon\"},\"🔖\",-1),u(\"p\",null,\"暂无保存的位置\",-1),u(\"p\",{class:\"hint\"},\"最多可保存 5 个锚点\",-1)])])):(T(),O(\"div\",Bu,[(T(!0),O(ce,null,Ne(o.value,w=>(T(),O(\"div\",{key:w.id,class:\"spot-item\"},[u(\"div\",Wu,[i.value===w.id?me((T(),O(\"input\",{key:0,\"onUpdate:modelValue\":S[0]||(S[0]=N=>l.value=N),class:\"spot-name-input\",onBlur:N=>v(w.id),onKeyup:[Yo(N=>v(w.id),[\"enter\"]),Yo(g,[\"esc\"])],ref_for:!0,ref_key:\"nameInput\",ref:r},null,40,Ku)),[[zt,l.value]]):(T(),O(\"div\",{key:1,class:\"spot-name\",onDblclick:N=>h(w)},G(w.name),41,zu)),u(\"div\",Gu,[u(\"span\",qu,G(w.pageName),1),u(\"span\",Yu,G(Math.round(w.zoom*100))+\"%\",1)])]),u(\"div\",Ju,[u(\"button\",{class:\"btn-icon\",onClick:N=>d(w.id),title:\"跳转\"},\" 🚀 \",8,Xu),u(\"button\",{class:\"btn-icon\",onClick:N=>h(w),title:\"重命名\"},\" ✏️ \",8,Zu),u(\"button\",{class:\"btn-icon btn-delete\",onClick:N=>c(w.id),title:\"删除\"},\" 🗑️ \",8,Qu)])]))),128))]))]))}}),tf=xe(ef,[[\"__scopeId\",\"data-v-f1ae792b\"]]),sf={class:\"skew-panel\"},nf={class:\"controls-section\"},of={class:\"control-group\"},lf={class:\"control-label\"},rf={class:\"value\"},af={class:\"control-group\"},cf={class:\"control-label\"},uf={class:\"value\"},ff={class:\"control-group\"},df={class:\"control-label\"},pf={class:\"value\"},hf={key:0,class:\"presets-section\"},vf={class:\"presets-grid\"},gf=[\"onClick\"],mf={class:\"preset-name\"},bf={class:\"preset-values\"},_f=[\"onClick\"],yf=ye({__name:\"SkewPanel\",setup(e){const{send:t,listen:s}=Xt(),n=St(),o=D(0),i=D(0),l=D(0),r=D([]);let a=null;const d=()=>{a&&clearTimeout(a),a=window.setTimeout(()=>{t(\"skew-apply\",{rot:o.value,angleX:i.value,angleY:l.value})},50)},c=()=>{o.value=0,i.value=0,l.value=0,d()},h=()=>{const b=prompt(\"预设名称：\",`预设 ${r.value.length+1}`);if(!b)return;const S={name:b.trim(),rot:o.value,angleX:i.value,angleY:l.value};r.value.push(S),t(\"save-skew-presets\",{data:r.value}),n.showNotification({type:\"success\",message:\"预设已保存\"})},v=b=>{o.value=b.rot,i.value=b.angleX,l.value=b.angleY,d(),n.showNotification({type:\"success\",message:`已应用预设：${b.name}`})},g=b=>{r.value.splice(b,1),t(\"save-skew-presets\",{data:r.value}),n.showNotification({type:\"success\",message:\"预设已删除\"})};return st(()=>{t(\"req-skew-presets\"),s(b=>{b.type===\"init-skew-presets\"&&(r.value=b.data||[])})}),(b,S)=>(T(),O(\"div\",sf,[u(\"div\",nf,[u(\"div\",of,[u(\"label\",lf,[S[3]||(S[3]=u(\"span\",null,\"旋转角度\",-1)),u(\"span\",rf,G(o.value)+\"°\",1)]),me(u(\"input\",{type:\"range\",\"onUpdate:modelValue\":S[0]||(S[0]=w=>o.value=w),min:\"-180\",max:\"180\",step:\"1\",class:\"slider\",onInput:d},null,544),[[zt,o.value,void 0,{number:!0}]])]),u(\"div\",af,[u(\"label\",cf,[S[4]||(S[4]=u(\"span\",null,\"X轴倾斜\",-1)),u(\"span\",uf,G(i.value)+\"°\",1)]),me(u(\"input\",{type:\"range\",\"onUpdate:modelValue\":S[1]||(S[1]=w=>i.value=w),min:\"-45\",max:\"45\",step:\"1\",class:\"slider\",onInput:d},null,544),[[zt,i.value,void 0,{number:!0}]])]),u(\"div\",ff,[u(\"label\",df,[S[5]||(S[5]=u(\"span\",null,\"Y轴倾斜\",-1)),u(\"span\",pf,G(l.value)+\"°\",1)]),me(u(\"input\",{type:\"range\",\"onUpdate:modelValue\":S[2]||(S[2]=w=>l.value=w),min:\"-45\",max:\"45\",step:\"1\",class:\"slider\",onInput:d},null,544),[[zt,l.value,void 0,{number:!0}]])])]),u(\"div\",{class:\"actions\"},[u(\"button\",{class:\"btn-secondary\",onClick:c},\" 重置 \"),u(\"button\",{class:\"btn-primary\",onClick:h},\" 保存预设 \")]),r.value.length>0?(T(),O(\"div\",hf,[S[6]||(S[6]=u(\"h3\",{class:\"section-title\"},\"预设\",-1)),u(\"div\",vf,[(T(!0),O(ce,null,Ne(r.value,(w,N)=>(T(),O(\"div\",{key:N,class:\"preset-item\",onClick:H=>v(w)},[u(\"div\",mf,G(w.name),1),u(\"div\",bf,\" R:\"+G(w.rot)+\"° X:\"+G(w.angleX)+\"° Y:\"+G(w.angleY)+\"° \",1),u(\"button\",{class:\"btn-delete-preset\",onClick:Ft(H=>g(N),[\"stop\"]),title:\"删除\"},\" × \",8,_f)],8,gf))),128))])])):ne(\"\",!0),S[7]||(S[7]=u(\"div\",{class:\"info-box\"},[u(\"p\",{class:\"info-text\"},\"💡 拖动滑块实时预览变形效果\"),u(\"p\",{class:\"info-text\"},\"选中图层后调整参数即可应用\")],-1))]))}}),xf=xe(yf,[[\"__scopeId\",\"data-v-9653b004\"]]),Sf=ye({__name:\"Card\",props:{theme:{default:\"default\"},hoverable:{type:Boolean,default:!1},clickable:{type:Boolean,default:!1}},emits:[\"click\"],setup(e,{emit:t}){const s=e,n=t,o=i=>{s.clickable&&n(\"click\",i)};return(i,l)=>(T(),O(\"div\",{class:ge([\"card\",`card-${e.theme}`,{\"card-hoverable\":e.hoverable,\"card-clickable\":e.clickable}]),onClick:o},[Zn(i.$slots,\"default\",{},void 0)],2))}}),Mt=xe(Sf,[[\"__scopeId\",\"data-v-12c9b865\"]]),Cf=[\"disabled\"],wf={key:0,class:\"btn-spinner\"},$f=ye({__name:\"Button\",props:{variant:{default:\"primary\"},size:{default:\"md\"},loading:{type:Boolean,default:!1},disabled:{type:Boolean,default:!1},block:{type:Boolean,default:!1}},emits:[\"click\"],setup(e,{emit:t}){const s=e,n=t,o=i=>{!s.disabled&&!s.loading&&n(\"click\",i)};return(i,l)=>(T(),O(\"button\",{class:ge([\"btn\",`btn-${e.variant}`,`btn-${e.size}`,{\"btn-loading\":e.loading,\"btn-disabled\":e.disabled,\"btn-block\":e.block}]),disabled:e.disabled||e.loading,onClick:o},[e.loading?(T(),O(\"span\",wf)):Zn(i.$slots,\"default\",{key:1},void 0)],10,Cf))}}),zs=xe($f,[[\"__scopeId\",\"data-v-d837b9ac\"]]),Ef={class:\"smart-fill-panel\"},Tf={class:\"input-group\"},kf={class:\"data-info\"},Af={class:\"info-value\"},Of={class:\"info-value\"},If={class:\"mode-group\"},Ff={class:\"radio-label\"},Mf={class:\"radio-label\"},Lf={class:\"radio-label\"},Pf={class:\"mode-group\"},Rf={class:\"radio-label\"},Nf={class:\"radio-label\"},Df={class:\"action-buttons\"},jf=ye({__name:\"SmartFillPanel\",setup(e){const{send:t,listen:s}=Xt(),n=St(),o=D(\"\"),i=D(\"replace\"),l=D(\"sequential\"),r=D(0),a=be(()=>o.value.split(`\n`).map(v=>v.trim()).filter(v=>v.length>0)),d=be(()=>a.value.length>0&&r.value>0),c=async()=>{t(\"get-selection-count\")},h=async()=>{d.value&&(n.setLoading(!0),t(\"smart-fill-exec\",{dataList:a.value,mode:i.value,distribution:l.value}),setTimeout(()=>{n.setLoading(!1),n.addNotification({type:\"success\",message:\"填充完成\"})},1e3))};return st(()=>{s(\"selection-count-res\",v=>{r.value=v.count}),c()}),(v,g)=>(T(),O(\"div\",Ef,[Y(Mt,null,{default:Ie(()=>[g[8]||(g[8]=u(\"h3\",{class:\"section-title\"},\"数据输入\",-1)),u(\"div\",Tf,[me(u(\"textarea\",{\"onUpdate:modelValue\":g[0]||(g[0]=b=>o.value=b),class:\"data-textarea\",placeholder:`每行一条数据，例如：\n张三\n李四\n王五`,rows:\"8\"},null,512),[[zt,o.value]]),u(\"div\",kf,[g[6]||(g[6]=u(\"span\",{class:\"info-label\"},\"数据条数：\",-1)),u(\"span\",Af,G(a.value.length),1),g[7]||(g[7]=u(\"span\",{class:\"info-label ml-4\"},\"文本节点：\",-1)),u(\"span\",Of,G(r.value),1)])])]),_:1}),Y(Mt,{class:\"mt-4\"},{default:Ie(()=>[g[12]||(g[12]=u(\"h3\",{class:\"section-title\"},\"填充模式\",-1)),u(\"div\",If,[u(\"label\",Ff,[me(u(\"input\",{type:\"radio\",\"onUpdate:modelValue\":g[1]||(g[1]=b=>i.value=b),value:\"replace\"},null,512),[[os,i.value]]),g[9]||(g[9]=u(\"span\",null,\"替换\",-1))]),u(\"label\",Mf,[me(u(\"input\",{type:\"radio\",\"onUpdate:modelValue\":g[2]||(g[2]=b=>i.value=b),value:\"prefix\"},null,512),[[os,i.value]]),g[10]||(g[10]=u(\"span\",null,\"前缀\",-1))]),u(\"label\",Lf,[me(u(\"input\",{type:\"radio\",\"onUpdate:modelValue\":g[3]||(g[3]=b=>i.value=b),value:\"suffix\"},null,512),[[os,i.value]]),g[11]||(g[11]=u(\"span\",null,\"后缀\",-1))])])]),_:1}),Y(Mt,{class:\"mt-4\"},{default:Ie(()=>[g[15]||(g[15]=u(\"h3\",{class:\"section-title\"},\"分配方式\",-1)),u(\"div\",Pf,[u(\"label\",Rf,[me(u(\"input\",{type:\"radio\",\"onUpdate:modelValue\":g[4]||(g[4]=b=>l.value=b),value:\"sequential\"},null,512),[[os,l.value]]),g[13]||(g[13]=u(\"span\",null,\"顺序\",-1))]),u(\"label\",Nf,[me(u(\"input\",{type:\"radio\",\"onUpdate:modelValue\":g[5]||(g[5]=b=>l.value=b),value:\"random\"},null,512),[[os,l.value]]),g[14]||(g[14]=u(\"span\",null,\"随机\",-1))])])]),_:1}),u(\"div\",Df,[Y(zs,{variant:\"secondary\",onClick:c},{default:Ie(()=>[...g[16]||(g[16]=[xs(\" 刷新统计 \",-1)])]),_:1}),Y(zs,{variant:\"primary\",onClick:h,disabled:!d.value},{default:Ie(()=>[...g[17]||(g[17]=[xs(\" 开始填充 \",-1)])]),_:1},8,[\"disabled\"])])]))}}),Vf=xe(jf,[[\"__scopeId\",\"data-v-d7b3b862\"]]),Hf={class:\"super-select-panel\"},Uf={class:\"filter-section\"},Bf={class:\"scope-tabs\"},Wf=[\"onClick\"],Kf={class:\"filter-section\"},zf={class:\"name-filter\"},Gf={class:\"filter-section\"},qf={class:\"header-right\"},Yf={key:0,class:\"badge\"},Jf={class:\"arrow\"},Xf={key:0,class:\"collapsible-content\"},Zf={class:\"logic-toggle\"},Qf={class:\"checkbox-grid\"},ed=[\"value\"],td={class:\"filter-section\"},sd={class:\"header-right\"},nd={key:0,class:\"badge\"},od={class:\"arrow\"},id={key:0,class:\"collapsible-content\"},ld={class:\"logic-toggle\"},rd={class:\"checkbox-grid\"},ad=[\"value\"],cd=[\"disabled\"],ud={key:0},fd={key:1},dd={key:0,class:\"result-panel\"},pd={class:\"result-header\"},hd={class:\"result-count\"},vd={key:0,class:\"result-list\"},gd={class:\"layer-type\"},md={class:\"layer-name\"},bd={key:0,class:\"more-hint\"},_d=ye({__name:\"SuperSelectPanel\",setup(e){const{send:t,listen:s}=Xt(),n=D(\"descendants\"),o=D(\"\"),i=D(!1),l=D([]),r=D(\"include\"),a=D([]),d=D(\"include\"),c=D(!1),h=D(!1),v=D(!1),g=D(null),b=D([]),S=[{value:\"descendants\",label:\"后代\"},{value:\"page\",label:\"全页\"},{value:\"inside\",label:\"内部\"},{value:\"children\",label:\"子级\"},{value:\"sibling\",label:\"同级\"}],w=[{value:\"FRAME\",label:\"Frame\"},{value:\"GROUP\",label:\"Group\"},{value:\"COMPONENT\",label:\"组件\"},{value:\"INSTANCE\",label:\"实例\"},{value:\"TEXT\",label:\"文本\"},{value:\"RECTANGLE\",label:\"矩形\"},{value:\"ELLIPSE\",label:\"椭圆\"},{value:\"LINE\",label:\"直线\"},{value:\"VECTOR\",label:\"矢量\"},{value:\"AUTOLAYOUT\",label:\"自动布局\"},{value:\"IMAGE\",label:\"图片\"},{value:\"COMPONENT_SET\",label:\"变体组\"},{value:\"SECTION\",label:\"Section\"}],N=[{value:\"hidden\",label:\"隐藏\"},{value:\"locked\",label:\"锁定\"},{value:\"mask\",label:\"蒙版\"},{value:\"export\",label:\"导出标记\"},{value:\"no-fill\",label:\"无填充\"},{value:\"no-stroke\",label:\"无描边\"},{value:\"clip\",label:\"裁剪内容\"},{value:\"no-children\",label:\"空容器\"}],H=P=>({FRAME:\"▭\",GROUP:\"⬡\",COMPONENT:\"◈\",INSTANCE:\"◇\",TEXT:\"T\",RECTANGLE:\"▬\",ELLIPSE:\"○\",LINE:\"—\",VECTOR:\"✦\",SECTION:\"⊞\"})[P]||\"◻\",z=()=>{v.value=!0;const P={scope:n.value,name:o.value?{val:o.value,caseSensitive:i.value}:null,types:l.value.length>0?{vals:l.value,logic:r.value}:null,states:a.value.length>0?{vals:a.value,logic:d.value}:null,props:[]};t(\"find-and-select\",{filters:P})},$=()=>{g.value=null,b.value=[]};return st(()=>{s(P=>{P.type===\"found-layers-result\"&&(v.value=!1,g.value=P.count,b.value=P.layers||[])})}),(P,E)=>(T(),O(\"div\",Hf,[u(\"div\",Uf,[E[10]||(E[10]=u(\"label\",{class:\"section-label\"},\"查找范围\",-1)),u(\"div\",Bf,[(T(),O(ce,null,Ne(S,R=>u(\"button\",{key:R.value,class:ge([\"scope-tab\",{active:n.value===R.value}]),onClick:B=>n.value=R.value},G(R.label),11,Wf)),64))])]),u(\"div\",Kf,[E[11]||(E[11]=u(\"label\",{class:\"section-label\"},\"名称过滤\",-1)),u(\"div\",zf,[me(u(\"input\",{\"onUpdate:modelValue\":E[0]||(E[0]=R=>o.value=R),type:\"text\",placeholder:\"输入图层名称...\",class:\"text-input\"},null,512),[[zt,o.value]]),u(\"button\",{class:ge([\"toggle-btn\",{active:i.value}]),onClick:E[1]||(E[1]=R=>i.value=!i.value),title:\"区分大小写\"},\"Aa\",2)])]),u(\"div\",Gf,[u(\"div\",{class:\"section-header\",onClick:E[2]||(E[2]=R=>c.value=!c.value)},[E[12]||(E[12]=u(\"label\",{class:\"section-label\"},\"类型过滤\",-1)),u(\"div\",qf,[l.value.length>0?(T(),O(\"span\",Yf,G(l.value.length),1)):ne(\"\",!0),u(\"span\",Jf,G(c.value?\"▲\":\"▼\"),1)])]),c.value?(T(),O(\"div\",Xf,[u(\"div\",Zf,[u(\"button\",{class:ge([\"logic-btn\",{active:r.value===\"include\"}]),onClick:E[3]||(E[3]=R=>r.value=\"include\")},\"包含\",2),u(\"button\",{class:ge([\"logic-btn\",{active:r.value===\"exclude\"}]),onClick:E[4]||(E[4]=R=>r.value=\"exclude\")},\"排除\",2)]),u(\"div\",Qf,[(T(),O(ce,null,Ne(w,R=>u(\"label\",{key:R.value,class:\"checkbox-item\"},[me(u(\"input\",{type:\"checkbox\",value:R.value,\"onUpdate:modelValue\":E[5]||(E[5]=B=>l.value=B)},null,8,ed),[[Ht,l.value]]),u(\"span\",null,G(R.label),1)])),64))])])):ne(\"\",!0)]),u(\"div\",td,[u(\"div\",{class:\"section-header\",onClick:E[6]||(E[6]=R=>h.value=!h.value)},[E[13]||(E[13]=u(\"label\",{class:\"section-label\"},\"状态过滤\",-1)),u(\"div\",sd,[a.value.length>0?(T(),O(\"span\",nd,G(a.value.length),1)):ne(\"\",!0),u(\"span\",od,G(h.value?\"▲\":\"▼\"),1)])]),h.value?(T(),O(\"div\",id,[u(\"div\",ld,[u(\"button\",{class:ge([\"logic-btn\",{active:d.value===\"include\"}]),onClick:E[7]||(E[7]=R=>d.value=\"include\")},\"包含\",2),u(\"button\",{class:ge([\"logic-btn\",{active:d.value===\"exclude\"}]),onClick:E[8]||(E[8]=R=>d.value=\"exclude\")},\"排除\",2)]),u(\"div\",rd,[(T(),O(ce,null,Ne(N,R=>u(\"label\",{key:R.value,class:\"checkbox-item\"},[me(u(\"input\",{type:\"checkbox\",value:R.value,\"onUpdate:modelValue\":E[9]||(E[9]=B=>a.value=B)},null,8,ad),[[Ht,a.value]]),u(\"span\",null,G(R.label),1)])),64))])])):ne(\"\",!0)]),u(\"button\",{class:\"btn-search\",onClick:z,disabled:v.value},[v.value?(T(),O(\"span\",ud,\"查找中...\")):(T(),O(\"span\",fd,\"🔍 执行查找\"))],8,cd),g.value!==null?(T(),O(\"div\",dd,[u(\"div\",pd,[u(\"span\",hd,\"找到 \"+G(g.value)+\" 个图层\",1),g.value>0?(T(),O(\"button\",{key:0,class:\"btn-clear\",onClick:$},\"清除\")):ne(\"\",!0)]),b.value.length>0?(T(),O(\"div\",vd,[(T(!0),O(ce,null,Ne(b.value.slice(0,50),R=>(T(),O(\"div\",{key:R.id,class:\"result-item\"},[u(\"span\",gd,G(H(R.type)),1),u(\"span\",md,G(R.name),1)]))),128)),b.value.length>50?(T(),O(\"div\",bd,\"还有 \"+G(b.value.length-50)+\" 个...\",1)):ne(\"\",!0)])):ne(\"\",!0)])):ne(\"\",!0)]))}}),yd=xe(_d,[[\"__scopeId\",\"data-v-dde7090a\"]]),xd={class:\"input-wrapper\"},Sd=[\"type\",\"value\",\"placeholder\",\"disabled\"],Cd={key:0,class:\"input-error-message\"},wd=ye({__name:\"Input\",props:{modelValue:{},type:{default:\"text\"},placeholder:{default:\"\"},disabled:{type:Boolean,default:!1},error:{default:\"\"}},emits:[\"update:modelValue\",\"focus\",\"blur\"],setup(e,{emit:t}){const s=e,n=t,o=D(!1),i=a=>{const d=a.target,c=s.type===\"number\"?Number(d.value):d.value;n(\"update:modelValue\",c)},l=()=>{o.value=!0,n(\"focus\")},r=()=>{o.value=!1,n(\"blur\")};return(a,d)=>(T(),O(\"div\",xd,[u(\"input\",{type:e.type,value:e.modelValue,placeholder:e.placeholder,disabled:e.disabled,class:ge([\"input\",{\"input-error\":e.error,\"input-disabled\":e.disabled}]),onInput:i,onFocus:l,onBlur:r},null,42,Sd),e.error?(T(),O(\"span\",Cd,G(e.error),1)):ne(\"\",!0)]))}}),si=xe(wd,[[\"__scopeId\",\"data-v-95453b4e\"]]),$d={class:\"text-replace-panel\"},Ed={class:\"options-group\"},Td={class:\"checkbox-label\"},kd={class:\"checkbox-label\"},Ad={class:\"checkbox-label\"},Od={class:\"checkbox-label\"},Id={class:\"results-header\"},Fd={class:\"section-title\"},Md={class:\"results-list\"},Ld=[\"onClick\"],Pd={class:\"result-index\"},Rd={class:\"result-content\"},Nd={class:\"result-name\"},Dd={class:\"result-preview\"},jd={key:0,class:\"more-hint\"},Vd={class:\"action-buttons\"},Hd={key:1,class:\"success-message\"},Ud=ye({__name:\"TextReplacePanel\",setup(e){const{send:t,listen:s}=Xt(),n=St(),o=D(\"\"),i=D(\"\"),l=D(!1),r=D(!1),a=D(!1),d=D(!0),c=D(\"\"),h=D([]),v=D(0),g=be(()=>o.value.trim().length>0),b=be(()=>g.value&&h.length>0),S=()=>{if(!a.value)return!0;try{return new RegExp(o.value),c.value=\"\",!0}catch{return c.value=\"正则表达式格式错误\",!1}},w=()=>{g.value&&S()&&(n.setLoading(!0),v.value=0,t(\"text-replace-find\",{findText:o.value,caseSensitive:l.value,wholeWord:r.value,useRegex:a.value,inSelection:d.value}))},N=()=>{b.value&&(n.setLoading(!0),t(\"text-replace-exec\",{findText:o.value,replaceText:i.value,caseSensitive:l.value,wholeWord:r.value,useRegex:a.value,inSelection:d.value}))},H=()=>{h.value=[],v.value=0},z=P=>{t(\"select-node\",{nodeId:P.nodeId})},$=P=>{const E=P.text||\"\",R=50;return E.length<=R?E:E.substring(0,R)+\"...\"};return s(\"text-replace-found\",P=>{n.setLoading(!1),h.value=P.results||[],h.value.length===0&&n.addNotification({type:\"info\",message:\"未找到匹配项\"})}),s(\"text-replace-done\",P=>{n.setLoading(!1),v.value=P.count||0,h.value=[],n.addNotification({type:\"success\",message:`已替换 ${v.value} 处`})}),(P,E)=>(T(),O(\"div\",$d,[Y(Mt,null,{default:Ie(()=>[E[6]||(E[6]=u(\"h3\",{class:\"section-title\"},\"查找内容\",-1)),Y(si,{modelValue:o.value,\"onUpdate:modelValue\":E[0]||(E[0]=R=>o.value=R),placeholder:\"输入要查找的文本...\",error:c.value},null,8,[\"modelValue\",\"error\"])]),_:1}),Y(Mt,{class:\"mt-4\"},{default:Ie(()=>[E[7]||(E[7]=u(\"h3\",{class:\"section-title\"},\"替换为\",-1)),Y(si,{modelValue:i.value,\"onUpdate:modelValue\":E[1]||(E[1]=R=>i.value=R),placeholder:\"输入替换后的文本...\"},null,8,[\"modelValue\"])]),_:1}),Y(Mt,{class:\"mt-4\"},{default:Ie(()=>[E[12]||(E[12]=u(\"h3\",{class:\"section-title\"},\"选项\",-1)),u(\"div\",Ed,[u(\"label\",Td,[me(u(\"input\",{type:\"checkbox\",\"onUpdate:modelValue\":E[2]||(E[2]=R=>l.value=R)},null,512),[[Ht,l.value]]),E[8]||(E[8]=u(\"span\",null,\"区分大小写\",-1))]),u(\"label\",kd,[me(u(\"input\",{type:\"checkbox\",\"onUpdate:modelValue\":E[3]||(E[3]=R=>r.value=R)},null,512),[[Ht,r.value]]),E[9]||(E[9]=u(\"span\",null,\"全字匹配\",-1))]),u(\"label\",Ad,[me(u(\"input\",{type:\"checkbox\",\"onUpdate:modelValue\":E[4]||(E[4]=R=>a.value=R)},null,512),[[Ht,a.value]]),E[10]||(E[10]=u(\"span\",null,\"使用正则表达式\",-1))]),u(\"label\",Od,[me(u(\"input\",{type:\"checkbox\",\"onUpdate:modelValue\":E[5]||(E[5]=R=>d.value=R)},null,512),[[Ht,d.value]]),E[11]||(E[11]=u(\"span\",null,\"仅在选中范围\",-1))])])]),_:1}),h.value.length>0?(T(),qt(Mt,{key:0,class:\"mt-4\"},{default:Ie(()=>[u(\"div\",Id,[u(\"h3\",Fd,\"找到 \"+G(h.value.length)+\" 处匹配\",1),u(\"button\",{class:\"btn-clear\",onClick:H},\"清除\")]),u(\"div\",Md,[(T(!0),O(ce,null,Ne(h.value.slice(0,20),(R,B)=>(T(),O(\"div\",{key:B,class:\"result-item\",onClick:M=>z(R)},[u(\"span\",Pd,G(B+1),1),u(\"div\",Rd,[u(\"div\",Nd,G(R.nodeName),1),u(\"div\",Dd,G($(R)),1)])],8,Ld))),128)),h.value.length>20?(T(),O(\"div\",jd,\" 还有 \"+G(h.value.length-20)+\" 处... \",1)):ne(\"\",!0)])]),_:1})):ne(\"\",!0),u(\"div\",Vd,[Y(zs,{variant:\"secondary\",onClick:w,disabled:!g.value},{default:Ie(()=>[...E[13]||(E[13]=[xs(\" 查找全部 \",-1)])]),_:1},8,[\"disabled\"]),Y(zs,{variant:\"primary\",onClick:N,disabled:!b.value},{default:Ie(()=>[...E[14]||(E[14]=[xs(\" 全部替换 \",-1)])]),_:1},8,[\"disabled\"])]),v.value>0?(T(),O(\"div\",Hd,\" ✓ 已替换 \"+G(v.value)+\" 处 \",1)):ne(\"\",!0)]))}}),Bd=xe(Ud,[[\"__scopeId\",\"data-v-7c585196\"]]),Wd={class:\"app-container\"},Kd={key:0,class:\"feature-panel\"},zd={key:1,class:\"feature-panel\"},Gd={key:2,class:\"feature-panel\"},qd={key:3,class:\"feature-panel\"},Yd={key:4,class:\"feature-panel\"},Jd={key:5,class:\"feature-panel\"},Xd={key:6,class:\"feature-panel\"},Zd={class:\"panel-title\"},Qd={class:\"toast-container\"},ep={key:0,class:\"global-loading\"},tp=ye({__name:\"App\",setup(e){const t=St(),s=dn(),{initTheme:n}=Cc(),{startResize:o}=Ec(),i=D(!1),l=D(!1),r=D(null),a=D(null),d=be(()=>t.currentFeature),c=be(()=>t.isLoading),h=be(()=>t.notifications),v=S=>{Qe.info(`Feature selected: ${S}`),S===\"settings\"&&a.value?.show()},g=S=>{t.removeNotification(S)},b=()=>{o()};return st(()=>{n(),s.loadSettings(),i.value=s.sidebarCollapsed,kc(),Qe.info(\"App initialized\")}),(S,w)=>(T(),O(\"div\",Wd,[Y(jc,{collapsed:i.value,\"onUpdate:collapsed\":w[0]||(w[0]=N=>i.value=N),onSelectFeature:v,onOpenSettings:w[1]||(w[1]=N=>l.value=!0)},null,8,[\"collapsed\"]),Y(Bc,null,{default:Ie(()=>[d.value===\"simple\"?(T(),O(\"div\",Kd,[w[2]||(w[2]=u(\"h2\",{class:\"panel-title\"},\"简易工具\",-1)),w[3]||(w[3]=u(\"p\",{class:\"panel-description\"},\"快速执行常用的设计操作\",-1)),Y(Du)])):d.value===\"select\"?(T(),O(\"div\",zd,[w[4]||(w[4]=u(\"h2\",{class:\"panel-title\"},\"超级选择\",-1)),w[5]||(w[5]=u(\"p\",{class:\"panel-description\"},\"高级选择和过滤功能\",-1)),Y(yd)])):d.value===\"smartFill\"?(T(),O(\"div\",Gd,[w[6]||(w[6]=u(\"h2\",{class:\"panel-title\"},\"智能填充\",-1)),w[7]||(w[7]=u(\"p\",{class:\"panel-description\"},\"批量填充文本内容\",-1)),Y(Vf)])):d.value===\"jumpback\"?(T(),O(\"div\",qd,[w[8]||(w[8]=u(\"h2\",{class:\"panel-title\"},\"时空信标\",-1)),w[9]||(w[9]=u(\"p\",{class:\"panel-description\"},\"保存和跳转到特定视图位置\",-1)),Y(tf)])):d.value===\"skew\"?(T(),O(\"div\",Yd,[w[10]||(w[10]=u(\"h2\",{class:\"panel-title\"},\"等轴形变\",-1)),w[11]||(w[11]=u(\"p\",{class:\"panel-description\"},\"旋转和倾斜变形工具\",-1)),Y(xf)])):d.value===\"replace\"?(T(),O(\"div\",Jd,[w[12]||(w[12]=u(\"h2\",{class:\"panel-title\"},\"文字替换\",-1)),w[13]||(w[13]=u(\"p\",{class:\"panel-description\"},\"批量���找和替换文本\",-1)),Y(Bd)])):(T(),O(\"div\",Xd,[u(\"h2\",Zd,G(d.value),1),w[14]||(w[14]=u(\"p\",{class:\"panel-description\"},\"功能开发中...\",-1))]))]),_:1}),Y(Kc,{onStartResize:b}),u(\"div\",Qd,[(T(!0),O(ce,null,Ne(h.value,N=>(T(),qt(Jc,{key:N.id,type:N.type,message:N.message,duration:N.duration,onClose:H=>g(N.id)},null,8,[\"type\",\"message\",\"duration\",\"onClose\"]))),128))]),c.value?(T(),O(\"div\",ep,[Y(nu,{type:\"spinner\",text:\"加载中...\"})])):ne(\"\",!0),Y(hu,{ref_key:\"onboardingRef\",ref:r},null,512),Y(Iu,{ref_key:\"settingsRef\",ref:a},null,512)]))}}),sp=xe(tp,[[\"__scopeId\",\"data-v-ec64ae9c\"]]),np=`\n  @keyframes fadeIn {\n    from { opacity: 0; }\n    to { opacity: 1; }\n  }\n\n  @keyframes fadeOut {\n    from { opacity: 1; }\n    to { opacity: 0; }\n  }\n\n  @keyframes slideInUp {\n    from {\n      opacity: 0;\n      transform: translateY(8px);\n    }\n    to {\n      opacity: 1;\n      transform: translateY(0);\n    }\n  }\n\n  @keyframes slideInDown {\n    from {\n      opacity: 0;\n      transform: translateY(-8px);\n    }\n    to {\n      opacity: 1;\n      transform: translateY(0);\n    }\n  }\n\n  @keyframes slideInLeft {\n    from {\n      opacity: 0;\n      transform: translateX(-8px);\n    }\n    to {\n      opacity: 1;\n      transform: translateX(0);\n    }\n  }\n\n  @keyframes slideInRight {\n    from {\n      opacity: 0;\n      transform: translateX(8px);\n    }\n    to {\n      opacity: 1;\n      transform: translateX(0);\n    }\n  }\n\n  @keyframes scaleIn {\n    from {\n      opacity: 0;\n      transform: scale(0.95);\n    }\n    to {\n      opacity: 1;\n      transform: scale(1);\n    }\n  }\n\n  @keyframes scaleOut {\n    from {\n      opacity: 1;\n      transform: scale(1);\n    }\n    to {\n      opacity: 0;\n      transform: scale(0.95);\n    }\n  }\n\n  @keyframes pulse {\n    0%, 100% {\n      opacity: 1;\n    }\n    50% {\n      opacity: 0.5;\n    }\n  }\n\n  @keyframes spin {\n    from {\n      transform: rotate(0deg);\n    }\n    to {\n      transform: rotate(360deg);\n    }\n  }\n\n  @keyframes ripple {\n    0% {\n      transform: scale(0);\n      opacity: 0.5;\n    }\n    100% {\n      transform: scale(2);\n      opacity: 0;\n    }\n  }\n\n  @keyframes shimmer {\n    0% {\n      background-position: -200% 0;\n    }\n    100% {\n      background-position: 200% 0;\n    }\n  }\n`,wl=rc(sp),op=uc();wl.use(op);const $l=document.createElement(\"style\");$l.textContent=np;document.head.appendChild($l);wl.mount(\"#app\");</script>\n  <style rel=\"stylesheet\" crossorigin>.sidebar[data-v-1ce96e24]{width:var(--sidebar-width);height:100%;display:flex;flex-direction:column;background:var(--color-neutral-0);border-right:1px solid var(--color-neutral-200);transition:width var(--duration-normal) var(--ease-default);flex-shrink:0}.sidebar-collapsed[data-v-1ce96e24]{width:var(--sidebar-width-collapsed)}.sidebar-header[data-v-1ce96e24]{display:flex;align-items:center;justify-content:space-between;padding:var(--spacing-4);border-bottom:1px solid var(--color-neutral-200)}.sidebar-title[data-v-1ce96e24]{font-size:var(--text-lg);font-weight:var(--font-semibold);color:var(--color-primary-500);white-space:nowrap;overflow:hidden}.sidebar-toggle[data-v-1ce96e24]{display:flex;align-items:center;justify-content:center;width:24px;height:24px;padding:0;background:none;border:none;border-radius:var(--radius-sm);color:var(--color-neutral-500);cursor:pointer;transition:all var(--duration-fast) var(--ease-default)}.sidebar-toggle[data-v-1ce96e24]:hover{background:var(--color-neutral-100);color:var(--color-neutral-700)}.toggle-icon[data-v-1ce96e24]{font-size:14px}.sidebar-nav[data-v-1ce96e24]{flex:1;overflow-y:auto;padding:var(--spacing-2)}.nav-item[data-v-1ce96e24]{display:flex;align-items:center;gap:var(--spacing-3);padding:var(--spacing-3);margin-bottom:var(--spacing-1);border-radius:var(--radius-md);color:var(--color-neutral-600);cursor:pointer;transition:all var(--duration-fast) var(--ease-default);user-select:none}.nav-item[data-v-1ce96e24]:hover{background:var(--color-neutral-100);color:var(--color-neutral-900)}.nav-item.active[data-v-1ce96e24]{background:#8b7fd81a;color:var(--color-primary-500);font-weight:var(--font-medium)}.nav-icon[data-v-1ce96e24]{font-size:18px;flex-shrink:0;width:20px;text-align:center}.nav-text[data-v-1ce96e24]{font-size:var(--text-base);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sidebar-collapsed .nav-text[data-v-1ce96e24]{display:none}.sidebar-footer[data-v-1ce96e24]{padding:var(--spacing-3);border-top:1px solid var(--color-neutral-200)}.footer-btn[data-v-1ce96e24]{display:flex;align-items:center;gap:var(--spacing-3);width:100%;padding:var(--spacing-3);background:none;border:1px solid var(--color-neutral-200);border-radius:var(--radius-md);color:var(--color-neutral-600);cursor:pointer;transition:all var(--duration-fast) var(--ease-default)}.footer-btn[data-v-1ce96e24]:hover{background:var(--color-neutral-100);border-color:var(--color-neutral-300);color:var(--color-neutral-900)}[data-theme=dark] .sidebar[data-v-1ce96e24]{background:var(--color-neutral-950);border-right-color:var(--color-neutral-800)}[data-theme=dark] .sidebar-header[data-v-1ce96e24]{border-bottom-color:var(--color-neutral-800)}[data-theme=dark] .sidebar-toggle[data-v-1ce96e24]:hover{background:var(--color-neutral-800);color:var(--color-neutral-300)}[data-theme=dark] .nav-item[data-v-1ce96e24]{color:var(--color-neutral-400)}[data-theme=dark] .nav-item[data-v-1ce96e24]:hover{background:var(--color-neutral-800);color:var(--color-neutral-100)}[data-theme=dark] .nav-item.active[data-v-1ce96e24]{background:#8b7fd833;color:var(--color-primary-400)}[data-theme=dark] .sidebar-footer[data-v-1ce96e24]{border-top-color:var(--color-neutral-800)}[data-theme=dark] .footer-btn[data-v-1ce96e24]{border-color:var(--color-neutral-800);color:var(--color-neutral-400)}[data-theme=dark] .footer-btn[data-v-1ce96e24]:hover{background:var(--color-neutral-800);border-color:var(--color-neutral-700);color:var(--color-neutral-100)}.main-content[data-v-efcba600]{flex:1;display:flex;flex-direction:column;height:100%;min-width:0;background:var(--color-neutral-50)}.content-scroll[data-v-efcba600]{flex:1;overflow-y:auto;overflow-x:hidden;padding:var(--spacing-6)}[data-theme=dark] .main-content[data-v-efcba600]{background:var(--color-neutral-900)}.resize-handle[data-v-33221866]{position:absolute;bottom:0;right:0;width:20px;height:20px;cursor:nwse-resize;z-index:100;display:flex;align-items:flex-end;justify-content:flex-end;padding:4px}.resize-icon[data-v-33221866]{width:12px;height:12px;border-right:2px solid var(--color-neutral-400);border-bottom:2px solid var(--color-neutral-400);border-bottom-right-radius:2px;transition:border-color var(--duration-fast) var(--ease-default)}.resize-handle:hover .resize-icon[data-v-33221866]{border-color:var(--color-primary-500)}.resize-handle:active .resize-icon[data-v-33221866]{border-color:var(--color-primary-600)}[data-theme=dark] .resize-icon[data-v-33221866]{border-color:var(--color-neutral-600)}[data-theme=dark] .resize-handle:hover .resize-icon[data-v-33221866]{border-color:var(--color-primary-400)}.toast[data-v-3ca41bd8]{display:flex;align-items:center;gap:var(--spacing-3);min-width:300px;max-width:500px;padding:var(--spacing-3) var(--spacing-4);background:var(--color-neutral-0);border:1px solid var(--color-neutral-200);border-radius:var(--radius-lg);box-shadow:var(--shadow-xl);cursor:pointer;transition:all var(--duration-normal) var(--ease-default)}.toast[data-v-3ca41bd8]:hover{transform:translateY(-2px);box-shadow:0 12px 24px #0000001a}.toast-icon[data-v-3ca41bd8]{display:flex;align-items:center;justify-content:center;width:24px;height:24px;font-size:16px;font-weight:700;border-radius:var(--radius-full);flex-shrink:0}.toast-content[data-v-3ca41bd8]{flex:1;min-width:0}.toast-message[data-v-3ca41bd8]{font-size:var(--text-base);color:var(--color-neutral-900);line-height:var(--leading-normal)}.toast-close[data-v-3ca41bd8]{display:flex;align-items:center;justify-content:center;width:20px;height:20px;padding:0;font-size:20px;color:var(--color-neutral-500);background:none;border:none;border-radius:var(--radius-sm);cursor:pointer;transition:all var(--duration-fast) var(--ease-default);flex-shrink:0}.toast-close[data-v-3ca41bd8]:hover{color:var(--color-neutral-700);background:var(--color-neutral-100)}.toast-success[data-v-3ca41bd8]{border-left:4px solid var(--color-success)}.toast-success .toast-icon[data-v-3ca41bd8]{color:var(--color-success);background:var(--color-success-light)}.toast-error[data-v-3ca41bd8]{border-left:4px solid var(--color-error)}.toast-error .toast-icon[data-v-3ca41bd8]{color:var(--color-error);background:var(--color-error-light)}.toast-warning[data-v-3ca41bd8]{border-left:4px solid var(--color-warning)}.toast-warning .toast-icon[data-v-3ca41bd8]{color:var(--color-warning);background:var(--color-warning-light)}.toast-info[data-v-3ca41bd8]{border-left:4px solid var(--color-info)}.toast-info .toast-icon[data-v-3ca41bd8]{color:var(--color-info);background:var(--color-info-light)}.toast-enter-active[data-v-3ca41bd8],.toast-leave-active[data-v-3ca41bd8]{transition:all var(--duration-normal) var(--ease-default)}.toast-enter-from[data-v-3ca41bd8]{opacity:0;transform:translateY(-20px)}.toast-leave-to[data-v-3ca41bd8]{opacity:0;transform:translate(100%)}[data-theme=dark] .toast[data-v-3ca41bd8]{background:var(--color-neutral-900);border-color:var(--color-neutral-800)}[data-theme=dark] .toast-message[data-v-3ca41bd8]{color:var(--color-neutral-100)}[data-theme=dark] .toast-close[data-v-3ca41bd8]{color:var(--color-neutral-400)}[data-theme=dark] .toast-close[data-v-3ca41bd8]:hover{color:var(--color-neutral-200);background:var(--color-neutral-800)}.loading-container[data-v-5065d017]{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--spacing-3);padding:var(--spacing-6)}.loading-spinner[data-v-5065d017]{width:32px;height:32px;border:3px solid var(--color-neutral-200);border-top-color:var(--color-primary-500);border-radius:var(--radius-full);animation:spin-5065d017 .8s linear infinite}@keyframes spin-5065d017{to{transform:rotate(360deg)}}.loading-skeleton[data-v-5065d017]{width:100%;max-width:300px}.skeleton-line[data-v-5065d017]{height:12px;margin-bottom:var(--spacing-2);background:linear-gradient(90deg,var(--color-neutral-200) 0%,var(--color-neutral-100) 50%,var(--color-neutral-200) 100%);background-size:200% 100%;border-radius:var(--radius-sm);animation:shimmer-5065d017 2s ease-in-out infinite}.skeleton-line.short[data-v-5065d017]{width:60%}@keyframes shimmer-5065d017{0%{background-position:-200% 0}to{background-position:200% 0}}.loading-dots[data-v-5065d017]{display:flex;gap:var(--spacing-2)}.dot[data-v-5065d017]{width:8px;height:8px;background:var(--color-primary-500);border-radius:var(--radius-full);animation:bounce-5065d017 1.4s ease-in-out infinite}.dot[data-v-5065d017]:nth-child(1){animation-delay:-.32s}.dot[data-v-5065d017]:nth-child(2){animation-delay:-.16s}@keyframes bounce-5065d017{0%,80%,to{transform:scale(0);opacity:.5}40%{transform:scale(1);opacity:1}}.loading-text[data-v-5065d017]{font-size:var(--text-sm);color:var(--color-neutral-600);text-align:center}[data-theme=dark] .loading-spinner[data-v-5065d017]{border-color:var(--color-neutral-700);border-top-color:var(--color-primary-500)}[data-theme=dark] .skeleton-line[data-v-5065d017]{background:linear-gradient(90deg,var(--color-neutral-800) 0%,var(--color-neutral-700) 50%,var(--color-neutral-800) 100%)}[data-theme=dark] .loading-text[data-v-5065d017]{color:var(--color-neutral-400)}.onboarding-overlay[data-v-4d5ee50c]{position:fixed;inset:0;background:#0009;backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:10000;animation:fadeIn-4d5ee50c .3s ease-out}@keyframes fadeIn-4d5ee50c{0%{opacity:0}to{opacity:1}}.onboarding-modal[data-v-4d5ee50c]{width:90%;max-width:480px;background:var(--color-bg-primary);border-radius:var(--radius-xl);box-shadow:0 20px 60px #0000004d;padding:var(--spacing-6);animation:slideUp-4d5ee50c .3s ease-out}@keyframes slideUp-4d5ee50c{0%{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}.progress-dots[data-v-4d5ee50c]{display:flex;justify-content:center;gap:var(--spacing-2);margin-bottom:var(--spacing-6)}.dot[data-v-4d5ee50c]{width:8px;height:8px;border-radius:50%;background:var(--color-neutral-300);transition:all var(--duration-normal)}.dot.active[data-v-4d5ee50c]{width:24px;border-radius:4px;background:var(--color-primary-500)}.step-content[data-v-4d5ee50c]{min-height:320px;margin-bottom:var(--spacing-6)}.step[data-v-4d5ee50c]{animation:fadeIn-4d5ee50c .3s ease-out}.step-icon[data-v-4d5ee50c]{font-size:48px;text-align:center;margin-bottom:var(--spacing-4)}.step-title[data-v-4d5ee50c]{font-size:var(--text-2xl);font-weight:var(--font-bold);color:var(--color-neutral-900);text-align:center;margin-bottom:var(--spacing-3)}.step-desc[data-v-4d5ee50c]{font-size:var(--text-base);color:var(--color-neutral-600);text-align:center;line-height:1.6;margin-bottom:var(--spacing-6)}.feature-grid[data-v-4d5ee50c]{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--spacing-3)}.feature-item[data-v-4d5ee50c]{display:flex;flex-direction:column;align-items:center;gap:var(--spacing-2);padding:var(--spacing-4);background:var(--color-bg-secondary);border:1px solid var(--color-border);border-radius:var(--radius-md)}.feature-icon[data-v-4d5ee50c]{font-size:32px}.feature-text[data-v-4d5ee50c]{font-size:var(--text-sm);font-weight:var(--font-medium);color:var(--color-neutral-700)}.tool-examples[data-v-4d5ee50c]{display:flex;flex-direction:column;gap:var(--spacing-3)}.example-item[data-v-4d5ee50c]{display:flex;align-items:center;gap:var(--spacing-3);padding:var(--spacing-3);background:var(--color-bg-secondary);border-radius:var(--radius-md)}.example-icon[data-v-4d5ee50c]{font-size:24px;flex-shrink:0}.example-text strong[data-v-4d5ee50c]{display:block;font-size:var(--text-base);color:var(--color-neutral-900);margin-bottom:2px}.example-text p[data-v-4d5ee50c]{font-size:var(--text-sm);color:var(--color-neutral-600);margin:0}.feature-list[data-v-4d5ee50c]{display:flex;flex-direction:column;gap:var(--spacing-3)}.list-item[data-v-4d5ee50c]{display:flex;align-items:center;gap:var(--spacing-3);font-size:var(--text-base);color:var(--color-neutral-700)}.list-icon[data-v-4d5ee50c]{display:flex;align-items:center;justify-content:center;width:24px;height:24px;background:#8b7fd81a;color:var(--color-primary-500);border-radius:50%;font-size:var(--text-sm);font-weight:var(--font-bold);flex-shrink:0}.more-features[data-v-4d5ee50c]{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--spacing-3)}.more-item[data-v-4d5ee50c]{padding:var(--spacing-3);background:var(--color-bg-secondary);border-radius:var(--radius-md);text-align:center}.more-icon[data-v-4d5ee50c]{font-size:28px;display:block;margin-bottom:var(--spacing-2)}.more-item strong[data-v-4d5ee50c]{display:block;font-size:var(--text-base);color:var(--color-neutral-900);margin-bottom:4px}.more-item p[data-v-4d5ee50c]{font-size:var(--text-sm);color:var(--color-neutral-600);margin:0}.tips-box[data-v-4d5ee50c]{padding:var(--spacing-4);background:#8b7fd814;border:1px solid rgba(139,127,216,.2);border-radius:var(--radius-md)}.tips-title[data-v-4d5ee50c]{font-size:var(--text-base);font-weight:var(--font-semibold);color:var(--color-neutral-900);margin-bottom:var(--spacing-3)}.tips-list[data-v-4d5ee50c]{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:var(--spacing-2)}.tips-list li[data-v-4d5ee50c]{font-size:var(--text-sm);color:var(--color-neutral-700);padding-left:var(--spacing-4);position:relative}.tips-list li[data-v-4d5ee50c]:before{content:\"•\";position:absolute;left:0;color:var(--color-primary-500);font-weight:var(--font-bold)}.actions[data-v-4d5ee50c]{display:flex;gap:var(--spacing-3);align-items:center}.btn-primary[data-v-4d5ee50c],.btn-secondary[data-v-4d5ee50c],.btn-text[data-v-4d5ee50c]{padding:var(--spacing-3) var(--spacing-4);border-radius:var(--radius-md);font-size:var(--text-base);font-weight:var(--font-medium);cursor:pointer;transition:all var(--duration-fast);border:none}.btn-primary[data-v-4d5ee50c]{flex:1;background:var(--color-primary-500);color:#fff}.btn-primary[data-v-4d5ee50c]:hover{background:var(--color-primary-600);transform:translateY(-1px);box-shadow:var(--shadow-md)}.btn-secondary[data-v-4d5ee50c]{background:var(--color-bg-secondary);border:1px solid var(--color-border);color:var(--color-text-primary)}.btn-secondary[data-v-4d5ee50c]:hover{background:var(--color-bg-tertiary)}.btn-text[data-v-4d5ee50c]{background:none;color:var(--color-text-secondary);padding:var(--spacing-2) var(--spacing-3)}.btn-text[data-v-4d5ee50c]:hover{color:var(--color-text-primary)}[data-theme=dark] .step-title[data-v-4d5ee50c]{color:var(--color-neutral-100)}[data-theme=dark] .step-desc[data-v-4d5ee50c]{color:var(--color-neutral-400)}[data-theme=dark] .feature-text[data-v-4d5ee50c],[data-theme=dark] .list-item[data-v-4d5ee50c]{color:var(--color-neutral-300)}[data-theme=dark] .example-text strong[data-v-4d5ee50c],[data-theme=dark] .more-item strong[data-v-4d5ee50c],[data-theme=dark] .tips-title[data-v-4d5ee50c]{color:var(--color-neutral-100)}[data-theme=dark] .example-text p[data-v-4d5ee50c],[data-theme=dark] .more-item p[data-v-4d5ee50c]{color:var(--color-neutral-400)}[data-theme=dark] .tips-list li[data-v-4d5ee50c]{color:var(--color-neutral-300)}.settings-overlay[data-v-d80838c9]{position:fixed;inset:0;background:#00000080;backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:9999;animation:fadeIn-d80838c9 .2s ease-out}@keyframes fadeIn-d80838c9{0%{opacity:0}to{opacity:1}}.settings-panel[data-v-d80838c9]{width:90%;max-width:560px;max-height:90vh;background:var(--color-bg-primary);border-radius:var(--radius-xl);box-shadow:0 20px 60px #0000004d;display:flex;flex-direction:column;animation:slideUp-d80838c9 .3s ease-out}@keyframes slideUp-d80838c9{0%{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}.settings-header[data-v-d80838c9]{display:flex;align-items:center;justify-content:space-between;padding:var(--spacing-5) var(--spacing-6);border-bottom:1px solid var(--color-border)}.settings-title[data-v-d80838c9]{font-size:var(--text-xl);font-weight:var(--font-semibold);color:var(--color-neutral-900);margin:0}.btn-close[data-v-d80838c9]{width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:none;border:none;border-radius:var(--radius-md);font-size:20px;color:var(--color-neutral-600);cursor:pointer;transition:all var(--duration-fast)}.btn-close[data-v-d80838c9]:hover{background:var(--color-bg-secondary);color:var(--color-neutral-900)}.settings-content[data-v-d80838c9]{flex:1;overflow-y:auto;padding:var(--spacing-6)}.settings-section[data-v-d80838c9]{margin-bottom:var(--spacing-6)}.settings-section[data-v-d80838c9]:last-child{margin-bottom:0}.section-title[data-v-d80838c9]{font-size:var(--text-base);font-weight:var(--font-semibold);color:var(--color-neutral-900);margin-bottom:var(--spacing-4)}.setting-item[data-v-d80838c9]{display:flex;align-items:center;justify-content:space-between;padding:var(--spacing-4) 0;border-bottom:1px solid var(--color-border)}.setting-item[data-v-d80838c9]:last-child{border-bottom:none}.setting-label[data-v-d80838c9]{flex:1;display:flex;flex-direction:column;gap:4px}.label-text[data-v-d80838c9]{font-size:var(--text-base);font-weight:var(--font-medium);color:var(--color-neutral-900)}.label-desc[data-v-d80838c9]{font-size:var(--text-sm);color:var(--color-neutral-600)}.theme-options[data-v-d80838c9]{display:flex;gap:var(--spacing-2)}.theme-btn[data-v-d80838c9]{display:flex;flex-direction:column;align-items:center;gap:4px;padding:var(--spacing-2) var(--spacing-3);background:var(--color-bg-secondary);border:1px solid var(--color-border);border-radius:var(--radius-md);cursor:pointer;transition:all var(--duration-fast)}.theme-btn[data-v-d80838c9]:hover{border-color:var(--color-primary-500)}.theme-btn.active[data-v-d80838c9]{background:#8b7fd81a;border-color:var(--color-primary-500)}.theme-icon[data-v-d80838c9]{font-size:20px}.theme-name[data-v-d80838c9]{font-size:var(--text-xs);color:var(--color-neutral-700);white-space:nowrap}.toggle-switch[data-v-d80838c9]{position:relative;width:48px;height:28px;cursor:pointer}.toggle-switch input[data-v-d80838c9]{opacity:0;width:0;height:0}.toggle-slider[data-v-d80838c9]{position:absolute;inset:0;background:var(--color-neutral-300);border-radius:14px;transition:all var(--duration-fast)}.toggle-slider[data-v-d80838c9]:before{content:\"\";position:absolute;height:20px;width:20px;left:4px;bottom:4px;background:#fff;border-radius:50%;transition:all var(--duration-fast)}.toggle-switch input:checked+.toggle-slider[data-v-d80838c9]{background:var(--color-primary-500)}.toggle-switch input:checked+.toggle-slider[data-v-d80838c9]:before{transform:translate(20px)}.select-input[data-v-d80838c9]{padding:var(--spacing-2) var(--spacing-3);border:1px solid var(--color-border);border-radius:var(--radius-md);font-size:var(--text-base);background:var(--color-bg-secondary);color:var(--color-text-primary);cursor:pointer;outline:none}.btn-action[data-v-d80838c9]{padding:var(--spacing-2) var(--spacing-4);background:var(--color-bg-secondary);border:1px solid var(--color-border);border-radius:var(--radius-md);font-size:var(--text-sm);color:var(--color-text-primary);cursor:pointer;transition:all var(--duration-fast)}.btn-action[data-v-d80838c9]:hover{background:var(--color-bg-tertiary);border-color:var(--color-primary-500)}.btn-action.btn-danger[data-v-d80838c9]:hover{background:#ef44441a;border-color:#ef4444;color:#ef4444}.about-info[data-v-d80838c9]{padding:var(--spacing-4);background:var(--color-bg-secondary);border-radius:var(--radius-md);margin-bottom:var(--spacing-4)}.info-row[data-v-d80838c9]{display:flex;justify-content:space-between;padding:var(--spacing-2) 0;font-size:var(--text-sm)}.info-row[data-v-d80838c9]:not(:last-child){border-bottom:1px solid var(--color-border)}.info-label[data-v-d80838c9]{color:var(--color-neutral-600)}.info-value[data-v-d80838c9]{color:var(--color-neutral-900);font-weight:var(--font-medium)}.about-links[data-v-d80838c9]{display:flex;flex-direction:column;gap:var(--spacing-2)}.link-item[data-v-d80838c9]{display:flex;align-items:center;padding:var(--spacing-3);background:var(--color-bg-secondary);border:1px solid var(--color-border);border-radius:var(--radius-md);font-size:var(--text-sm);color:var(--color-neutral-700);text-decoration:none;transition:all var(--duration-fast)}.link-item[data-v-d80838c9]:hover{background:var(--color-bg-tertiary);border-color:var(--color-primary-500);color:var(--color-primary-500)}.settings-footer[data-v-d80838c9]{padding:var(--spacing-5) var(--spacing-6);border-top:1px solid var(--color-border)}.btn-primary[data-v-d80838c9]{width:100%;padding:var(--spacing-3);background:var(--color-primary-500);color:#fff;border:none;border-radius:var(--radius-md);font-size:var(--text-base);font-weight:var(--font-medium);cursor:pointer;transition:all var(--duration-fast)}.btn-primary[data-v-d80838c9]:hover{background:var(--color-primary-600);transform:translateY(-1px);box-shadow:var(--shadow-md)}[data-theme=dark] .settings-title[data-v-d80838c9],[data-theme=dark] .section-title[data-v-d80838c9],[data-theme=dark] .label-text[data-v-d80838c9],[data-theme=dark] .info-value[data-v-d80838c9]{color:var(--color-neutral-100)}[data-theme=dark] .label-desc[data-v-d80838c9],[data-theme=dark] .info-label[data-v-d80838c9]{color:var(--color-neutral-400)}[data-theme=dark] .theme-name[data-v-d80838c9]{color:var(--color-neutral-300)}[data-theme=dark] .select-input[data-v-d80838c9],[data-theme=dark] .btn-action[data-v-d80838c9],[data-theme=dark] .about-info[data-v-d80838c9],[data-theme=dark] .link-item[data-v-d80838c9]{background:var(--color-neutral-900);border-color:var(--color-neutral-800)}.simple-tools-panel[data-v-4746fa81]{padding:var(--spacing-4)}.tools-grid[data-v-4746fa81]{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--spacing-2)}.tool-button[data-v-4746fa81]{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--spacing-1);padding:var(--spacing-3);background:var(--color-bg-secondary);border:1px solid var(--color-border);border-radius:var(--radius-md);cursor:pointer;transition:all var(--duration-fast) var(--ease-out);min-height:72px}.tool-button[data-v-4746fa81]:hover{background:var(--color-bg-tertiary);border-color:var(--color-primary-500);transform:translateY(-1px);box-shadow:var(--shadow-sm)}.tool-button[data-v-4746fa81]:active{transform:translateY(0)}.tool-button.disabled[data-v-4746fa81]{opacity:.5;cursor:not-allowed}.tool-icon[data-v-4746fa81]{font-size:24px;line-height:1}.tool-name[data-v-4746fa81]{font-size:12px;color:var(--color-text-secondary);text-align:center;line-height:1.2}.jumpback-panel[data-v-f1ae792b]{padding:var(--spacing-4)}.panel-header[data-v-f1ae792b]{margin-bottom:var(--spacing-4)}.description[data-v-f1ae792b]{font-size:var(--text-sm);color:var(--color-text-secondary);margin-bottom:var(--spacing-3)}.btn-save[data-v-f1ae792b]{display:flex;align-items:center;gap:var(--spacing-2);width:100%;padding:var(--spacing-3);background:var(--color-primary-500);color:#fff;border:none;border-radius:var(--radius-md);font-size:var(--text-base);cursor:pointer;transition:all var(--duration-fast) var(--ease-out)}.btn-save[data-v-f1ae792b]:hover:not(:disabled){background:var(--color-primary-600);transform:translateY(-1px);box-shadow:var(--shadow-sm)}.btn-save[data-v-f1ae792b]:disabled{opacity:.5;cursor:not-allowed}.icon[data-v-f1ae792b]{font-size:18px}.empty-state[data-v-f1ae792b]{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--spacing-8) var(--spacing-4);text-align:center;color:var(--color-text-secondary)}.empty-icon[data-v-f1ae792b]{font-size:48px;margin-bottom:var(--spacing-3);opacity:.5}.hint[data-v-f1ae792b]{font-size:var(--text-sm);color:var(--color-text-tertiary);margin-top:var(--spacing-2)}.spots-list[data-v-f1ae792b]{display:flex;flex-direction:column;gap:var(--spacing-2)}.spot-item[data-v-f1ae792b]{display:flex;align-items:center;justify-content:space-between;padding:var(--spacing-3);background:var(--color-bg-secondary);border:1px solid var(--color-border);border-radius:var(--radius-md);transition:all var(--duration-fast) var(--ease-out)}.spot-item[data-v-f1ae792b]:hover{border-color:var(--color-primary-500);box-shadow:var(--shadow-sm)}.spot-info[data-v-f1ae792b]{flex:1;min-width:0}.spot-name[data-v-f1ae792b]{font-size:var(--text-base);font-weight:var(--font-medium);color:var(--color-text-primary);margin-bottom:var(--spacing-1);cursor:pointer;user-select:none}.spot-name[data-v-f1ae792b]:hover{color:var(--color-primary-500)}.spot-name-input[data-v-f1ae792b]{width:100%;padding:var(--spacing-1) var(--spacing-2);font-size:var(--text-base);font-weight:var(--font-medium);border:1px solid var(--color-primary-500);border-radius:var(--radius-sm);background:var(--color-bg-primary);color:var(--color-text-primary);outline:none}.spot-meta[data-v-f1ae792b]{display:flex;align-items:center;gap:var(--spacing-2);font-size:var(--text-sm);color:var(--color-text-secondary)}.page-name[data-v-f1ae792b]{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.zoom[data-v-f1ae792b]{padding:2px 6px;background:var(--color-bg-tertiary);border-radius:var(--radius-sm);font-size:var(--text-xs)}.spot-actions[data-v-f1ae792b]{display:flex;gap:var(--spacing-1)}.btn-icon[data-v-f1ae792b]{display:flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;background:none;border:none;border-radius:var(--radius-sm);font-size:16px;cursor:pointer;transition:all var(--duration-fast) var(--ease-out)}.btn-icon[data-v-f1ae792b]:hover{background:var(--color-bg-tertiary);transform:scale(1.1)}.btn-delete[data-v-f1ae792b]:hover{background:#ef44441a}[data-theme=dark] .spot-item[data-v-f1ae792b]{background:var(--color-neutral-900);border-color:var(--color-neutral-800)}[data-theme=dark] .spot-name-input[data-v-f1ae792b]{background:var(--color-neutral-950);border-color:var(--color-primary-400)}.skew-panel[data-v-9653b004]{padding:var(--spacing-4)}.controls-section[data-v-9653b004]{display:flex;flex-direction:column;gap:var(--spacing-4);margin-bottom:var(--spacing-4)}.control-group[data-v-9653b004]{display:flex;flex-direction:column;gap:var(--spacing-2)}.control-label[data-v-9653b004]{display:flex;justify-content:space-between;align-items:center;font-size:var(--text-sm);color:var(--color-text-secondary)}.value[data-v-9653b004]{font-weight:var(--font-medium);color:var(--color-primary-500)}.slider[data-v-9653b004]{width:100%;height:6px;border-radius:3px;background:var(--color-neutral-200);outline:none;-webkit-appearance:none;appearance:none}.slider[data-v-9653b004]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--color-primary-500);cursor:pointer;transition:all var(--duration-fast) var(--ease-out)}.slider[data-v-9653b004]::-webkit-slider-thumb:hover{transform:scale(1.2);box-shadow:0 0 0 4px #8b7fd833}.slider[data-v-9653b004]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--color-primary-500);cursor:pointer;border:none;transition:all var(--duration-fast) var(--ease-out)}.slider[data-v-9653b004]::-moz-range-thumb:hover{transform:scale(1.2);box-shadow:0 0 0 4px #8b7fd833}.actions[data-v-9653b004]{display:flex;gap:var(--spacing-2);margin-bottom:var(--spacing-4)}.btn-primary[data-v-9653b004],.btn-secondary[data-v-9653b004]{flex:1;padding:var(--spacing-3);border:none;border-radius:var(--radius-md);font-size:var(--text-base);cursor:pointer;transition:all var(--duration-fast) var(--ease-out)}.btn-primary[data-v-9653b004]{background:var(--color-primary-500);color:#fff}.btn-primary[data-v-9653b004]:hover{background:var(--color-primary-600);transform:translateY(-1px);box-shadow:var(--shadow-sm)}.btn-secondary[data-v-9653b004]{background:var(--color-bg-secondary);color:var(--color-text-primary);border:1px solid var(--color-border)}.btn-secondary[data-v-9653b004]:hover{background:var(--color-bg-tertiary);border-color:var(--color-neutral-300)}.presets-section[data-v-9653b004]{margin-bottom:var(--spacing-4)}.section-title[data-v-9653b004]{font-size:var(--text-base);font-weight:var(--font-medium);color:var(--color-text-primary);margin-bottom:var(--spacing-3)}.presets-grid[data-v-9653b004]{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--spacing-2)}.preset-item[data-v-9653b004]{position:relative;padding:var(--spacing-3);background:var(--color-bg-secondary);border:1px solid var(--color-border);border-radius:var(--radius-md);cursor:pointer;transition:all var(--duration-fast) var(--ease-out)}.preset-item[data-v-9653b004]:hover{border-color:var(--color-primary-500);box-shadow:var(--shadow-sm)}.preset-name[data-v-9653b004]{font-size:var(--text-sm);font-weight:var(--font-medium);color:var(--color-text-primary);margin-bottom:var(--spacing-1)}.preset-values[data-v-9653b004]{font-size:var(--text-xs);color:var(--color-text-secondary)}.btn-delete-preset[data-v-9653b004]{position:absolute;top:4px;right:4px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;background:#ef44441a;border:none;border-radius:50%;color:#ef4444;font-size:16px;line-height:1;cursor:pointer;opacity:0;transition:all var(--duration-fast) var(--ease-out)}.preset-item:hover .btn-delete-preset[data-v-9653b004]{opacity:1}.btn-delete-preset[data-v-9653b004]:hover{background:#ef444433;transform:scale(1.1)}.info-box[data-v-9653b004]{padding:var(--spacing-3);background:#8b7fd80d;border:1px solid rgba(139,127,216,.2);border-radius:var(--radius-md)}.info-text[data-v-9653b004]{font-size:var(--text-sm);color:var(--color-text-secondary);margin-bottom:var(--spacing-1)}.info-text[data-v-9653b004]:last-child{margin-bottom:0}[data-theme=dark] .slider[data-v-9653b004]{background:var(--color-neutral-800)}[data-theme=dark] .preset-item[data-v-9653b004]{background:var(--color-neutral-900);border-color:var(--color-neutral-800)}[data-theme=dark] .info-box[data-v-9653b004]{background:#8b7fd81a;border-color:#8b7fd84d}.card[data-v-12c9b865]{padding:var(--spacing-4);background:var(--color-neutral-0);border:1px solid var(--color-neutral-200);border-radius:var(--radius-lg);transition:all var(--duration-normal) var(--ease-default)}.card-hoverable[data-v-12c9b865]:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}.card-clickable[data-v-12c9b865]{cursor:pointer;user-select:none}.card-clickable[data-v-12c9b865]:active{transform:translateY(0);box-shadow:var(--shadow-sm)}.card-orange[data-v-12c9b865]{background:#fff7ed;border-color:#c2410c1a;color:#c2410c}.card-blue[data-v-12c9b865]{background:#eff6ff;border-color:#1d4ed81a;color:#1d4ed8}.card-purple[data-v-12c9b865]{background:#f5f3ff;border-color:#6d28d91a;color:#6d28d9}.card-green[data-v-12c9b865]{background:#ecfdf5;border-color:#0478571a;color:#047857}.card-pink[data-v-12c9b865]{background:#fdf2f8;border-color:#be185d1a;color:#be185d}[data-theme=dark] .card[data-v-12c9b865]{background:var(--color-neutral-900);border-color:var(--color-neutral-800)}[data-theme=dark] .card-orange[data-v-12c9b865]{background:#c2410c26;border-color:#c2410c33;color:#fb923c}[data-theme=dark] .card-blue[data-v-12c9b865]{background:#1d4ed826;border-color:#1d4ed833;color:#60a5fa}[data-theme=dark] .card-purple[data-v-12c9b865]{background:#6d28d926;border-color:#6d28d933;color:#a78bfa}[data-theme=dark] .card-green[data-v-12c9b865]{background:#04785726;border-color:#04785733;color:#34d399}[data-theme=dark] .card-pink[data-v-12c9b865]{background:#be185d26;border-color:#be185d33;color:#f472b6}.btn[data-v-d837b9ac]{display:inline-flex;align-items:center;justify-content:center;gap:var(--spacing-2);font-family:var(--font-sans);font-weight:var(--font-medium);border:none;border-radius:var(--radius-md);cursor:pointer;transition:all var(--duration-fast) var(--ease-default);user-select:none;white-space:nowrap}.btn[data-v-d837b9ac]:focus-visible{outline:2px solid var(--color-primary-500);outline-offset:2px}.btn-sm[data-v-d837b9ac]{padding:var(--spacing-1) var(--spacing-3);font-size:var(--text-sm);height:28px}.btn-md[data-v-d837b9ac]{padding:var(--spacing-2) var(--spacing-4);font-size:var(--text-base);height:36px}.btn-lg[data-v-d837b9ac]{padding:var(--spacing-3) var(--spacing-5);font-size:var(--text-lg);height:44px}.btn-primary[data-v-d837b9ac]{background:var(--color-primary-500);color:#fff}.btn-primary[data-v-d837b9ac]:hover:not(:disabled){background:var(--color-primary-600);transform:translateY(-1px);box-shadow:var(--shadow-md)}.btn-primary[data-v-d837b9ac]:active:not(:disabled){background:var(--color-primary-700);transform:translateY(0);box-shadow:var(--shadow-sm)}.btn-secondary[data-v-d837b9ac]{background:var(--color-neutral-100);color:var(--color-neutral-900);border:1px solid var(--color-neutral-200)}.btn-secondary[data-v-d837b9ac]:hover:not(:disabled){background:var(--color-neutral-200);border-color:var(--color-neutral-300)}.btn-ghost[data-v-d837b9ac]{background:transparent;color:var(--color-neutral-700)}.btn-ghost[data-v-d837b9ac]:hover:not(:disabled){background:var(--color-neutral-100)}.btn-danger[data-v-d837b9ac]{background:var(--color-error);color:#fff}.btn-danger[data-v-d837b9ac]:hover:not(:disabled){background:#dc2626;transform:translateY(-1px);box-shadow:var(--shadow-md)}.btn-disabled[data-v-d837b9ac],.btn[data-v-d837b9ac]:disabled{opacity:.5;cursor:not-allowed;transform:none!important}.btn-loading[data-v-d837b9ac]{cursor:wait}.btn-block[data-v-d837b9ac]{width:100%}.btn-spinner[data-v-d837b9ac]{width:14px;height:14px;border:2px solid currentColor;border-top-color:transparent;border-radius:var(--radius-full);animation:spin-d837b9ac .8s linear infinite}@keyframes spin-d837b9ac{to{transform:rotate(360deg)}}[data-theme=dark] .btn-secondary[data-v-d837b9ac]{background:var(--color-neutral-800);color:var(--color-neutral-100);border-color:var(--color-neutral-700)}[data-theme=dark] .btn-secondary[data-v-d837b9ac]:hover:not(:disabled){background:var(--color-neutral-700);border-color:var(--color-neutral-600)}[data-theme=dark] .btn-ghost[data-v-d837b9ac]{color:var(--color-neutral-300)}[data-theme=dark] .btn-ghost[data-v-d837b9ac]:hover:not(:disabled){background:var(--color-neutral-800)}.smart-fill-panel[data-v-d7b3b862]{padding:var(--spacing-4)}.section-title[data-v-d7b3b862]{font-size:var(--text-lg);font-weight:var(--font-semibold);color:var(--color-neutral-900);margin-bottom:var(--spacing-3)}.input-group[data-v-d7b3b862]{display:flex;flex-direction:column;gap:var(--spacing-2)}.data-textarea[data-v-d7b3b862]{width:100%;padding:var(--spacing-3);border:1px solid var(--color-border);border-radius:var(--radius-md);font-family:var(--font-mono);font-size:var(--text-sm);resize:vertical;background:var(--color-bg-primary);color:var(--color-text-primary);transition:border-color var(--duration-fast)}.data-textarea[data-v-d7b3b862]:focus{outline:none;border-color:var(--color-primary-500)}.data-info[data-v-d7b3b862]{display:flex;align-items:center;font-size:var(--text-sm)}.info-label[data-v-d7b3b862]{color:var(--color-neutral-600)}.info-value[data-v-d7b3b862]{color:var(--color-primary-500);font-weight:var(--font-semibold);margin-left:var(--spacing-1)}.ml-4[data-v-d7b3b862]{margin-left:var(--spacing-4)}.mt-4[data-v-d7b3b862]{margin-top:var(--spacing-4)}.mode-group[data-v-d7b3b862]{display:flex;gap:var(--spacing-4)}.radio-label[data-v-d7b3b862]{display:flex;align-items:center;gap:var(--spacing-2);cursor:pointer;font-size:var(--text-base);color:var(--color-neutral-700)}.radio-label input[type=radio][data-v-d7b3b862]{cursor:pointer}.action-buttons[data-v-d7b3b862]{display:flex;gap:var(--spacing-3);margin-top:var(--spacing-6)}.action-buttons[data-v-d7b3b862]>*{flex:1}[data-theme=dark] .section-title[data-v-d7b3b862]{color:var(--color-neutral-100)}[data-theme=dark] .data-textarea[data-v-d7b3b862]{background:var(--color-neutral-900);color:var(--color-neutral-100);border-color:var(--color-neutral-700)}[data-theme=dark] .radio-label[data-v-d7b3b862]{color:var(--color-neutral-300)}.super-select-panel[data-v-dde7090a]{padding:var(--spacing-4);display:flex;flex-direction:column;gap:var(--spacing-3)}.filter-section[data-v-dde7090a]{display:flex;flex-direction:column;gap:var(--spacing-2)}.section-label[data-v-dde7090a]{font-size:var(--text-sm);font-weight:var(--font-medium);color:var(--color-text-secondary);user-select:none}.section-header[data-v-dde7090a]{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:var(--spacing-1) 0}.header-right[data-v-dde7090a]{display:flex;align-items:center;gap:var(--spacing-2)}.badge[data-v-dde7090a]{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;background:var(--color-primary-500);color:#fff;font-size:11px;border-radius:9px}.arrow[data-v-dde7090a]{font-size:10px;color:var(--color-text-secondary)}.scope-tabs[data-v-dde7090a]{display:flex;gap:var(--spacing-1);flex-wrap:wrap}.scope-tab[data-v-dde7090a]{padding:var(--spacing-1) var(--spacing-3);background:var(--color-bg-secondary);border:1px solid var(--color-border);border-radius:var(--radius-full);font-size:var(--text-sm);color:var(--color-text-secondary);cursor:pointer;transition:all var(--duration-fast) var(--ease-out);white-space:nowrap}.scope-tab.active[data-v-dde7090a]{background:var(--color-primary-500);border-color:var(--color-primary-500);color:#fff}.scope-tab[data-v-dde7090a]:hover:not(.active){border-color:var(--color-primary-500);color:var(--color-primary-500)}.name-filter[data-v-dde7090a]{display:flex;gap:var(--spacing-2)}.text-input[data-v-dde7090a]{flex:1;padding:var(--spacing-2) var(--spacing-3);border:1px solid var(--color-border);border-radius:var(--radius-md);font-size:var(--text-base);background:var(--color-bg-secondary);color:var(--color-text-primary);outline:none;transition:border-color var(--duration-fast) var(--ease-out)}.text-input[data-v-dde7090a]:focus{border-color:var(--color-primary-500)}.toggle-btn[data-v-dde7090a]{padding:var(--spacing-2) var(--spacing-3);background:var(--color-bg-secondary);border:1px solid var(--color-border);border-radius:var(--radius-md);font-size:var(--text-sm);font-weight:var(--font-medium);color:var(--color-text-secondary);cursor:pointer;transition:all var(--duration-fast) var(--ease-out);white-space:nowrap}.toggle-btn.active[data-v-dde7090a]{background:#8b7fd81a;border-color:var(--color-primary-500);color:var(--color-primary-500)}.collapsible-content[data-v-dde7090a]{padding:var(--spacing-3);background:var(--color-bg-secondary);border:1px solid var(--color-border);border-radius:var(--radius-md)}.logic-toggle[data-v-dde7090a]{display:flex;gap:var(--spacing-1);margin-bottom:var(--spacing-3)}.logic-btn[data-v-dde7090a]{padding:3px var(--spacing-3);background:transparent;border:1px solid var(--color-border);border-radius:var(--radius-full);font-size:var(--text-sm);color:var(--color-text-secondary);cursor:pointer;transition:all var(--duration-fast) var(--ease-out)}.logic-btn.active[data-v-dde7090a]{background:var(--color-primary-500);border-color:var(--color-primary-500);color:#fff}.checkbox-grid[data-v-dde7090a]{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--spacing-2)}.checkbox-item[data-v-dde7090a]{display:flex;align-items:center;gap:var(--spacing-2);font-size:var(--text-sm);color:var(--color-text-primary);cursor:pointer}.checkbox-item input[type=checkbox][data-v-dde7090a]{accent-color:var(--color-primary-500)}.btn-search[data-v-dde7090a]{width:100%;padding:var(--spacing-3);background:var(--color-primary-500);color:#fff;border:none;border-radius:var(--radius-md);font-size:var(--text-base);font-weight:var(--font-medium);cursor:pointer;transition:all var(--duration-fast) var(--ease-out)}.btn-search[data-v-dde7090a]:hover:not(:disabled){background:var(--color-primary-600);transform:translateY(-1px);box-shadow:var(--shadow-sm)}.btn-search[data-v-dde7090a]:disabled{opacity:.6;cursor:not-allowed}.result-panel[data-v-dde7090a]{border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden}.result-header[data-v-dde7090a]{display:flex;align-items:center;justify-content:space-between;padding:var(--spacing-3);background:var(--color-bg-secondary);border-bottom:1px solid var(--color-border)}.result-count[data-v-dde7090a]{font-size:var(--text-sm);font-weight:var(--font-medium);color:var(--color-primary-500)}.btn-clear[data-v-dde7090a]{font-size:var(--text-sm);color:var(--color-text-secondary);background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:var(--radius-sm);transition:all var(--duration-fast) var(--ease-out)}.btn-clear[data-v-dde7090a]:hover{background:var(--color-bg-tertiary);color:var(--color-text-primary)}.result-list[data-v-dde7090a]{max-height:200px;overflow-y:auto}.result-item[data-v-dde7090a]{display:flex;align-items:center;gap:var(--spacing-2);padding:var(--spacing-2) var(--spacing-3);border-bottom:1px solid var(--color-border);font-size:var(--text-sm)}.result-item[data-v-dde7090a]:last-child{border-bottom:none}.layer-type[data-v-dde7090a]{font-size:14px;color:var(--color-text-secondary);flex-shrink:0}.layer-name[data-v-dde7090a]{color:var(--color-text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.more-hint[data-v-dde7090a]{padding:var(--spacing-2) var(--spacing-3);font-size:var(--text-sm);color:var(--color-text-secondary);text-align:center}[data-theme=dark] .text-input[data-v-dde7090a],[data-theme=dark] .toggle-btn[data-v-dde7090a],[data-theme=dark] .collapsible-content[data-v-dde7090a]{background:var(--color-neutral-900);border-color:var(--color-neutral-800)}[data-theme=dark] .result-panel[data-v-dde7090a]{border-color:var(--color-neutral-800)}[data-theme=dark] .result-header[data-v-dde7090a]{background:var(--color-neutral-900);border-color:var(--color-neutral-800)}.input-wrapper[data-v-95453b4e]{display:flex;flex-direction:column;gap:var(--spacing-1)}.input[data-v-95453b4e]{width:100%;padding:var(--spacing-2) var(--spacing-3);font-family:var(--font-sans);font-size:var(--text-base);color:var(--color-neutral-900);background:var(--color-neutral-0);border:1px solid var(--color-neutral-300);border-radius:var(--radius-md);transition:all var(--duration-fast) var(--ease-default);outline:none}.input[data-v-95453b4e]::placeholder{color:var(--color-neutral-400)}.input[data-v-95453b4e]:hover:not(:disabled){border-color:var(--color-neutral-400)}.input[data-v-95453b4e]:focus{border-color:var(--color-primary-500);box-shadow:0 0 0 3px #8b7fd81a}.input-error[data-v-95453b4e]{border-color:var(--color-error)}.input-error[data-v-95453b4e]:focus{box-shadow:0 0 0 3px #ef44441a}.input-disabled[data-v-95453b4e]{opacity:.5;cursor:not-allowed;background:var(--color-neutral-50)}.input-error-message[data-v-95453b4e]{font-size:var(--text-sm);color:var(--color-error)}[data-theme=dark] .input[data-v-95453b4e]{color:var(--color-neutral-100);background:var(--color-neutral-900);border-color:var(--color-neutral-700)}[data-theme=dark] .input[data-v-95453b4e]::placeholder{color:var(--color-neutral-600)}[data-theme=dark] .input[data-v-95453b4e]:hover:not(:disabled){border-color:var(--color-neutral-600)}[data-theme=dark] .input-disabled[data-v-95453b4e]{background:var(--color-neutral-800)}.text-replace-panel[data-v-7c585196]{padding:var(--spacing-4)}.section-title[data-v-7c585196]{font-size:var(--text-lg);font-weight:var(--font-semibold);color:var(--color-neutral-900);margin-bottom:var(--spacing-3)}.mt-4[data-v-7c585196]{margin-top:var(--spacing-4)}.options-group[data-v-7c585196]{display:flex;flex-direction:column;gap:var(--spacing-3)}.checkbox-label[data-v-7c585196]{display:flex;align-items:center;gap:var(--spacing-2);cursor:pointer;font-size:var(--text-base);color:var(--color-neutral-700)}.checkbox-label input[type=checkbox][data-v-7c585196]{cursor:pointer;accent-color:var(--color-primary-500)}.results-header[data-v-7c585196]{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--spacing-3)}.btn-clear[data-v-7c585196]{font-size:var(--text-sm);color:var(--color-text-secondary);background:none;border:none;cursor:pointer;padding:var(--spacing-1) var(--spacing-2);border-radius:var(--radius-sm);transition:all var(--duration-fast)}.btn-clear[data-v-7c585196]:hover{background:var(--color-bg-tertiary);color:var(--color-text-primary)}.results-list[data-v-7c585196]{max-height:300px;overflow-y:auto;border:1px solid var(--color-border);border-radius:var(--radius-md)}.result-item[data-v-7c585196]{display:flex;align-items:flex-start;gap:var(--spacing-3);padding:var(--spacing-3);border-bottom:1px solid var(--color-border);cursor:pointer;transition:background var(--duration-fast)}.result-item[data-v-7c585196]:hover{background:var(--color-bg-secondary)}.result-item[data-v-7c585196]:last-child{border-bottom:none}.result-index[data-v-7c585196]{display:flex;align-items:center;justify-content:center;min-width:24px;height:24px;background:var(--color-primary-100);color:var(--color-primary-700);font-size:var(--text-xs);font-weight:var(--font-semibold);border-radius:var(--radius-full);flex-shrink:0}.result-content[data-v-7c585196]{flex:1;min-width:0}.result-name[data-v-7c585196]{font-size:var(--text-sm);font-weight:var(--font-medium);color:var(--color-neutral-900);margin-bottom:var(--spacing-1)}.result-preview[data-v-7c585196]{font-size:var(--text-sm);color:var(--color-neutral-600);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.more-hint[data-v-7c585196]{padding:var(--spacing-2);text-align:center;font-size:var(--text-sm);color:var(--color-text-secondary)}.action-buttons[data-v-7c585196]{display:flex;gap:var(--spacing-3);margin-top:var(--spacing-6)}.action-buttons[data-v-7c585196]>*{flex:1}.success-message[data-v-7c585196]{margin-top:var(--spacing-4);padding:var(--spacing-3);background:#10b9811a;border:1px solid rgba(16,185,129,.3);border-radius:var(--radius-md);color:#059669;font-size:var(--text-sm);text-align:center}[data-theme=dark] .section-title[data-v-7c585196]{color:var(--color-neutral-100)}[data-theme=dark] .checkbox-label[data-v-7c585196]{color:var(--color-neutral-300)}[data-theme=dark] .result-name[data-v-7c585196]{color:var(--color-neutral-100)}[data-theme=dark] .result-preview[data-v-7c585196]{color:var(--color-neutral-400)}[data-theme=dark] .results-list[data-v-7c585196],[data-theme=dark] .result-item[data-v-7c585196]{border-color:var(--color-neutral-800)}.app-container[data-v-ec64ae9c]{display:flex;width:100vw;height:100vh;overflow:hidden;position:relative}.feature-panel[data-v-ec64ae9c]{animation:fadeIn-ec64ae9c var(--duration-normal) var(--ease-default)}.panel-title[data-v-ec64ae9c]{font-size:var(--text-2xl);font-weight:var(--font-semibold);color:var(--color-neutral-900);margin-bottom:var(--spacing-2)}.panel-description[data-v-ec64ae9c]{font-size:var(--text-base);color:var(--color-neutral-600);margin-bottom:var(--spacing-6)}.toast-container[data-v-ec64ae9c]{position:fixed;top:var(--spacing-4);right:var(--spacing-4);z-index:1000;display:flex;flex-direction:column;gap:var(--spacing-3);pointer-events:none}.toast-container[data-v-ec64ae9c]>*{pointer-events:auto}.global-loading[data-v-ec64ae9c]{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#fffc;backdrop-filter:blur(4px);z-index:9999}[data-theme=dark] .global-loading[data-v-ec64ae9c]{background:#0a0a0acc}@keyframes fadeIn-ec64ae9c{0%{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}[data-theme=dark] .panel-title[data-v-ec64ae9c]{color:var(--color-neutral-100)}[data-theme=dark] .panel-description[data-v-ec64ae9c]{color:var(--color-neutral-400)}*,*:before,*:after{box-sizing:border-box;margin:0;padding:0}body{font-family:var(--font-sans);font-size:var(--text-base);line-height:var(--leading-normal);color:var(--color-neutral-900);background:var(--color-neutral-50);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow:hidden;user-select:none}[data-theme=dark] body{color:var(--color-neutral-50);background:var(--color-neutral-950)}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--color-neutral-300);border-radius:var(--radius-full)}::-webkit-scrollbar-thumb:hover{background:var(--color-neutral-400)}[data-theme=dark] ::-webkit-scrollbar-thumb{background:var(--color-neutral-700)}[data-theme=dark] ::-webkit-scrollbar-thumb:hover{background:var(--color-neutral-600)}::selection{background:var(--color-primary-200);color:var(--color-primary-900)}[data-theme=dark] ::selection{background:var(--color-primary-800);color:var(--color-primary-100)}:focus-visible{outline:2px solid var(--color-primary-500);outline-offset:2px}:disabled{opacity:.5;cursor:not-allowed}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.line-clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.line-clamp-3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.animate-fade-in{animation:fadeIn var(--duration-normal) var(--ease-default)}.animate-slide-in-up{animation:slideInUp var(--duration-normal) var(--ease-default)}.animate-scale-in{animation:scaleIn var(--duration-normal) var(--ease-default)}.animate-pulse{animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite}.animate-spin{animation:spin 1s linear infinite}.transition-all{transition:all var(--duration-normal) var(--ease-default)}.transition-colors{transition:color var(--duration-fast) var(--ease-default),background-color var(--duration-fast) var(--ease-default),border-color var(--duration-fast) var(--ease-default)}.transition-transform{transition:transform var(--duration-normal) var(--ease-default)}.skeleton{background:linear-gradient(90deg,var(--color-neutral-200) 0%,var(--color-neutral-100) 50%,var(--color-neutral-200) 100%);background-size:200% 100%;animation:shimmer 2s ease-in-out infinite;border-radius:var(--radius-md)}[data-theme=dark] .skeleton{background:linear-gradient(90deg,var(--color-neutral-800) 0%,var(--color-neutral-700) 50%,var(--color-neutral-800) 100%)}.skeleton-line{height:12px;margin-bottom:var(--spacing-2)}.skeleton-line.short{width:60%}.loading-spinner{width:20px;height:20px;border:2px solid var(--color-neutral-200);border-top-color:var(--color-primary-500);border-radius:var(--radius-full);animation:spin .8s linear infinite}[data-theme=dark] .loading-spinner{border-color:var(--color-neutral-700);border-top-color:var(--color-primary-500)}.ripple-container{position:relative;overflow:hidden}.ripple{position:absolute;border-radius:var(--radius-full);background:#ffffff80;pointer-events:none;animation:ripple .6s ease-out}.hide-on-mobile{display:none}@media (min-width: 600px){.hide-on-mobile{display:block}}.show-on-mobile{display:block}@media (min-width: 600px){.show-on-mobile{display:none}}</style>\n</head>\n<body>\n  <div id=\"app\"></div>\n</body>\n</html>\n";
+
+"use strict";
+// Figma 插件后端主文件
+/// <reference types="@figma/plugin-typings" />
+// ==================== 工具函数 ====================
+// 收集文本节点
+function collectTextNodes(root) {
+    const nodes = [];
+    function traverse(node) {
+        if ('type' in node && node.type === 'TEXT') {
+            nodes.push(node);
         }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
+        if ('children' in node) {
+            for (const child of node.children) {
+                traverse(child);
             }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
         }
     }
-    return to.concat(ar || Array.prototype.slice.call(from));
-};
-var _this = this;
-// -------------------------------------------------------------
-// 【更新】高级命名转换函数 (支持清除隐藏标记)
-// -------------------------------------------------------------
-var convertNameAdvanced = function (str, format, sepMode, casing, keepEmoji, removeId, unmarkHidden) {
-    var s = str;
-    // 1. 移除 ID
-    if (removeId)
-        s = s.replace(/#\d+:\d+$/, '').trim();
-    // 2. 处理隐藏标记 (. 或 _)
-    // 逻辑：先提取出来，如果不清除，最后再加回去
-    var hiddenPrefix = "";
-    var hiddenMatch = s.match(/^[\._]/);
-    if (hiddenMatch) {
-        hiddenPrefix = hiddenMatch[0];
-        // 暂时去掉以便后续分词处理
-        s = s.substring(1);
+    traverse(root);
+    return nodes;
+}
+// 视觉排序节点
+function sortNodesByPosition(nodes) {
+    return nodes.sort((a, b) => {
+        const aBox = 'absoluteBoundingBox' in a ? a.absoluteBoundingBox : null;
+        const bBox = 'absoluteBoundingBox' in b ? b.absoluteBoundingBox : null;
+        if (!aBox || !bBox)
+            return 0;
+        if (Math.abs(aBox.y - bBox.y) > 10) {
+            return aBox.y - bBox.y;
+        }
+        return aBox.x - bBox.x;
+    });
+}
+// 安全加载字体
+async function loadFontSafe(fontName) {
+    try {
+        await figma.loadFontAsync(fontName);
+        return true;
     }
-    // 3. 处理 Emoji
-    var emojiPrefix = "";
-    if (keepEmoji) {
-        var match = s.match(/^(\p{Emoji_Presentation}|\p{Extended_Pictographic}|[\u2000-\u3300]|[\uF000-\uF0FF])+\s*/u);
-        if (match) {
-            emojiPrefix = match[0].trim();
-            s = s.replace(match[0], '');
+    catch (error) {
+        console.warn(`Failed to load font: ${fontName.family} ${fontName.style}`, error);
+        try {
+            await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
+            return true;
+        }
+        catch (_a) {
+            return false;
         }
     }
-    s = s.trim();
-    // 4. 分词与重组
-    var words = s.match(/[A-Z]?[a-z]+|[0-9]+|[A-Z]+|[\u4e00-\u9fa5]+/g);
-    var newVal = s;
-    if (words && words.length > 0) {
-        var processedWords = words;
-        if (format === 'camelCase') {
-            processedWords = words.map(function (w, i) { return i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); });
-            newVal = processedWords.join('');
+}
+// 安全设置文本
+async function setTextSafe(node, text) {
+    try {
+        if (node.hasMissingFont) {
+            console.warn(`Node has missing font: ${node.name}`);
+            return false;
         }
-        else if (format === 'PascalCase') {
-            processedWords = words.map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); });
-            newVal = processedWords.join('');
+        const fontName = node.fontName;
+        const loaded = await loadFontSafe(fontName);
+        if (!loaded) {
+            return false;
         }
-        else {
-            if (casing === 'upper')
-                processedWords = words.map(function (w) { return w.toUpperCase(); });
-            else if (casing === 'lower')
-                processedWords = words.map(function (w) { return w.toLowerCase(); });
-            var separatorChar = ' ';
-            if (sepMode === 'snake')
-                separatorChar = '_';
-            if (sepMode === 'kebab')
-                separatorChar = '-';
-            newVal = processedWords.join(separatorChar);
-        }
+        node.characters = text;
+        return true;
     }
-    // 5. 加回 Emoji
-    if (keepEmoji && emojiPrefix) {
-        var joiner = (format === 'separator' && sepMode !== 'space') ? (sepMode === 'snake' ? '_' : '-') : ' ';
-        newVal = emojiPrefix + joiner + newVal;
+    catch (error) {
+        console.error(`Failed to set text: ${node.name}`, error);
+        return false;
     }
-    // 6. 加回隐藏标记 (如果未勾选清除)
-    if (!unmarkHidden && hiddenPrefix) {
-        newVal = hiddenPrefix + newVal;
-    }
-    return { changed: newVal !== str, val: newVal };
-};
-figma.showUI(__html__, { width: 460, height: 640, themeColors: true });
-// 用于存储高亮前的原始样式： Key = "NodeID_Index", Value = OriginalFills
-var highlightCache = {};
-var layerSortDirection = 'asc'; // 用于图层排序切换
-figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, function () {
-    function rm(n) {
-        if (n.layoutMode && n.layoutMode !== 'NONE') {
-            n.layoutMode = 'NONE';
-            count_1++;
-        }
-        if (n.children)
-            n.children.forEach(rm);
-    }
-    function ul(n) {
-        if ('locked' in n && n.locked) {
-            n.locked = false;
-            count_2++;
-        }
-        if ('children' in n)
-            n.children.forEach(ul);
-    }
-    function findText(nodes) {
-        return __awaiter(this, void 0, void 0, function () {
-            var _i, nodes_1, node;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        _i = 0, nodes_1 = nodes;
-                        _a.label = 1;
-                    case 1:
-                        if (!(_i < nodes_1.length)) return [3 /*break*/, 5];
-                        node = nodes_1[_i];
-                        if (!(node.type === 'TEXT')) return [3 /*break*/, 2];
-                        textNodes_3.push(node);
-                        return [3 /*break*/, 4];
-                    case 2:
-                        if (!('children' in node)) return [3 /*break*/, 4];
-                        return [4 /*yield*/, findText(node.children)];
-                    case 3:
-                        _a.sent();
-                        _a.label = 4;
-                    case 4:
-                        _i++;
-                        return [3 /*break*/, 1];
-                    case 5: return [2 /*return*/];
-                }
+}
+// 批量执行
+async function batchExecute(items, executor, batchSize = 50, onProgress) {
+    const results = [];
+    const total = items.length;
+    for (let i = 0; i < total; i += batchSize) {
+        const batch = items.slice(i, i + batchSize);
+        const batchResults = await Promise.all(batch.map((item, batchIndex) => executor(item, i + batchIndex)));
+        results.push(...batchResults);
+        if (onProgress) {
+            const current = Math.min(i + batchSize, total);
+            onProgress(current, total);
+            figma.ui.postMessage({
+                type: 'progress',
+                current,
+                total,
             });
-        });
+        }
+        await new Promise((resolve) => setTimeout(resolve, 0));
     }
-    var res, json, e_1, selection, _a, textNodes_4, traverse_1, scope, dataList, mode, distribution, textNodes_5, traverse_2, changeCount, i, node, textToFill, e_2, value, aiConfig, newSelection, _i, selection_1, node, frame, idx, children, _b, children_1, child, newSelection, _c, selection_2, node, r, idx, count, _d, selection_3, node, temp, _e, selection_4, node, img, asyncImg, size, t, pool, _f, pool_1, n, count_1, newSelection, _g, selection_5, node, frame, parent_1, index, newSel, _h, selection_6, node, lines, font, e_3, cy, _j, lines_1, l, t, tNodes, font, e_4, txt, nt, arr_1, arr_2, sel, targets_3, scan_1, count, _k, targets_1, node, h, pool, _l, pool_2, n, count_3, p_1, isReverse_1, count_4, count_2, count, _m, selection_7, node, newX, newY, newW, newH, sel, f, sel_5, searchTargets, _o, sel_1, node, children, _p, sel_2, node, siblings, _q, sel_3, node, children, allPageNodes, uniqueMap_1, finalPool, results, _r, finalPool_1, node, match, n, q, t, ts, isType, isState, s, _s, _t, p, val, v, tgt, runFocus, createdCount, conflicts, errors, localPaints, localTexts, localEffects, _loop_1, _u, selection_8, node, e_5, parts, sel, countFill_1, countStroke_1, countText_1, countEffect_1, paints, texts, effects, paintMap_1, effectMap_1, textMap_1, traverse_3, _v, sel_4, node, e_6, total, n1, n2, x1, y1, x2, y2, findText_1, replaceText, scope, count, textNodes_6, collect_1, _w, textNodes_1, node, font, e_7, pageName, slides, slides, slides, slides, slides, cfg_1, targets_4, targetTypes_1, scopeNodes, collectTargets_1, findRegex_1, escape_1, pat, results_1, checkString_1, _loop_2, _x, targets_2, node, items, count, _y, items_1, item, node, err_1, scope, findText_2, results_2, searchPool, traverse_4, node, cacheKey, font, cachedData, currentFills, highlightPaint, e_8, tasks, replaceText, successCount, processedIds, groups_1, _z, _0, _1, _2, nodeId, node, groupTasks, _3, groupTasks_1, task, currentStr, err_2, count, _4, _5, _6, _7, key, _8, nodeId, indexStr, index, data, node, font, e_9, ids, findText_3, replaceText, count, _9, ids_1, id, node, regex, err_3, dataStr, spots, dataStr, spots, currentSelection, defaultName, newSpot, dataStr, spots, spot, targetPage, nodesToSelect, _10, _11, id, node, e_10, dataStr, spots, dataStr, spots, index, selection_10, r, sx, sy, cosR, sinR, tanX, tanY, m00, m01, m10, m11, _12, selection_9, node, tx, ty, newTransform, data, e_11, e_12, hasSelection, scope, extractTarget, collectionName, nodesToScan, textNodes_3, allCollections, collectionNames, targetColName_1, i18nCollection, modes_1, existingVarMap, origModeId_1, localVars, _13, localVars_1, v, origVal, boundCount, mixedFonts, autoBindMap, newTextMap, _14, textNodes_2, node, text, newPayload, autoBindPayload, isCreate, collectionName_1, collections, collection, origModeId, allTargetLangs_1, modeIdMap_1, _15, _16, lang, newModeId, localVars, varMap, _17, localVars_2, v, baseVal, _18, newPayload_1, item, variable, safeName, varName, _19, _20, _21, langName, translatedText, targetModeId, _22, _23, nodeId, node, e_13, payload, successCount, _24, payload_1, item, targetText, _25, _26, nodeId, node, e_14, e_15;
-    var _this = this;
-    return __generator(this, function (_27) {
-        switch (_27.label) {
-            case 0:
-                if (!msg || !msg.type)
-                    return [2 /*return*/];
-                if (!(msg.type === 'do-fetch')) return [3 /*break*/, 6];
-                _27.label = 1;
-            case 1:
-                _27.trys.push([1, 4, , 5]);
-                return [4 /*yield*/, fetch(msg.url, msg.options)];
-            case 2:
-                res = _27.sent();
-                return [4 /*yield*/, res.json()];
-            case 3:
-                json = _27.sent();
-                figma.ui.postMessage({ type: 'api-response', reqId: msg.reqId, data: json });
-                return [3 /*break*/, 5];
-            case 4:
-                e_1 = _27.sent();
-                figma.ui.postMessage({ type: 'api-response', reqId: msg.reqId, error: e_1.message || String(e_1) });
-                return [3 /*break*/, 5];
-            case 5: return [2 /*return*/];
-            case 6:
-                console.log("【2】后端：收到了消息 ->", msg.type);
-                selection = figma.currentPage.selection;
-                _a = msg.type;
-                switch (_a) {
-                    case 'get-selection-count': return [3 /*break*/, 7];
-                    case 'smart-fill-exec': return [3 /*break*/, 8];
-                    case 'save-storage': return [3 /*break*/, 15];
-                    case 'load-storage': return [3 /*break*/, 17];
-                    case 'req-ai-config': return [3 /*break*/, 19];
-                    case 'to-frame': return [3 /*break*/, 21];
-                    case 'to-rect': return [3 /*break*/, 22];
-                    case 'swap-fs': return [3 /*break*/, 23];
-                    case 'reset-image': return [3 /*break*/, 24];
-                    case 'select-text': return [3 /*break*/, 29];
-                    case 'remove-al': return [3 /*break*/, 30];
-                    case 'add-al-wrapper': return [3 /*break*/, 31];
-                    case 'split-text': return [3 /*break*/, 32];
-                    case 'join-text': return [3 /*break*/, 40];
-                    case 'up-one': return [3 /*break*/, 45];
-                    case 'up-all': return [3 /*break*/, 46];
-                    case 'rename-content': return [3 /*break*/, 47];
-                    case 'detach-all': return [3 /*break*/, 48];
-                    case 'remove-hidden': return [3 /*break*/, 49];
-                    case 'sort-layers': return [3 /*break*/, 50];
-                    case 'ungroup-all': return [3 /*break*/, 51];
-                    case 'unlock-all': return [3 /*break*/, 52];
-                    case 'pixel-perfect': return [3 /*break*/, 53];
-                    case 'fetch-selection-name': return [3 /*break*/, 54];
-                    case 'find-and-select': return [3 /*break*/, 55];
-                    case 'focus-layers': return [3 /*break*/, 56];
-                    case 'create-styles': return [3 /*break*/, 57];
-                    case 'match-styles': return [3 /*break*/, 68];
-                    case 'swap-positions': return [3 /*break*/, 79];
-                    case 'find-replace': return [3 /*break*/, 80];
-                    case 'ppt-step-1': return [3 /*break*/, 90];
-                    case 'ppt-step-2': return [3 /*break*/, 92];
-                    case 'ppt-step-3': return [3 /*break*/, 94];
-                    case 'ppt-step-4': return [3 /*break*/, 96];
-                    case 'ppt-step-5': return [3 /*break*/, 98];
-                    case 'lint-variants': return [3 /*break*/, 100];
-                    case 'fix-variants': return [3 /*break*/, 101];
-                    case 'text-find-matches': return [3 /*break*/, 108];
-                    case 'locate-node': return [3 /*break*/, 109];
-                    case 'text-replace-batch': return [3 /*break*/, 117];
-                    case 'clear-all-highlights': return [3 /*break*/, 125];
-                    case 'text-replace-batch': return [3 /*break*/, 134];
-                    case 'jb-init': return [3 /*break*/, 142];
-                    case 'jb-save': return [3 /*break*/, 143];
-                    case 'jb-jump': return [3 /*break*/, 144];
-                    case 'jb-delete': return [3 /*break*/, 156];
-                    case 'jb-rename': return [3 /*break*/, 157];
-                    case 'skew-apply': return [3 /*break*/, 158];
-                    case 'req-skew-presets': return [3 /*break*/, 159];
-                    case 'save-skew-presets': return [3 /*break*/, 163];
-                    case 'i18n-check-selection': return [3 /*break*/, 167];
-                    case 'i18n-detect': return [3 /*break*/, 168];
-                    case 'i18n-bind-variables': return [3 /*break*/, 173];
-                    case 'i18n-replace-text': return [3 /*break*/, 186];
-                    case 'resize-drag': return [3 /*break*/, 200];
-                    case 'resize-window': return [3 /*break*/, 200];
-                }
-                return [3 /*break*/, 201];
-            case 7:
-                {
-                    textNodes_4 = [];
-                    traverse_1 = function (n) {
-                        if (n.type === 'TEXT' && !n.removed && n.visible)
-                            textNodes_4.push(n);
-                        if ('children' in n)
-                            n.children.forEach(traverse_1);
-                    };
-                    scope = figma.currentPage.selection.length > 0 ? figma.currentPage.selection : [figma.currentPage];
-                    scope.forEach(traverse_1);
-                    figma.ui.postMessage({ type: 'selection-count-res', count: textNodes_4.length });
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 8;
-            case 8:
-                dataList = msg.dataList, mode = msg.mode, distribution = msg.distribution;
-                textNodes_5 = [];
-                traverse_2 = function (n) {
-                    if (n.type === 'TEXT' && !n.removed && n.visible)
-                        textNodes_5.push(n);
-                    if ('children' in n)
-                        n.children.forEach(traverse_2);
-                };
-                // 优先处理选中项，没选中则不处理（防止误操作全页）
-                if (figma.currentPage.selection.length > 0) {
-                    figma.currentPage.selection.forEach(traverse_2);
-                }
-                else {
-                    figma.notify("请先选择包含文本的图层");
-                    return [2 /*return*/];
-                }
-                if (textNodes_5.length === 0) {
-                    figma.notify("未找到文本图层");
-                    return [2 /*return*/];
-                }
-                // 视觉排序 (从左到右，从上到下)
-                textNodes_5.sort(function (a, b) {
-                    var aAbs = a.absoluteBoundingBox || { x: a.x, y: a.y };
-                    var bAbs = b.absoluteBoundingBox || { x: b.x, y: b.y };
-                    if (Math.abs(aAbs.y - bAbs.y) > 10)
-                        return aAbs.y - bAbs.y;
-                    return aAbs.x - bAbs.x;
+    return results;
+}
+// 错误处理
+function handleError(error, context) {
+    console.error('Plugin error:', error, context);
+    figma.ui.postMessage({
+        type: 'error',
+        message: error.message,
+        context,
+    });
+    figma.notify(`错误: ${error.message}`, { error: true });
+}
+// 验证选择
+function validateSelection(minCount = 1) {
+    const selection = figma.currentPage.selection;
+    if (selection.length < minCount) {
+        figma.notify(`请至少选择 ${minCount} 个图层`);
+        return false;
+    }
+    return true;
+}
+// 记录操作
+function logOperation(operation, details) {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] ${operation}`, details);
+    figma.ui.postMessage({
+        type: 'log',
+        level: 'info',
+        message: operation,
+        details,
+        timestamp,
+    });
+}
+// ==================== 主程序 ====================
+// 显示 UI
+figma.showUI(__html__, {
+    width: 460,
+    height: 640,
+    themeColors: true,
+});
+// 消息处理
+figma.ui.onmessage = async (msg) => {
+    var _a;
+    try {
+        if (!msg || !msg.type)
+            return;
+        console.log('Received message:', msg.type);
+        switch (msg.type) {
+            // ==================== 存储相关 ====================
+            case 'save-storage': {
+                await figma.clientStorage.setAsync(msg.key, msg.value);
+                figma.ui.postMessage({
+                    type: 'storage-saved',
+                    key: msg.key,
+                    value: msg.value,
                 });
-                changeCount = 0;
-                i = 0;
-                _27.label = 9;
-            case 9:
-                if (!(i < textNodes_5.length)) return [3 /*break*/, 14];
-                node = textNodes_5[i];
-                _27.label = 10;
-            case 10:
-                _27.trys.push([10, 12, , 13]);
-                // 加载字体
-                return [4 /*yield*/, figma.loadFontAsync(node.fontName)];
-            case 11:
-                // 加载字体
-                _27.sent(); // 简单处理，假设非混合字体
-                textToFill = "";
-                if (distribution === 'random') {
-                    textToFill = dataList[Math.floor(Math.random() * dataList.length)];
+                if (msg.notify) {
+                    figma.notify('设置已保存');
                 }
-                else {
-                    // 顺序循环
-                    textToFill = dataList[i % dataList.length];
+                break;
+            }
+            case 'load-storage': {
+                const value = await figma.clientStorage.getAsync(msg.key);
+                figma.ui.postMessage({
+                    type: 'storage-loaded',
+                    key: msg.key,
+                    value,
+                });
+                break;
+            }
+            // ==================== 智能填充 ====================
+            case 'get-selection-count': {
+                const textNodes = collectTextNodes(figma.currentPage.selection.length > 0
+                    ? { children: figma.currentPage.selection }
+                    : figma.currentPage);
+                figma.ui.postMessage({
+                    type: 'selection-count-res',
+                    count: textNodes.length,
+                });
+                break;
+            }
+            case 'smart-fill-exec': {
+                const { dataList, mode, distribution } = msg;
+                if (!validateSelection(1))
+                    break;
+                const textNodes = collectTextNodes({
+                    children: figma.currentPage.selection,
+                });
+                if (textNodes.length === 0) {
+                    figma.notify('未找到文本图层');
+                    break;
                 }
-                // 根据模式应用
-                if (mode === 'prefix') {
-                    node.characters = textToFill + node.characters;
-                }
-                else if (mode === 'suffix') {
-                    node.characters = node.characters + textToFill;
-                }
-                else {
-                    // replace
-                    node.characters = textToFill;
-                }
-                changeCount++;
-                return [3 /*break*/, 13];
-            case 12:
-                e_2 = _27.sent();
-                console.error("Fill error", e_2);
-                return [3 /*break*/, 13];
-            case 13:
-                i++;
-                return [3 /*break*/, 9];
-            case 14:
-                figma.notify("\u5DF2\u586B\u5145 ".concat(changeCount, " \u4E2A\u6587\u672C"));
-                return [3 /*break*/, 201];
-            case 15: return [4 /*yield*/, figma.clientStorage.setAsync(msg.key, msg.value)];
-            case 16:
-                _27.sent();
-                if (msg.notify)
-                    figma.notify("配置已保存");
-                figma.ui.postMessage({ type: 'storage-saved', key: msg.key, value: msg.value });
-                return [3 /*break*/, 201];
-            case 17: return [4 /*yield*/, figma.clientStorage.getAsync(msg.key)];
-            case 18:
-                value = _27.sent();
-                figma.ui.postMessage({ type: 'storage-loaded', key: msg.key, value: value });
-                return [3 /*break*/, 201];
-            case 19: return [4 /*yield*/, figma.clientStorage.getAsync('smart_ai_config')];
-            case 20:
-                aiConfig = _27.sent();
-                figma.ui.postMessage({ type: 'init-ai-config', data: aiConfig || {} });
-                return [3 /*break*/, 201];
-            case 21:
-                {
-                    if (selection.length === 0) {
-                        figma.notify("请选择形状");
-                        return [2 /*return*/];
+                const sortedNodes = sortNodesByPosition(textNodes);
+                let successCount = 0;
+                await batchExecute(sortedNodes, async (node, index) => {
+                    let textToFill = '';
+                    if (distribution === 'random') {
+                        textToFill = dataList[Math.floor(Math.random() * dataList.length)];
                     }
-                    newSelection = [];
-                    for (_i = 0, selection_1 = selection; _i < selection_1.length; _i++) {
-                        node = selection_1[_i];
-                        if (node.removed)
-                            continue;
-                        frame = figma.createFrame();
-                        frame.x = node.x;
-                        frame.y = node.y;
-                        frame.resize(node.width, node.height);
+                    else {
+                        textToFill = dataList[index % dataList.length];
+                    }
+                    let newText = '';
+                    if (mode === 'prefix') {
+                        newText = textToFill + node.characters;
+                    }
+                    else if (mode === 'suffix') {
+                        newText = node.characters + textToFill;
+                    }
+                    else {
+                        newText = textToFill;
+                    }
+                    const success = await setTextSafe(node, newText);
+                    if (success)
+                        successCount++;
+                }, 50, (current, total) => {
+                    figma.ui.postMessage({
+                        type: 'progress',
+                        current,
+                        total,
+                    });
+                });
+                figma.notify(`已填充 ${successCount} 个文本`);
+                logOperation('smart-fill-exec', { count: successCount });
+                break;
+            }
+            // ==================== 网络请求代理 ====================
+            case 'do-fetch': {
+                try {
+                    const response = await fetch(msg.url, msg.options);
+                    const data = await response.json();
+                    figma.ui.postMessage({
+                        type: 'api-response',
+                        requestId: msg.requestId,
+                        data,
+                    });
+                }
+                catch (error) {
+                    figma.ui.postMessage({
+                        type: 'api-response',
+                        requestId: msg.requestId,
+                        error: error.message,
+                    });
+                }
+                break;
+            }
+            // ==================== 窗口调整 ====================
+            case 'resize': {
+                const { width, height } = msg;
+                figma.ui.resize(width, height);
+                break;
+            }
+            // ==================== 通知 ====================
+            case 'notify': {
+                const { message, options } = msg;
+                figma.notify(message, options);
+                break;
+            }
+            // ==================== 简易工具 ====================
+            case 'to-frame': {
+                if (!validateSelection(1))
+                    break;
+                const selection = figma.currentPage.selection;
+                const newSelection = [];
+                for (const node of selection) {
+                    if (node.removed)
+                        continue;
+                    const frame = figma.createFrame();
+                    frame.x = node.x;
+                    frame.y = node.y;
+                    frame.resize(node.width, node.height);
+                    if ('rotation' in node)
                         frame.rotation = node.rotation;
-                        frame.name = node.name;
-                        if ('fills' in node)
-                            frame.fills = node.fills;
-                        if ('strokes' in node) {
-                            frame.strokes = node.strokes;
+                    frame.name = node.name;
+                    if ('fills' in node && Array.isArray(node.fills))
+                        frame.fills = node.fills;
+                    if ('strokes' in node && Array.isArray(node.strokes)) {
+                        frame.strokes = node.strokes;
+                        if ('strokeWeight' in node && typeof node.strokeWeight === 'number') {
                             frame.strokeWeight = node.strokeWeight;
                         }
-                        if ('cornerRadius' in node && node.cornerRadius !== figma.mixed)
-                            frame.cornerRadius = node.cornerRadius;
-                        if ('cornerSmoothing' in node)
-                            frame.cornerSmoothing = node.cornerSmoothing;
+                    }
+                    if ('cornerRadius' in node && typeof node.cornerRadius === 'number') {
+                        frame.cornerRadius = node.cornerRadius;
+                    }
+                    if (node.parent) {
+                        const idx = node.parent.children.indexOf(node);
+                        node.parent.insertChild(idx, frame);
+                    }
+                    if ('children' in node) {
+                        const children = [...node.children];
+                        for (const child of children) {
+                            if (!child.removed)
+                                frame.appendChild(child);
+                        }
+                    }
+                    if (!node.removed)
+                        node.remove();
+                    newSelection.push(frame);
+                }
+                figma.currentPage.selection = newSelection;
+                figma.notify('已转换为 Frame');
+                break;
+            }
+            case 'to-rect': {
+                if (!validateSelection(1))
+                    break;
+                const selection = figma.currentPage.selection;
+                const newSelection = [];
+                for (const node of selection) {
+                    if ((node.type === 'FRAME' || node.type === 'GROUP') && !node.removed) {
+                        const rect = figma.createRectangle();
+                        rect.x = node.x;
+                        rect.y = node.y;
+                        rect.resize(node.width, node.height);
+                        if ('rotation' in node)
+                            rect.rotation = node.rotation;
+                        rect.name = node.name;
+                        if ('fills' in node && Array.isArray(node.fills))
+                            rect.fills = node.fills;
+                        if ('strokes' in node && Array.isArray(node.strokes)) {
+                            rect.strokes = node.strokes;
+                            if ('strokeWeight' in node && typeof node.strokeWeight === 'number') {
+                                rect.strokeWeight = node.strokeWeight;
+                            }
+                        }
+                        if ('cornerRadius' in node && typeof node.cornerRadius === 'number') {
+                            rect.cornerRadius = node.cornerRadius;
+                        }
                         if (node.parent) {
-                            node.parent.appendChild(frame);
-                            idx = node.parent.children.indexOf(node);
-                            if (idx > -1)
-                                frame.parent.insertChild(idx, frame);
+                            const idx = node.parent.children.indexOf(node);
+                            node.parent.insertChild(idx, rect);
                         }
-                        if ('children' in node) {
-                            children = __spreadArray([], node.children, true);
-                            for (_b = 0, children_1 = children; _b < children_1.length; _b++) {
-                                child = children_1[_b];
-                                if (!child.removed)
-                                    frame.appendChild(child);
-                            }
-                        }
-                        if (!node.removed)
-                            node.remove();
-                        newSelection.push(frame);
+                        node.remove();
+                        newSelection.push(rect);
                     }
+                }
+                if (newSelection.length > 0) {
                     figma.currentPage.selection = newSelection;
-                    figma.notify("已转换为 Frame");
-                    return [3 /*break*/, 201];
+                    figma.notify('已转换为矩形');
                 }
-                _27.label = 22;
-            case 22:
-                {
-                    newSelection = [];
-                    for (_c = 0, selection_2 = selection; _c < selection_2.length; _c++) {
-                        node = selection_2[_c];
-                        if ((node.type === "FRAME" || node.type === "GROUP") && !node.removed) {
-                            r = figma.createRectangle();
-                            r.x = node.x;
-                            r.y = node.y;
-                            r.resize(node.width, node.height);
-                            r.rotation = node.rotation;
-                            r.name = node.name;
-                            if ('fills' in node && node.fills !== figma.mixed)
-                                r.fills = node.fills;
-                            if ('strokes' in node) {
-                                r.strokes = node.strokes;
-                                r.strokeWeight = node.strokeWeight;
-                            }
-                            if ('cornerRadius' in node && node.cornerRadius !== figma.mixed)
-                                r.cornerRadius = node.cornerRadius;
-                            if ('cornerSmoothing' in node)
-                                r.cornerSmoothing = node.cornerSmoothing;
-                            if (node.parent) {
-                                node.parent.appendChild(r);
-                                idx = node.parent.children.indexOf(node);
-                                if (idx > -1)
-                                    node.parent.insertChild(idx, r);
-                            }
-                            node.remove();
-                            newSelection.push(r);
+                break;
+            }
+            case 'swap-fs': {
+                if (!validateSelection(1))
+                    break;
+                const selection = figma.currentPage.selection;
+                let count = 0;
+                for (const node of selection) {
+                    if ('fills' in node && 'strokes' in node && Array.isArray(node.fills) && Array.isArray(node.strokes)) {
+                        const temp = node.fills;
+                        node.fills = node.strokes;
+                        node.strokes = temp;
+                        if (node.strokes.length > 0 && 'strokeWeight' in node && node.strokeWeight === 0) {
+                            node.strokeWeight = 1;
                         }
+                        count++;
                     }
-                    if (newSelection.length > 0)
-                        figma.currentPage.selection = newSelection;
-                    return [3 /*break*/, 201];
                 }
-                _27.label = 23;
-            case 23:
-                {
-                    count = 0;
-                    for (_d = 0, selection_3 = selection; _d < selection_3.length; _d++) {
-                        node = selection_3[_d];
-                        if ('fills' in node && 'strokes' in node) {
-                            temp = node.fills;
-                            node.fills = node.strokes;
-                            node.strokes = temp;
-                            if (node.strokes.length > 0 && node.strokeWeight === 0)
-                                node.strokeWeight = 1;
-                            count++;
-                        }
-                    }
-                    if (count > 0)
-                        figma.notify("已交换填充/描边");
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 24;
-            case 24:
-                _e = 0, selection_4 = selection;
-                _27.label = 25;
-            case 25:
-                if (!(_e < selection_4.length)) return [3 /*break*/, 28];
-                node = selection_4[_e];
-                if (!('fills' in node && Array.isArray(node.fills))) return [3 /*break*/, 27];
-                img = node.fills.find(function (f) { return f.type === 'IMAGE'; });
-                if (!(img && img.imageHash)) return [3 /*break*/, 27];
-                asyncImg = figma.getImageByHash(img.imageHash);
-                return [4 /*yield*/, asyncImg.getSizeAsync()];
-            case 26:
-                size = _27.sent();
-                if (size && size.width)
-                    node.resize(node.width, node.width * (size.height / size.width));
-                _27.label = 27;
-            case 27:
-                _e++;
-                return [3 /*break*/, 25];
-            case 28: return [3 /*break*/, 201];
-            case 29:
-                {
-                    t = [];
-                    pool = selection.length > 0 ? selection : [figma.currentPage];
-                    for (_f = 0, pool_1 = pool; _f < pool_1.length; _f++) {
-                        n = pool_1[_f];
-                        if (n.type === 'TEXT')
-                            t.push(n);
-                        if ('findAll' in n)
-                            t = t.concat(n.findAll(function (x) { return x.type === 'TEXT'; }));
-                    }
-                    if (t.length > 0) {
-                        figma.currentPage.selection = t;
-                        figma.notify("\u9009\u4E2D ".concat(t.length, " \u4E2A\u6587\u672C"));
-                    }
-                    else {
-                        figma.notify("未找到文本");
-                    }
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 30;
-            case 30:
-                {
-                    count_1 = 0;
-                    selection.forEach(rm);
-                    figma.notify("\u79FB\u9664 ".concat(count_1, " \u4E2A\u81EA\u52A8\u5E03\u5C40"));
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 31;
-            case 31:
-                {
-                    newSelection = [];
-                    if (selection.length === 0) {
-                        figma.notify("请选择图层");
-                        return [2 /*return*/];
-                    }
-                    for (_g = 0, selection_5 = selection; _g < selection_5.length; _g++) {
-                        node = selection_5[_g];
-                        if (node.removed || !node.parent)
-                            continue;
-                        frame = figma.createFrame();
-                        frame.name = "Auto Layout Wrapper";
-                        // 设置自动布局属性
-                        frame.layoutMode = "VERTICAL";
-                        frame.itemSpacing = 10;
-                        frame.paddingLeft = 0;
-                        frame.paddingRight = 0;
-                        frame.paddingTop = 0;
-                        frame.paddingBottom = 0;
-                        frame.primaryAxisSizingMode = "AUTO"; // Hug
-                        frame.counterAxisSizingMode = "AUTO"; // Hug
-                        // 设置样式：红底、无描边
-                        frame.fills = [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 } }];
-                        frame.strokes = [];
-                        // 保持位置并包裹
-                        frame.x = node.x;
-                        frame.y = node.y;
-                        parent_1 = node.parent;
-                        index = parent_1.children.indexOf(node);
-                        parent_1.insertChild(index, frame);
-                        frame.appendChild(node);
-                        newSelection.push(frame);
-                    }
-                    if (newSelection.length > 0) {
-                        figma.currentPage.selection = newSelection;
-                        figma.notify(msg.successMsg || "已添加自动布局外套");
-                    }
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 32;
-            case 32:
-                newSel = [];
-                _h = 0, selection_6 = selection;
-                _27.label = 33;
-            case 33:
-                if (!(_h < selection_6.length)) return [3 /*break*/, 39];
-                node = selection_6[_h];
-                if (node.type !== "TEXT")
-                    return [3 /*break*/, 38];
-                lines = node.characters.split(/\r\n|\r|\n/);
-                if (lines.length <= 1)
-                    return [3 /*break*/, 38];
-                font = node.fontName;
-                if (font === figma.mixed)
-                    font = node.getRangeFontName(0, 1);
-                _27.label = 34;
-            case 34:
-                _27.trys.push([34, 36, , 37]);
-                return [4 /*yield*/, figma.loadFontAsync(font)];
-            case 35:
-                _27.sent();
-                return [3 /*break*/, 37];
-            case 36:
-                e_3 = _27.sent();
-                figma.notify("字体加载失败");
-                return [3 /*break*/, 38];
-            case 37:
-                cy = node.y;
-                for (_j = 0, lines_1 = lines; _j < lines_1.length; _j++) {
-                    l = lines_1[_j];
-                    if (!l.trim())
-                        continue;
-                    t = node.clone();
-                    t.characters = l;
-                    t.textAutoResize = "WIDTH_AND_HEIGHT";
-                    t.y = cy;
-                    node.parent.appendChild(t);
-                    newSel.push(t);
-                    cy += t.height + 10;
-                }
-                node.remove();
-                _27.label = 38;
-            case 38:
-                _h++;
-                return [3 /*break*/, 33];
-            case 39:
-                if (newSel.length > 0)
-                    figma.currentPage.selection = newSel;
-                return [3 /*break*/, 201];
-            case 40:
-                tNodes = selection.filter(function (n) { return n.type === 'TEXT'; }).sort(function (a, b) { return Math.abs(a.y - b.y) > 5 ? a.y - b.y : a.x - b.x; });
-                if (tNodes.length < 2) {
-                    figma.notify("请选2个以上文本");
-                    return [2 /*return*/];
-                }
-                font = tNodes[0].fontName;
-                if (font === figma.mixed)
-                    font = tNodes[0].getRangeFontName(0, 1);
-                _27.label = 41;
-            case 41:
-                _27.trys.push([41, 43, , 44]);
-                return [4 /*yield*/, figma.loadFontAsync(font)];
-            case 42:
-                _27.sent();
-                return [3 /*break*/, 44];
-            case 43:
-                e_4 = _27.sent();
-                figma.notify("字体加载失败");
-                return [2 /*return*/];
-            case 44:
-                txt = tNodes.map(function (n) { return n.characters; }).join('\n');
-                nt = tNodes[0].clone();
-                nt.characters = txt;
-                nt.textAutoResize = 'HEIGHT';
-                tNodes.forEach(function (n) { return n.remove(); });
-                figma.currentPage.selection = [nt];
-                return [3 /*break*/, 201];
-            case 45:
-                {
-                    arr_1 = [];
-                    selection.forEach(function (n) {
-                        if (n.parent && n.parent.parent && n.parent !== figma.currentPage) {
-                            n.parent.parent.appendChild(n);
-                            arr_1.push(n);
-                        }
-                    });
-                    if (arr_1.length > 0)
-                        figma.currentPage.selection = arr_1;
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 46;
-            case 46:
-                {
-                    arr_2 = [];
-                    selection.forEach(function (n) {
-                        figma.currentPage.appendChild(n);
-                        arr_2.push(n);
-                    });
-                    figma.currentPage.selection = arr_2;
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 47;
-            case 47:
-                {
-                    selection.forEach(function (n) {
-                        var name = "";
-                        if (n.type === 'TEXT')
-                            name = n.characters;
-                        else if ('findOne' in n) {
-                            var t = n.findOne(function (x) { return x.type === 'TEXT'; });
-                            if (t)
-                                name = t.characters;
-                        }
-                        if (name)
-                            n.name = name.substring(0, 20);
-                    });
-                    figma.notify("已重命名");
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 48;
-            case 48:
-                {
-                    sel = figma.currentPage.selection;
-                    if (sel.length === 0) {
-                        figma.notify("请先选中图层");
-                        return [2 /*return*/];
-                    }
-                    targets_3 = [];
-                    scan_1 = function (n) {
-                        // 1. 先递归找子级
-                        if ('children' in n) {
-                            // 复制一份 children 避免遍历时索引问题
-                            var children = n.children;
-                            for (var _i = 0, children_2 = children; _i < children_2.length; _i++) {
-                                var child = children_2[_i];
-                                scan_1(child);
-                            }
-                        }
-                        // 2. 子级找完了，再看自己是不是组件实例
-                        if (n.type === 'INSTANCE') {
-                            targets_3.push(n);
-                        }
-                    };
-                    // 开始扫描
-                    sel.forEach(scan_1);
-                    if (targets_3.length === 0) {
-                        figma.notify("未找到可解绑的实例");
-                        return [2 /*return*/];
-                    }
-                    count = 0;
-                    // 按顺序解绑 (因为已经是“从内到外”的顺序，所以直接执行即可)
-                    for (_k = 0, targets_1 = targets_3; _k < targets_1.length; _k++) {
-                        node = targets_1[_k];
-                        // 再次检查节点是否还存在（防止父级解绑导致子级引用变化，虽然此算法能最大程度避免）
-                        if (!node.removed) {
-                            try {
-                                node.detachInstance();
-                                count++;
-                            }
-                            catch (e) {
-                                console.error("解绑出错:", e);
-                            }
-                        }
-                    }
-                    figma.notify("\u5DF2\u5F7B\u5E95\u89E3\u7ED1 ".concat(count, " \u4E2A\u7EC4\u4EF6"));
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 49;
-            case 49:
-                {
-                    h = [];
-                    pool = selection.length > 0 ? selection : [figma.currentPage];
-                    for (_l = 0, pool_2 = pool; _l < pool_2.length; _l++) {
-                        n = pool_2[_l];
-                        if ('visible' in n && !n.visible)
-                            h.push(n);
-                        if ('findAll' in n)
-                            h = h.concat(n.findAll(function (x) { return !x.visible; }));
-                    }
-                    count_3 = 0;
-                    h.reverse().forEach(function (n) { if (!n.removed) {
-                        n.remove();
-                        count_3++;
-                    } });
-                    figma.notify("\u5DF2\u5220\u9664 ".concat(count_3, " \u4E2A\u9690\u85CF\u56FE\u5C42"));
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 50;
-            case 50:
-                {
-                    if (selection.length > 1) {
-                        p_1 = selection[0].parent;
-                        if (selection.every(function (n) { return n.parent === p_1; })) {
-                            isReverse_1 = layerSortDirection === 'desc';
-                            __spreadArray([], selection, true).sort(function (a, b) {
-                                var diffY = a.y - b.y;
-                                var diffX = a.x - b.x;
-                                var result = Math.abs(diffY) > 2 ? diffY : diffX;
-                                return isReverse_1 ? -result : result;
-                            }).forEach(function (n) { return p_1.appendChild(n); });
-                            figma.notify(isReverse_1 ? "已【倒序】排列图层 (Z->A)" : "已【正序】排列图层 (A->Z)");
-                            // 切换下次点击的方向
-                            layerSortDirection = isReverse_1 ? 'asc' : 'desc';
-                        }
-                    }
-                    else {
-                        figma.notify("请至少选择两个同级图层");
-                    }
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 51;
-            case 51:
-                {
-                    count_4 = 0;
-                    selection.forEach(function (n) {
-                        if ('findAll' in n) {
-                            var gs = n.findAll(function (x) { return x.type === 'GROUP'; });
-                            while (gs.length > 0) {
-                                gs.forEach(function (x) { if (!x.removed) {
-                                    figma.ungroup(x);
-                                    count_4++;
-                                } });
-                                gs = n.findAll(function (x) { return x.type === 'GROUP'; });
-                            }
-                        }
-                    });
-                    figma.notify("\u5DF2\u89E3\u6563 ".concat(count_4, " \u4E2A\u7EC4"));
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 52;
-            case 52:
-                {
-                    count_2 = 0;
-                    selection.forEach(ul);
-                    figma.notify("\u5DF2\u89E3\u9501 ".concat(count_2, " \u4E2A\u56FE\u5C42"));
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 53;
-            case 53:
-                {
-                    if (selection.length === 0) {
-                        figma.notify("请选择图层");
-                        return [2 /*return*/];
-                    }
-                    count = 0;
-                    for (_m = 0, selection_7 = selection; _m < selection_7.length; _m++) {
-                        node = selection_7[_m];
-                        if (!node.removed) {
-                            newX = Math.round(node.x);
-                            newY = Math.round(node.y);
-                            newW = Math.round(node.width);
-                            newH = Math.round(node.height);
-                            // 只有发生变化时才操作
-                            if (node.x !== newX || node.y !== newY)
-                                node.x = newX, node.y = newY;
-                            if (node.width !== newW || node.height !== newH)
-                                node.resize(newW, newH);
-                            count++;
-                        }
-                    }
-                    figma.notify("\u5DF2\u5BF9\u9F50 ".concat(count, " \u4E2A\u56FE\u5C42"));
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 54;
-            case 54:
-                {
-                    sel = figma.currentPage.selection;
-                    if (sel.length > 0) {
-                        figma.ui.postMessage({ type: 'update-name-input', name: sel[0].name });
-                    }
-                    else {
-                        figma.notify("请先选择一个图层以获取名称");
-                    }
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 55;
-            case 55:
-                {
-                    f = msg.filters;
-                    sel_5 = figma.currentPage.selection;
-                    console.log("=== \u5F00\u59CB\u67E5\u627E (v3\u4FEE\u590D\u7248) ===");
-                    console.log("Scope: ".concat(f.scope, " | \u9009\u4E2D\u56FE\u5C42: ").concat(sel_5.length));
-                    searchTargets = [];
-                    // =========================================================
-                    // A. 构建查找池 (Pool Construction)
-                    // =========================================================
-                    if (f.scope === 'inside') {
-                        // 模式：内在元素 (不包含选中项本身)
-                        if (sel_5.length === 0) {
-                            figma.notify("⚠️ 请先选择一个容器(Frame/Group)");
-                            return [2 /*return*/];
-                        }
-                        for (_o = 0, sel_1 = sel_5; _o < sel_1.length; _o++) {
-                            node = sel_1[_o];
-                            if ('findAll' in node) {
-                                children = node.findAll(function () { return true; });
-                                searchTargets.push.apply(searchTargets, children);
-                            }
-                        }
-                    }
-                    else if (f.scope === 'children') {
-                        // 模式：仅直系子级
-                        if (sel_5.length === 0) {
-                            figma.notify("⚠️ 请先选择一个容器(Frame/Group)");
-                            return [2 /*return*/];
-                        }
-                        for (_p = 0, sel_2 = sel_5; _p < sel_2.length; _p++) {
-                            node = sel_2[_p];
-                            if ('children' in node) {
-                                searchTargets.push.apply(searchTargets, node.children);
-                            }
-                        }
-                    }
-                    else if (f.scope === 'sibling') {
-                        // 模式：同级
-                        if (sel_5.length > 0 && sel_5[0].parent) {
-                            siblings = sel_5[0].parent.children.filter(function (n) { return !sel_5.includes(n); });
-                            searchTargets.push.apply(searchTargets, siblings);
-                        }
-                        else {
-                            figma.notify("⚠️ 请先选择一个图层");
-                            return [2 /*return*/];
-                        }
-                    }
-                    else {
-                        // 模式：子孙元素 (descendants) - 默认模式
-                        // 逻辑：如果选了图层，查“选中项+选中项内部”；如果没选，查“全页”
-                        if (sel_5.length > 0) {
-                            console.log(">> 策略: 查找选中项及其后代");
-                            // 1. 先把【选中项本身】加进去
-                            // (使用 for 循环最稳妥)
-                            for (_q = 0, sel_3 = sel_5; _q < sel_3.length; _q++) {
-                                node = sel_3[_q];
-                                searchTargets.push(node);
-                                // 2. 再把【选中项的子孙】加进去
-                                if ('findAll' in node) {
-                                    children = node.findAll(function () { return true; });
-                                    searchTargets.push.apply(searchTargets, children);
-                                }
-                            }
-                        }
-                        else {
-                            console.log(">> 策略: 全页面查找");
-                            allPageNodes = figma.currentPage.findAll(function () { return true; });
-                            searchTargets.push.apply(searchTargets, allPageNodes);
-                        }
-                    }
-                    uniqueMap_1 = new Map();
-                    searchTargets.forEach(function (node) { return uniqueMap_1.set(node.id, node); });
-                    finalPool = Array.from(uniqueMap_1.values());
-                    console.log("\uD83D\uDD0D \u5F85\u7B5B\u9009\u6C60\u6700\u7EC8\u5927\u5C0F: ".concat(finalPool.length));
-                    results = [];
-                    // =========================================================
-                    // C. 遍历筛选 (Filtering)
-                    // =========================================================
-                    for (_r = 0, finalPool_1 = finalPool; _r < finalPool_1.length; _r++) {
-                        node = finalPool_1[_r];
-                        match = true;
-                        // 1. 名称匹配
-                        if (f.name && f.name.val) {
-                            n = node.name;
-                            q = f.name.val;
-                            if (!f.name.caseSensitive) {
-                                n = n.toLowerCase();
-                                q = q.toLowerCase();
-                            }
-                            if (!n.includes(q))
-                                match = false;
-                        }
-                        // 2. 类型匹配
-                        if (match && f.types && f.types.vals.length > 0) {
-                            t = node.type;
-                            ts = f.types.vals;
-                            isType = false;
-                            if (ts.includes(t))
-                                isType = true;
-                            if (ts.includes('AUTOLAYOUT') && t === 'FRAME' && node.layoutMode !== 'NONE')
-                                isType = true;
-                            if (ts.includes('IMAGE') && 'fills' in node && node.fills !== figma.mixed && Array.isArray(node.fills)) {
-                                if (node.fills.some(function (p) { return p.type === 'IMAGE' && p.visible !== false; }))
-                                    isType = true;
-                            }
-                            if (ts.includes('COMPONENT_SET') && t === 'COMPONENT_SET')
-                                isType = true;
-                            if (ts.includes('SECTION') && t === 'SECTION')
-                                isType = true;
-                            if (f.types.logic === 'include') {
-                                if (!isType)
-                                    match = false;
-                            }
-                            else {
-                                if (isType)
-                                    match = false;
-                            }
-                        }
-                        // 3. 状态匹配
-                        if (match && f.states && f.states.vals.length > 0) {
-                            isState = false;
-                            s = f.states.vals;
-                            if (s.includes('hidden') && !node.visible)
-                                isState = true;
-                            if (s.includes('locked') && node.locked)
-                                isState = true;
-                            if (s.includes('mask') && node.isMask)
-                                isState = true;
-                            if (s.includes('export') && node.exportSettings && node.exportSettings.length > 0)
-                                isState = true;
-                            if (s.includes('no-fill') && 'fills' in node && node.fills !== figma.mixed) {
-                                if (Array.isArray(node.fills) && node.fills.length === 0)
-                                    isState = true;
-                            }
-                            if (s.includes('no-stroke') && 'strokes' in node && node.strokes !== figma.mixed) {
-                                if (Array.isArray(node.strokes) && node.strokes.length === 0)
-                                    isState = true;
-                            }
-                            if (s.includes('clip') && 'clipsContent' in node && node.clipsContent)
-                                isState = true;
-                            if (s.includes('no-children') && 'children' in node) {
-                                if (node.children.length === 0)
-                                    isState = true;
-                            }
-                            if (f.states.logic === 'include') {
-                                if (!isState)
-                                    match = false;
-                            }
-                            else {
-                                if (isState)
-                                    match = false;
-                            }
-                        }
-                        // 4. 属性匹配 (Props) - 加强容错
-                        if (match && f.props && f.props.length > 0) {
-                            for (_s = 0, _t = f.props; _s < _t.length; _s++) {
-                                p = _t[_s];
-                                val = undefined;
-                                try {
-                                    if (p.key === 'name')
-                                        val = node.name;
-                                    else if (p.key === 'fillCount' && 'fills' in node && node.fills !== figma.mixed)
-                                        val = node.fills.length;
-                                    else if (p.key === 'strokeCount' && 'strokes' in node && node.strokes !== figma.mixed)
-                                        val = node.strokes.length;
-                                    else if (p.key in node) {
-                                        v = node[p.key];
-                                        if (v !== figma.mixed)
-                                            val = v;
-                                    }
-                                }
-                                catch (e) { }
-                                if (val === undefined) {
-                                    match = false;
-                                    break;
-                                }
-                                tgt = p.val;
-                                // 数字比较 vs 字符串比较
-                                if (p.op === '=') {
-                                    if (val != tgt)
-                                        match = false;
-                                }
-                                else if (p.op === '!=') {
-                                    if (val == tgt)
-                                        match = false;
-                                }
-                                else if (p.op === '>') {
-                                    if (Number(val) <= Number(tgt))
-                                        match = false;
-                                }
-                                else if (p.op === '<') {
-                                    if (Number(val) >= Number(tgt))
-                                        match = false;
-                                }
-                                else if (p.op === 'has') {
-                                    if (!String(val).toLowerCase().includes(String(tgt).toLowerCase()))
-                                        match = false;
-                                }
-                            }
-                        }
-                        if (match) {
-                            results.push(node);
-                        }
-                    }
-                    console.log("\u2705 \u6700\u7EC8\u5339\u914D: ".concat(results.length));
-                    if (results.length > 0) {
-                        figma.currentPage.selection = results;
-                        figma.viewport.scrollAndZoomIntoView(results);
-                        figma.notify("\u2705 \u5DF2\u9009\u4E2D ".concat(results.length, " \u4E2A\u56FE\u5C42"));
-                        // 🔥 新增：将结果回传给 UI
-                        figma.ui.postMessage({
-                            type: 'found-layers-result',
-                            count: results.length,
-                            layers: results.map(function (n) { return ({ id: n.id, name: n.name, type: n.type }); })
-                        });
-                    }
-                    else {
-                        figma.notify("⚠️ 未找到图层，请检查 Console的筛选池大小");
-                        figma.ui.postMessage({ type: 'found-layers-result', count: 0, layers: [] });
-                    }
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 56;
-            case 56:
-                {
-                    runFocus = function () { return __awaiter(_this, void 0, void 0, function () {
-                        var ids, nodes, targets, selection_11, currentPageId, _i, nodes_2, node, p, isCurrent, e_16;
-                        return __generator(this, function (_a) {
-                            switch (_a.label) {
-                                case 0:
-                                    _a.trys.push([0, 2, , 3]);
-                                    ids = msg.ids;
-                                    if (!ids || ids.length === 0)
-                                        return [2 /*return*/];
-                                    return [4 /*yield*/, Promise.all(ids.map(function (id) { return figma.getNodeByIdAsync(id); }))];
-                                case 1:
-                                    nodes = _a.sent();
-                                    targets = [];
-                                    selection_11 = [];
-                                    currentPageId = figma.currentPage.id;
-                                    // 2. 快速筛选
-                                    for (_i = 0, nodes_2 = nodes; _i < nodes_2.length; _i++) {
-                                        node = nodes_2[_i];
-                                        if (!node || node.removed)
-                                            continue;
-                                        if (node.type === 'DOCUMENT' || node.type === 'PAGE')
-                                            continue;
-                                        p = node.parent;
-                                        isCurrent = false;
-                                        // 大多数情况父级就是 Page，优化判断速度
-                                        if (p && p.type === 'PAGE') {
-                                            isCurrent = (p.id === currentPageId);
-                                        }
-                                        else {
-                                            // 深度查找
-                                            while (p) {
-                                                if (p.type === 'PAGE') {
-                                                    isCurrent = (p.id === currentPageId);
-                                                    break;
-                                                }
-                                                p = p.parent;
-                                            }
-                                        }
-                                        if (isCurrent) {
-                                            // 只要在当前页，就加入“视图定位目标”
-                                            targets.push(node);
-                                            // 如果没锁且可见，也加入“选中目标”
-                                            if (!node.locked && node.visible) {
-                                                selection_11.push(node);
-                                            }
-                                        }
-                                    }
-                                    if (targets.length > 0) {
-                                        // A. 尝试选中 (如果全是锁定的，这里就是空数组，会清空选择，是正确的表现)
-                                        figma.currentPage.selection = selection_11;
-                                        // B. 视图定位 (这是你要的核心功能)
-                                        figma.viewport.scrollAndZoomIntoView(targets);
-                                        // C. 只有多选时才提示，单选静默，体验最好
-                                        if (targets.length > 1) {
-                                            figma.notify("\u5DF2\u5B9A\u4F4D ".concat(targets.length, " \u9879"));
-                                        }
-                                    }
-                                    return [3 /*break*/, 3];
-                                case 2:
-                                    e_16 = _a.sent();
-                                    console.log("定位错误 (已忽略):", e_16);
-                                    return [3 /*break*/, 3];
-                                case 3: return [2 /*return*/];
-                            }
-                        });
-                    }); };
-                    runFocus();
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 57;
-            case 57:
-                console.log("=== 开始执行创建样式 (Async模式) ===");
-                if (selection.length === 0) {
-                    figma.notify("请选择图层");
-                    return [2 /*return*/];
-                }
-                createdCount = 0;
-                conflicts = [];
-                errors = [];
-                _27.label = 58;
-            case 58:
-                _27.trys.push([58, 66, , 67]);
-                return [4 /*yield*/, figma.getLocalPaintStylesAsync()];
-            case 59:
-                localPaints = _27.sent();
-                return [4 /*yield*/, figma.getLocalTextStylesAsync()];
-            case 60:
-                localTexts = _27.sent();
-                return [4 /*yield*/, figma.getLocalEffectStylesAsync()];
-            case 61:
-                localEffects = _27.sent();
-                _loop_1 = function (node) {
-                    var name_1, exist, style, exist, style, font, err_4, exist, style;
-                    return __generator(this, function (_28) {
-                        switch (_28.label) {
-                            case 0:
-                                if (node.removed)
-                                    return [2 /*return*/, "continue"];
-                                name_1 = node.name;
-                                console.log("\u5904\u7406\u56FE\u5C42: ".concat(name_1));
-                                // --- 1. 处理颜色样式 (Fills) ---
-                                if ('fills' in node && node.type !== 'GROUP' && node.fills !== figma.mixed && Array.isArray(node.fills) && node.fills.length > 0) {
-                                    if (node.fills[0].type !== 'IMAGE') {
-                                        exist = localPaints.find(function (s) { return s.name === name_1; });
-                                        if (exist) {
-                                            if (!conflicts.includes(name_1))
-                                                conflicts.push(name_1 + " (颜色)");
-                                        }
-                                        else {
-                                            try {
-                                                style = figma.createPaintStyle();
-                                                style.name = name_1;
-                                                style.paints = JSON.parse(JSON.stringify(node.fills)); // 克隆防报错
-                                                node.fillStyleId = style.id;
-                                                createdCount++;
-                                            }
-                                            catch (err) {
-                                                errors.push(name_1);
-                                                console.error("颜色创建失败:", err);
-                                            }
-                                        }
-                                    }
-                                }
-                                if (!(node.type === 'TEXT')) return [3 /*break*/, 5];
-                                exist = localTexts.find(function (s) { return s.name === name_1; });
-                                if (!exist) return [3 /*break*/, 1];
-                                if (!conflicts.includes(name_1))
-                                    conflicts.push(name_1 + " (文本)");
-                                return [3 /*break*/, 5];
-                            case 1:
-                                _28.trys.push([1, 4, , 5]);
-                                style = figma.createTextStyle();
-                                style.name = name_1;
-                                font = node.fontName;
-                                if (!(font !== figma.mixed)) return [3 /*break*/, 3];
-                                return [4 /*yield*/, figma.loadFontAsync(font)];
-                            case 2:
-                                _28.sent();
-                                style.fontName = font;
-                                style.fontSize = node.fontSize !== figma.mixed ? node.fontSize : 12;
-                                if (node.letterSpacing !== figma.mixed)
-                                    style.letterSpacing = node.letterSpacing;
-                                if (node.lineHeight !== figma.mixed)
-                                    style.lineHeight = node.lineHeight;
-                                if (node.textDecoration !== figma.mixed)
-                                    style.textDecoration = node.textDecoration;
-                                node.textStyleId = style.id;
-                                createdCount++;
-                                _28.label = 3;
-                            case 3: return [3 /*break*/, 5];
-                            case 4:
-                                err_4 = _28.sent();
-                                errors.push(name_1);
-                                console.error("文本创建失败:", err_4);
-                                return [3 /*break*/, 5];
-                            case 5:
-                                // --- 3. 处理效果样式 (Effects) ---
-                                if ('effects' in node && node.effects !== figma.mixed && Array.isArray(node.effects) && node.effects.length > 0) {
-                                    exist = localEffects.find(function (s) { return s.name === name_1; });
-                                    if (exist) {
-                                        if (!conflicts.includes(name_1))
-                                            conflicts.push(name_1 + " (效果)");
-                                    }
-                                    else {
-                                        try {
-                                            style = figma.createEffectStyle();
-                                            style.name = name_1;
-                                            style.effects = JSON.parse(JSON.stringify(node.effects));
-                                            node.effectStyleId = style.id;
-                                            createdCount++;
-                                        }
-                                        catch (err) {
-                                            errors.push(name_1);
-                                            console.error("效果创建失败:", err);
-                                        }
-                                    }
-                                }
-                                return [2 /*return*/];
-                        }
-                    });
-                };
-                _u = 0, selection_8 = selection;
-                _27.label = 62;
-            case 62:
-                if (!(_u < selection_8.length)) return [3 /*break*/, 65];
-                node = selection_8[_u];
-                return [5 /*yield**/, _loop_1(node)];
-            case 63:
-                _27.sent();
-                _27.label = 64;
-            case 64:
-                _u++;
-                return [3 /*break*/, 62];
-            case 65: return [3 /*break*/, 67];
-            case 66:
-                e_5 = _27.sent();
-                console.error("全局错误:", e_5);
-                figma.notify("发生错误，请查看控制台");
-                return [3 /*break*/, 67];
-            case 67:
-                parts = [];
-                if (createdCount > 0)
-                    parts.push("\u65B0\u5EFA ".concat(createdCount, " \u4E2A"));
-                if (conflicts.length > 0)
-                    parts.push("\u8DF3\u8FC7\u91CD\u590D ".concat(conflicts.length, " \u4E2A"));
-                if (parts.length > 0) {
-                    figma.notify(parts.join('，'));
-                }
-                else {
-                    figma.notify("未执行操作 (可能是无样式属性或已重复)");
-                }
-                console.log("=== 结束 ===");
-                return [3 /*break*/, 201];
-            case 68:
-                console.log("=== 开始匹配样式 (Async修复版) ===");
-                sel = figma.currentPage.selection;
-                if (sel.length === 0) {
-                    figma.notify("请先选择范围 (支持包含子图层)");
-                    return [2 /*return*/];
-                }
-                countFill_1 = 0, countStroke_1 = 0, countText_1 = 0, countEffect_1 = 0;
-                _27.label = 69;
-            case 69:
-                _27.trys.push([69, 77, , 78]);
-                return [4 /*yield*/, figma.getLocalPaintStylesAsync()];
-            case 70:
-                paints = _27.sent();
-                return [4 /*yield*/, figma.getLocalTextStylesAsync()];
-            case 71:
-                texts = _27.sent();
-                return [4 /*yield*/, figma.getLocalEffectStylesAsync()];
-            case 72:
-                effects = _27.sent();
-                paintMap_1 = new Map();
-                paints.forEach(function (s) { return paintMap_1.set(JSON.stringify(s.paints), s.id); });
-                effectMap_1 = new Map();
-                effects.forEach(function (s) { return effectMap_1.set(JSON.stringify(s.effects), s.id); });
-                textMap_1 = new Map();
-                texts.forEach(function (s) {
-                    var fingerprint = JSON.stringify({
-                        family: s.fontName.family,
-                        style: s.fontName.style,
-                        size: s.fontSize,
-                        lh: s.lineHeight,
-                        ls: s.letterSpacing,
-                        td: s.textDecoration,
-                        pi: s.paragraphIndent,
-                        ps: s.paragraphSpacing
-                    });
-                    textMap_1.set(fingerprint, s.id);
-                });
-                traverse_3 = function (node) { return __awaiter(_this, void 0, void 0, function () {
-                    var key, e_17, key, e_18, key, e_19, key, e_20, _i, _a, child;
-                    return __generator(this, function (_b) {
-                        switch (_b.label) {
-                            case 0:
-                                if (node.removed)
-                                    return [2 /*return*/];
-                                if (!('fills' in node && node.fills !== figma.mixed && node.fills.length > 0 && node.fillStyleId === '')) return [3 /*break*/, 4];
-                                key = JSON.stringify(node.fills);
-                                if (!paintMap_1.has(key)) return [3 /*break*/, 4];
-                                _b.label = 1;
-                            case 1:
-                                _b.trys.push([1, 3, , 4]);
-                                // 修复点：使用 setFillStyleIdAsync
-                                return [4 /*yield*/, node.setFillStyleIdAsync(paintMap_1.get(key))];
-                            case 2:
-                                // 修复点：使用 setFillStyleIdAsync
-                                _b.sent();
-                                countFill_1++;
-                                return [3 /*break*/, 4];
-                            case 3:
-                                e_17 = _b.sent();
-                                return [3 /*break*/, 4];
-                            case 4:
-                                if (!('strokes' in node && node.strokes !== figma.mixed && node.strokes.length > 0 && node.strokeStyleId === '')) return [3 /*break*/, 8];
-                                key = JSON.stringify(node.strokes);
-                                if (!paintMap_1.has(key)) return [3 /*break*/, 8];
-                                _b.label = 5;
-                            case 5:
-                                _b.trys.push([5, 7, , 8]);
-                                // 修复点：使用 setStrokeStyleIdAsync
-                                return [4 /*yield*/, node.setStrokeStyleIdAsync(paintMap_1.get(key))];
-                            case 6:
-                                // 修复点：使用 setStrokeStyleIdAsync
-                                _b.sent();
-                                countStroke_1++;
-                                return [3 /*break*/, 8];
-                            case 7:
-                                e_18 = _b.sent();
-                                return [3 /*break*/, 8];
-                            case 8:
-                                if (!('effects' in node && node.effects !== figma.mixed && node.effects.length > 0 && node.effectStyleId === '')) return [3 /*break*/, 12];
-                                key = JSON.stringify(node.effects);
-                                if (!effectMap_1.has(key)) return [3 /*break*/, 12];
-                                _b.label = 9;
-                            case 9:
-                                _b.trys.push([9, 11, , 12]);
-                                // 修复点：使用 setEffectStyleIdAsync
-                                return [4 /*yield*/, node.setEffectStyleIdAsync(effectMap_1.get(key))];
-                            case 10:
-                                // 修复点：使用 setEffectStyleIdAsync
-                                _b.sent();
-                                countEffect_1++;
-                                return [3 /*break*/, 12];
-                            case 11:
-                                e_19 = _b.sent();
-                                return [3 /*break*/, 12];
-                            case 12:
-                                if (!(node.type === 'TEXT' && node.textStyleId === '' && node.fontName !== figma.mixed && node.fontSize !== figma.mixed)) return [3 /*break*/, 16];
-                                key = JSON.stringify({
-                                    family: node.fontName.family,
-                                    style: node.fontName.style,
-                                    size: node.fontSize,
-                                    lh: node.lineHeight,
-                                    ls: node.letterSpacing,
-                                    td: node.textDecoration,
-                                    pi: node.paragraphIndent,
-                                    ps: node.paragraphSpacing
-                                });
-                                if (!textMap_1.has(key)) return [3 /*break*/, 16];
-                                _b.label = 13;
-                            case 13:
-                                _b.trys.push([13, 15, , 16]);
-                                // 修复点：使用 setTextStyleIdAsync
-                                return [4 /*yield*/, node.setTextStyleIdAsync(textMap_1.get(key))];
-                            case 14:
-                                // 修复点：使用 setTextStyleIdAsync
-                                _b.sent();
-                                countText_1++;
-                                return [3 /*break*/, 16];
-                            case 15:
-                                e_20 = _b.sent();
-                                return [3 /*break*/, 16];
-                            case 16:
-                                if (!('children' in node)) return [3 /*break*/, 20];
-                                _i = 0, _a = node.children;
-                                _b.label = 17;
-                            case 17:
-                                if (!(_i < _a.length)) return [3 /*break*/, 20];
-                                child = _a[_i];
-                                return [4 /*yield*/, traverse_3(child)];
-                            case 18:
-                                _b.sent();
-                                _b.label = 19;
-                            case 19:
-                                _i++;
-                                return [3 /*break*/, 17];
-                            case 20: return [2 /*return*/];
-                        }
-                    });
-                }); };
-                _v = 0, sel_4 = sel;
-                _27.label = 73;
-            case 73:
-                if (!(_v < sel_4.length)) return [3 /*break*/, 76];
-                node = sel_4[_v];
-                return [4 /*yield*/, traverse_3(node)];
-            case 74:
-                _27.sent();
-                _27.label = 75;
-            case 75:
-                _v++;
-                return [3 /*break*/, 73];
-            case 76: return [3 /*break*/, 78];
-            case 77:
-                e_6 = _27.sent();
-                console.error("匹配过程出错:", e_6);
-                figma.notify("匹配出错，请检查控制台");
-                return [2 /*return*/];
-            case 78:
-                total = countFill_1 + countStroke_1 + countText_1 + countEffect_1;
-                if (total > 0) {
-                    figma.notify("\u5339\u914D\u6210\u529F: \u586B\u5145".concat(countFill_1, " / \u63CF\u8FB9").concat(countStroke_1, " / \u6587\u672C").concat(countText_1, " / \u6548\u679C").concat(countEffect_1));
-                }
-                else {
-                    figma.notify("未发现可匹配的样式");
-                }
-                return [3 /*break*/, 201];
-            case 79:
-                {
-                    if (selection.length !== 2) {
-                        figma.notify("请严格选择 2 个图层进行交换");
-                        return [2 /*return*/];
-                    }
-                    n1 = selection[0];
-                    n2 = selection[1];
-                    x1 = n1.x, y1 = n1.y;
-                    x2 = n2.x, y2 = n2.y;
-                    n1.x = x2;
-                    n1.y = y2;
-                    n2.x = x1;
-                    n2.y = y1;
-                    figma.notify("位置已互换");
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 80;
-            case 80:
-                findText_1 = msg.findText, replaceText = msg.replaceText;
-                if (!findText_1) {
-                    figma.notify("请输入查找内容，注意区分大小写");
-                    return [2 /*return*/];
-                }
-                scope = selection.length > 0 ? selection : [figma.currentPage];
-                count = 0;
-                textNodes_6 = [];
-                collect_1 = function (n) {
-                    if (n.type === 'TEXT')
-                        textNodes_6.push(n);
-                    if ('children' in n)
-                        n.children.forEach(collect_1);
-                };
-                scope.forEach(collect_1);
-                if (textNodes_6.length === 0) {
-                    figma.notify("范围内没有文本");
-                    return [2 /*return*/];
-                }
-                _w = 0, textNodes_1 = textNodes_6;
-                _27.label = 81;
-            case 81:
-                if (!(_w < textNodes_1.length)) return [3 /*break*/, 89];
-                node = textNodes_1[_w];
-                if (!node.characters.includes(findText_1)) return [3 /*break*/, 88];
-                _27.label = 82;
-            case 82:
-                _27.trys.push([82, 87, , 88]);
-                font = node.fontName;
-                if (!(font === figma.mixed)) return [3 /*break*/, 84];
-                // 简化处理：如果是混合字体，尝试加载第一段的字体（复杂情况可能报错，暂跳过）
-                return [4 /*yield*/, figma.loadFontAsync(node.getRangeFontName(0, 1))];
-            case 83:
-                // 简化处理：如果是混合字体，尝试加载第一段的字体（复杂情况可能报错，暂跳过）
-                _27.sent();
-                return [3 /*break*/, 86];
-            case 84: return [4 /*yield*/, figma.loadFontAsync(font)];
-            case 85:
-                _27.sent();
-                _27.label = 86;
-            case 86:
-                // 执行替换
-                node.characters = node.characters.split(findText_1).join(replaceText);
-                count++;
-                return [3 /*break*/, 88];
-            case 87:
-                e_7 = _27.sent();
-                console.error("字体加载失败或替换出错", e_7);
-                return [3 /*break*/, 88];
-            case 88:
-                _w++;
-                return [3 /*break*/, 81];
-            case 89:
                 if (count > 0)
-                    figma.notify("\u5DF2\u66FF\u6362 ".concat(count, " \u5904\u6587\u672C"));
-                else
-                    figma.notify("未找到匹配内容");
-                return [3 /*break*/, 201];
-            case 90:
-                pageName = figma.currentPage.name.toLowerCase();
-                // --- 修复点 1：安全检查不通过时，要告诉 UI 重置按钮 ---
-                if (!pageName.includes('copy') && !pageName.includes('副本')) {
-                    figma.notify("⚠️ 请先将 Page 重命名为 'xxx 副本' 以确保安全！", { error: true });
-                    // 发送一个 'step-error' 消息给 UI，让它停止转圈
-                    figma.ui.postMessage({ type: 'step-error', step: 1 });
-                    return [2 /*return*/];
-                }
-                slides = getSlides();
-                // --- 修复点 2：没选图层时，也要告诉 UI 重置按钮 ---
-                if (slides.length === 0) {
-                    figma.notify("请至少选择一个 Frame 画板");
-                    figma.ui.postMessage({ type: 'step-error', step: 1 });
-                    return [2 /*return*/];
-                }
-                // 执行 Step 1 函数
-                return [4 /*yield*/, pptStep1_Init(slides)];
-            case 91:
-                // 执行 Step 1 函数
-                _27.sent();
-                return [3 /*break*/, 201];
-            case 92:
-                slides = getSlides();
-                return [4 /*yield*/, pptStep2_Rasterize(slides)];
-            case 93:
-                _27.sent();
-                return [3 /*break*/, 201];
-            case 94:
-                slides = getSlides();
-                return [4 /*yield*/, pptStep3_Flatten(slides)];
-            case 95:
-                _27.sent();
-                return [3 /*break*/, 201];
-            case 96:
-                slides = getSlides();
-                // === 修复：使用绝对坐标排序 ===
-                slides = sortNodesByVisualPosition(slides);
-                // 函数内部会发送 step-done，这里不需要再发了
-                return [4 /*yield*/, pptStep4_Extract(slides)];
-            case 97:
-                // 函数内部会发送 step-done，这里不需要再发了
-                _27.sent();
-                return [3 /*break*/, 201];
-            case 98:
-                slides = getSlides();
-                // === 修复：使用绝对坐标排序 (保持顺序一致) ===
-                slides = sortNodesByVisualPosition(slides);
-                // 同上，内部已发消息
-                return [4 /*yield*/, pptStep5_ExportImages(slides)];
-            case 99:
-                // 同上，内部已发消息
-                _27.sent();
-                return [3 /*break*/, 201];
-            case 100:
-                {
-                    console.log("【3】后端：进入严格分类逻辑...");
-                    cfg_1 = msg.config || msg;
-                    targets_4 = [];
-                    targetTypes_1 = cfg_1.targetTypes || { compName: true, propName: true, propValue: true };
-                    scopeNodes = [];
-                    if (cfg_1.scope === 'page') {
-                        scopeNodes = figma.currentPage.children;
-                    }
-                    else {
-                        scopeNodes = figma.currentPage.selection;
-                    }
-                    collectTargets_1 = function (nodes) {
-                        for (var _i = 0, nodes_3 = nodes; _i < nodes_3.length; _i++) {
-                            var node = nodes_3[_i];
-                            if (node.type === 'COMPONENT_SET' || node.type === 'COMPONENT') {
-                                targets_4.push(node);
-                            }
-                            if ('children' in node)
-                                collectTargets_1(node.children);
-                        }
-                    };
-                    collectTargets_1(scopeNodes);
-                    findRegex_1 = null;
-                    if (cfg_1.mode === 'find' && cfg_1.findText) {
-                        try {
-                            escape_1 = function (s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); };
-                            pat = escape_1(cfg_1.findText);
-                            if (cfg_1.wholeWord)
-                                pat = "\\b".concat(pat, "\\b");
-                            findRegex_1 = new RegExp(pat, cfg_1.caseSensitive ? 'g' : 'gi');
-                        }
-                        catch (e) { }
-                    }
-                    results_1 = [];
-                    checkString_1 = function (text) {
-                        var res = { changed: false, val: text };
-                        if (cfg_1.mode === 'lint') {
-                            res = convertNameAdvanced(text, cfg_1.format, cfg_1.separator, cfg_1.casing, cfg_1.emoji, cfg_1.removeId, cfg_1.unmarkHidden);
-                        }
-                        else if (findRegex_1) {
-                            if (findRegex_1.test(text)) {
-                                res.val = text.replace(findRegex_1, cfg_1.replaceText || '');
-                                res.changed = true;
-                            }
-                            if (res.changed && cfg_1.markHidden) {
-                                if (!res.val.startsWith('.') && !res.val.startsWith('_'))
-                                    res.val = '.' + res.val;
-                            }
-                            if (cfg_1.unmarkHidden) {
-                                if (res.val.startsWith('.') || res.val.startsWith('_')) {
-                                    res.val = res.val.substring(1);
-                                    res.changed = true;
+                    figma.notify('已交换填充/描边');
+                break;
+            }
+            case 'reset-image': {
+                if (!validateSelection(1))
+                    break;
+                const selection = figma.currentPage.selection;
+                for (const node of selection) {
+                    if ('fills' in node && Array.isArray(node.fills) && 'resize' in node) {
+                        const img = node.fills.find((f) => f.type === 'IMAGE');
+                        if (img && img.type === 'IMAGE' && img.imageHash) {
+                            const asyncImg = figma.getImageByHash(img.imageHash);
+                            if (asyncImg) {
+                                const size = await asyncImg.getSizeAsync();
+                                if (size && size.width) {
+                                    node.resize(node.width, node.width * (size.height / size.width));
                                 }
                             }
                         }
-                        return res;
-                    };
-                    _loop_2 = function (node) {
-                        try {
-                            if (node.type === 'COMPONENT_SET') {
-                                if (targetTypes_1.compName) {
-                                    var res = checkString_1(node.name);
-                                    if (res.changed) {
-                                        results_1.push({
-                                            id: node.id, compId: node.id, compName: node.name,
-                                            type: 'COMPONENT_SET',
-                                            targetType: 'CompName',
-                                            propName: 'Name', oldVal: node.name, newVal: res.val
-                                        });
-                                    }
-                                }
-                            }
-                            else if (node.type === 'COMPONENT') {
-                                var isVariant = node.parent && node.parent.type === 'COMPONENT_SET';
-                                var compId_1 = isVariant ? node.parent.id : node.id;
-                                var CompName_1 = isVariant ? node.parent.name : node.name;
-                                var groupType_1 = isVariant ? 'COMPONENT_SET' : 'COMPONENT';
-                                if (!isVariant) {
-                                    if (targetTypes_1.compName) {
-                                        var res = checkString_1(node.name);
-                                        if (res.changed) {
-                                            results_1.push({
-                                                id: node.id, compId: compId_1, compName: CompName_1,
-                                                type: groupType_1,
-                                                targetType: 'CompName',
-                                                propName: 'Name', oldVal: node.name, newVal: res.val
-                                            });
-                                        }
-                                    }
-                                }
-                                else {
-                                    var rawProps = node.name.split(',').map(function (p) { return p.trim(); });
-                                    var newProps_1 = [];
-                                    var hasAnyChange_1 = false;
-                                    rawProps.forEach(function (pair) {
-                                        var parts = pair.split('=');
-                                        if (parts.length < 2) {
-                                            newProps_1.push(pair);
-                                            return;
-                                        }
-                                        var key = parts[0].trim();
-                                        var val = parts[1].trim();
-                                        if (targetTypes_1.propName) {
-                                            var resKey = checkString_1(key);
-                                            if (resKey.changed) {
-                                                results_1.push({
-                                                    id: node.id, compId: compId_1, compName: CompName_1,
-                                                    type: groupType_1,
-                                                    targetType: 'PropName',
-                                                    propName: 'Property',
-                                                    oldVal: key, newVal: resKey.val
-                                                });
-                                                hasAnyChange_1 = true;
-                                            }
-                                        }
-                                        if (targetTypes_1.propValue) {
-                                            var resVal = checkString_1(val);
-                                            if (resVal.changed) {
-                                                results_1.push({
-                                                    id: node.id, compId: compId_1, compName: CompName_1,
-                                                    type: groupType_1,
-                                                    targetType: 'PropValue',
-                                                    propName: key,
-                                                    oldVal: val, newVal: resVal.val
-                                                });
-                                                hasAnyChange_1 = true;
-                                            }
-                                        }
-                                        var finalKey = (targetTypes_1.propName && checkString_1(key).changed) ? checkString_1(key).val : key;
-                                        var finalVal = (targetTypes_1.propValue && checkString_1(val).changed) ? checkString_1(val).val : val;
-                                        newProps_1.push("".concat(finalKey, "=").concat(finalVal));
-                                    });
-                                    if (hasAnyChange_1) {
-                                        var fullNewName = newProps_1.join(', ');
-                                        for (var k = results_1.length - 1; k >= 0; k--) {
-                                            if (results_1[k].id === node.id) {
-                                                if (!results_1[k].fullResult)
-                                                    results_1[k].fullResult = fullNewName;
-                                            }
-                                            else {
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        catch (e) {
-                            console.error(e);
-                        }
-                    };
-                    for (_x = 0, targets_2 = targets_4; _x < targets_2.length; _x++) {
-                        node = targets_2[_x];
-                        _loop_2(node);
                     }
-                    figma.ui.postMessage({ type: 'lint-results', data: results_1 });
-                    return [3 /*break*/, 201];
                 }
-                _27.label = 101;
-            case 101:
-                items = msg.items;
-                count = 0;
-                _y = 0, items_1 = items;
-                _27.label = 102;
-            case 102:
-                if (!(_y < items_1.length)) return [3 /*break*/, 107];
-                item = items_1[_y];
-                _27.label = 103;
-            case 103:
-                _27.trys.push([103, 105, , 106]);
-                return [4 /*yield*/, figma.getNodeByIdAsync(item.id)];
-            case 104:
-                node = _27.sent();
-                if (node) {
-                    node.name = item.fullResult || item.newVal;
-                    count++;
+                figma.notify('已重置图片比例');
+                break;
+            }
+            case 'select-text': {
+                const selection = figma.currentPage.selection;
+                const pool = selection.length > 0 ? selection : [figma.currentPage];
+                let textNodes = [];
+                for (const node of pool) {
+                    if (node.type === 'TEXT')
+                        textNodes.push(node);
+                    if ('findAll' in node) {
+                        const found = node.findAll((n) => n.type === 'TEXT');
+                        textNodes = textNodes.concat(found);
+                    }
                 }
-                return [3 /*break*/, 106];
-            case 105:
-                err_1 = _27.sent();
-                return [3 /*break*/, 106];
-            case 106:
-                _y++;
-                return [3 /*break*/, 102];
-            case 107:
-                figma.notify("\u2728 \u5DF2\u6210\u529F\u4FEE\u590D ".concat(count, " \u9879\u547D\u540D"));
-                return [3 /*break*/, 201];
-            case 108:
-                {
-                    scope = msg.scope, findText_2 = msg.findText;
-                    console.log("【后端】收到文本查找请求:", scope, findText_2); // 调试日志
-                    results_2 = [];
-                    searchPool = [];
-                    // 1. 确定搜索范围
-                    if (scope === 'selection') {
-                        searchPool = figma.currentPage.selection;
-                    }
-                    else {
-                        // 搜索整个页面 (包含页面本身)
-                        searchPool = [figma.currentPage];
-                    }
-                    if (searchPool.length === 0 && scope === 'selection') {
-                        figma.notify("请先选择图层");
-                        // 即使失败，也要发回空结果，以此重置前端按钮状态
-                        figma.ui.postMessage({ type: 'text-find-results', data: [] });
-                        return [2 /*return*/];
-                    }
-                    traverse_4 = function (node) {
-                        // 只有可见的文本层才参与查找
-                        if (node.type === 'TEXT' && node.visible) {
-                            var fullText = node.characters;
-                            // 转义正则特殊字符
-                            var escapedFindText = findText_2.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                            // 全局、不区分大小写匹配
-                            var regex = new RegExp(escapedFindText, 'gi');
-                            var match = void 0;
-                            while ((match = regex.exec(fullText)) !== null) {
-                                results_2.push({
-                                    id: node.id,
-                                    fullText: fullText,
-                                    index: match.index,
-                                    length: match[0].length,
-                                    matchText: match[0]
-                                });
-                            }
-                        }
-                        // 递归子级
-                        if ('children' in node) {
-                            node.children.forEach(traverse_4);
-                        }
-                    };
-                    // 3. 执行查找
-                    searchPool.forEach(traverse_4);
-                    console.log("\u3010\u540E\u7AEF\u3011\u67E5\u627E\u5B8C\u6210\uFF0C\u627E\u5230 ".concat(results_2.length, " \u9879"));
-                    // 4. 发送结果给前端
-                    figma.ui.postMessage({ type: 'text-find-results', data: results_2 });
-                    if (results_2.length === 0) {
-                        figma.notify("未找到匹配文本");
-                    }
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 109;
-            case 109:
-                _27.trys.push([109, 115, , 116]);
-                return [4 /*yield*/, figma.getNodeByIdAsync(msg.id)];
-            case 110:
-                node = _27.sent();
-                if (!node) return [3 /*break*/, 113];
-                // === 第一步：通用操作 (先选中并聚焦) ===
-                // 这一步对组件、矩形、文本都有效，修复了组件清洗无法定位的问题
-                // 检查节点是否在当前页面，如果在不同页面可能需要切换（但插件API限制通常只能操作当前页）
-                figma.currentPage.selection = [node];
-                figma.viewport.scrollAndZoomIntoView([node]);
-                if (!(node.type === 'TEXT' && typeof msg.index === 'number' && typeof msg.length === 'number')) return [3 /*break*/, 112];
-                cacheKey = "".concat(msg.id, "_").concat(msg.index);
-                font = node.fontName === figma.mixed
-                    ? node.getRangeFontName(0, 1)
-                    : node.fontName;
-                return [4 /*yield*/, figma.loadFontAsync(font)];
-            case 111:
-                _27.sent();
-                // A. 还原颜色
-                if (highlightCache[cacheKey]) {
-                    cachedData = highlightCache[cacheKey];
-                    node.setRangeFills(msg.index, msg.index + cachedData.length, cachedData.fills);
-                    delete highlightCache[cacheKey];
-                    figma.notify("已还原颜色");
-                    figma.ui.postMessage({ type: 'highlight-status', key: cacheKey, status: false });
+                if (textNodes.length > 0) {
+                    figma.currentPage.selection = textNodes;
+                    figma.notify(`选中 ${textNodes.length} 个文本`);
                 }
                 else {
-                    currentFills = node.getRangeFills(msg.index, msg.index + 1);
-                    highlightCache[cacheKey] = { fills: currentFills, length: msg.length };
-                    highlightPaint = [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 } }];
-                    node.setRangeFills(msg.index, msg.index + msg.length, highlightPaint);
-                    figma.notify("已标记 (再次点击可还原)");
-                    figma.ui.postMessage({ type: 'highlight-status', key: cacheKey, status: true });
+                    figma.notify('未找到文本');
                 }
-                _27.label = 112;
-            case 112: return [3 /*break*/, 114];
-            case 113:
-                figma.notify("图层不存在 (可能已被删除)");
-                _27.label = 114;
-            case 114: return [3 /*break*/, 116];
-            case 115:
-                e_8 = _27.sent();
-                console.error("定位失败:", e_8);
-                return [3 /*break*/, 116];
-            case 116: return [3 /*break*/, 201];
-            case 117:
-                tasks = msg.tasks, replaceText = msg.replaceText;
-                successCount = 0;
-                processedIds = new Set();
-                groups_1 = {};
-                tasks.forEach(function (task) {
-                    if (!groups_1[task.id])
-                        groups_1[task.id] = [];
-                    groups_1[task.id].push(task);
-                });
-                _z = groups_1;
-                _0 = [];
-                for (_1 in _z)
-                    _0.push(_1);
-                _2 = 0;
-                _27.label = 118;
-            case 118:
-                if (!(_2 < _0.length)) return [3 /*break*/, 124];
-                _1 = _0[_2];
-                if (!(_1 in _z)) return [3 /*break*/, 123];
-                nodeId = _1;
-                return [4 /*yield*/, figma.getNodeByIdAsync(nodeId)];
-            case 119:
-                node = _27.sent();
-                if (!node || node.type !== 'TEXT')
-                    return [3 /*break*/, 123];
-                groupTasks = groups_1[nodeId];
-                // 🌟 倒序排序
-                groupTasks.sort(function (a, b) { return b.index - a.index; });
-                _27.label = 120;
-            case 120:
-                _27.trys.push([120, 122, , 123]);
-                // 加载字体
-                return [4 /*yield*/, figma.loadFontAsync(node.fontName === figma.mixed
-                        ? node.getRangeFontName(0, 1)
-                        : node.fontName)];
-            case 121:
-                // 加载字体
-                _27.sent();
-                // 执行替换
-                for (_3 = 0, groupTasks_1 = groupTasks; _3 < groupTasks_1.length; _3++) {
-                    task = groupTasks_1[_3];
-                    currentStr = node.characters.substring(task.index, task.index + task.length);
-                    // 简单的校验，略过严格校验以允许大小写差异
-                    node.deleteCharacters(task.index, task.index + task.length);
-                    node.insertCharacters(task.index, replaceText);
-                    successCount++;
-                    // 记录前端传来的唯一标识 (uid)，以便前端禁用
-                    if (task.uid)
-                        processedIds.add(task.uid);
-                }
-                return [3 /*break*/, 123];
-            case 122:
-                err_2 = _27.sent();
-                console.error("\u66FF\u6362\u5931\u8D25 ".concat(nodeId, ":"), err_2);
-                return [3 /*break*/, 123];
-            case 123:
-                _2++;
-                return [3 /*break*/, 118];
-            case 124:
-                // 通知前端哪些任务完成了
-                figma.ui.postMessage({
-                    type: 'text-replace-success',
-                    count: successCount,
-                    processedUids: Array.from(processedIds)
-                });
-                figma.notify("\u5DF2\u66FF\u6362 ".concat(successCount, " \u5904\u6587\u672C"));
-                return [3 /*break*/, 201];
-            case 125:
-                count = 0;
-                _4 = highlightCache;
-                _5 = [];
-                for (_6 in _4)
-                    _5.push(_6);
-                _7 = 0;
-                _27.label = 126;
-            case 126:
-                if (!(_7 < _5.length)) return [3 /*break*/, 133];
-                _6 = _5[_7];
-                if (!(_6 in _4)) return [3 /*break*/, 132];
-                key = _6;
-                _8 = key.split('_'), nodeId = _8[0], indexStr = _8[1];
-                index = parseInt(indexStr);
-                data = highlightCache[key];
-                _27.label = 127;
-            case 127:
-                _27.trys.push([127, 131, , 132]);
-                return [4 /*yield*/, figma.getNodeByIdAsync(nodeId)];
-            case 128:
-                node = _27.sent();
-                if (!(node && node.type === 'TEXT')) return [3 /*break*/, 130];
-                font = node.fontName === figma.mixed ? node.getRangeFontName(0, 1) : node.fontName;
-                return [4 /*yield*/, figma.loadFontAsync(font)];
-            case 129:
-                _27.sent();
-                node.setRangeFills(index, index + data.length, data.fills);
-                count++;
-                _27.label = 130;
-            case 130: return [3 /*break*/, 132];
-            case 131:
-                e_9 = _27.sent();
-                console.log("还原失败", e_9);
-                return [3 /*break*/, 132];
-            case 132:
-                _7++;
-                return [3 /*break*/, 126];
-            case 133:
-                highlightCache = {}; // 清空池子
-                figma.notify("\u5DF2\u8FD8\u539F ".concat(count, " \u5904\u9AD8\u4EAE"));
-                // 通知前端清除所有高亮样式
-                figma.ui.postMessage({ type: 'clear-all-highlights-ui' });
-                return [3 /*break*/, 201];
-            case 134:
-                ids = msg.ids, findText_3 = msg.findText, replaceText = msg.replaceText;
-                count = 0;
-                _9 = 0, ids_1 = ids;
-                _27.label = 135;
-            case 135:
-                if (!(_9 < ids_1.length)) return [3 /*break*/, 141];
-                id = ids_1[_9];
-                return [4 /*yield*/, figma.getNodeByIdAsync(id)];
-            case 136:
-                node = _27.sent();
-                if (!(node && node.type === 'TEXT')) return [3 /*break*/, 140];
-                _27.label = 137;
-            case 137:
-                _27.trys.push([137, 139, , 140]);
-                // 加载字体 (必要步骤)
-                return [4 /*yield*/, figma.loadFontAsync(node.fontName === figma.mixed
-                        ? node.getRangeFontName(0, 1)
-                        : node.fontName)];
-            case 138:
-                // 加载字体 (必要步骤)
-                _27.sent();
-                regex = new RegExp(findText_3.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-                if (regex.test(node.characters)) {
-                    node.characters = node.characters.replace(regex, replaceText);
-                    count++;
-                }
-                return [3 /*break*/, 140];
-            case 139:
-                err_3 = _27.sent();
-                console.error("\u66FF\u6362\u6587\u672C\u5931\u8D25 (ID: ".concat(id, "):"), err_3);
-                return [3 /*break*/, 140];
-            case 140:
-                _9++;
-                return [3 /*break*/, 135];
-            case 141:
-                figma.notify("\u5DF2\u66FF\u6362 ".concat(count, " \u4E2A\u6587\u672C\u56FE\u5C42"));
-                return [3 /*break*/, 201];
-            case 142:
-                {
-                    dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
-                    spots = dataStr ? JSON.parse(dataStr) : [];
-                    figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 143;
-            case 143:
-                {
-                    dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
-                    spots = dataStr ? JSON.parse(dataStr) : [];
-                    if (spots.length >= 5) {
-                        figma.notify("最多只能保存 5 个锚点！");
-                        return [2 /*return*/];
+                break;
+            }
+            case 'remove-al': {
+                if (!validateSelection(1))
+                    break;
+                const selection = figma.currentPage.selection;
+                let count = 0;
+                function removeAutoLayout(node) {
+                    if (node.layoutMode && node.layoutMode !== 'NONE') {
+                        node.layoutMode = 'NONE';
+                        count++;
                     }
-                    currentSelection = figma.currentPage.selection;
-                    defaultName = currentSelection.length > 0 ? currentSelection[0].name.substring(0, 15) : "Spot ".concat(spots.length + 1);
-                    newSpot = {
-                        id: 'spot_' + Date.now(),
-                        name: defaultName,
-                        pageId: figma.currentPage.id,
-                        pageName: figma.currentPage.name,
-                        zoom: figma.viewport.zoom,
-                        centerX: figma.viewport.center.x,
-                        centerY: figma.viewport.center.y,
-                        // 保存选中的图层 ID 数组
-                        selectionIds: currentSelection.map(function (n) { return n.id; })
-                    };
-                    spots.push(newSpot);
-                    figma.root.setPluginData('JUMPBACK_SPOTS', JSON.stringify(spots));
-                    figma.notify("📍 位置已保存");
-                    figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
-                    return [3 /*break*/, 201];
+                    if (node.children)
+                        node.children.forEach(removeAutoLayout);
                 }
-                _27.label = 144;
-            case 144:
-                dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
-                if (!dataStr)
-                    return [2 /*return*/];
-                spots = JSON.parse(dataStr);
-                spot = spots.find(function (s) { return s.id === msg.id; });
-                if (!spot)
-                    return [2 /*return*/];
-                _27.label = 145;
-            case 145:
-                _27.trys.push([145, 154, , 155]);
-                if (!(figma.currentPage.id !== spot.pageId)) return [3 /*break*/, 149];
-                return [4 /*yield*/, figma.getNodeByIdAsync(spot.pageId)];
-            case 146:
-                targetPage = _27.sent();
-                if (!(targetPage && targetPage.type === 'PAGE')) return [3 /*break*/, 148];
-                // === 修复点 2：在 dynamic-page 模式下，必须用 setCurrentPageAsync 切换页面 ===
-                return [4 /*yield*/, figma.setCurrentPageAsync(targetPage)];
-            case 147:
-                // === 修复点 2：在 dynamic-page 模式下，必须用 setCurrentPageAsync 切换页面 ===
-                _27.sent();
-                return [3 /*break*/, 149];
-            case 148:
-                figma.notify("⚠️ 该位置所在的页面已被删除！");
-                return [2 /*return*/];
-            case 149:
-                // 2. 恢复视角坐标和缩放
-                figma.viewport.center = { x: spot.centerX, y: spot.centerY };
-                figma.viewport.zoom = spot.zoom;
-                nodesToSelect = [];
-                if (!(spot.selectionIds && Array.isArray(spot.selectionIds))) return [3 /*break*/, 153];
-                _10 = 0, _11 = spot.selectionIds;
-                _27.label = 150;
-            case 150:
-                if (!(_10 < _11.length)) return [3 /*break*/, 153];
-                id = _11[_10];
-                return [4 /*yield*/, figma.getNodeByIdAsync(id)];
-            case 151:
-                node = _27.sent();
-                // 确保节点还存在，且不是页面本身 (防止意外)
-                if (node && !node.removed && node.type !== 'PAGE' && node.type !== 'DOCUMENT') {
-                    nodesToSelect.push(node);
+                selection.forEach(removeAutoLayout);
+                figma.notify(`移除 ${count} 个自动布局`);
+                break;
+            }
+            case 'add-al-wrapper': {
+                if (!validateSelection(1))
+                    break;
+                const selection = figma.currentPage.selection;
+                const newSelection = [];
+                for (const node of selection) {
+                    if (node.removed || !node.parent)
+                        continue;
+                    const frame = figma.createFrame();
+                    frame.name = 'Auto Layout Wrapper';
+                    frame.layoutMode = 'VERTICAL';
+                    frame.itemSpacing = 10;
+                    frame.paddingLeft = 0;
+                    frame.paddingRight = 0;
+                    frame.paddingTop = 0;
+                    frame.paddingBottom = 0;
+                    frame.primaryAxisSizingMode = 'AUTO';
+                    frame.counterAxisSizingMode = 'AUTO';
+                    frame.fills = [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 } }];
+                    frame.strokes = [];
+                    frame.x = node.x;
+                    frame.y = node.y;
+                    const parent = node.parent;
+                    const index = parent.children.indexOf(node);
+                    parent.insertChild(index, frame);
+                    frame.appendChild(node);
+                    newSelection.push(frame);
                 }
-                _27.label = 152;
-            case 152:
-                _10++;
-                return [3 /*break*/, 150];
-            case 153:
-                // 4. 执行选中
-                if (nodesToSelect.length > 0) {
-                    figma.currentPage.selection = nodesToSelect;
+                if (newSelection.length > 0) {
+                    figma.currentPage.selection = newSelection;
+                    figma.notify('已添加自动布局外套');
                 }
-                else {
-                    // 如果图层被删了，清空当前选中项，视角依然过去 (补全了这里)
-                    figma.currentPage.selection = [];
-                }
-                figma.notify("🚀 已传送！");
-                return [3 /*break*/, 155];
-            case 154:
-                e_10 = _27.sent();
-                console.warn("Jumpback failed:", e_10);
-                figma.notify("传送失败，可能是图层结构已发生巨大改变");
-                return [3 /*break*/, 155];
-            case 155: return [3 /*break*/, 201];
-            case 156:
-                {
-                    dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
-                    if (!dataStr)
-                        return [2 /*return*/];
-                    spots = JSON.parse(dataStr);
-                    // 过滤掉要删除的 ID
-                    spots = spots.filter(function (s) { return s.id !== msg.id; });
-                    // 更新保存
-                    figma.root.setPluginData('JUMPBACK_SPOTS', JSON.stringify(spots));
-                    // 重新渲染 UI
-                    figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
-                    figma.notify("🗑️ 锚点已删除");
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 157;
-            case 157:
-                {
-                    dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
-                    if (!dataStr)
-                        return [2 /*return*/];
-                    spots = JSON.parse(dataStr);
-                    index = spots.findIndex(function (s) { return s.id === msg.id; });
-                    if (index > -1 && msg.newName.trim() !== '') {
-                        spots[index].name = msg.newName.substring(0, 20); // 限制长度
-                        figma.root.setPluginData('JUMPBACK_SPOTS', JSON.stringify(spots));
-                        figma.notify("已重命名");
-                    }
-                    else {
-                        // 如果名字为空，发回原数据恢复 UI
-                        figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
-                    }
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 158;
-            case 158:
-                {
-                    selection_10 = figma.currentPage.selection;
-                    if (selection_10.length === 0)
-                        return [2 /*return*/]; // 拖动滑块时高频触发，没选中就静默退出
-                    r = (msg.rot * Math.PI) / 180;
-                    sx = (msg.angleX * Math.PI) / 180;
-                    sy = (msg.angleY * Math.PI) / 180;
-                    cosR = Math.cos(r);
-                    sinR = Math.sin(r);
-                    tanX = Math.tan(sx);
-                    tanY = Math.tan(sy);
-                    m00 = cosR - sinR * tanY;
-                    m01 = cosR * tanX - sinR;
-                    m10 = sinR + cosR * tanY;
-                    m11 = sinR * tanX + cosR;
+                break;
+            }
+            case 'split-text': {
+                if (!validateSelection(1))
+                    break;
+                const selection = figma.currentPage.selection;
+                const newSelection = [];
+                for (const node of selection) {
+                    if (node.type !== 'TEXT')
+                        continue;
+                    const lines = node.characters.split(/\r\n|\r|\n/);
+                    if (lines.length <= 1)
+                        continue;
+                    let font = node.fontName;
+                    if (font === figma.mixed)
+                        font = node.getRangeFontName(0, 1);
                     try {
-                        for (_12 = 0, selection_9 = selection_10; _12 < selection_9.length; _12++) {
-                            node = selection_9[_12];
-                            if ('relativeTransform' in node) {
-                                tx = node.relativeTransform[0][2];
-                                ty = node.relativeTransform[1][2];
-                                newTransform = [
-                                    [m00, m01, tx],
-                                    [m10, m11, ty]
-                                ];
-                                node.relativeTransform = newTransform;
-                            }
-                        }
-                    }
-                    catch (error) {
-                        console.error("Transform Engine failed:", error);
-                    }
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 159;
-            case 159:
-                _27.trys.push([159, 161, , 162]);
-                return [4 /*yield*/, figma.clientStorage.getAsync('MY_SKEW_PRESETS')];
-            case 160:
-                data = _27.sent();
-                // 发送回前端渲染
-                figma.ui.postMessage({ type: 'init-skew-presets', data: data || [] });
-                return [3 /*break*/, 162];
-            case 161:
-                e_11 = _27.sent();
-                console.warn("读取 Skew 预设失败", e_11);
-                return [3 /*break*/, 162];
-            case 162: return [3 /*break*/, 201];
-            case 163:
-                _27.trys.push([163, 165, , 166]);
-                // 覆盖保存到用户的 Figma 账号下
-                return [4 /*yield*/, figma.clientStorage.setAsync('MY_SKEW_PRESETS', msg.data)];
-            case 164:
-                // 覆盖保存到用户的 Figma 账号下
-                _27.sent();
-                return [3 /*break*/, 166];
-            case 165:
-                e_12 = _27.sent();
-                console.warn("保存 Skew 预设失败", e_12);
-                return [3 /*break*/, 166];
-            case 166: return [3 /*break*/, 201];
-            case 167:
-                {
-                    hasSelection = figma.currentPage.selection.length > 0;
-                    figma.ui.postMessage({ type: 'i18n-check-selection-result', hasSelection: hasSelection });
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 168;
-            case 168:
-                scope = msg.scope, extractTarget = msg.extractTarget, collectionName = msg.collectionName;
-                nodesToScan = scope === 'selection' ? __spreadArray([], figma.currentPage.selection, true) : __spreadArray([], figma.currentPage.children, true);
-                textNodes_3 = [];
-                return [4 /*yield*/, findText(nodesToScan)];
-            case 169:
-                _27.sent();
-                return [4 /*yield*/, figma.variables.getLocalVariableCollectionsAsync()];
-            case 170:
-                allCollections = _27.sent();
-                collectionNames = allCollections
-                    .map(function (c) { return c.name; })
-                    .sort(function (a, b) {
-                    var aMatch = a.toLowerCase().includes('i18n') ? -1 : 1;
-                    var bMatch = b.toLowerCase().includes('i18n') ? -1 : 1;
-                    return aMatch - bMatch;
-                });
-                targetColName_1 = collectionName || "i18n Dictionary";
-                i18nCollection = allCollections.find(function (c) { return c.name === targetColName_1; })
-                    || allCollections.find(function (c) { return c.name.includes("i18n") || c.name.includes("Dictionary"); });
-                modes_1 = [];
-                existingVarMap = new Map();
-                if (!i18nCollection) return [3 /*break*/, 172];
-                origModeId_1 = i18nCollection.modes[0].modeId;
-                i18nCollection.modes.forEach(function (m) {
-                    if (m.modeId !== origModeId_1)
-                        modes_1.push(m.name);
-                });
-                return [4 /*yield*/, figma.variables.getLocalVariablesAsync('STRING')];
-            case 171:
-                localVars = _27.sent();
-                for (_13 = 0, localVars_1 = localVars; _13 < localVars_1.length; _13++) {
-                    v = localVars_1[_13];
-                    if (v.variableCollectionId === i18nCollection.id) {
-                        origVal = v.valuesByMode[origModeId_1];
-                        if (origVal)
-                            existingVarMap.set(origVal, v);
-                    }
-                }
-                _27.label = 172;
-            case 172:
-                boundCount = 0;
-                mixedFonts = 0;
-                autoBindMap = new Map();
-                newTextMap = new Map();
-                for (_14 = 0, textNodes_2 = textNodes_3; _14 < textNodes_2.length; _14++) {
-                    node = textNodes_2[_14];
-                    if (node.hasMissingFont)
-                        continue;
-                    if (node.fontName === figma.mixed) {
-                        mixedFonts++;
-                        continue;
-                    }
-                    if (extractTarget === 'unbound' && node.boundVariables && node.boundVariables['characters']) {
-                        boundCount++;
-                        continue;
-                    }
-                    text = node.characters.trim();
-                    if (!text)
-                        continue;
-                    if (existingVarMap.has(text)) {
-                        if (!autoBindMap.has(text))
-                            autoBindMap.set(text, { variableId: existingVarMap.get(text).id, nodeIds: [] });
-                        autoBindMap.get(text).nodeIds.push(node.id);
-                    }
-                    else {
-                        if (!newTextMap.has(text))
-                            newTextMap.set(text, { nodeIds: [] });
-                        newTextMap.get(text).nodeIds.push(node.id);
-                    }
-                }
-                figma.ui.postMessage({
-                    type: 'i18n-detect-result',
-                    data: {
-                        totalNodes: textNodes_3.length,
-                        boundCount: boundCount,
-                        collections: collectionNames,
-                        autoBindList: Array.from(autoBindMap.entries()).map(function (_a) {
-                            var orig = _a[0], d = _a[1];
-                            return (__assign({ original: orig }, d));
-                        }),
-                        newTextList: Array.from(newTextMap.entries()).map(function (_a) {
-                            var orig = _a[0], d = _a[1];
-                            return (__assign({ original: orig }, d));
-                        }),
-                        modes: modes_1
-                    }
-                });
-                return [3 /*break*/, 201];
-            case 173:
-                newPayload = msg.newPayload, autoBindPayload = msg.autoBindPayload, isCreate = msg.isCreate, collectionName_1 = msg.collectionName;
-                _27.label = 174;
-            case 174:
-                _27.trys.push([174, 184, , 185]);
-                return [4 /*yield*/, figma.variables.getLocalVariableCollectionsAsync()];
-            case 175:
-                collections = _27.sent();
-                collection = collections.find(function (c) { return c.name === collectionName_1; });
-                // 1. 确保 Collection 存在
-                if (!collection) {
-                    collection = figma.variables.createVariableCollection(collectionName_1);
-                    collection.renameMode(collection.modes[0].modeId, 'Original');
-                }
-                origModeId = collection.modes[0].modeId;
-                allTargetLangs_1 = new Set();
-                newPayload.forEach(function (item) { return Object.keys(item.translations).forEach(function (l) { return allTargetLangs_1.add(l); }); });
-                modeIdMap_1 = {};
-                collection.modes.forEach(function (m) { return modeIdMap_1[m.name] = m.modeId; });
-                for (_15 = 0, _16 = Array.from(allTargetLangs_1); _15 < _16.length; _15++) {
-                    lang = _16[_15];
-                    if (!modeIdMap_1[lang]) {
-                        try {
-                            newModeId = collection.addMode(lang);
-                            modeIdMap_1[lang] = newModeId;
-                        }
-                        catch (e) {
-                            // 弹出明确的 Plan 限制提示
-                            figma.ui.postMessage({
-                                type: 'i18n-bind-error',
-                                error: "\u65E0\u6CD5\u521B\u5EFA \"".concat(lang, "\" \u5217\u3002\n\u539F\u56E0\uFF1AFigma \u514D\u8D39\u7248\u9650\u5236\u6BCF\u4E2A\u5408\u96C6\u53EA\u80FD\u6709 1 \u4E2A Mode\uFF08\u5F53\u524D\u5DF2\u6709 \"Original\"\uFF09\u3002\n\n\u5EFA\u8BAE\uFF1A\n1. \u5347\u7EA7 Figma \u56E2\u961F\u7248\n2. \u6216\u4F7F\u7528\u63D2\u4EF6\u7684 \"\u26A1 \u76F4\u63A5\u66FF\u6362\" \u6A21\u5F0F\u3002")
-                            });
-                            return [2 /*return*/]; // 终止执行
-                        }
-                    }
-                }
-                return [4 /*yield*/, figma.variables.getLocalVariablesAsync('STRING')];
-            case 176:
-                localVars = _27.sent();
-                varMap = new Map();
-                for (_17 = 0, localVars_2 = localVars; _17 < localVars_2.length; _17++) {
-                    v = localVars_2[_17];
-                    if (v.variableCollectionId === collection.id) {
-                        baseVal = v.valuesByMode[origModeId];
-                        if (baseVal)
-                            varMap.set(baseVal, v);
-                    }
-                }
-                _18 = 0, newPayload_1 = newPayload;
-                _27.label = 177;
-            case 177:
-                if (!(_18 < newPayload_1.length)) return [3 /*break*/, 183];
-                item = newPayload_1[_18];
-                variable = varMap.get(item.original);
-                // 如果不存在则创建
-                if (!variable) {
-                    safeName = item.original.slice(0, 15).replace(/[.*{}\/\\\r\n\t]/g, '_').trim() || 'text';
-                    varName = "i18n/".concat(safeName, "_").concat(Math.random().toString(36).substring(2, 6));
-                    variable = figma.variables.createVariable(varName, collection, 'STRING');
-                    variable.setValueForMode(origModeId, item.original);
-                }
-                // 【核心修复】：为该变量在所有目标 Mode 中设置翻译值
-                for (_19 = 0, _20 = Object.entries(item.translations); _19 < _20.length; _19++) {
-                    _21 = _20[_19], langName = _21[0], translatedText = _21[1];
-                    targetModeId = modeIdMap_1[langName];
-                    if (targetModeId) {
-                        variable.setValueForMode(targetModeId, translatedText);
-                    }
-                }
-                _22 = 0, _23 = item.nodeIds;
-                _27.label = 178;
-            case 178:
-                if (!(_22 < _23.length)) return [3 /*break*/, 182];
-                nodeId = _23[_22];
-                return [4 /*yield*/, figma.getNodeByIdAsync(nodeId)];
-            case 179:
-                node = _27.sent();
-                if (!(node && node.type === 'TEXT' && node.fontName !== figma.mixed)) return [3 /*break*/, 181];
-                return [4 /*yield*/, figma.loadFontAsync(node.fontName)];
-            case 180:
-                _27.sent();
-                node.setBoundVariable('characters', variable);
-                _27.label = 181;
-            case 181:
-                _22++;
-                return [3 /*break*/, 178];
-            case 182:
-                _18++;
-                return [3 /*break*/, 177];
-            case 183:
-                figma.ui.postMessage({ type: 'i18n-bind-success', message: '🎉 多语言 Mode 已同步更新！' });
-                return [3 /*break*/, 185];
-            case 184:
-                e_13 = _27.sent();
-                figma.ui.postMessage({ type: 'i18n-bind-error', error: e_13.message });
-                return [3 /*break*/, 185];
-            case 185: return [3 /*break*/, 201];
-            case 186:
-                payload = msg.payload;
-                successCount = 0;
-                _27.label = 187;
-            case 187:
-                _27.trys.push([187, 198, , 199]);
-                _24 = 0, payload_1 = payload;
-                _27.label = 188;
-            case 188:
-                if (!(_24 < payload_1.length)) return [3 /*break*/, 197];
-                item = payload_1[_24];
-                targetText = Object.values(item.translations)[0];
-                _25 = 0, _26 = item.nodeIds;
-                _27.label = 189;
-            case 189:
-                if (!(_25 < _26.length)) return [3 /*break*/, 196];
-                nodeId = _26[_25];
-                _27.label = 190;
-            case 190:
-                _27.trys.push([190, 194, , 195]);
-                return [4 /*yield*/, figma.getNodeByIdAsync(nodeId)];
-            case 191:
-                node = _27.sent();
-                if (!(node && node.type === 'TEXT' && node.fontName !== figma.mixed)) return [3 /*break*/, 193];
-                return [4 /*yield*/, figma.loadFontAsync(node.fontName)];
-            case 192:
-                _27.sent();
-                // 【核心修复】：直接替换前，必须解除已有的变量绑定，否则必定被 Figma API 拦截失败！
-                node.setBoundVariable('characters', null);
-                node.characters = targetText;
-                successCount++;
-                _27.label = 193;
-            case 193: return [3 /*break*/, 195];
-            case 194:
-                e_14 = _27.sent();
-                console.warn("\u8282\u70B9\u66FF\u6362\u5931\u8D25", e_14);
-                return [3 /*break*/, 195];
-            case 195:
-                _25++;
-                return [3 /*break*/, 189];
-            case 196:
-                _24++;
-                return [3 /*break*/, 188];
-            case 197:
-                figma.ui.postMessage({ type: 'i18n-bind-success', message: "\uD83C\uDF89 \u6210\u529F\u66FF\u6362\u4E86 ".concat(successCount, " \u4E2A\u6587\u672C\u8282\u70B9\uFF01") });
-                return [3 /*break*/, 199];
-            case 198:
-                e_15 = _27.sent();
-                figma.ui.postMessage({ type: 'i18n-bind-error', error: e_15.message });
-                return [3 /*break*/, 199];
-            case 199: return [3 /*break*/, 201];
-            case 200:
-                figma.ui.resize(msg.width, msg.height);
-                return [3 /*break*/, 201];
-            case 201: return [2 /*return*/];
-        }
-    });
-}); };
-// -------------------------------------------------------------
-// 【新增】高级命名转换函数 (支持 格式+分隔符+大小写 组合)
-// -------------------------------------------------------------
-// --- PPT 工具辅助函数 ---
-// 获取用户选中的 Frame (ID去重版)
-function getSlides() {
-    var selection = figma.currentPage.selection;
-    var uniqueMap = new Map();
-    // 1. 只找选中的 Frame
-    for (var _i = 0, selection_12 = selection; _i < selection_12.length; _i++) {
-        var node = selection_12[_i];
-        if (node.type === 'FRAME') {
-            uniqueMap.set(node.id, node);
-        }
-    }
-    var frames = Array.from(uniqueMap.values());
-    // 2. 简单的嵌套过滤 (防止选了画板又选了里面的按钮)
-    // 如果一个 Frame 的父级也在选中列表里，那它就是子元素，删掉
-    var finalSlides = frames.filter(function (node) {
-        var parent = node.parent;
-        while (parent && parent.type !== 'PAGE' && parent.type !== 'DOCUMENT') {
-            if (uniqueMap.has(parent.id))
-                return false;
-            parent = parent.parent;
-        }
-        return true;
-    });
-    return finalSlides;
-}
-// Step 1: 初始化 (解锁、解组实例、移除隐藏)
-// Step 1: 初始化 (防崩溃稳健版)
-// 将 "解绑" 和 "清理" 分离，彻底解决 WASM 内存越界问题
-function pptStep1_Init(slides) {
-    return __awaiter(this, void 0, void 0, function () {
-        var _i, slides_1, slide, loopCount, instances, target, traverse;
-        return __generator(this, function (_a) {
-            // === 阶段一：暴力解绑 (Iterative Detach) ===
-            // 只要还有 Instance，就一直循环处理，直到解绑干净
-            for (_i = 0, slides_1 = slides; _i < slides_1.length; _i++) {
-                slide = slides_1[_i];
-                loopCount = 0;
-                instances = slide.findAll(function (n) { return n.type === 'INSTANCE'; });
-                while (instances.length > 0) {
-                    // 安全熔断机制：防止极个别情况下的死循环
-                    loopCount++;
-                    if (loopCount > 5000) {
-                        console.warn("解绑层级过深，强制跳出");
-                        break;
-                    }
-                    target = instances[0];
-                    try {
-                        // 执行解绑
-                        // 注意：解绑后，target 这个变量就“死”了，不能再访问它的属性
-                        target.detachInstance();
+                        await figma.loadFontAsync(font);
                     }
                     catch (e) {
-                        console.warn("解绑单个节点失败:", e);
+                        figma.notify('字体加载失败');
+                        continue;
                     }
-                    // === 关键点 ===
-                    // 解绑一个后，整个图层树结构变了，之前的 instances 数组里的引用全都失效了
-                    // 必须立刻重新扫描，获取最新的列表
-                    instances = slide.findAll(function (n) { return n.type === 'INSTANCE'; });
-                }
-            }
-            traverse = function (node) {
-                // 防御性检查
-                if (node.removed)
-                    return;
-                // === 新增：黑盒保护 ===
-                // 如果名字以 p_img 开头，视为用户指定的整体图标，不清洗内部，直接跳过子级遍历
-                if (node.name.toLowerCase().startsWith('p_img')) {
-                    return;
-                }
-                // 1. 解锁
-                if ('locked' in node && node.locked) {
-                    node.locked = false;
-                }
-                // 2. 移除隐藏图层
-                if ('visible' in node && !node.visible) {
-                    node.remove();
-                    return; // 删了就不用看子级了
-                }
-                // 3. 移除 AutoLayout
-                if (node.type === 'FRAME' && node.layoutMode !== 'NONE') {
-                    node.layoutMode = 'NONE';
-                }
-                // 4. 递归子级
-                if ('children' in node) {
-                    // 浅拷贝 children，避免遍历时的索引干扰
-                    __spreadArray([], node.children, true).forEach(function (child) { return traverse(child); });
-                }
-            };
-            // 对所有 Slide 执行清洗
-            slides.forEach(function (slide) { return traverse(slide); });
-            // 通知 UI 完成
-            figma.ui.postMessage({ type: 'step-done', step: 1 });
-            return [2 /*return*/];
-        });
-    });
-}
-// Step 2: 智能栅格化 (性能优化 + Hex ID)
-function pptStep2_Rasterize(slides) {
-    return __awaiter(this, void 0, void 0, function () {
-        var count, generateHexId, isLineLike, traverse, _i, slides_2, slide;
-        var _this = this;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    count = 0;
-                    generateHexId = function () { return 'p_' + Math.random().toString(16).substring(2, 8); };
-                    isLineLike = function (node) {
-                        if (node.type === 'LINE')
-                            return true;
-                        if (node.type === 'VECTOR') {
-                            if (node.width < 2 || node.height < 2)
-                                return true;
-                            var ratio = node.width / node.height;
-                            if (ratio > 50 || ratio < 0.02)
-                                return true;
-                        }
-                        return false;
-                    };
-                    traverse = function (node) { return __awaiter(_this, void 0, void 0, function () {
-                        var name, isUserTarget, isTechTarget, bytes, image, rect, e_21, children, _i, children_3, child;
-                        var _a;
-                        return __generator(this, function (_b) {
-                            switch (_b.label) {
-                                case 0:
-                                    if (node.removed || !node.visible)
-                                        return [2 /*return*/];
-                                    name = node.name.toLowerCase();
-                                    isUserTarget = name.startsWith('p_img');
-                                    isTechTarget = false;
-                                    if ('effects' in node && node.effects.some(function (e) { return e.type === 'LAYER_BLUR' && e.visible; }))
-                                        isTechTarget = true;
-                                    else if (node.type === 'BOOLEAN_OPERATION')
-                                        isTechTarget = true;
-                                    else if (node.type === 'VECTOR' && !isLineLike(node))
-                                        isTechTarget = true;
-                                    else if (node.type === 'ELLIPSE' && 'fills' in node && node.fills.some(function (p) { return p.type === 'IMAGE'; }))
-                                        isTechTarget = true;
-                                    if (!(isUserTarget || isTechTarget)) return [3 /*break*/, 4];
-                                    _b.label = 1;
-                                case 1:
-                                    _b.trys.push([1, 3, , 4]);
-                                    return [4 /*yield*/, node.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 3 } })];
-                                case 2:
-                                    bytes = _b.sent();
-                                    image = figma.createImage(bytes);
-                                    rect = figma.createRectangle();
-                                    rect.x = node.x;
-                                    rect.y = node.y;
-                                    rect.resize(node.width, node.height);
-                                    // === 使用 Hex ID 重命名 ===
-                                    rect.name = generateHexId();
-                                    rect.fills = [{ type: 'IMAGE', scaleMode: 'FIT', imageHash: image.hash }];
-                                    rect.rotation = node.rotation;
-                                    (_a = node.parent) === null || _a === void 0 ? void 0 : _a.insertChild(node.parent.children.indexOf(node), rect);
-                                    node.remove();
-                                    count++;
-                                    return [2 /*return*/];
-                                case 3:
-                                    e_21 = _b.sent();
-                                    return [3 /*break*/, 4];
-                                case 4:
-                                    if (!('children' in node)) return [3 /*break*/, 8];
-                                    children = __spreadArray([], node.children, true);
-                                    _i = 0, children_3 = children;
-                                    _b.label = 5;
-                                case 5:
-                                    if (!(_i < children_3.length)) return [3 /*break*/, 8];
-                                    child = children_3[_i];
-                                    return [4 /*yield*/, traverse(child)];
-                                case 6:
-                                    _b.sent();
-                                    _b.label = 7;
-                                case 7:
-                                    _i++;
-                                    return [3 /*break*/, 5];
-                                case 8: return [2 /*return*/];
-                            }
-                        });
-                    }); };
-                    _i = 0, slides_2 = slides;
-                    _a.label = 1;
-                case 1:
-                    if (!(_i < slides_2.length)) return [3 /*break*/, 4];
-                    slide = slides_2[_i];
-                    return [4 /*yield*/, traverse(slide)];
-                case 2:
-                    _a.sent();
-                    _a.label = 3;
-                case 3:
-                    _i++;
-                    return [3 /*break*/, 1];
-                case 4:
-                    figma.ui.postMessage({ type: 'step-done', step: 2 });
-                    return [2 /*return*/];
-            }
-        });
-    });
-}
-// Step 3: 深度扁平化 (修复混合属性导致的崩溃)
-function pptStep3_Flatten(slides) {
-    return __awaiter(this, void 0, void 0, function () {
-        var _i, slides_3, slide, hasNested, loopCount, children, i, node, rect, _a, _b, node, font, e_22;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
-                case 0:
-                    _i = 0, slides_3 = slides;
-                    _c.label = 1;
-                case 1:
-                    if (!(_i < slides_3.length)) return [3 /*break*/, 13];
-                    slide = slides_3[_i];
-                    hasNested = true;
-                    loopCount = 0;
-                    _c.label = 2;
-                case 2:
-                    if (!hasNested) return [3 /*break*/, 5];
-                    hasNested = false;
-                    loopCount++;
-                    if (!(loopCount % 100 === 0)) return [3 /*break*/, 4];
-                    return [4 /*yield*/, new Promise(function (r) { return setTimeout(r, 20); })];
-                case 3:
-                    _c.sent();
-                    _c.label = 4;
-                case 4:
-                    children = slide.children;
-                    // 倒序遍历
-                    // 倒序遍历
-                    for (i = children.length - 1; i >= 0; i--) {
-                        node = children[i];
-                        // 1. === 新增：垃圾清理 (针对普通形状) ===
-                        // 如果不是容器(Group/Frame)，且视觉不可见，直接删除
-                        if (node.type !== 'GROUP' && node.type !== 'FRAME' && isNodeInvisible(node)) {
-                            node.remove();
+                    let cy = node.y;
+                    for (const line of lines) {
+                        if (!line.trim())
                             continue;
-                        }
-                        // 情况 A: Group -> 直接解散
-                        if (node.type === 'GROUP') {
-                            figma.ungroup(node);
-                            hasNested = true;
-                        }
-                        // 情况 B: Frame -> 转换为背景矩形(如需要) + 解散
-                        else if (node.type === 'FRAME') {
-                            try {
-                                // 2. === 修改：判断是否生成背景 ===
-                                // 使用 isNodeInvisible 判断：如果不透明且有填充/描边，才生成背景矩形
-                                // 如果是透明容器，则跳过此步，直接进入下面的 ungroup
-                                if (!isNodeInvisible(node)) {
-                                    rect = figma.createRectangle();
-                                    rect.x = node.x;
-                                    rect.y = node.y;
-                                    rect.resize(node.width, node.height);
-                                    // 复制样式
-                                    if (node.fills !== figma.mixed)
-                                        rect.fills = node.fills;
-                                    if (node.strokes !== figma.mixed)
-                                        rect.strokes = node.strokes;
-                                    // 安全复制粗细
-                                    if (node.strokeWeight !== figma.mixed)
-                                        rect.strokeWeight = node.strokeWeight;
-                                    else
-                                        rect.strokeWeight = 0;
-                                    // 安全复制圆角
-                                    if (node.cornerRadius !== figma.mixed)
-                                        rect.cornerRadius = node.cornerRadius;
-                                    else
-                                        rect.cornerRadius = 0;
-                                    // 复制特效
-                                    if (node.effects !== figma.mixed)
-                                        rect.effects = node.effects;
-                                    // 复制透明度
-                                    rect.opacity = node.opacity;
-                                    // === 关键修复：复制旋转角度 ===
-                                    rect.rotation = node.rotation;
-                                    // 将矩形插入到 Frame 所在位置
-                                    node.parent.insertChild(i, rect);
-                                }
-                                // 3. 处理子元素 (核心扁平化逻辑)
-                                if (node.children.length > 0) {
-                                    figma.ungroup(node);
-                                    hasNested = true; // 结构变了，标记需要继续循环
-                                }
-                                else {
-                                    node.remove(); // 空 Frame 删掉
-                                }
-                            }
-                            catch (err) {
-                                console.error("Layer flatten error:", err);
-                                // 容错：出错了也尝试解开，防止死循环
-                                if (node.children.length > 0) {
-                                    figma.ungroup(node);
-                                    hasNested = true;
-                                }
-                                else {
-                                    node.remove();
-                                }
-                            }
-                        }
+                        const textNode = node.clone();
+                        textNode.characters = line;
+                        textNode.textAutoResize = 'WIDTH_AND_HEIGHT';
+                        textNode.y = cy;
+                        (_a = node.parent) === null || _a === void 0 ? void 0 : _a.appendChild(textNode);
+                        newSelection.push(textNode);
+                        cy += textNode.height + 10;
                     }
-                    return [3 /*break*/, 2];
-                case 5:
-                    _a = 0, _b = slide.children;
-                    _c.label = 6;
-                case 6:
-                    if (!(_a < _b.length)) return [3 /*break*/, 12];
-                    node = _b[_a];
-                    if (!(node.type === 'TEXT' && node.visible)) return [3 /*break*/, 11];
-                    _c.label = 7;
-                case 7:
-                    _c.trys.push([7, 10, , 11]);
-                    font = node.fontName;
-                    if (!(font !== figma.mixed)) return [3 /*break*/, 9];
-                    return [4 /*yield*/, figma.loadFontAsync(font)];
-                case 8:
-                    _c.sent();
-                    node.textAutoResize = "HEIGHT";
-                    node.resize(node.width + 10, node.height);
-                    _c.label = 9;
-                case 9: return [3 /*break*/, 11];
-                case 10:
-                    e_22 = _c.sent();
-                    return [3 /*break*/, 11];
-                case 11:
-                    _a++;
-                    return [3 /*break*/, 6];
-                case 12:
-                    _i++;
-                    return [3 /*break*/, 1];
-                case 13:
-                    figma.ui.postMessage({ type: 'step-done', step: 3 });
-                    return [2 /*return*/];
+                    node.remove();
+                }
+                if (newSelection.length > 0) {
+                    figma.currentPage.selection = newSelection;
+                    figma.notify('已拆分文本');
+                }
+                break;
             }
-        });
-    });
-}
-// Step 4: 提取结构 (高性能优化版：大批次 + 零丢弃)
-function pptStep4_Extract(slides) {
-    return __awaiter(this, void 0, void 0, function () {
-        var rgbToHex, i, slide, slideAbs, slideX, slideY, chunkBuffer, children, j, node, nodeAbs, centerX, centerY, el, stroke, shadow, visibleFill, isLineLike, arrowCaps, baseSize, firstCharFont, lh, finalPx, style, isMultiLine, c, c, err_5;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    rgbToHex = function (color) {
-                        var toHex = function (v) {
-                            var hex = Math.round(v * 255).toString(16);
-                            return hex.length === 1 ? "0" + hex : hex;
-                        };
-                        return toHex(color.r) + toHex(color.g) + toHex(color.b);
-                    };
-                    // 通知前端总数
-                    figma.ui.postMessage({ type: 'ppt-init-total', count: slides.length });
-                    i = 0;
-                    _a.label = 1;
-                case 1:
-                    if (!(i < slides.length)) return [3 /*break*/, 11];
-                    slide = slides[i];
-                    // 强制休息，释放上一页内存
-                    return [4 /*yield*/, new Promise(function (r) { return setTimeout(r, 50); })];
-                case 2:
-                    // 强制休息，释放上一页内存
-                    _a.sent();
-                    slideAbs = slide.absoluteBoundingBox;
-                    slideX = slideAbs ? slideAbs.x : slide.x;
-                    slideY = slideAbs ? slideAbs.y : slide.y;
-                    figma.ui.postMessage({
-                        type: 'ppt-start-slide', index: i, width: slide.width, height: slide.height
-                    });
-                    chunkBuffer = [];
-                    children = slide.children;
-                    j = 0;
-                    _a.label = 3;
-                case 3:
-                    if (!(j < children.length)) return [3 /*break*/, 9];
-                    node = children[j];
-                    // 1. 基础过滤：只过滤不可见图层，保留所有尺寸的元素
-                    if (!node.visible)
-                        return [3 /*break*/, 8];
-                    nodeAbs = node.absoluteBoundingBox;
-                    if (!nodeAbs)
-                        return [3 /*break*/, 8];
-                    centerX = (nodeAbs.x + nodeAbs.width / 2) - slideX;
-                    centerY = (nodeAbs.y + nodeAbs.height / 2) - slideY;
-                    el = {
-                        cx: centerX, cy: centerY, w: node.width, h: node.height, rotation: node.rotation
-                    };
-                    if ('opacity' in node)
-                        el.opacity = node.opacity;
-                    if ('cornerRadius' in node && node.cornerRadius !== figma.mixed)
-                        el.cornerRadius = node.cornerRadius;
-                    _a.label = 4;
-                case 4:
-                    _a.trys.push([4, 7, , 8]);
-                    // --- 样式提取 ---
-                    if ('strokes' in node && node.strokes !== figma.mixed && node.strokes.length > 0) {
-                        stroke = node.strokes.find(function (s) { return s.type === 'SOLID' && s.visible !== false && s.opacity > 0; });
-                        if (stroke) {
-                            el.strokeColor = rgbToHex(stroke.color);
-                            el.strokeWeight = node.strokeWeight;
-                            el.strokeAlpha = (el.opacity || 1) * stroke.opacity;
+            case 'join-text': {
+                if (!validateSelection(2))
+                    break;
+                const selection = figma.currentPage.selection;
+                const textNodes = selection.filter((n) => n.type === 'TEXT');
+                if (textNodes.length < 2) {
+                    figma.notify('请选择2个以上文本');
+                    break;
+                }
+                textNodes.sort((a, b) => {
+                    const diffY = a.y - b.y;
+                    const diffX = a.x - b.x;
+                    return Math.abs(diffY) > 5 ? diffY : diffX;
+                });
+                let font = textNodes[0].fontName;
+                if (font === figma.mixed)
+                    font = textNodes[0].getRangeFontName(0, 1);
+                try {
+                    await figma.loadFontAsync(font);
+                }
+                catch (e) {
+                    figma.notify('字体加载失败');
+                    break;
+                }
+                const text = textNodes.map((n) => n.characters).join('\n');
+                const newNode = textNodes[0].clone();
+                newNode.characters = text;
+                newNode.textAutoResize = 'HEIGHT';
+                textNodes.forEach((n) => n.remove());
+                figma.currentPage.selection = [newNode];
+                figma.notify('已合并文本');
+                break;
+            }
+            case 'up-one': {
+                if (!validateSelection(1))
+                    break;
+                const selection = figma.currentPage.selection;
+                const moved = [];
+                for (const node of selection) {
+                    if (node.parent && node.parent.parent && node.parent !== figma.currentPage) {
+                        node.parent.parent.appendChild(node);
+                        moved.push(node);
+                    }
+                }
+                if (moved.length > 0) {
+                    figma.currentPage.selection = moved;
+                    figma.notify('已上移一层');
+                }
+                break;
+            }
+            case 'up-all': {
+                if (!validateSelection(1))
+                    break;
+                const selection = figma.currentPage.selection;
+                const moved = [];
+                for (const node of selection) {
+                    figma.currentPage.appendChild(node);
+                    moved.push(node);
+                }
+                figma.currentPage.selection = moved;
+                figma.notify('已移到顶层');
+                break;
+            }
+            case 'rename-content': {
+                if (!validateSelection(1))
+                    break;
+                const selection = figma.currentPage.selection;
+                for (const node of selection) {
+                    let name = '';
+                    if (node.type === 'TEXT') {
+                        name = node.characters;
+                    }
+                    else if ('findOne' in node) {
+                        const textNode = node.findOne((n) => n.type === 'TEXT');
+                        if (textNode)
+                            name = textNode.characters;
+                    }
+                    if (name)
+                        node.name = name.substring(0, 20);
+                }
+                figma.notify('已重命名');
+                break;
+            }
+            case 'detach-all': {
+                if (!validateSelection(1))
+                    break;
+                const selection = figma.currentPage.selection;
+                const targets = [];
+                function scan(node) {
+                    if ('children' in node) {
+                        for (const child of node.children) {
+                            scan(child);
                         }
                     }
-                    if ('effects' in node && node.effects.length > 0) {
-                        shadow = node.effects.find(function (e) { return e.type === 'DROP_SHADOW' && e.visible; });
-                        if (shadow) {
-                            el.shadow = {
-                                color: rgbToHex(shadow.color),
-                                opacity: shadow.color.a,
-                                blur: shadow.radius,
-                                x: shadow.offset.x,
-                                y: shadow.offset.y
-                            };
+                    if (node.type === 'INSTANCE') {
+                        targets.push(node);
+                    }
+                }
+                selection.forEach(scan);
+                if (targets.length === 0) {
+                    figma.notify('未找到可解绑的实例');
+                    break;
+                }
+                let count = 0;
+                for (const node of targets) {
+                    if (!node.removed) {
+                        try {
+                            node.detachInstance();
+                            count++;
+                        }
+                        catch (e) {
+                            console.error('解绑出错:', e);
                         }
                     }
-                    visibleFill = null;
-                    if ('fills' in node && node.fills !== figma.mixed && node.fills.length > 0) {
-                        visibleFill = node.fills.find(function (f) { return f.type === 'SOLID' && f.visible !== false && f.opacity > 0; });
+                }
+                figma.notify(`已解绑 ${count} 个组件`);
+                break;
+            }
+            case 'remove-hidden': {
+                const selection = figma.currentPage.selection;
+                const pool = selection.length > 0 ? selection : [figma.currentPage];
+                let hiddenNodes = [];
+                for (const node of pool) {
+                    if ('visible' in node && !node.visible)
+                        hiddenNodes.push(node);
+                    if ('findAll' in node) {
+                        const found = node.findAll((n) => !n.visible);
+                        hiddenNodes = hiddenNodes.concat(found);
                     }
-                    if (visibleFill) {
-                        el.color = rgbToHex(visibleFill.color);
-                        el.fillAlpha = (el.opacity || 1) * visibleFill.opacity;
+                }
+                let count = 0;
+                hiddenNodes.reverse().forEach((n) => {
+                    if (!n.removed) {
+                        n.remove();
+                        count++;
                     }
-                    else {
-                        el.color = null;
-                        el.fillAlpha = 0;
+                });
+                figma.notify(`已删除 ${count} 个隐藏图层`);
+                break;
+            }
+            case 'sort-layers': {
+                if (!validateSelection(2))
+                    break;
+                const selection = figma.currentPage.selection;
+                if (selection.length > 1) {
+                    const parent = selection[0].parent;
+                    if (selection.every((n) => n.parent === parent)) {
+                        const sorted = [...selection].sort((a, b) => {
+                            const diffY = a.y - b.y;
+                            const diffX = a.x - b.x;
+                            return Math.abs(diffY) > 2 ? diffY : diffX;
+                        });
+                        sorted.forEach((n) => parent === null || parent === void 0 ? void 0 : parent.appendChild(n));
+                        figma.notify('已排序图层');
                     }
-                    isLineLike = (node.type === 'LINE' || node.type === 'CONNECTOR');
-                    if (isLineLike) {
-                        el.type = 'line';
-                        if ('dashPattern' in node && node.dashPattern.length > 0)
-                            el.dashPattern = node.dashPattern;
-                        arrowCaps = ['ARROW_LINES', 'ARROW_EQUILATERAL', 'TRIANGLE_FILLED', 'TRIANGLE_WIRED', 'DIAMOND_FILLED', 'CIRCLE_FILLED'];
-                        if ('lineStartCap' in node && arrowCaps.includes(node.lineStartCap))
-                            el.headArrow = 'triangle';
-                        if ('lineEndCap' in node && arrowCaps.includes(node.lineEndCap))
-                            el.tailArrow = 'triangle';
-                        // 必须要有一条可见的描边，否则跳过
-                        if (!el.strokeColor)
-                            return [3 /*break*/, 8];
-                        chunkBuffer.push(el);
+                }
+                break;
+            }
+            case 'ungroup-all': {
+                if (!validateSelection(1))
+                    break;
+                const selection = figma.currentPage.selection;
+                let count = 0;
+                for (const node of selection) {
+                    if ('findAll' in node) {
+                        let groups = node.findAll((n) => n.type === 'GROUP');
+                        while (groups.length > 0) {
+                            groups.forEach((g) => {
+                                if (!g.removed) {
+                                    figma.ungroup(g);
+                                    count++;
+                                }
+                            });
+                            groups = node.findAll((n) => n.type === 'GROUP');
+                        }
                     }
-                    // B. 文本
-                    else if (node.type === 'TEXT') {
-                        el.type = 'text';
-                        el.text = node.characters.substring(0, 2000);
-                        baseSize = 12;
-                        if (node.fontSize !== figma.mixed) {
-                            baseSize = node.fontSize;
+                }
+                figma.notify(`已解散 ${count} 个组`);
+                break;
+            }
+            case 'unlock-all': {
+                if (!validateSelection(1))
+                    break;
+                const selection = figma.currentPage.selection;
+                let count = 0;
+                function unlock(node) {
+                    if ('locked' in node && node.locked) {
+                        node.locked = false;
+                        count++;
+                    }
+                    if ('children' in node)
+                        node.children.forEach(unlock);
+                }
+                selection.forEach(unlock);
+                figma.notify(`已解锁 ${count} 个图层`);
+                break;
+            }
+            case 'pixel-perfect': {
+                if (!validateSelection(1))
+                    break;
+                const selection = figma.currentPage.selection;
+                let count = 0;
+                for (const node of selection) {
+                    if (!node.removed && 'resize' in node) {
+                        const newX = Math.round(node.x);
+                        const newY = Math.round(node.y);
+                        const newW = Math.round(node.width);
+                        const newH = Math.round(node.height);
+                        if (node.x !== newX || node.y !== newY) {
+                            node.x = newX;
+                            node.y = newY;
+                        }
+                        if (node.width !== newW || node.height !== newH) {
+                            node.resize(newW, newH);
+                        }
+                        count++;
+                    }
+                }
+                figma.notify(`已对齐 ${count} 个图层`);
+                break;
+            }
+            // ==================== 时空信标 (Jumpback) ====================
+            case 'jb-init': {
+                const dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
+                const spots = dataStr ? JSON.parse(dataStr) : [];
+                figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
+                break;
+            }
+            case 'jb-save': {
+                const dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
+                let spots = dataStr ? JSON.parse(dataStr) : [];
+                if (spots.length >= 5) {
+                    figma.notify('最多只能保存 5 个锚点');
+                    return;
+                }
+                const currentSelection = figma.currentPage.selection;
+                const defaultName = currentSelection.length > 0
+                    ? currentSelection[0].name.substring(0, 15)
+                    : `Spot ${spots.length + 1}`;
+                const newSpot = {
+                    id: 'spot_' + Date.now(),
+                    name: defaultName,
+                    pageId: figma.currentPage.id,
+                    pageName: figma.currentPage.name,
+                    zoom: figma.viewport.zoom,
+                    centerX: figma.viewport.center.x,
+                    centerY: figma.viewport.center.y,
+                    selectionIds: currentSelection.map((n) => n.id),
+                };
+                spots.push(newSpot);
+                figma.root.setPluginData('JUMPBACK_SPOTS', JSON.stringify(spots));
+                figma.notify('📍 位置已保存');
+                figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
+                break;
+            }
+            case 'jb-jump': {
+                const dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
+                if (!dataStr)
+                    return;
+                const spots = JSON.parse(dataStr);
+                const spot = spots.find((s) => s.id === msg.id);
+                if (!spot)
+                    return;
+                try {
+                    // 跨页面跳转
+                    if (figma.currentPage.id !== spot.pageId) {
+                        const targetPage = await figma.getNodeByIdAsync(spot.pageId);
+                        if (targetPage && targetPage.type === 'PAGE') {
+                            await figma.setCurrentPageAsync(targetPage);
                         }
                         else {
-                            firstCharFont = node.getRangeFontSize(0, 1);
-                            if (firstCharFont && firstCharFont !== figma.mixed)
-                                baseSize = firstCharFont;
+                            figma.notify('⚠️ 该位置所在的页面已被删除');
+                            return;
                         }
-                        el.fontSize = baseSize;
-                        lh = node.lineHeight;
-                        if (lh === figma.mixed) {
-                            // 如果混合，强制读取第一个字符的行高
-                            lh = node.getRangeLineHeight(0, 1);
-                        }
-                        // 如果还是读不到(极罕见)，造一个默认值
-                        if (!lh || lh === figma.mixed) {
-                            lh = { unit: 'AUTO' };
-                        }
-                        finalPx = baseSize * 1.3;
-                        if (lh.unit === 'PIXELS') {
-                            finalPx = lh.value;
-                        }
-                        else if (lh.unit === 'PERCENT') {
-                            finalPx = baseSize * (lh.value / 100);
-                        }
-                        // 存入变量
-                        el.lineHeightPx = finalPx;
-                        // 4. 其他属性
-                        if (node.fontName !== figma.mixed) {
-                            el.fontFace = node.fontName.family;
-                            style = node.fontName.style.toLowerCase();
-                            if (/bold|heavy|black|strong/.test(style))
-                                el.isBold = true;
-                        }
-                        isMultiLine = node.characters.includes('\n');
-                        // 如果没有换行符，但高度超过 1.5 倍字号，也视为多行（折行）
-                        if (!isMultiLine && node.fontSize !== figma.mixed) {
-                            if (node.height > node.fontSize * 1.5)
-                                isMultiLine = true;
-                        }
-                        el.isMultiLine = isMultiLine;
-                        // 5. 获取水平对齐 (Horizontal Align)
-                        if (node.textAlignHorizontal === 'CENTER')
-                            el.align = 'center';
-                        else if (node.textAlignHorizontal === 'RIGHT')
-                            el.align = 'right';
-                        else if (node.textAlignHorizontal === 'JUSTIFIED')
-                            el.align = 'justify';
-                        else
-                            el.align = 'left'; // 默认左对齐
-                        // 6. (可选) 获取垂直对齐，虽然你的需求是强制覆盖，但获取一下也没坏处
-                        if (node.textAlignVertical === 'CENTER')
-                            el.vAlignFigma = 'middle';
-                        else if (node.textAlignVertical === 'BOTTOM')
-                            el.vAlignFigma = 'bottom';
-                        else
-                            el.vAlignFigma = 'top';
-                        if (!visibleFill)
-                            el.fillAlpha = el.opacity || 1;
-                        chunkBuffer.push(el);
                     }
-                    // C. 占位符 (图片)
-                    else if (node.type === 'RECTANGLE' && node.fills !== figma.mixed && node.fills.length > 0 && node.fills.some(function (p) { return p.type === 'IMAGE' && p.visible !== false; })) {
-                        el.type = 'placeholder';
-                        // 直接使用图层名 (p_xxxxxx)
-                        el.imageName = node.name;
-                        el.fillAlpha = el.opacity || 1;
-                        chunkBuffer.push(el);
-                    }
-                    // D. 形状 (矩形、圆、星形、多边形) - 排除 LINE/CONNECTOR
-                    else if (node.type === 'RECTANGLE' || node.type === 'ELLIPSE' ||
-                        node.type === 'VECTOR' || node.type === 'STAR' ||
-                        node.type === 'POLYGON' || node.type === 'BOOLEAN_OPERATION') {
-                        el.type = 'shape';
-                        el.pptShape = 'rect'; // 默认
-                        if (node.type === 'ELLIPSE')
-                            el.pptShape = 'ellipse';
-                        else if (node.type === 'STAR') {
-                            c = node.pointCount;
-                            if (c >= 4 && c <= 32)
-                                el.pptShape = 'star' + c;
-                            else
-                                el.pptShape = 'star5';
+                    // 恢复视角
+                    figma.viewport.center = { x: spot.centerX, y: spot.centerY };
+                    figma.viewport.zoom = spot.zoom;
+                    // 恢复选中
+                    const nodesToSelect = [];
+                    if (spot.selectionIds && Array.isArray(spot.selectionIds)) {
+                        for (const id of spot.selectionIds) {
+                            const node = await figma.getNodeByIdAsync(id);
+                            if (node && !node.removed && node.type !== 'PAGE' && node.type !== 'DOCUMENT') {
+                                nodesToSelect.push(node);
+                            }
                         }
-                        else if (node.type === 'POLYGON') {
-                            c = node.pointCount;
-                            if (c === 3)
-                                el.pptShape = 'triangle';
-                            else if (c === 5)
-                                el.pptShape = 'pentagon';
-                            else if (c === 6)
-                                el.pptShape = 'hexagon';
-                            else if (c === 8)
-                                el.pptShape = 'octagon';
-                        }
-                        if (!el.color && !el.strokeColor)
-                            return [3 /*break*/, 8];
-                        chunkBuffer.push(el);
                     }
-                    if (!(chunkBuffer.length >= 200)) return [3 /*break*/, 6];
-                    figma.ui.postMessage({ type: 'ppt-element-batch', data: chunkBuffer });
-                    chunkBuffer = [];
-                    // 强制休息 15ms，让 UI 线程有机会渲染 Loading 动画
-                    return [4 /*yield*/, new Promise(function (r) { return setTimeout(r, 15); })];
-                case 5:
-                    // 强制休息 15ms，让 UI 线程有机会渲染 Loading 动画
-                    _a.sent();
-                    _a.label = 6;
-                case 6: return [3 /*break*/, 8];
-                case 7:
-                    err_5 = _a.sent();
-                    return [3 /*break*/, 8];
-                case 8:
-                    j++;
-                    return [3 /*break*/, 3];
-                case 9:
-                    if (chunkBuffer.length > 0) {
-                        figma.ui.postMessage({ type: 'ppt-element-batch', data: chunkBuffer });
+                    if (nodesToSelect.length > 0) {
+                        figma.currentPage.selection = nodesToSelect;
                     }
-                    figma.ui.postMessage({ type: 'ppt-end-slide' });
-                    _a.label = 10;
-                case 10:
-                    i++;
-                    return [3 /*break*/, 1];
-                case 11:
-                    figma.ui.postMessage({ type: 'step-done', step: 4, data: { done: true } });
-                    return [2 /*return*/];
+                    else {
+                        figma.currentPage.selection = [];
+                    }
+                    figma.notify('🚀 已传送');
+                }
+                catch (e) {
+                    console.warn('Jumpback failed:', e);
+                    figma.notify('传送失败');
+                }
+                break;
             }
-        });
-    });
-}
-// Step 5: 导出资源 (Hex ID 版)
-function pptStep5_ExportImages(slides) {
-    return __awaiter(this, void 0, void 0, function () {
-        var imgCount, i, slide, children, j, node, isTarget, bytes, fileName, e_23;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    figma.ui.postMessage({ type: 'ppt-asset-start', totalSlides: slides.length });
-                    imgCount = 0;
-                    i = 0;
-                    _a.label = 1;
-                case 1:
-                    if (!(i < slides.length)) return [3 /*break*/, 9];
-                    slide = slides[i];
-                    children = slide.children;
-                    j = 0;
-                    _a.label = 2;
-                case 2:
-                    if (!(j < children.length)) return [3 /*break*/, 8];
-                    node = children[j];
-                    if (!node.visible)
-                        return [3 /*break*/, 7];
-                    isTarget = false;
-                    if ('effects' in node && node.effects.some(function (e) { return e.type === 'LAYER_BLUR' && e.visible; }))
-                        isTarget = true;
-                    if (!isTarget && node.type === 'RECTANGLE' && node.fills !== figma.mixed && node.fills.some(function (p) { return p.type === 'IMAGE'; }))
-                        isTarget = true;
-                    if (!isTarget) return [3 /*break*/, 7];
-                    return [4 /*yield*/, new Promise(function (r) { return setTimeout(r, 50); })];
-                case 3:
-                    _a.sent();
-                    _a.label = 4;
-                case 4:
-                    _a.trys.push([4, 6, , 7]);
-                    return [4 /*yield*/, node.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 1.5 } })];
-                case 5:
-                    bytes = _a.sent();
-                    fileName = "".concat(node.name, ".png");
-                    figma.ui.postMessage({ type: 'ppt-asset-chunk', fileName: fileName, data: bytes });
-                    imgCount++;
-                    return [3 /*break*/, 7];
-                case 6:
-                    e_23 = _a.sent();
-                    console.error(e_23);
-                    return [3 /*break*/, 7];
-                case 7:
-                    j++;
-                    return [3 /*break*/, 2];
-                case 8:
-                    i++;
-                    return [3 /*break*/, 1];
-                case 9:
-                    figma.ui.postMessage({ type: 'step-done', step: 5, data: { count: imgCount } });
-                    return [2 /*return*/];
+            case 'jb-delete': {
+                const dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
+                if (!dataStr)
+                    return;
+                let spots = JSON.parse(dataStr);
+                spots = spots.filter((s) => s.id !== msg.id);
+                figma.root.setPluginData('JUMPBACK_SPOTS', JSON.stringify(spots));
+                figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
+                figma.notify('🗑️ 锚点已删除');
+                break;
             }
-        });
-    });
-}
-// 辅助：RGB 转 Hex
-function rgbToHex(color) {
-    var toHex = function (v) {
-        var hex = Math.round(v * 255).toString(16);
-        return hex.length === 1 ? "0" + hex : hex;
-    };
-    return toHex(color.r) + toHex(color.g) + toHex(color.b);
-}
-// 判断节点是否“视觉不可见” (无有效填充且无有效描边，或全局隐藏/全透)
-function isNodeInvisible(node) {
-    // 1. 全局检查：被隐藏 或 透明度为0
-    if ('visible' in node && !node.visible)
-        return true;
-    if ('opacity' in node && node.opacity === 0)
-        return true;
-    // 2. 文本特殊处理：无内容即不可见
-    if (node.type === 'TEXT' && node.characters.trim().length === 0)
-        return true;
-    // 3. 样式检查：针对有 fills/strokes 的节点
-    if ('fills' in node && 'strokes' in node) {
-        // 有效填充：存在 + 可见 + 不透明
-        var hasFill = node.fills !== figma.mixed &&
-            node.fills.length > 0 &&
-            node.fills.some(function (p) { return p.visible !== false && p.opacity > 0; });
-        // 有效描边：存在 + 粗细>0 + 可见 + 不透明
-        var hasStroke = node.strokes !== figma.mixed &&
-            node.strokes.length > 0 &&
-            node.strokeWeight > 0 &&
-            node.strokes.some(function (p) { return p.visible !== false && p.opacity > 0; });
-        // 如果既无有效填充，也无有效描边 -> 视为不可见 (忽略特效)
-        if (!hasFill && !hasStroke)
-            return true;
-    }
-    // 其他情况（如 Group/Frame/Slice）暂时视为可见，交给后续逻辑处理
-    return false;
-}
-// 辅助：按视觉位置排序 (Z字形：先上后下，同行先左后右)
-function sortNodesByVisualPosition(nodes) {
-    return nodes.sort(function (a, b) {
-        // 获取绝对坐标 (降级处理：如果没有绝对坐标，用相对坐标兜底)
-        var aAbs = a.absoluteBoundingBox || { x: a.x, y: a.y };
-        var bAbs = b.absoluteBoundingBox || { x: b.x, y: b.y };
-        // 1. 先判断 Y 轴 (行)
-        // 容差设为 50px，只要高度差在 50px 以内，视为同一行
-        if (Math.abs(aAbs.y - bAbs.y) > 50) {
-            return aAbs.y - bAbs.y; // 谁 y 小谁在上面
+            case 'jb-rename': {
+                const dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
+                if (!dataStr)
+                    return;
+                let spots = JSON.parse(dataStr);
+                const index = spots.findIndex((s) => s.id === msg.id);
+                if (index > -1 && msg.newName.trim() !== '') {
+                    spots[index].name = msg.newName.substring(0, 20);
+                    figma.root.setPluginData('JUMPBACK_SPOTS', JSON.stringify(spots));
+                    figma.notify('已重命名');
+                    figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
+                }
+                else {
+                    figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
+                }
+                break;
+            }
+            // ==================== 等轴形变 (Skew) ====================
+            case 'skew-apply': {
+                const selection = figma.currentPage.selection;
+                if (selection.length === 0)
+                    return;
+                const r = (msg.rot * Math.PI) / 180;
+                const sx = (msg.angleX * Math.PI) / 180;
+                const sy = (msg.angleY * Math.PI) / 180;
+                const cosR = Math.cos(r);
+                const sinR = Math.sin(r);
+                const tanX = Math.tan(sx);
+                const tanY = Math.tan(sy);
+                const m00 = cosR - sinR * tanY;
+                const m01 = cosR * tanX - sinR;
+                const m10 = sinR + cosR * tanY;
+                const m11 = sinR * tanX + cosR;
+                try {
+                    for (const node of selection) {
+                        if ('relativeTransform' in node) {
+                            const tx = node.relativeTransform[0][2];
+                            const ty = node.relativeTransform[1][2];
+                            const newTransform = [
+                                [m00, m01, tx],
+                                [m10, m11, ty],
+                            ];
+                            node.relativeTransform = newTransform;
+                        }
+                    }
+                }
+                catch (error) {
+                    console.error('Transform failed:', error);
+                }
+                break;
+            }
+            case 'req-skew-presets': {
+                try {
+                    const data = await figma.clientStorage.getAsync('MY_SKEW_PRESETS');
+                    figma.ui.postMessage({ type: 'init-skew-presets', data: data || [] });
+                }
+                catch (e) {
+                    console.warn('读取 Skew 预设失败', e);
+                }
+                break;
+            }
+            case 'save-skew-presets': {
+                try {
+                    await figma.clientStorage.setAsync('MY_SKEW_PRESETS', msg.data);
+                }
+                catch (e) {
+                    console.warn('保存 Skew 预设失败', e);
+                }
+                break;
+            }
+            // ==================== 文字替换 ====================
+            case 'text-find-matches': {
+                const { scope, findText } = msg;
+                let pool = [];
+                if (scope === 'page') {
+                    pool = figma.currentPage.children;
+                }
+                else {
+                    pool = figma.currentPage.selection;
+                }
+                const textNodes = [];
+                for (const node of pool) {
+                    if (node.type === 'TEXT') {
+                        textNodes.push(node);
+                    }
+                    if ('findAll' in node) {
+                        const found = node.findAll((n) => n.type === 'TEXT');
+                        textNodes.push(...found);
+                    }
+                }
+                const matches = [];
+                for (const node of textNodes) {
+                    const text = node.characters;
+                    let index = 0;
+                    while ((index = text.indexOf(findText, index)) !== -1) {
+                        matches.push({
+                            id: node.id,
+                            fullText: text,
+                            index,
+                            length: findText.length,
+                            matchText: findText
+                        });
+                        index += findText.length;
+                    }
+                }
+                figma.ui.postMessage({
+                    type: 'text-find-results',
+                    data: matches
+                });
+                break;
+            }
+            case 'text-replace-batch': {
+                const { tasks, replaceText } = msg;
+                let count = 0;
+                const processedUids = [];
+                for (const task of tasks) {
+                    const node = await figma.getNodeByIdAsync(task.id);
+                    if (node && node.type === 'TEXT') {
+                        try {
+                            const fontName = node.fontName;
+                            await loadFontSafe(fontName);
+                            const before = node.characters.substring(0, task.index);
+                            const after = node.characters.substring(task.index + task.length);
+                            node.characters = before + replaceText + after;
+                            count++;
+                            processedUids.push(task.uid);
+                        }
+                        catch (e) {
+                            console.error('Replace failed:', e);
+                        }
+                    }
+                }
+                figma.ui.postMessage({
+                    type: 'text-replace-success',
+                    count,
+                    processedUids
+                });
+                figma.notify(`已替换 ${count} 处`);
+                break;
+            }
+            case 'locate-node': {
+                const node = await figma.getNodeByIdAsync(msg.id);
+                if (node && node.type === 'TEXT') {
+                    figma.currentPage.selection = [node];
+                    figma.viewport.scrollAndZoomIntoView([node]);
+                }
+                break;
+            }
+            case 'focus-layers': {
+                const nodes = [];
+                for (const id of msg.ids) {
+                    const node = await figma.getNodeByIdAsync(id);
+                    if (node && node.type !== 'PAGE' && node.type !== 'DOCUMENT') {
+                        nodes.push(node);
+                    }
+                }
+                figma.currentPage.selection = nodes;
+                break;
+            }
+            case 'select-node': {
+                const node = await figma.getNodeByIdAsync(msg.nodeId);
+                if (node && node.type !== 'PAGE' && node.type !== 'DOCUMENT') {
+                    figma.currentPage.selection = [node];
+                    figma.viewport.scrollAndZoomIntoView([node]);
+                }
+                break;
+            }
+            // ==================== 超级选择 ====================
+            case 'find-and-select': {
+                const { filters } = msg;
+                let pool = [];
+                // 确定搜索范围
+                const selection = figma.currentPage.selection;
+                if (filters.scope === 'page') {
+                    pool = figma.currentPage.children;
+                }
+                else if (filters.scope === 'descendants' && selection.length > 0) {
+                    const allNodes = [];
+                    selection.forEach(node => {
+                        if ('findAll' in node) {
+                            allNodes.push(...node.findAll(() => true));
+                        }
+                    });
+                    pool = allNodes;
+                }
+                else if (filters.scope === 'inside' && selection.length > 0) {
+                    const allNodes = [];
+                    selection.forEach(node => {
+                        if ('children' in node) {
+                            node.children.forEach(child => {
+                                allNodes.push(child);
+                                if ('findAll' in child) {
+                                    allNodes.push(...child.findAll(() => true));
+                                }
+                            });
+                        }
+                    });
+                    pool = allNodes;
+                }
+                else if (filters.scope === 'children' && selection.length > 0) {
+                    const allNodes = [];
+                    selection.forEach(node => {
+                        if ('children' in node) {
+                            allNodes.push(...node.children);
+                        }
+                    });
+                    pool = allNodes;
+                }
+                else if (filters.scope === 'sibling' && selection.length > 0) {
+                    const allNodes = [];
+                    selection.forEach(node => {
+                        if (node.parent && 'children' in node.parent) {
+                            allNodes.push(...node.parent.children.filter(n => n !== node));
+                        }
+                    });
+                    pool = allNodes;
+                }
+                else {
+                    pool = figma.currentPage.children;
+                }
+                // 过滤节点
+                let results = Array.from(pool);
+                // 名称过滤
+                if (filters.name && filters.name.val) {
+                    const nameVal = filters.name.caseSensitive
+                        ? filters.name.val
+                        : filters.name.val.toLowerCase();
+                    results = results.filter(node => {
+                        const nodeName = filters.name.caseSensitive
+                            ? node.name
+                            : node.name.toLowerCase();
+                        return nodeName.includes(nameVal);
+                    });
+                }
+                // 类型过滤
+                if (filters.types && filters.types.vals.length > 0) {
+                    const typeSet = new Set(filters.types.vals);
+                    results = results.filter(node => {
+                        let matchType = typeSet.has(node.type);
+                        // 特殊类型判断
+                        if (typeSet.has('AUTOLAYOUT') && 'layoutMode' in node) {
+                            matchType = matchType || (node.layoutMode !== 'NONE');
+                        }
+                        if (typeSet.has('IMAGE') && 'fills' in node && Array.isArray(node.fills)) {
+                            matchType = matchType || node.fills.some(f => f.type === 'IMAGE');
+                        }
+                        return filters.types.logic === 'include' ? matchType : !matchType;
+                    });
+                }
+                // 状态过滤
+                if (filters.states && filters.states.vals.length > 0) {
+                    const stateSet = new Set(filters.states.vals);
+                    results = results.filter(node => {
+                        let matchState = false;
+                        if (stateSet.has('hidden'))
+                            matchState = matchState || !node.visible;
+                        if (stateSet.has('locked'))
+                            matchState = matchState || node.locked;
+                        if (stateSet.has('mask') && 'isMask' in node)
+                            matchState = matchState || node.isMask;
+                        if (stateSet.has('export'))
+                            matchState = matchState || node.exportSettings.length > 0;
+                        if (stateSet.has('clip') && 'clipsContent' in node)
+                            matchState = matchState || node.clipsContent;
+                        if (stateSet.has('no-children') && 'children' in node) {
+                            matchState = matchState || node.children.length === 0;
+                        }
+                        if (stateSet.has('no-fill') && 'fills' in node && Array.isArray(node.fills)) {
+                            matchState = matchState || node.fills.length === 0;
+                        }
+                        if (stateSet.has('no-stroke') && 'strokes' in node && Array.isArray(node.strokes)) {
+                            matchState = matchState || node.strokes.length === 0;
+                        }
+                        return filters.states.logic === 'include' ? matchState : !matchState;
+                    });
+                }
+                // 选中结果
+                figma.currentPage.selection = results;
+                // 返回结果
+                figma.ui.postMessage({
+                    type: 'found-layers-result',
+                    count: results.length,
+                    layers: results.slice(0, 100).map(n => ({
+                        id: n.id,
+                        name: n.name,
+                        type: n.type
+                    }))
+                });
+                figma.notify(`找到 ${results.length} 个图层`);
+                break;
+            }
+            default:
+                console.warn('Unknown message type:', msg.type);
         }
-        // 2. 同一行，判断 X 轴 (列)
-        return aAbs.x - bAbs.x; // 谁 x 小谁在左边
-    });
-}
+    }
+    catch (error) {
+        handleError(error, {
+            operation: msg.type,
+        });
+    }
+};
+// 插件关闭时清理
+figma.on('close', () => {
+    console.log('Plugin closed');
+});

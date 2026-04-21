@@ -12,6 +12,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
+    "jsx": "preserve",
 
     /* Linting */
     "strict": true,
@@ -19,14 +20,20 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
+    /* Path mapping */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/ui/*"],
+      "@shared/*": ["./src/shared/*"]
+    },
+
     /* Figma plugin specific */
     "typeRoots": [
       "./node_modules/@types",
       "./node_modules/@figma"
     ],
-    "rootDir": ".",
-    "outDir": "."
+    "types": ["vite/client", "@figma/plugin-typings"]
   },
-  "include": ["code.ts"],
-  "exclude": ["node_modules", "dist", "src"]
+  "include": ["src/ui/**/*.ts", "src/ui/**/*.d.ts", "src/ui/**/*.tsx", "src/ui/**/*.vue", "src/shared/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }
