@@ -70,7 +70,104 @@ figma.showUI(__html__, { width: 460, height: 640, themeColors: true });
 
 // 用于存储高亮前的原始样式： Key = "NodeID_Index", Value = OriginalFills
 let highlightCache = {}; 
-let layerSortDirection = 'asc'; // 用于图层排序切换
+let layerSortDirection = 'asc'; // 用于图层排序切换，默认从上到下
+
+const trySet = (dst: any, propName: string, value: any) => {
+  try { dst[propName] = value; } catch (e) {}
+};
+
+function copyNodeStyles(src: SceneNode, dst: SceneNode) {
+  dst.opacity = (src as any).opacity;
+  trySet(dst, 'blendMode', (src as any).blendMode);
+  dst.visible = (src as any).visible;
+  trySet(dst, 'locked', (src as any).locked);
+  trySet(dst, 'rotation', (src as any).rotation);
+  trySet(dst, 'constraints', (src as any).constraints);
+
+  if ('fills' in src && src.fills !== figma.mixed && Array.isArray(src.fills)) {
+    trySet(dst, 'fills', JSON.parse(JSON.stringify(src.fills)));
+  }
+  if ('fillStyleId' in src && typeof (src as any).fillStyleId === 'string') {
+    trySet(dst, 'fillStyleId', (src as any).fillStyleId);
+  }
+
+  if ('strokes' in src && src.strokes !== figma.mixed && Array.isArray(src.strokes)) {
+    trySet(dst, 'strokes', JSON.parse(JSON.stringify(src.strokes)));
+  }
+  if ('strokeStyleId' in src && typeof (src as any).strokeStyleId === 'string') {
+    trySet(dst, 'strokeStyleId', (src as any).strokeStyleId);
+  }
+  if ('strokeWeight' in src && typeof (src as any).strokeWeight === 'number') {
+    trySet(dst, 'strokeWeight', (src as any).strokeWeight);
+  }
+  trySet(dst, 'strokeAlign', (src as any).strokeAlign);
+  if ('dashPattern' in src && Array.isArray((src as any).dashPattern)) {
+    trySet(dst, 'dashPattern', [...(src as any).dashPattern]);
+  }
+  trySet(dst, 'strokeJoin', (src as any).strokeJoin);
+  trySet(dst, 'strokeCap', (src as any).strokeCap);
+  trySet(dst, 'strokeMiterLimit', (src as any).strokeMiterLimit);
+
+  if ('effects' in src && src.effects !== figma.mixed && Array.isArray(src.effects)) {
+    trySet(dst, 'effects', JSON.parse(JSON.stringify(src.effects)));
+  }
+  if ('effectStyleId' in src && typeof (src as any).effectStyleId === 'string') {
+    trySet(dst, 'effectStyleId', (src as any).effectStyleId);
+  }
+
+  trySet(dst, 'clipsContent', (src as any).clipsContent);
+  trySet(dst, 'constrainProportions', (src as any).constrainProportions);
+
+  if ('cornerRadius' in src) {
+    if ((src as any).cornerRadius !== figma.mixed) {
+      trySet(dst, 'cornerRadius', (src as any).cornerRadius);
+    } else {
+      try {
+        dst.topLeftRadius = (src as any).topLeftRadius;
+        dst.topRightRadius = (src as any).topRightRadius;
+        dst.bottomLeftRadius = (src as any).bottomLeftRadius;
+        dst.bottomRightRadius = (src as any).bottomRightRadius;
+      } catch (e) {}
+    }
+  }
+  if ('cornerSmoothing' in src && (src as any).cornerSmoothing !== figma.mixed) {
+    trySet(dst, 'cornerSmoothing', (src as any).cornerSmoothing);
+  }
+
+  if ('individualStrokeWeights' in src) {
+    try {
+      (dst as any).individualStrokeWeights = {
+        top: (src as any).individualStrokeWeights.top,
+        right: (src as any).individualStrokeWeights.right,
+        bottom: (src as any).individualStrokeWeights.bottom,
+        left: (src as any).individualStrokeWeights.left
+      };
+    } catch (e) {}
+  }
+
+  if (src.type === 'FRAME' && dst.type !== 'RECTANGLE') {
+    trySet(dst, 'overflowDirection', (src as FrameNode).overflowDirection);
+    trySet(dst, 'primaryAxisSizingMode', (src as FrameNode).primaryAxisSizingMode);
+    trySet(dst, 'counterAxisSizingMode', (src as FrameNode).counterAxisSizingMode);
+    trySet(dst, 'layoutMode', (src as FrameNode).layoutMode);
+    if ((src as FrameNode).layoutMode !== 'NONE') {
+      trySet(dst, 'primaryAxisAlignItems', (src as FrameNode).primaryAxisAlignItems);
+      trySet(dst, 'counterAxisAlignItems', (src as FrameNode).counterAxisAlignItems);
+      trySet(dst, 'paddingLeft', (src as FrameNode).paddingLeft);
+      trySet(dst, 'paddingRight', (src as FrameNode).paddingRight);
+      trySet(dst, 'paddingTop', (src as FrameNode).paddingTop);
+      trySet(dst, 'paddingBottom', (src as FrameNode).paddingBottom);
+      trySet(dst, 'itemSpacing', (src as FrameNode).itemSpacing);
+      trySet(dst, 'layoutWrap', (src as FrameNode).layoutWrap);
+    }
+  }
+  if ('layoutGrids' in src && Array.isArray((src as any).layoutGrids)) {
+    trySet(dst, 'layoutGrids', JSON.parse(JSON.stringify((src as any).layoutGrids)));
+  }
+  if ('gridStyleId' in src && typeof (src as any).gridStyleId === 'string') {
+    trySet(dst, 'gridStyleId', (src as any).gridStyleId);
+  }
+}
 
 figma.ui.onmessage = async (msg) => {
   if (!msg || !msg.type) return; 
@@ -206,52 +303,67 @@ figma.ui.onmessage = async (msg) => {
 
     case 'to-frame': {
       if (selection.length === 0) { figma.notify("请选择形状"); return; }
-      const newSelection = [];
-      for (const node of selection) {
+      const newSelection: FrameNode[] = [];
+      const selCopy = [...selection];
+      for (const node of selCopy) {
         if (node.removed) continue;
+        const parent = node.parent;
+        if (!parent) continue;
+        const idx = parent.children.indexOf(node);
+        
         const frame = figma.createFrame();
-        frame.x = node.x; frame.y = node.y; frame.resize(node.width, node.height);
-        frame.rotation = node.rotation; frame.name = node.name;
-        if ('fills' in node) frame.fills = node.fills;
-        if ('strokes' in node) { frame.strokes = node.strokes; frame.strokeWeight = node.strokeWeight; }
-        if ('cornerRadius' in node && node.cornerRadius !== figma.mixed) frame.cornerRadius = node.cornerRadius;
-        if ('cornerSmoothing' in node) frame.cornerSmoothing = node.cornerSmoothing;
-        if (node.parent) {
-          node.parent.appendChild(frame);
-          const idx = node.parent.children.indexOf(node);
-          if (idx > -1) frame.parent.insertChild(idx, frame);
-        }
+        frame.resize(node.width, node.height);
+        frame.name = node.name;
+        frame.x = node.x;
+        frame.y = node.y;
+        parent.insertChild(idx, frame);
+
+        copyNodeStyles(node, frame);
+
         if ('children' in node) {
-          const children = [...node.children];
-          for (const child of children) { if (!child.removed) frame.appendChild(child); }
+          for (const child of [...(node as FrameNode | GroupNode).children]) {
+            if (!child.removed) frame.appendChild(child);
+          }
         }
-        if (!node.removed) node.remove();
+
+        try { node.remove(); } catch(e) {}
         newSelection.push(frame);
       }
-      figma.currentPage.selection = newSelection;
+      if (newSelection.length > 0) figma.currentPage.selection = newSelection;
       figma.notify("已转换为 Frame");
       break;
     }
 
     case 'to-rect': {
-      const newSelection = [];
-      for (const node of selection) {
-        if ((node.type === "FRAME" || node.type === "GROUP") && !node.removed) {
-          const r = figma.createRectangle();
-          r.x = node.x; r.y = node.y; r.resize(node.width, node.height);
-          r.rotation = node.rotation; r.name = node.name;
-          if ('fills' in node && node.fills !== figma.mixed) r.fills = node.fills;
-          if ('strokes' in node) { r.strokes = node.strokes; r.strokeWeight = node.strokeWeight; }
-          if ('cornerRadius' in node && node.cornerRadius !== figma.mixed) r.cornerRadius = node.cornerRadius;
-          if ('cornerSmoothing' in node) r.cornerSmoothing = node.cornerSmoothing;
-          if (node.parent) {
-            node.parent.appendChild(r);
-            const idx = node.parent.children.indexOf(node);
-            if (idx > -1) node.parent.insertChild(idx, r);
+      if (selection.length === 0) { figma.notify("请选择图层"); return; }
+      const newSelection: RectangleNode[] = [];
+      const selCopy = [...selection];
+      for (const node of selCopy) {
+        if (node.removed) continue;
+        if (node.type !== 'FRAME' && node.type !== 'GROUP' && node.type !== 'SECTION') continue;
+        const parent = node.parent;
+        if (!parent) continue;
+
+        if ('children' in node) {
+          for (const child of [...(node as FrameNode | GroupNode).children]) {
+            if (!child.removed) {
+              parent.insertChild(parent.children.indexOf(node), child);
+            }
           }
-          node.remove();
-          newSelection.push(r);
         }
+
+        const idx = parent.children.indexOf(node);
+        const rect = figma.createRectangle();
+        rect.resize(node.width, node.height);
+        rect.name = node.name;
+        rect.x = node.x;
+        rect.y = node.y;
+        parent.insertChild(idx, rect);
+
+        copyNodeStyles(node, rect);
+
+        try { node.remove(); } catch(e) {}
+        newSelection.push(rect);
       }
       if (newSelection.length > 0) figma.currentPage.selection = newSelection;
       break;
@@ -261,7 +373,9 @@ figma.ui.onmessage = async (msg) => {
       let count = 0;
       for (const node of selection) {
         if ('fills' in node && 'strokes' in node) {
-          const temp = node.fills; node.fills = node.strokes; node.strokes = temp;
+          const temp = node.fills; 
+          node.fills = node.strokes; 
+          node.strokes = temp;
           if (node.strokes.length > 0 && node.strokeWeight === 0) node.strokeWeight = 1;
           count++;
         }
@@ -273,7 +387,7 @@ figma.ui.onmessage = async (msg) => {
     case 'reset-image': {
       for (const node of selection) {
         if ('fills' in node && Array.isArray(node.fills)) {
-          const img = node.fills.find(f => f.type === 'IMAGE');
+          const img = (node.fills as Paint[]).find(f => f.type === 'IMAGE');
           if (img && img.imageHash) {
             const asyncImg = figma.getImageByHash(img.imageHash);
             const size = await asyncImg.getSizeAsync();
@@ -284,25 +398,9 @@ figma.ui.onmessage = async (msg) => {
       break;
     }
 
-    case 'select-text': {
-      let t = [];
-      const pool = selection.length > 0 ? selection : [figma.currentPage];
-      for (const n of pool) {
-        if (n.type === 'TEXT') t.push(n);
-        if ('findAll' in n) t = t.concat(n.findAll(x => x.type === 'TEXT'));
-      }
-      if (t.length > 0) {
-        figma.currentPage.selection = t;
-        figma.notify(`选中 ${t.length} 个文本`);
-      } else {
-        figma.notify("未找到文本");
-      }
-      break;
-    }
-
     case 'remove-al': {
       let count = 0;
-      function rm(n) {
+      function rm(n: any) {
         if (n.layoutMode && n.layoutMode !== 'NONE') { n.layoutMode = 'NONE'; count++; }
         if (n.children) n.children.forEach(rm);
       }
@@ -314,41 +412,29 @@ figma.ui.onmessage = async (msg) => {
     case 'add-al-wrapper': {
       const newSelection = [];
       if (selection.length === 0) { figma.notify("请选择图层"); return; }
-      
       for (const node of selection) {
         if (node.removed || !node.parent) continue;
-        
-        // 创建 Frame
         const frame = figma.createFrame();
         frame.name = "Auto Layout Wrapper";
-        
-        // 设置自动布局属性
         frame.layoutMode = "VERTICAL";
         frame.itemSpacing = 10;
         frame.paddingLeft = 0; frame.paddingRight = 0;
         frame.paddingTop = 0; frame.paddingBottom = 0;
-        frame.primaryAxisSizingMode = "AUTO"; // Hug
-        frame.counterAxisSizingMode = "AUTO"; // Hug
-        
-        // 设置样式：红底、无描边
+        frame.primaryAxisSizingMode = "AUTO";
+        frame.counterAxisSizingMode = "AUTO";
         frame.fills = [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 } }];
-        frame.strokes = []; 
-        
-        // 保持位置并包裹
+        frame.strokes = [];
         frame.x = node.x;
         frame.y = node.y;
         const parent = node.parent;
         const index = parent.children.indexOf(node);
-        
         parent.insertChild(index, frame);
         frame.appendChild(node);
-        
         newSelection.push(frame);
       }
-      
       if (newSelection.length > 0) {
         figma.currentPage.selection = newSelection;
-        figma.notify(msg.successMsg || "已添加自动布局外套");
+        figma.notify("已添加自动布局外套");
       }
       break;
     }
@@ -359,13 +445,14 @@ figma.ui.onmessage = async (msg) => {
         if (node.type !== "TEXT") continue;
         const lines = node.characters.split(/\r\n|\r|\n/);
         if (lines.length <= 1) continue;
-        let font = node.fontName; if (font === figma.mixed) font = node.getRangeFontName(0, 1);
+        let font: FontName = node.fontName;
+        if (font === figma.mixed) font = node.getRangeFontName(0, 1) as FontName;
         try { await figma.loadFontAsync(font); } catch (e) { figma.notify("字体加载失败"); continue; }
         let cy = node.y;
         for (const l of lines) {
           if (!l.trim()) continue;
           const t = node.clone(); t.characters = l; t.textAutoResize = "WIDTH_AND_HEIGHT"; t.y = cy;
-          node.parent.appendChild(t); newSel.push(t); cy += t.height + 10;
+          node.parent!.appendChild(t); newSel.push(t); cy += t.height + 10;
         }
         node.remove();
       }
@@ -376,7 +463,8 @@ figma.ui.onmessage = async (msg) => {
     case 'join-text': {
       const tNodes = selection.filter(n => n.type === 'TEXT').sort((a, b) => Math.abs(a.y - b.y) > 5 ? a.y - b.y : a.x - b.x);
       if (tNodes.length < 2) { figma.notify("请选2个以上文本"); return; }
-      let font = tNodes[0].fontName; if (font === figma.mixed) font = tNodes[0].getRangeFontName(0, 1);
+      let font: FontName = tNodes[0].fontName;
+      if (font === figma.mixed) font = tNodes[0].getRangeFontName(0, 1) as FontName;
       try { await figma.loadFontAsync(font); } catch (e) { figma.notify("字体加载失败"); return; }
       const txt = tNodes.map(n => n.characters).join('\n');
       const nt = tNodes[0].clone(); nt.characters = txt; nt.textAutoResize = 'HEIGHT';
@@ -385,24 +473,44 @@ figma.ui.onmessage = async (msg) => {
       break;
     }
 
+    // up-one
     case 'up-one': {
-      const arr = [];
-      selection.forEach(n => {
-        if (n.parent && n.parent.parent && n.parent !== figma.currentPage) {
-          n.parent.parent.appendChild(n); arr.push(n);
+      const newSel: SceneNode[] = [];
+      for (const node of selection) {
+        if (node.parent && node.parent.parent && node.parent.type !== 'PAGE') {
+          const grandParent = node.parent.parent;
+          const absX = node.absoluteTransform[0][2];
+          const absY = node.absoluteTransform[1][2];
+          const gpAbsX = grandParent.absoluteTransform[0][2];
+          const gpAbsY = grandParent.absoluteTransform[1][2];
+          const relX = absX - gpAbsX;
+          const relY = absY - gpAbsY;
+          grandParent.appendChild(node);
+          if ('layoutMode' in grandParent && (grandParent as FrameNode).layoutMode !== 'NONE') {
+            try { (node as any).layoutPositioning = 'ABSOLUTE'; } catch(e) {}
+          }
+          node.x = relX;
+          node.y = relY;
+          newSel.push(node);
         }
-      });
-      if(arr.length>0) figma.currentPage.selection = arr;
+      }
+      if (newSel.length) figma.currentPage.selection = newSel;
       break;
     }
 
+    // up-all 同理
     case 'up-all': {
-      const arr = [];
-      selection.forEach(n => {
-        figma.currentPage.appendChild(n);
-        arr.push(n);
-      });
-      figma.currentPage.selection = arr;
+      const page = figma.currentPage;
+      const newSel: SceneNode[] = [];
+      for (const node of selection) {
+        const absX = node.absoluteTransform[0][2];
+        const absY = node.absoluteTransform[1][2];
+        page.appendChild(node);
+        node.x = absX;
+        node.y = absY;
+        newSel.push(node);
+      }
+      figma.currentPage.selection = newSel;
       break;
     }
 
@@ -410,7 +518,7 @@ figma.ui.onmessage = async (msg) => {
       selection.forEach(n => {
         let name = "";
         if (n.type === 'TEXT') name = n.characters;
-        else if ('findOne' in n) { const t = n.findOne(x => x.type === 'TEXT'); if (t) name = t.characters; }
+        else if ('findOne' in n) { const t = (n as any).findOne((x:any) => x.type === 'TEXT'); if (t) name = t.characters; }
         if (name) n.name = name.substring(0, 20);
       });
       figma.notify("已重命名");
@@ -420,58 +528,30 @@ figma.ui.onmessage = async (msg) => {
     case 'detach-all': {
       const sel = figma.currentPage.selection;
       if (sel.length === 0) { figma.notify("请先选中图层"); return; }
-      
       const targets: InstanceNode[] = [];
-      
-      // 定义：后序遍历函数 (先找子孙，最后找自己)
-      // 这样生成的数组顺序天然就是：[最深层组件, ..., 次深层组件, 最外层组件]
       const scan = (n: any) => {
-        // 1. 先递归找子级
         if ('children' in n) {
-          // 复制一份 children 避免遍历时索引问题
-          const children = n.children; 
-          for (const child of children) {
-            scan(child);
-          }
+          for (const child of (n as FrameNode | GroupNode).children) scan(child);
         }
-        // 2. 子级找完了，再看自己是不是组件实例
-        if (n.type === 'INSTANCE') {
-          targets.push(n);
-        }
+        if (n.type === 'INSTANCE') targets.push(n);
       };
-
-      // 开始扫描
       sel.forEach(scan);
-
-      if (targets.length === 0) {
-         figma.notify("未找到可解绑的实例"); 
-         return; 
-      }
-
-      let count = 0;
-      // 按顺序解绑 (因为已经是“从内到外”的顺序，所以直接执行即可)
+      if (targets.length === 0) { figma.notify("未找到可解绑的实例"); return; }
       for (const node of targets) {
-        // 再次检查节点是否还存在（防止父级解绑导致子级引用变化，虽然此算法能最大程度避免）
         if (!node.removed) {
-          try {
-            node.detachInstance();
-            count++;
-          } catch (e) {
-            console.error("解绑出错:", e);
-          }
+          try { node.detachInstance(); } catch (e) {}
         }
       }
-      
-      figma.notify(`已彻底解绑 ${count} 个组件`);
+      figma.notify(`已解绑 ${targets.length} 个组件`);
       break;
     }
 
     case 'remove-hidden': {
-      let h = [];
+      let h: SceneNode[] = [];
       const pool = selection.length > 0 ? selection : [figma.currentPage];
       for (const n of pool) {
         if ('visible' in n && !n.visible) h.push(n);
-        if ('findAll' in n) h = h.concat(n.findAll(x => !x.visible));
+        if ('findAll' in n) h = h.concat((n as any).findAll((x: any) => !x.visible));
       }
       let count = 0;
       h.reverse().forEach(n => { if (!n.removed) { n.remove(); count++; } });
@@ -483,18 +563,14 @@ figma.ui.onmessage = async (msg) => {
       if (selection.length > 1) {
         const p = selection[0].parent;
         if (selection.every(n => n.parent === p)) {
-          const isReverse = layerSortDirection === 'desc';
-          
+          const isReverse = (layerSortDirection === 'desc');
           [...selection].sort((a, b) => {
             const diffY = a.y - b.y;
             const diffX = a.x - b.x;
             const result = Math.abs(diffY) > 2 ? diffY : diffX;
             return isReverse ? -result : result;
-          }).forEach(n => p.appendChild(n));
-
-          figma.notify(isReverse ? "已【倒序】排列图层 (Z->A)" : "已【正序】排列图层 (A->Z)");
-          
-          // 切换下次点击的方向
+          }).forEach(n => p!.appendChild(n));
+          figma.notify(isReverse ? "已反转排列（从下到上）" : "已排列（从上到下）");
           layerSortDirection = isReverse ? 'asc' : 'desc';
         }
       } else {
@@ -505,22 +581,27 @@ figma.ui.onmessage = async (msg) => {
 
     case 'ungroup-all': {
       let count = 0;
-      selection.forEach(n => {
-        if ('findAll' in n) {
-          let gs = n.findAll(x => x.type === 'GROUP');
-          while (gs.length > 0) {
-            gs.forEach(x => { if (!x.removed) { figma.ungroup(x); count++; } });
-            gs = n.findAll(x => x.type === 'GROUP');
-          }
+      // 收集所有 Group: 包含选中的 Group 以及其内部的 Group
+      const groups: GroupNode[] = [];
+      function collect(n: BaseNode) {
+        if (n.type === 'GROUP') groups.push(n);
+        if ('children' in n) for (const child of (n as any).children) collect(child);
+      }
+      for (const node of selection) collect(node);
+      // 解组（从内向外解组可能更安全，但 ungroup 后子节点会保留）
+      for (const g of groups) {
+        if (!g.removed) {
+          figma.ungroup(g);
+          count++;
         }
-      });
+      }
       figma.notify(`已解散 ${count} 个组`);
       break;
     }
 
     case 'unlock-all': {
       let count = 0;
-      function ul(n) {
+      function ul(n: any) {
         if ('locked' in n && n.locked) { n.locked = false; count++; }
         if ('children' in n) n.children.forEach(ul);
       }
@@ -533,20 +614,176 @@ figma.ui.onmessage = async (msg) => {
       if (selection.length === 0) { figma.notify("请选择图层"); return; }
       let count = 0;
       for (const node of selection) {
-        if(!node.removed) {
-          // 四舍五入坐标和尺寸
+        if (!node.removed) {
           const newX = Math.round(node.x);
           const newY = Math.round(node.y);
           const newW = Math.round(node.width);
           const newH = Math.round(node.height);
-          
-          // 只有发生变化时才操作
-          if(node.x !== newX || node.y !== newY) node.x = newX, node.y = newY;
-          if(node.width !== newW || node.height !== newH) node.resize(newW, newH);
+          if (node.x !== newX || node.y !== newY) { node.x = newX; node.y = newY; }
+          if (node.width !== newW || node.height !== newH) node.resize(newW, newH);
           count++;
         }
       }
       figma.notify(`已对齐 ${count} 个图层`);
+      break;
+    }
+
+    case 'swap-positions': {
+      if (selection.length !== 2) { figma.notify("请严格选择 2 个图层进行交换"); return; }
+      const n1 = selection[0];
+      const n2 = selection[1];
+      const x1 = n1.x, y1 = n1.y;
+      n1.x = n2.x; n1.y = n2.y;
+      n2.x = x1; n2.y = y1;
+      figma.notify("位置已互换");
+      break;
+    }
+
+    case 'create-styles': {
+      console.log("=== 开始执行创建样式 ===");
+      if (selection.length === 0) { figma.notify("请选择图层"); return; }
+      let createdCount = 0;
+      const conflicts: string[] = [];
+      const errors: string[] = [];
+      try {
+        const localPaints = await figma.getLocalPaintStylesAsync();
+        const localTexts = await figma.getLocalTextStylesAsync();
+        const localEffects = await figma.getLocalEffectStylesAsync();
+
+        for (const node of selection) {
+          if (node.removed) continue;
+          const name = node.name;
+
+          if ('fills' in node && node.type !== 'GROUP' && node.fills !== figma.mixed && Array.isArray(node.fills) && node.fills.length > 0) {
+            if (node.fills[0].type !== 'IMAGE') {
+              const exist = localPaints.find(s => s.name === name);
+              if (exist) { if (!conflicts.includes(name)) conflicts.push(name + " (颜色)"); }
+              else {
+                try {
+                  const style = figma.createPaintStyle();
+                  createdCount++;
+                  style.name = name;
+                  style.paints = JSON.parse(JSON.stringify(node.fills));
+                  try { node.fillStyleId = style.id; } catch (e) {}
+                } catch (err) { errors.push(name); }
+              }
+            }
+          }
+
+          if (node.type === 'TEXT') {
+            const exist = localTexts.find(s => s.name === name);
+            if (exist) { if (!conflicts.includes(name)) conflicts.push(name + " (文本)"); }
+            else {
+              try {
+                const style = figma.createTextStyle();
+                createdCount++;
+                style.name = name;
+                const font = node.fontName;
+                if (font !== figma.mixed) {
+                  await figma.loadFontAsync(font);
+                  style.fontName = font;
+                  style.fontSize = node.fontSize !== figma.mixed ? node.fontSize : 12;
+                  if (node.letterSpacing !== figma.mixed) style.letterSpacing = node.letterSpacing;
+                  if (node.lineHeight !== figma.mixed) style.lineHeight = node.lineHeight;
+                  if (node.textDecoration !== figma.mixed) style.textDecoration = node.textDecoration;
+                  try { node.textStyleId = style.id; } catch (e) {}
+                }
+              } catch (err) { errors.push(name); }
+            }
+          }
+
+          if ('effects' in node && node.effects !== figma.mixed && Array.isArray(node.effects) && node.effects.length > 0) {
+            const exist = localEffects.find(s => s.name === name);
+            if (exist) { if (!conflicts.includes(name)) conflicts.push(name + " (效果)"); }
+            else {
+              try {
+                const style = figma.createEffectStyle();
+                createdCount++;
+                style.name = name;
+                style.effects = JSON.parse(JSON.stringify(node.effects));
+                try { node.effectStyleId = style.id; } catch (e) {}
+              } catch (err) { errors.push(name); }
+            }
+          }
+        }
+      } catch (e) { console.error("全局错误:", e); figma.notify("样式创建失败: " + String(e).slice(0, 50)); return; }
+
+      const parts = [];
+      if (createdCount > 0) parts.push(`新建 ${createdCount} 个`);
+      if (conflicts.length > 0) parts.push(`跳过重复 ${conflicts.length} 个`);
+      if (errors.length > 0) parts.push(`失败 ${errors.length} 个`);
+      if (parts.length > 0) figma.notify(parts.join('，'));
+      else figma.notify("未发现可创建的样式（选中的图层可能没有填充/文本/效果属性）");
+      break;
+    }
+
+    case 'match-styles': {
+      console.log("=== 开始匹配样式 ===");
+      const sel = figma.currentPage.selection;
+      if (sel.length === 0) { figma.notify("请先选择范围"); return; }
+      let countFill = 0, countStroke = 0, countText = 0, countEffect = 0;
+      try {
+        const paints = await figma.getLocalPaintStylesAsync();
+        const texts = await figma.getLocalTextStylesAsync();
+        const effects = await figma.getLocalEffectStylesAsync();
+
+        const paintMap = new Map<string, string>();
+        paints.forEach(s => paintMap.set(JSON.stringify(s.paints), s.id));
+        const effectMap = new Map<string, string>();
+        effects.forEach(s => effectMap.set(JSON.stringify(s.effects), s.id));
+        const textMap = new Map<string, string>();
+        texts.forEach(s => {
+          const fingerprint = JSON.stringify({
+            family: s.fontName.family,
+            style: s.fontName.style,
+            size: s.fontSize,
+            lh: s.lineHeight,
+            ls: s.letterSpacing,
+            td: s.textDecoration,
+            pi: s.paragraphIndent,
+            ps: s.paragraphSpacing
+          });
+          textMap.set(fingerprint, s.id);
+        });
+
+        const traverse = async (node: any) => {
+          if (node.removed) return;
+          if ('fills' in node && node.fills !== figma.mixed && node.fills.length > 0 && node.fillStyleId === '') {
+            const key = JSON.stringify(node.fills);
+            if (paintMap.has(key)) { try { await node.setFillStyleIdAsync(paintMap.get(key)!); countFill++; } catch (e) {} }
+          }
+          if ('strokes' in node && node.strokes !== figma.mixed && node.strokes.length > 0 && node.strokeStyleId === '') {
+            const key = JSON.stringify(node.strokes);
+            if (paintMap.has(key)) { try { await node.setStrokeStyleIdAsync(paintMap.get(key)!); countStroke++; } catch (e) {} }
+          }
+          if ('effects' in node && node.effects !== figma.mixed && node.effects.length > 0 && node.effectStyleId === '') {
+            const key = JSON.stringify(node.effects);
+            if (effectMap.has(key)) { try { await node.setEffectStyleIdAsync(effectMap.get(key)!); countEffect++; } catch (e) {} }
+          }
+          if (node.type === 'TEXT' && node.textStyleId === '' && node.fontName !== figma.mixed && node.fontSize !== figma.mixed) {
+            const key = JSON.stringify({
+              family: node.fontName.family,
+              style: node.fontName.style,
+              size: node.fontSize,
+              lh: node.lineHeight,
+              ls: node.letterSpacing,
+              td: node.textDecoration,
+              pi: node.paragraphIndent,
+              ps: node.paragraphSpacing
+            });
+            if (textMap.has(key)) { try { await node.setTextStyleIdAsync(textMap.get(key)!); countText++; } catch (e) {} }
+          }
+          if ('children' in node) {
+            for (const child of node.children) await traverse(child);
+          }
+        };
+
+        for (const node of sel) await traverse(node);
+      } catch (e) { console.error(e); figma.notify("匹配出错"); return; }
+
+      const total = countFill + countStroke + countText + countEffect;
+      if (total > 0) figma.notify(`匹配成功: 填充${countFill} / 描边${countStroke} / 文本${countText} / 效果${countEffect}`);
+      else figma.notify("未发现可匹配的样式");
       break;
     }
 
@@ -612,6 +849,12 @@ figma.ui.onmessage = async (msg) => {
                 return;
             }
         } 
+        else if (f.scope === 'page') {
+            // 模式：全页 - 直接查找当前页面所有图层，忽略选中状态
+            console.log(">> 策略: 全页面查找");
+            const allPageNodes = figma.currentPage.findAll(() => true);
+            searchTargets.push(...allPageNodes);
+        }
         else {
             // 模式：子孙元素 (descendants) - 默认模式
             // 逻辑：如果选了图层，查“选中项+选中项内部”；如果没选，查“全页”
@@ -840,260 +1083,6 @@ figma.ui.onmessage = async (msg) => {
             runFocus();
             break;
         }
-
-    // ===========================
-    // C. 样式工具
-    // ===========================
-    case 'create-styles': {
-      console.log("=== 开始执行创建样式 (Async模式) ===");
-      if (selection.length === 0) { figma.notify("请选择图层"); return; }
-      
-      let createdCount = 0;
-      const conflicts: string[] = [];
-      const errors: string[] = [];
-      
-      try {
-        // === 核心修复：改为异步获取 (Async) ===
-        // 因为 manifest 设置了 dynamic-page，必须等待异步结果
-        const localPaints = await figma.getLocalPaintStylesAsync();
-        const localTexts = await figma.getLocalTextStylesAsync();
-        const localEffects = await figma.getLocalEffectStylesAsync();
-
-        for (const node of selection) {
-          if (node.removed) continue;
-          const name = node.name;
-          console.log(`处理图层: ${name}`);
-
-          // --- 1. 处理颜色样式 (Fills) ---
-          if ('fills' in node && node.type !== 'GROUP' && node.fills !== figma.mixed && Array.isArray(node.fills) && node.fills.length > 0) {
-            if (node.fills[0].type !== 'IMAGE') {
-              const exist = localPaints.find(s => s.name === name);
-              if (exist) {
-                if (!conflicts.includes(name)) conflicts.push(name + " (颜色)");
-              } else {
-                try {
-                  const style = figma.createPaintStyle();
-                  style.name = name;
-                  style.paints = JSON.parse(JSON.stringify(node.fills)); // 克隆防报错
-                  node.fillStyleId = style.id;
-                  createdCount++;
-                } catch (err) {
-                  errors.push(name);
-                  console.error("颜色创建失败:", err);
-                }
-              }
-            }
-          }
-
-          // --- 2. 处理文本样式 (Text) ---
-          if (node.type === 'TEXT') {
-            const exist = localTexts.find(s => s.name === name);
-            if (exist) {
-              if (!conflicts.includes(name)) conflicts.push(name + " (文本)");
-            } else {
-              try {
-                const style = figma.createTextStyle();
-                style.name = name;
-                const font = node.fontName;
-                if (font !== figma.mixed) {
-                  await figma.loadFontAsync(font);
-                  style.fontName = font;
-                  style.fontSize = node.fontSize !== figma.mixed ? node.fontSize : 12;
-                  if(node.letterSpacing !== figma.mixed) style.letterSpacing = node.letterSpacing;
-                  if(node.lineHeight !== figma.mixed) style.lineHeight = node.lineHeight;
-                  if(node.textDecoration !== figma.mixed) style.textDecoration = node.textDecoration;
-                  
-                  node.textStyleId = style.id;
-                  createdCount++;
-                }
-              } catch (err) {
-                 errors.push(name);
-                 console.error("文本创建失败:", err);
-              }
-            }
-          }
-
-          // --- 3. 处理效果样式 (Effects) ---
-          if ('effects' in node && node.effects !== figma.mixed && Array.isArray(node.effects) && node.effects.length > 0) {
-            const exist = localEffects.find(s => s.name === name);
-            if (exist) {
-               if (!conflicts.includes(name)) conflicts.push(name + " (效果)");
-            } else {
-               try {
-                 const style = figma.createEffectStyle();
-                 style.name = name;
-                 style.effects = JSON.parse(JSON.stringify(node.effects));
-                 node.effectStyleId = style.id;
-                 createdCount++;
-               } catch (err) {
-                 errors.push(name);
-                 console.error("效果创建失败:", err);
-               }
-            }
-          }
-        }
-      } catch (e) {
-        console.error("全局错误:", e);
-        figma.notify("发生错误，请查看控制台");
-      }
-
-      // --- 结果汇总 ---
-      const parts = [];
-      if (createdCount > 0) parts.push(`新建 ${createdCount} 个`);
-      if (conflicts.length > 0) parts.push(`跳过重复 ${conflicts.length} 个`);
-      
-      if (parts.length > 0) {
-        figma.notify(parts.join('，'));
-      } else {
-        figma.notify("未执行操作 (可能是无样式属性或已重复)");
-      }
-      console.log("=== 结束 ===");
-      break;
-    }
-    case 'match-styles': {
-      console.log("=== 开始匹配样式 (Async修复版) ===");
-      const sel = figma.currentPage.selection;
-      if (sel.length === 0) { figma.notify("请先选择范围 (支持包含子图层)"); return; }
-
-      let countFill = 0, countStroke = 0, countText = 0, countEffect = 0;
-
-      try {
-        // 1. 获取所有本地样式 (Async)
-        const paints = await figma.getLocalPaintStylesAsync();
-        const texts = await figma.getLocalTextStylesAsync();
-        const effects = await figma.getLocalEffectStylesAsync();
-
-        // 2. 建立“指纹”查找表
-        const paintMap = new Map<string, string>();
-        paints.forEach(s => paintMap.set(JSON.stringify(s.paints), s.id));
-
-        const effectMap = new Map<string, string>();
-        effects.forEach(s => effectMap.set(JSON.stringify(s.effects), s.id));
-
-        const textMap = new Map<string, string>();
-        texts.forEach(s => {
-          const fingerprint = JSON.stringify({
-            family: s.fontName.family,
-            style: s.fontName.style,
-            size: s.fontSize,
-            lh: s.lineHeight,
-            ls: s.letterSpacing,
-            td: s.textDecoration,
-            pi: s.paragraphIndent,
-            ps: s.paragraphSpacing
-          });
-          textMap.set(fingerprint, s.id);
-        });
-
-        // 3. 定义异步递归遍历函数
-        // 关键修复：改为 async 函数，以便内部可以使用 await
-        const traverse = async (node: any) => {
-          if (node.removed) return;
-
-          // --- A. 匹配填充 (Fills) ---
-          if ('fills' in node && node.fills !== figma.mixed && node.fills.length > 0 && node.fillStyleId === '') {
-            const key = JSON.stringify(node.fills);
-            if (paintMap.has(key)) {
-              try {
-                // 修复点：使用 setFillStyleIdAsync
-                await node.setFillStyleIdAsync(paintMap.get(key));
-                countFill++;
-              } catch(e) {}
-            }
-          }
-
-          // --- B. 匹配描边 (Strokes) ---
-          if ('strokes' in node && node.strokes !== figma.mixed && node.strokes.length > 0 && node.strokeStyleId === '') {
-            const key = JSON.stringify(node.strokes);
-            if (paintMap.has(key)) {
-              try {
-                // 修复点：使用 setStrokeStyleIdAsync
-                await node.setStrokeStyleIdAsync(paintMap.get(key));
-                countStroke++;
-              } catch(e) {}
-            }
-          }
-
-          // --- C. 匹配效果 (Effects) ---
-          if ('effects' in node && node.effects !== figma.mixed && node.effects.length > 0 && node.effectStyleId === '') {
-            const key = JSON.stringify(node.effects);
-            if (effectMap.has(key)) {
-              try {
-                // 修复点：使用 setEffectStyleIdAsync
-                await node.setEffectStyleIdAsync(effectMap.get(key));
-                countEffect++;
-              } catch(e) {}
-            }
-          }
-
-          // --- D. 匹配文本 (Text) ---
-          if (node.type === 'TEXT' && node.textStyleId === '' && node.fontName !== figma.mixed && node.fontSize !== figma.mixed) {
-            const key = JSON.stringify({
-              family: node.fontName.family,
-              style: node.fontName.style,
-              size: node.fontSize,
-              lh: node.lineHeight,
-              ls: node.letterSpacing,
-              td: node.textDecoration,
-              pi: node.paragraphIndent,
-              ps: node.paragraphSpacing
-            });
-            if (textMap.has(key)) {
-              try {
-                // 修复点：使用 setTextStyleIdAsync
-                await node.setTextStyleIdAsync(textMap.get(key));
-                countText++;
-              } catch(e) {}
-            }
-          }
-
-          // --- 递归子节点 ---
-          if ('children' in node) {
-            // 使用 for...of 循环来保证 await 生效
-            for (const child of node.children) {
-              await traverse(child);
-            }
-          }
-        };
-
-        // 4. 执行扫描
-        for (const node of sel) {
-          await traverse(node);
-        }
-
-      } catch (e) {
-        console.error("匹配过程出错:", e);
-        figma.notify("匹配出错，请检查控制台");
-        return;
-      }
-
-      // 5. 结果汇报
-      const total = countFill + countStroke + countText + countEffect;
-      if (total > 0) {
-        figma.notify(`匹配成功: 填充${countFill} / 描边${countStroke} / 文本${countText} / 效果${countEffect}`);
-      } else {
-        figma.notify("未发现可匹配的样式");
-      }
-      break;
-    }
-
-    // ===========================
-    // D. 布局工具
-    // ===========================
-    case 'swap-positions': {
-      if (selection.length !== 2) { figma.notify("请严格选择 2 个图层进行交换"); return; }
-      const n1 = selection[0];
-      const n2 = selection[1];
-      
-      const x1 = n1.x, y1 = n1.y;
-      const x2 = n2.x, y2 = n2.y;
-      
-      n1.x = x2; n1.y = y2;
-      n2.x = x1; n2.y = y1;
-      
-      figma.notify("位置已互换");
-      break;
-    }
 
     // ===========================
     // E. 文本查找与替换
@@ -2061,6 +2050,21 @@ figma.ui.onmessage = async (msg) => {
     }
 
     // --- 窗口大小调整 ---
+    case 'resize-start':
+      // 记录开始拖拽时的状态
+      break;
+    case 'resize-move': {
+      // 计算新尺寸并调整窗口
+      const dx = msg.clientX - msg.startX;
+      const dy = msg.clientY - msg.startY;
+      const newW = Math.max(170, msg.startW + dx);
+      const newH = Math.max(200, msg.startH + dy);
+      figma.ui.resize(newW, newH);
+      break;
+    }
+    case 'resize-end':
+      // 结束拖拽
+      break;
     case 'resize-drag':
     case 'resize-window':
       figma.ui.resize(msg.width, msg.height);

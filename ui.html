@@ -828,41 +828,106 @@
         }
 
       /* =========================================
-        设置面板样式
+        设置面板样式 - 现代化设计
         ========================================= */
       .settings-section {
-          margin-bottom: 24px;
+          margin-bottom: 8px;
+          background: var(--bg-surface);
+          border-radius: var(--radius-md);
+          padding: 16px;
+          border: 1px solid var(--border);
+          transition: all var(--transition-fast);
+      }
+      .settings-section:hover {
+          box-shadow: var(--shadow-sm);
+          border-color: var(--primary-light);
       }
       .settings-section-title {
           font-size: 13px;
           font-weight: 600;
           color: var(--text-primary);
           padding-bottom: 12px;
+          margin-bottom: 8px;
+          border-bottom: 1px solid var(--border);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+      }
+      .settings-section-title::before {
+          content: '';
+          width: 3px;
+          height: 14px;
+          background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+          border-radius: 2px;
       }
       .settings-item {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 12px;
+          gap: 0px;
+          padding: 6px 0;
+      }
+      .settings-item:last-child {
+          border-bottom: none;
+          padding-bottom: 0;
       }
       .settings-item-label {
           font-size: 13px;
           color: var(--text-primary);
           flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-weight: 500;
+      }
+      .settings-item-label-icon {
+          width: 18px;
+          height: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--primary-light);
+          border-radius: var(--radius-sm);
+          font-size: 11px;
       }
       .settings-item-control {
           display: flex;
           align-items: center;
           gap: 8px;
       }
+      .settings-item-control select,
+      .settings-item-control input {
+          min-width: 120px;
+      }
       .privacy-note {
           font-size: 11px;
-          color: var(--text-muted);
-          background: var(--bg-muted);
-          padding: 12px;
+          color: var(--text-secondary);
+          background: linear-gradient(135deg, var(--info-light) 0%, rgba(59, 130, 246, 0.05) 100%);
+          padding: 12px 14px;
           border-radius: var(--radius-md);
-          margin-top: 16px;
+          margin-top: 12px;
           line-height: 1.5;
+          border-left: 3px solid var(--info);
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
+      }
+      .privacy-note::before {
+          content: '🔒';
+          font-size: 13px;
+          flex-shrink: 0;
+      }
+      
+      /* AI 配置表单优化 */
+      .settings-item[style*="flex-direction: column"] {
+          padding: 12px 0;
+      }
+      .settings-item[style*="flex-direction: column"] .settings-item-label {
+          margin-bottom: 8px;
+      }
+      .settings-item[style*="flex-direction: column"] input,
+      .settings-item[style*="flex-direction: column"] select {
+          width: 100%;
       }
       /* Tooltip */
       #tooltip-box {
@@ -1043,7 +1108,7 @@
 
       /* 3. 配置内容容器 */
       .text-controls-content {
-          padding: 16px;
+          padding: 12px;
           background: var(--bg-surface);
           border-bottom: 1px solid var(--border);
           flex-shrink: 0;
@@ -1064,26 +1129,37 @@
       }
       .input-wrapper {
           position: relative;
-          display: flex;
-          align-items: center;
+          flex: 1;
       }
       .input-icon {
           position: absolute;
           left: 10px;
+          top: 50%;
+          transform: translateY(-50%);
           width: 14px;
           height: 14px;
           color: var(--text-tertiary);
           pointer-events: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
       }
       .input-wrapper input {
           width: 100%;
-          padding: 8px 28px 8px 32px;
+          /* 强行锁定这两个属性，不准其他样式覆盖！ */
+          box-sizing: border-box !important; 
+          padding: 10px 32px 10px 32px !important; 
+          
           border: 1px solid var(--border);
           border-radius: var(--radius-md);
           font-size: 13px;
           background: var(--bg-body);
           color: var(--text-primary);
           transition: all var(--transition-fast);
+          
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          overflow: hidden;
       }
       .input-wrapper input:focus {
           outline: none;
@@ -1297,7 +1373,7 @@
 }
 
 .selection-scroll-area {
-    padding: 16px;
+    padding: 12px;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -2138,7 +2214,7 @@
       .refiner-tabs {
           display: flex; 
           background: var(--bg-surface); 
-          padding: 12px 16px 0; 
+          padding: 0; 
           border-bottom: 1px solid var(--border); 
           flex-shrink: 0; 
           gap: 0;
@@ -2149,7 +2225,7 @@
           display: flex; 
           align-items: center;
           justify-content: center; 
-          padding: 12px 16px;
+          padding: 16px;
           font-size: 13px; 
           font-weight: 500; 
           color: var(--text-secondary); 
@@ -2194,7 +2270,7 @@
       .refiner-tab-content.active { display: flex; }
 
       .refiner-config { 
-          padding: 16px; 
+          padding: 12px; 
           flex: 1; 
           overflow-y: auto; 
           background: var(--bg-body);
@@ -2257,11 +2333,6 @@
           color: var(--text-primary);
           transition: all var(--transition-fast);
           box-sizing: border-box;
-      }
-      
-      /* 有图标的输入框样式（优先级更高） */
-      .input-wrapper input {
-          padding: 8px 28px 8px 32px;
       }
       
       .search-box:hover,
@@ -2331,18 +2402,32 @@
       .style-section { display: flex; flex-direction: column; gap: 2px; }
       .disabled-area { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
       
-      .find-options { display: flex; justify-content: center; margin: 10px 0 4px; }
+      .find-options { 
+          display: flex; 
+          flex-direction: column;
+          gap: 8px; 
+          align-items: flex-start;
+      }
       .checkbox-center { 
           display: flex; 
           align-items: center; 
-          gap: 6px; 
+          gap: 8px; 
           font-size: 12px; 
           color: var(--text-secondary); 
           cursor: pointer; 
-          user-select: none; 
+          user-select: none;
+          padding: 4px 0;
+          transition: all var(--transition-fast);
       }
-      .checkbox-center:hover { color: var(--text-primary); }
-      .checkbox-center input { margin: 0; }
+      .checkbox-center:hover { 
+          color: var(--text-primary); 
+      }
+      .checkbox-center input { 
+          margin: 0;
+          width: 14px;
+          height: 14px;
+          cursor: pointer;
+      }
 
       .radio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
       .radio-item {
@@ -2513,7 +2598,7 @@
           flex-shrink: 0; 
           transition: all 0.3s ease; 
           overflow: hidden; 
-          height: 100%;
+          height: auto;
       }
       .lint-summary-bar, .find-summary-bar {
           display: none; 
@@ -2529,8 +2614,8 @@
       .find-expanded { 
           display: flex; 
           flex-direction: column; 
-          gap: 0px; 
-          padding: 12px 16px; 
+          gap: 12px; 
+          padding: 16px; 
           opacity: 1; 
           max-height: 300px; 
       }
@@ -2554,22 +2639,26 @@
           display: flex; 
           justify-content: center; 
           align-items: center; 
-          gap: 4px;
+          gap: 6px;
           cursor: pointer; 
-          font-size: 11px; 
+          font-size: 12px; 
           color: var(--text-secondary); 
-          padding: 6px 8px;
-          border-radius: var(--radius-full); 
+          padding: 8px 12px;
+          border-radius: var(--radius-md); 
           border: 1px solid var(--border); 
-          background: var(--bg-white); 
+          background: var(--bg-body); 
           transition: all var(--transition-fast);
+          font-weight: 500;
       }
-      .chip-check:hover { background: var(--bg-hover); }
+      .chip-check:hover { 
+          background: var(--bg-hover); 
+          border-color: var(--text-tertiary);
+      }
       .chip-check.active { 
           background: var(--primary-light); 
           border-color: var(--primary); 
           color: var(--primary); 
-          font-weight: 500; 
+          font-weight: 600; 
       }
       .chip-check input { display: none; }
 
@@ -2740,7 +2829,7 @@
       .res-list {
           flex: 1;
           overflow-y: auto;
-          padding-bottom: 10px;
+          padding: 8px;
           min-height: 0;
       }
 
@@ -2896,24 +2985,30 @@
       /* 输入框样式修正 */
       .input-group-icon input {
           width: 100%;
-          height: 40px;
-          padding: 0 60px 0 36px;
-          border: 1.5px solid var(--border);
+          /* 强行锁定这两个属性，不准其他样式覆盖！ */
+          box-sizing: border-box !important; 
+          padding: 8px 32px 8px 32px !important; 
+          
+          border: 1px solid var(--border);
           border-radius: var(--radius-md);
-          box-sizing: border-box;
           font-size: 13px;
-          transition: all var(--transition-fast);
-          background: var(--bg-surface);
+          background: var(--bg-body);
           color: var(--text-primary);
+          transition: all var(--transition-fast);
+          
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          overflow: hidden;
       }
       .input-group-icon input:hover {
           border-color: var(--text-tertiary);
+          background: var(--bg-hover);
       }
       .input-group-icon input:focus {
           border-color: var(--primary);
           outline: none;
           box-shadow: 0 0 0 3px var(--primary-light);
-          background: var(--bg-body);
+          background: var(--bg-surface);
       }
 
       /* 左侧图标 */
@@ -2927,8 +3022,8 @@
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 16px; 
-          height: 16px;
+          width: 14px; 
+          height: 14px;
       }
       .icon-prefix svg {
           width: 100%;
@@ -3502,7 +3597,7 @@
       .smart-list-container {
         flex: 1;
         overflow-y: auto;
-        padding: 8px;
+        padding: 12px;
       }
       .smart-row {
         display: flex;
@@ -3580,7 +3675,7 @@
       .sub-page {
         position: absolute;
         top: 0; left: 0; width: 100%; height: 100%;
-        background: var(--bg-surface);
+        background: var(--bg-body);
         z-index: 50;
         display: none;
         flex-direction: column;
@@ -3646,11 +3741,11 @@
         display: flex;
       }
       .sub-header {
-        padding: 16px 20px;
+        padding: 12px 20px;
         border-bottom: 1px solid var(--border);
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 8px;
         font-weight: 600;
         font-size: 15px;
         color: var(--text-primary);
@@ -3673,14 +3768,15 @@
       .sub-form-container {
           flex: 1;
           overflow-y: auto;
-          padding: 20px;
+          padding: 12px;
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          gap: 12px;
+          background: var(--bg-body);
       }
       
       .sub-footer {
-          padding: 16px 20px;
+          padding: 16px;
           border-top: 1px solid var(--border);
           background: var(--bg-surface);
           display: flex;
@@ -3706,44 +3802,50 @@
         color: var(--text-inverse);
       }
 
-      /* AI 界面 */
+      /* AI 界面 - 现代化设计 */
       .ai-container {
-        padding: 16px;
+        padding: 12px;
         display: flex;
         flex-direction: column;
         height: 100%;
         box-sizing: border-box;
         gap: 12px;
+        background: var(--bg-body);
       }
       .ai-header-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        padding: 12px 16px;
+        background: linear-gradient(135deg, var(--primary-light) 0%, rgba(139, 92, 246, 0.05) 100%);
+        border-radius: var(--radius-md);
+        border-left: 3px solid var(--primary);
       }
       .ai-textarea {
         width: 100%;
         height: 100px;
         border: 1px solid var(--border);
         border-radius: var(--radius-md);
-        padding: 12px;
+        padding: 12px 16px;
         font-family: inherit;
         font-size: 13px;
         line-height: 1.6;
         resize: none;
-        background: var(--bg-body);
+        background: var(--bg-surface);
         color: var(--text-primary);
         transition: all var(--transition-fast);
         box-sizing: border-box;
+        box-shadow: var(--shadow-sm);
       }
       .ai-textarea:hover {
-          border-color: var(--text-tertiary);
+          border-color: var(--primary-light);
           background: var(--bg-hover);
       }
       .ai-textarea:focus { 
           border-color: var(--primary); 
           outline: none;
           background: var(--bg-surface);
-          box-shadow: 0 0 0 3px var(--primary-light);
+          box-shadow: 0 0 0 3px var(--primary-light), var(--shadow-md);
       }
       .ai-textarea::placeholder {
           color: var(--text-tertiary);
@@ -3754,17 +3856,18 @@
         border: 1px solid var(--border);
         background: var(--bg-surface);
         border-radius: var(--radius-md);
-        padding: 12px;
+        padding: 16px;
         overflow-y: auto;
         font-size: 13px;
         color: var(--text-primary);
         white-space: pre-wrap;
         line-height: 1.6;
+        box-shadow: var(--shadow-sm);
       }
       .ai-actions {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 8px;
+        gap: 10px;
       }
       .btn-ai-action {
         padding: 10px 12px;
@@ -4367,41 +4470,41 @@
         <div class="nav-scroll">
             <!-- Dashboard -->
             <div class="nav-item" data-nav="simple" onclick="switchGroup('simple', this)">
-                <span class="nav-icon-slot">⚡</span><span class="nav-text">简易工具</span><span class="nav-dot"></span>
+                <span class="nav-icon-slot">⚡</span><span class="nav-text" data-key="nav_simple">简易工具</span><span class="nav-dot"></span>
             </div>
             <div class="nav-item" data-nav="select" onclick="switchGroup('select', this)">
-                <span class="nav-icon-slot">🔍</span><span class="nav-text">超级选择</span><span class="nav-dot"></span>
+                <span class="nav-icon-slot">🔍</span><span class="nav-text" data-key="nav_select">超级选择</span><span class="nav-dot"></span>
             </div>
             <div class="nav-item" data-nav="text" onclick="switchGroup('text', this)">
-                <span class="nav-icon-slot">📝</span><span class="nav-text">文字替换</span><span class="nav-dot"></span>
+                <span class="nav-icon-slot">📝</span><span class="nav-text" data-key="nav_text">文字替换</span><span class="nav-dot"></span>
             </div>
             <div class="nav-item" data-nav="smartFill" onclick="switchGroup('smartFill', this)">
-                <span class="nav-icon-slot">🧠</span><span class="nav-text">智能填充</span><span class="nav-dot"></span>
+                <span class="nav-icon-slot">🧠</span><span class="nav-text" data-key="nav_smartFill">智能填充</span><span class="nav-dot"></span>
             </div>
-            <div class="nav-section-label">高级功能</div>
+            <div class="nav-section-label" data-key="nav_section_advanced">高级功能</div>
             <div class="nav-item" data-nav="refiner" onclick="switchGroup('refiner', this)">
-                <span class="nav-icon-slot">💎</span><span class="nav-text">组件清洗</span><span class="nav-dot"></span>
+                <span class="nav-icon-slot">💎</span><span class="nav-text" data-key="nav_refiner">组件清洗</span><span class="nav-dot"></span>
             </div>
             <div class="nav-item" data-nav="ppt" onclick="switchGroup('ppt', this)">
-                <span class="nav-icon-slot">📊</span><span class="nav-text">PPT 导出</span><span class="nav-dot"></span>
+                <span class="nav-icon-slot">📊</span><span class="nav-text" data-key="nav_ppt">PPT 导出</span><span class="nav-dot"></span>
             </div>
             <div class="nav-item" data-nav="theory" onclick="switchGroup('theory', this)">
-                <span class="nav-icon-slot">📖</span><span class="nav-text">设计理论</span><span class="nav-dot"></span>
+                <span class="nav-icon-slot">📖</span><span class="nav-text" data-key="nav_theory">设计理论</span><span class="nav-dot"></span>
             </div>
-            <div class="nav-section-label">实验室</div>
+            <div class="nav-section-label" data-key="nav_section_lab">实验室</div>
             <div class="nav-item" data-nav="jumpback" onclick="switchGroup('jumpback', this)">
-                <span class="nav-icon-slot">📍</span><span class="nav-text">时空信标</span><span class="nav-dot"></span>
+                <span class="nav-icon-slot">📍</span><span class="nav-text" data-key="nav_jumpback">时空信标</span><span class="nav-dot"></span>
             </div>
             <div class="nav-item" data-nav="skew" onclick="switchGroup('skew', this)">
-                <span class="nav-icon-slot">🔷</span><span class="nav-text">等轴形变</span><span class="nav-dot"></span>
+                <span class="nav-icon-slot">🔷</span><span class="nav-text" data-key="nav_skew">等轴形变</span><span class="nav-dot"></span>
             </div>
             <div class="nav-item" data-nav="i18n" onclick="switchGroup('i18n', this)">
-                <span class="nav-icon-slot">🌐</span><span class="nav-text">语言切换</span><span class="nav-dot"></span>
+                <span class="nav-icon-slot">🌐</span><span class="nav-text" data-key="nav_i18n">语言切换</span><span class="nav-dot"></span>
             </div>
         </div>
         <div class="sidebar-footer">
-            <button class="footer-btn" onclick="openSettings()" title="设置"><span class="btn-icon">⚙️</span><span class="btn-text">设置</span></button>
-            <button class="footer-btn" id="modeBtn" onclick="toggleMiniMode()" title="切换精简模式"><span class="btn-icon">◨</span><span class="btn-text">精简</span></button>
+            <button class="footer-btn" onclick="openSettings()" title="设置"><span class="btn-icon">⚙️</span><span class="btn-text" data-key="settings_title">设置</span></button>
+            <button class="footer-btn" id="modeBtn" onclick="toggleMiniMode()" title="切换精简模式"><span class="btn-icon">◨</span><span class="btn-text" data-key="nav_mini_mode">精简</span></button>
         </div>
     </div>
 
@@ -4413,7 +4516,7 @@
 
         <!-- ===== 工具主页（合并欢迎+工具网格） ===== -->
         <div id="toolPanel" style="display:flex; flex-direction:column; height:100%;">
-            <div style="padding: 20px; flex-shrink: 0;">
+            <div style="padding: 24px 16px 16px 16px; flex-shrink: 0;">
                 <div class="dash-greeting" id="dashGreeting" onclick="refreshGreeting()" title="点击换一句">👋 下午好啊，大设计师</div>
             </div>
             <!-- 工具网格 -->
@@ -4597,7 +4700,7 @@
             <!-- 范围选择 -->
             <div class="segmented-control" id="txtScopeGroup" style="margin-bottom: 12px;">
               <div class="seg-btn" data-val="selection" onclick="toggleTxtScope(this)">选中图层</div>
-              <div class="seg-btn active" data-val="page" onclick="toggleTxtScope(this)">全页</div>
+              <div class="seg-btn active" data-val="page" onclick="toggleTxtScope(this)">当前页面</div>
             </div>
 
             <!-- 查找输入 -->
@@ -4621,11 +4724,11 @@
             </div>
 
             <!-- 开始查找按钮 -->
-            <button class="primary-btn" style="margin-top: 12px;" onclick="startTextFind()">🔍 开始查找</button>
+            <button class="primary-btn" style="margin-top: 12px; width: 100%;" onclick="startTextFind()">🔍 开始查找</button>
           </div>
 
           <!-- 3. 结果列表区 -->
-          <div id="textResultWrapper" class="text-result-wrapper" style="display: none; flex: 1; overflow-y: auto; padding: 8px;">
+          <div id="textResultWrapper" class="text-result-wrapper" style="display: none; flex: 1; overflow-y: auto;">
             <div class="result-header">
               <span class="result-title">查找结果</span>
               <span id="textCount" class="result-count">共 0 项</span>
@@ -4893,13 +4996,10 @@
               <!-- 2. 展开的配置面板 -->
               <div id="findControlsExpanded" class="find-expanded" style="max-height:none;">
                 
-                <!-- 🔥 修改点 1: 范围选择器移到最上方 -->
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                  <!-- <span style="font-size:12px; font-weight:600; color:#333;">查找范围</span> -->
-                  <div class="segmented-control">
-                      <div class="seg-btn active" id="fScopeSel" onclick="toggleFindScope('selection')" data-key="ref_scope_sel_short">选中图层</div>
-                      <div class="seg-btn" id="fScopePage" onclick="toggleFindScope('page')" data-key="ref_scope_page_short">当前页面</div>
-                  </div>
+                <!-- 查找范围选择器 -->
+                <div class="segmented-control">
+                    <div class="seg-btn active" id="fScopeSel" onclick="toggleFindScope('selection')" data-key="ref_scope_sel_short">选中图层</div>
+                    <div class="seg-btn" id="fScopePage" onclick="toggleFindScope('page')" data-key="ref_scope_page_short">当前页面</div>
                 </div>
 
                 <!-- 查找输入 -->
@@ -4913,19 +5013,19 @@
                 </div>
                 
                 <!-- 替换输入 -->
-                <div class="input-group-icon" style="margin-top:8px;">
+                <div class="input-group-icon">
                   <div class="icon-prefix" style="color:#1890FF;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></div>
                   <input type="text" id="inpRep" placeholder="Replace with..." data-key="ref_ph_rep">
                 </div>
 
                 <!-- 搜索目标 Filter -->
-                <div class="filter-chips-row" style="margin-top:8px;">
-                  <div class="chip-check active" onclick="toggleChip(this)" data-target="PropName" data-key="ref_chip_pname">Prop Name</div>
-                  <div class="chip-check active" onclick="toggleChip(this)" data-target="PropValue" data-key="ref_chip_pval">Prop Value</div>
+                <div class="filter-chips-row">
+                  <div class="chip-check active" onclick="toggleChip(this)" data-target="PropName" data-key="ref_chip_pname">属性名</div>
+                  <div class="chip-check active" onclick="toggleChip(this)" data-target="PropValue" data-key="ref_chip_pval">属性值</div>
                 </div>
 
-                <!-- 🔥 修改点 2: 互斥选项逻辑 -->
-                <div class="find-options" style="flex-direction:column; gap:6px; align-items:flex-start; margin-top:10px;">
+                <!-- 互斥选项 -->
+                <div class="find-options">
                   <label class="checkbox-center" title="在名称前自动添加 '.'">
                       <input type="checkbox" id="opt_mark_hidden_find" onchange="handleExclusiveFindOptions('mark')"> 
                       <span data-key="opt_mark_hidden">标记为隐藏组件 (Add .)</span>
@@ -4941,8 +5041,8 @@
                   <div class="btn-spinner"></div><span data-key="ref_btn_find_preview">查找并预览</span>
                 </button>
 
-                <!-- 🔥 修改点 3: 收起箭头 -->
-                <div style="text-align:center; padding-top:6px; cursor:pointer; color:#999;" onclick="toggleFindHeader(false)">
+                <!-- 收起箭头 -->
+                <div style="text-align:center; padding-top:4px; cursor:pointer; color:var(--text-tertiary);" onclick="toggleFindHeader(false)">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
                 </div>
 
@@ -4950,7 +5050,7 @@
             </div>
 
             <!-- 结果列表区 -->
-            <div id="findResultsWrapper" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+            <div id="findResultsWrapper" style="display:flex; flex-direction:column; flex:1; overflow:hidden; ">
               <div class="res-header" id="findListHeader" style="display:none;">
                 <label class="header-left" style="cursor:pointer;">
                   <input type="checkbox" id="findSelectAll" class="header-cb" checked onclick="toggleSelectAll('find', this.checked)">
@@ -4969,12 +5069,12 @@
               <!-- 🔥🔥🔥 新增：查找替换专用的成功页 🔥🔥🔥 -->
               <div id="findSuccess" class="success-state-container" style="display:none;">
                 <div class="success-emoji">🎉</div>
-                <div style="font-size:16px; font-weight:600; color:#333; margin-bottom:8px;">替换完成</div>
+                <div style="font-size:16px; font-weight:600; color:#333; margin-bottom:8px;" data-key="find_replace_complete">替换完成</div>
                 <div style="font-size:13px; color:#666; margin-bottom:20px;">
-                  本次共成功替换 <b id="findSuccessCount">0</b> 项。
+                  <span data-key="find_replace_count_prefix">本次共成功替换</span> <b id="findSuccessCount">0</b> <span data-key="find_replace_count_suffix">项。</span>
                 </div>
                 <!-- 点击按钮调用 resetFindState -->
-                <button class="primary-btn" style="width:auto; padding:8px 32px;" onclick="resetFindState()">继续查找</button>
+                <button class="primary-btn" style="width:auto; padding:8px 32px;" onclick="resetFindState()" data-key="find_continue_btn">继续查找</button>
               </div>
             </div>
             
@@ -4986,11 +5086,11 @@
           <!-- Success Overlay -->
           <div id="successResultView" class="success-overlay">
             <div class="success-icon">✅</div>
-            <div class="success-title">修复成功 (Fixed)</div>
+            <div class="success-title" data-key="refiner_fix_success">修复成功 (Fixed)</div>
             <div class="success-desc">
-              本次共修复 <b id="successCount" style="color:#333;">0</b> 项。<br>点击继续，返回列表处理剩余项。
+              <span data-key="refiner_fix_count_prefix">本次共修复</span> <b id="successCount" style="color:#333;">0</b> <span data-key="refiner_fix_count_suffix">项。<br>点击继续，返回列表处理剩余项。</span>
             </div>
-            <button class="primary-btn" style="width:120px;" onclick="continueAfterFix()">继续 (Continue)</button>
+            <button class="primary-btn" style="width:120px;" onclick="continueAfterFix()" data-key="refiner_continue_btn">继续 (Continue)</button>
           </div>
         </div>
 
@@ -5324,11 +5424,11 @@
           <!-- Tab 2: AI 生成 -->
           <div id="smartAI" class="smart-content">
              <div class="ai-container">
-               <div class="ai-header-row">
-                 <span style="font-weight:600; font-size:13px;" data-key="sf_ai_title">AI 对话生成</span>
-               </div>
                
-               <textarea class="ai-textarea" id="aiPrompt" placeholder="例：生成20个高档小区名称..."></textarea>
+               <div class="input-wrapper" style="position: relative; height: 100px;">
+                 <textarea class="ai-textarea" id="aiPrompt" placeholder="例：生成20个高档小区名称..." style="width: 100%; height: 100%; padding-right: 40px; box-sizing: border-box;"></textarea>
+                 <div class="btn-clear-input hidden" id="aiPromptClearBtn" onclick="clearAiPromptInput()" style="position: absolute; right: 12px; top: 12px;">✕</div>
+               </div>
                
                <!-- 新增：控制栏 (思考模式 + 按钮组) -->
                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 12px;">
@@ -5336,13 +5436,16 @@
                    <!-- 思考模式开关 (左侧) -->
                    <label class="check-item" title="关闭可加快速度。" style="flex-shrink: 0;">
                        <input type="checkbox" id="aiThinkingToggle"> 
-                       <span>DeepThink</span>
+                       <span style="font-weight: 500;">🧠 DeepThink</span>
                    </label>
 
                    <!-- 按钮组 (右侧) -->
-                   <div style="display: flex; gap: 8px; flex: 1;">
-                       <button class="primary-btn" id="btnAiGen" onclick="runAiGenerate()" style="flex: 1; margin-bottom: 0;">
-                          <span data-key="sf_btn_gen">生成内容</span>
+                   <div style="display: flex; gap: 4px; flex: 1;">
+                       <button class="primary-btn" id="btnAiGen" onclick="runAiGenerate()" style="flex: 1; margin-bottom: 0; padding: 10px;">
+                          <span style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                            <span>✨</span>
+                            <span data-key="sf_btn_gen">生成内容</span>
+                          </span>
                        </button>
                        <button class="btn-ai-action btn-ghost" onclick="clearAiInput()" style="width: auto; padding: 0 12px;" title="清空">
                           🗑️
@@ -5353,13 +5456,17 @@
                <div class="ai-result-box" id="aiResultArea" placeholder="生成结果将显示在这里..."></div>
                
                <div class="ai-actions">
-                 <button class="btn-ai-action" onclick="applyAiFill('order')" data-key="sf_btn_seq">⬇ 顺序录入</button>
-                 <button class="btn-ai-action" onclick="applyAiFill('random')" data-key="sf_btn_rnd">🔀 随机录入</button>
-                 <button class="btn-ai-action" onclick="saveAiResultAsCustom('new')" title="保存为新的列表" data-key="sf_btn_new_list">
-                    💾 存为新列表
+                 <button class="btn-ai-action" onclick="applyAiFill('order')" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                   <span data-key="sf_btn_seq">顺序录入</span>
                  </button>
-                 <button class="btn-ai-action" onclick="saveAiResultAsCustom('append')" title="追加到已有列表" data-key="sf_btn_append_list">
-                    ➕ 追加到列表
+                 <button class="btn-ai-action" onclick="applyAiFill('random')" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                   <span data-key="sf_btn_rnd">随机录入</span>
+                 </button>
+                 <button class="btn-ai-action" onclick="saveAiResultAsCustom('new')" title="保存为新的列表" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                   <span data-key="sf_btn_new_list">存为新列表</span>
+                 </button>
+                 <button class="btn-ai-action" onclick="saveAiResultAsCustom('append')" title="追加到已有列表" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                   <span data-key="sf_btn_append_list">追加到列表</span>
                  </button>
                </div>
              </div>
@@ -5396,17 +5503,36 @@
               <span data-key="sf_sub_add_title">添加自定义数据</span>
             </div>
             <div class="sub-form-container">
-              <div>
-                <label class="config-label" style="margin-bottom: 8px; display: block;">列表标题</label>
-                <input type="text" id="customTitle" class="search-box" placeholder="标题 (如: 部门列表)">
+              <div class="settings-section" style="margin-bottom: 0;">
+                <div class="settings-item" style="flex-direction: column; align-items: stretch; padding: 0;">
+                  <label class="settings-item-label" style="margin-bottom: 8px;">
+                    <span class="settings-item-label-icon">🏷️</span>
+                    <span>列表标题</span>
+                  </label>
+                  <div class="input-wrapper">
+                    <input type="text" id="customTitle" placeholder="标题 (如: 部门列表)" oninput="toggleCustomClearBtn(this, 'customTitleClearBtn')" style="padding: 10px !important;">
+                    <div class="btn-clear-input hidden" id="customTitleClearBtn" onclick="clearCustomInput('customTitle', 'customTitleClearBtn')">✕</div>
+                  </div>
+                </div>
               </div>
-              <div style="flex: 1; display: flex; flex-direction: column;">
-                <label class="config-label" style="margin-bottom: 8px; display: block;">列表内容</label>
-                <textarea id="customContent" class="ai-textarea" style="flex: 1; min-height: 200px;" placeholder="输入内容，每行一个..."></textarea>
+              
+              <div class="settings-section" style="margin-bottom: 0; flex: 1; display: flex; flex-direction: column;">
+                <div class="settings-section-title">
+                  <span style="font-size: 16px;">📋</span>
+                  <span>列表内容</span>
+                </div>
+                <div style="flex: 1; display: flex; flex-direction: column; min-height: 200px;">
+                  <textarea id="customContent" class="ai-textarea" style="flex: 1; min-height: 200px; resize: vertical;" placeholder="输入内容，每行一个..."></textarea>
+                </div>
               </div>
             </div>
             <div class="sub-footer">
-              <button class="primary-btn" onclick="saveCustomList()" style="flex: 1;">保存</button>
+              <button class="primary-btn" onclick="saveCustomList()" style="flex: 1;">
+                <span style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                  <span>💾</span>
+                  <span>保存</span>
+                </span>
+              </button>
             </div>
           </div>
 
@@ -5417,47 +5543,75 @@
               <span data-key="sf_sub_cfg_title">AI 模型配置</span>
             </div>
             <div class="sub-form-container">
-              <div>
-                <label class="config-label" data-key="sf_lbl_provider">服务商 (API Provider)</label>
-                <select id="aiProvider" class="search-box" onchange="updateAiConfigDefaults()">
-                  <optgroup label="热门推荐 (推荐)">
-                    <option value="glm" selected>智谱 GLM (官方 API)</option>
-                    <option value="deepseek">DeepSeek (深度求索)</option>
-                    <option value="kimi">Kimi (Moonshot API)</option>
-                    <option value="volcengine-coding">火山方舟 (doubao)</option>
-                    <option value="aliyun">阿里云百炼 (通义千问等)</option>
-                  </optgroup>
-                  <optgroup label="国内其他优秀平台">
-                    <option value="minimax">MiniMax (名之梦)</option>
-                    <option value="siliconflow">硅基流动 (SiliconFlow)</option>
-                    <option value="tencent">腾讯混元 (Hunyuan)</option>
-                  </optgroup>
-                  <optgroup label="国际平台与聚合">
-                    <option value="openai">OpenAI</option>
-                    <option value="anthropic">Anthropic (原生或第三方)</option>
-                    <option value="gemini">Google Gemini</option>
-                  </optgroup>
-                </select>
-              </div>
+              <div class="settings-section" style="margin-bottom: 0;">
+                <div class="settings-section-title">
+                  <span style="font-size: 16px;">🤖</span>
+                  <span>模型配置</span>
+                </div>
+                
+                <div class="settings-item" style="flex-direction: column; align-items: stretch; padding-top: 0;">
+                  <label class="settings-item-label" style="margin-bottom: 8px;">
+                    <span class="settings-item-label-icon">🏢</span>
+                    <span data-key="sf_lbl_provider">服务商 (API Provider)</span>
+                  </label>
+                  <select id="aiProvider" class="search-box" onchange="updateAiConfigDefaults()">
+                    <optgroup label="热门推荐 (推荐)">
+                      <option value="glm" selected>智谱 GLM (官方 API)</option>
+                      <option value="deepseek">DeepSeek (深度求索)</option>
+                      <option value="kimi">Kimi (Moonshot API)</option>
+                      <option value="volcengine-coding">火山方舟 (doubao)</option>
+                      <option value="aliyun">阿里云百炼 (通义千问等)</option>
+                    </optgroup>
+                    <optgroup label="国内其他优秀平台">
+                      <option value="minimax">MiniMax (名之梦)</option>
+                      <option value="siliconflow">硅基流动 (SiliconFlow)</option>
+                      <option value="tencent">腾讯混元 (Hunyuan)</option>
+                    </optgroup>
+                    <optgroup label="国际平台与聚合">
+                      <option value="openai">OpenAI</option>
+                      <option value="anthropic">Anthropic (原生或第三方)</option>
+                      <option value="gemini">Google Gemini</option>
+                    </optgroup>
+                  </select>
+                </div>
 
-              <div>
-                <label class="config-label" data-key="sf_lbl_baseurl">API 地址 (Base URL)</label>
-                <input type="text" id="aiBaseUrl" class="search-box">
-                <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 6px;">通常以 /v1 结尾。如果使用中转或代理，请填写代理地址。</div>
-              </div>
+                <div class="settings-item" style="flex-direction: column; align-items: stretch;">
+                  <label class="settings-item-label" style="margin-bottom: 8px;">
+                    <span class="settings-item-label-icon">🔗</span>
+                    <span data-key="sf_lbl_baseurl">API 地址 (Base URL)</span>
+                  </label>
+                  <div class="input-wrapper">
+                    <input type="text" id="aiBaseUrl" placeholder="https://api.example.com/v1" oninput="toggleAiConfigClearBtn(this, 'aiBaseUrlClearBtn')">
+                    <div class="btn-clear-input hidden" id="aiBaseUrlClearBtn" onclick="clearAiConfigInput('aiBaseUrl', 'aiBaseUrlClearBtn')">✕</div>
+                  </div>
+                  <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 6px; padding-left: 28px;">通常以 /v1 结尾。如果使用中转或代理，请填写代理地址。</div>
+                </div>
 
-              <div>
-                <label class="config-label" data-key="sf_lbl_model">模型名称 (Model / Endpoint ID)</label>
-                <input type="text" id="aiModelName" class="search-box">
-              </div>
+                <div class="settings-item" style="flex-direction: column; align-items: stretch;">
+                  <label class="settings-item-label" style="margin-bottom: 8px;">
+                    <span class="settings-item-label-icon">⚡</span>
+                    <span data-key="sf_lbl_model">模型名称 (Model / Endpoint ID)</span>
+                  </label>
+                  <div class="input-wrapper">
+                    <input type="text" id="aiModelName" placeholder="glm-4-flash" oninput="toggleAiConfigClearBtn(this, 'aiModelNameClearBtn')">
+                    <div class="btn-clear-input hidden" id="aiModelNameClearBtn" onclick="clearAiConfigInput('aiModelName', 'aiModelNameClearBtn')">✕</div>
+                  </div>
+                </div>
 
-              <div>
-                <label class="config-label">API Key / Auth Token</label>
-                <input type="password" id="aiKey" class="search-box" placeholder="sk-...">
-              </div>
+                <div class="settings-item" style="flex-direction: column; align-items: stretch;">
+                  <label class="settings-item-label" style="margin-bottom: 8px;">
+                    <span class="settings-item-label-icon">🔑</span>
+                    <span>API Key / Auth Token</span>
+                  </label>
+                  <div class="input-wrapper">
+                    <input type="password" id="aiKey" placeholder="sk-..." oninput="toggleAiConfigClearBtn(this, 'aiKeyClearBtn')">
+                    <div class="btn-clear-input hidden" id="aiKeyClearBtn" onclick="clearAiConfigInput('aiKey', 'aiKeyClearBtn')">✕</div>
+                  </div>
+                </div>
 
-              <div class="privacy-note" data-key="sf_privacy_note">
-                隐私说明：本插件没有后台服务器，API Key 仅保存在本地。Figma 卸载重装后需要重新填写 Key，请放心使用。
+                <div class="privacy-note" data-key="sf_privacy_note">
+                  隐私说明：本插件没有后台服务器，API Key 仅保存在本地。Figma 卸载重装后需要重新填写 Key，请放心使用。
+                </div>
               </div>
             </div>
             <div class="sub-footer">
@@ -5467,7 +5621,7 @@
           
            <!-- 子页面 3: 简单设置页 (用于基础类型的简单设置) -->
           <div id="pageBasicSetting" class="sub-page">
-             <div class="sub-header">
+            <div class="sub-header">
               <span class="btn-back-sub" onclick="closeSubPage('pageBasicSetting')">←</span>
               <span id="basicSettingTitle">设置</span>
             </div>
@@ -5483,21 +5637,24 @@
         </div>
 
         <!-- Panel: 设置面板 -->
-        <div id="settingsPanel" style="display: none; flex-direction: column; height: 100%; background: var(--bg-white); position: relative; overflow: hidden;">
+        <div id="settingsPanel" style="display: none; flex-direction: column; height: 100%; background: var(--bg-body); position: relative; overflow: hidden;">
           <div class="sub-header">
             <span class="btn-back-sub" onclick="closeSettings()">←</span>
             <span data-key="settings_title">设置</span>
           </div>
           
-          <div style="flex: 1; overflow-y: auto; padding: 16px;">
+          <div style="flex: 1; overflow-y: auto; padding: 12px;">
             <!-- 通用设置 -->
             <div class="settings-section">
               <div class="settings-section-title" data-key="settings_general">通用设置</div>
               
               <div class="settings-item">
-                <div class="settings-item-label" data-key="settings_language">语言</div>
+                <div class="settings-item-label">
+                  <span class="settings-item-label-icon">🌐</span>
+                  <span data-key="settings_language">语言</span>
+                </div>
                 <div class="settings-item-control">
-                  <select id="settingsLang" class="search-box" style="width: 120px;" onchange="changeLanguage(this.value)">
+                  <select id="settingsLang" class="search-box" onchange="changeLanguage(this.value)">
                     <option value="zh" data-key="settings_lang_zh">中文</option>
                     <option value="en" data-key="settings_lang_en">English</option>
                   </select>
@@ -5505,9 +5662,12 @@
               </div>
               
               <div class="settings-item">
-                <div class="settings-item-label" data-key="settings_theme">主题</div>
+                <div class="settings-item-label">
+                  <span class="settings-item-label-icon">🎨</span>
+                  <span data-key="settings_theme">主题</span>
+                </div>
                 <div class="settings-item-control">
-                  <select id="settingsTheme" class="search-box" style="width: 120px;" onchange="changeTheme(this.value)">
+                  <select id="settingsTheme" class="search-box" onchange="changeTheme(this.value)">
                     <option value="light" data-key="settings_theme_light">浅色</option>
                     <option value="dark" data-key="settings_theme_dark">深色</option>
                     <option value="system" data-key="settings_theme_system">跟随系统</option>
@@ -5520,8 +5680,11 @@
             <div class="settings-section">
               <div class="settings-section-title" data-key="settings_ai">AI 模型配置</div>
               
-              <div class="settings-item" style="flex-direction: column; align-items: stretch;">
-                <label class="config-label" data-key="sf_lbl_provider">服务商 (API Provider)</label>
+              <div class="settings-item" style="flex-direction: column; align-items: stretch; padding: 0 0 16px 0;">
+                <label class="settings-item-label">
+                  <span class="settings-item-label-icon">🤖</span>
+                  <span data-key="sf_lbl_provider">服务商 (API Provider)</span>
+                </label>
                 <select id="settingsAiProvider" class="search-box" onchange="updateSettingsAiDefaults()">
                   <optgroup label="热门推荐 (推荐)">
                     <option value="glm" selected>智谱 GLM (官方 API)</option>
@@ -5543,23 +5706,41 @@
                 </select>
               </div>
               
-              <div class="settings-item" style="flex-direction: column; align-items: stretch;">
-                <label class="config-label" data-key="sf_lbl_baseurl">API 地址 (Base URL)</label>
-                <input type="text" id="settingsAiBaseUrl" class="search-box">
-                <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">通常以 /v1 结尾。如果使用中转或代理，请填写代理地址。</div>
+              <div class="settings-item" style="flex-direction: column; align-items: stretch; padding: 0 0 16px 0;">
+                <label class="settings-item-label">
+                  <span class="settings-item-label-icon">🔗</span>
+                  <span data-key="sf_lbl_baseurl">API 地址 (Base URL)</span>
+                </label>
+                <div class="input-wrapper">
+                  <input type="text" id="settingsAiBaseUrl" placeholder="https://api.example.com/v1" oninput="toggleSettingsClearBtn(this, 'settingsBaseUrlClearBtn')" style="padding: 10px 12px !important;">
+                  <div class="btn-clear-input hidden" id="settingsBaseUrlClearBtn" onclick="clearSettingsInput('settingsAiBaseUrl', 'settingsBaseUrlClearBtn')" >✕</div>
+                </div>
+                <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 6px;">通常以 /v1 结尾。如果使用中转或代理，请填写代理地址。</div>
               </div>
               
-              <div class="settings-item" style="flex-direction: column; align-items: stretch;">
-                <label class="config-label" data-key="sf_lbl_model">模型名称 (Model / Endpoint ID)</label>
-                <input type="text" id="settingsAiModelName" class="search-box">
+              <div class="settings-item" style="flex-direction: column; align-items: stretch; padding: 0 0 16px 0;">
+                <label class="settings-item-label">
+                  <span class="settings-item-label-icon">⚡</span>
+                  <span data-key="sf_lbl_model">模型名称 (Model / Endpoint ID)</span>
+                </label>
+                <div class="input-wrapper">
+                  <input type="text" id="settingsAiModelName" placeholder="glm-4-flash" oninput="toggleSettingsClearBtn(this, 'settingsModelClearBtn')"  style="padding: 10px 12px !important;">
+                  <div class="btn-clear-input hidden" id="settingsModelClearBtn" onclick="clearSettingsInput('settingsAiModelName', 'settingsModelClearBtn')" >✕</div>
+                </div>
               </div>
               
-              <div class="settings-item" style="flex-direction: column; align-items: stretch;">
-                <label class="config-label">API Key / Auth Token</label>
-                <input type="password" id="settingsAiKey" class="search-box" placeholder="sk-...">
+              <div class="settings-item" style="flex-direction: column; align-items: stretch; padding: 0 0 16px 0;">
+                <label class="settings-item-label">
+                  <span class="settings-item-label-icon">🔑</span>
+                  <span>API Key / Auth Token</span>
+                </label>
+                <div class="input-wrapper">
+                  <input type="password" id="settingsAiKey" placeholder="sk-..." oninput="toggleSettingsClearBtn(this, 'settingsKeyClearBtn')"  style="padding: 10px 12px !important;">
+                  <div class="btn-clear-input hidden" id="settingsKeyClearBtn" onclick="clearSettingsInput('settingsAiKey', 'settingsKeyClearBtn')" >✕</div>
+                </div>
               </div>
               
-              <button class="primary-btn" onclick="saveSettingsAiConfig()" style="margin-top: 10px;" data-key="sf_btn_save_cfg">保存配置</button>
+              <button class="primary-btn" onclick="saveSettingsAiConfig()" style="margin-top: 16px; width: 100%;" data-key="sf_btn_save_cfg">保存配置</button>
               
               <div class="privacy-note" data-key="sf_privacy_note">
                 隐私说明：本插件没有后台服务器，API Key 仅保存在本地。Figma 卸载重装后需要重新填写 Key，请放心使用。
@@ -5918,6 +6099,11 @@
         nav_jumpback: "时空信标",
         nav_skew: "等轴形变",
         nav_theory: "设计理论",
+        nav_smartFill: "智能填充",
+        nav_i18n: "语言切换",
+        nav_mini_mode: "精简",
+        nav_section_advanced: "高级功能",
+        nav_section_lab: "实验室",
         
         skew_simulator: "变换模拟器",
         skew_planes: "系统预设",
@@ -6019,8 +6205,8 @@
         ref_status_done: "完成",
         ref_status_searching_prefix: "查找：",
         
-        ref_chip_pname: "属性名 (Name)",
-        ref_chip_pval: "属性值 (Value)",
+        ref_chip_pname: "属性名",
+        ref_chip_pval: "属性值",
         ref_chip_pname_title: "组件名",
         ref_chip_prop_key_title: "属性名",
         ref_chip_prop_val_title: "属性值",
@@ -6029,12 +6215,12 @@
         ref_ph_rep: "替换为...",
         
         ref_empty_find_init: "输入关键词预览修改效果",
-        btn_rep_selected: "修复选中项", // 复用于两个面板的底部按钮
+        btn_rep_selected: "替换选中项", // 复用于两个面板的底部按钮
         ref_empty_find_none: "未找到匹配项",
         
         ref_btn_rep: "替换",
         ref_btn_rep_all: "全部替换",
-        ref_btn_find_preview: "查找并预览",
+        ref_btn_find_preview: "查找预览",
         ref_btn_replace_checked: "替换选中项",
         ref_btn_edit: "编辑",
         ref_btn_back: "返回",
@@ -6205,8 +6391,17 @@
         txt_tip_locate: "点击定位并标红",  // 列表行 Tooltip
         txt_title_config: "查找配置", // <--- 新增
         txt_err_no_input: "请输入查找内容", // <--- 新增
+        
+        find_replace_complete: "替换完成",
+        find_replace_count_prefix: "本次共成功替换",
+        find_replace_count_suffix: "项。",
+        find_continue_btn: "继续查找",
+        
+        refiner_fix_success: "修复成功",
+        refiner_fix_count_prefix: "本次共修复",
+        refiner_fix_count_suffix: "项。<br>点击继续，返回列表处理剩余项。",
+        refiner_continue_btn: "继续",
 
-        nav_i18n: "语言切换",
         i18n_scope_selection: "选中画板",
         i18n_scope_page: "当前页面",
         i18n_target_text: "目标文本",
@@ -6415,6 +6610,11 @@
         nav_jumpback: "Warp Beacon",
         nav_skew: "Isometric",
         nav_theory: "Design Theory",
+        nav_smartFill: "Smart Fill",
+        nav_i18n: "i18n Converter",
+        nav_mini_mode: "Mini",
+        nav_section_advanced: "Advanced",
+        nav_section_lab: "Lab",
         
         skew_simulator: "Transform Simulator",
         skew_planes: "System Presets",
@@ -6531,7 +6731,7 @@
         
         ref_btn_rep: "Replace",
         ref_btn_rep_all: "Replace All",
-        ref_btn_find_preview: "Find & Preview",
+        ref_btn_find_preview: "Find Preview",
         ref_btn_replace_checked: "Replace Selected",
         ref_btn_edit: "Edit",
         ref_btn_back: "Back",
@@ -6702,8 +6902,17 @@
         txt_tip_locate: "Click to locate & highlight",
         txt_title_config: "Search Config", // <--- 新增
         txt_err_no_input: "Please enter text to find", // <--- 新增
+        
+        find_replace_complete: "Replace Complete",
+        find_replace_count_prefix: "Successfully replaced",
+        find_replace_count_suffix: "items.",
+        find_continue_btn: "Continue Finding",
+        
+        refiner_fix_success: "Fix Successful",
+        refiner_fix_count_prefix: "Fixed",
+        refiner_fix_count_suffix: "items.<br>Click continue to return to list.",
+        refiner_continue_btn: "Continue",
 
-        nav_i18n: "i18n Converter",
         i18n_scope_selection: "Selected Frames",
         i18n_scope_page: "Current Page",
         i18n_target_text: "Target Text",
@@ -7054,8 +7263,16 @@
     function updateSettingsAiDefaults() {
         const provider = document.getElementById('settingsAiProvider').value;
         const defaults = AI_DEFAULTS[provider] || { baseUrl: '', model: '' };
-        document.getElementById('settingsAiBaseUrl').value = defaults.baseUrl;
-        document.getElementById('settingsAiModelName').value = defaults.model;
+        
+        const baseUrlInput = document.getElementById('settingsAiBaseUrl');
+        const modelInput = document.getElementById('settingsAiModelName');
+        
+        baseUrlInput.value = defaults.baseUrl;
+        modelInput.value = defaults.model;
+        
+        // 手动触发 clear 按钮显示
+        toggleSettingsClearBtn(baseUrlInput, 'settingsBaseUrlClearBtn');
+        toggleSettingsClearBtn(modelInput, 'settingsModelClearBtn');
     }
 
     function loadSettingsAiConfig() {
@@ -9314,7 +9531,7 @@
         };
         
         // 收集搜索目标
-        document.querySelectorAll('.chip-check.active').forEach(el => {
+        document.querySelectorAll('.chip-check.active, .seg-btn.active').forEach(el => {
             if (el.dataset.target) config.targets.push(el.dataset.target);
         });
         
@@ -9342,121 +9559,120 @@
     // --- 6. 渲染与结果处理 (核心引擎 - 绝对不能删！) ---
 
     const RENDER_LIMIT = 100; 
+    
 
     // [回调] 接收后端数据
+   // [回调] 接收后端数据
     function renderRefinerResults(results) {
         setButtonLoading('btnLintStart', false);
         setButtonLoading('btnFindStart', false);
         
-        // 1. 将所有结果存入总池子，并初始化选中状态
+        // 🚀 1. 验证关键变量！(这几行会帮你揪出真凶)
+        console.log("🚀【验证1】收到后端数据，共计:", results.length, "条");
+        console.log("🚀【验证2】当前全局变量 currentTab 的值是:", currentTab);
+        
+        // 将所有结果存入总池子，并初始化选中状态
         allRefinerData = results.map((item, idx) => ({
             ...item,
             _uniqueId: idx,
             _selected: item._selected !== undefined ? item._selected : true
         }));
 
-        // 2. 根据当前 Tab 决定如何显示
+        // 根据当前 Tab 决定如何显示
         if (currentTab === 'lint') {
-            // Lint 模式通常数量不多，或者沿用旧逻辑，这里为了统一，也可以用分页
-            // 但 Lint 模式建议一次性显示（如果很多可以考虑分页，这里暂按全部显示处理）
+            console.log("👀【验证3】程序走进了 -> 'lint' (智能检查) 分支！");
+            
             document.getElementById('lintConfigPage').style.display = 'none';
             document.getElementById('lintResultsWrapper').style.display = 'flex';
-            // 🔥🔥🔥 修复逻辑开始：处理 0 结果的情况 🔥🔥🔥
             if (results.length === 0) {
-                // A. 如果结果为 0：显示缺省页，隐藏列表和按钮
                 document.getElementById('lintList').style.display = 'none';
                 document.getElementById('lintFooter').style.display = 'none';
-                
-                // 显示“太棒了”缺省页
                 const emptyEl = document.getElementById('lintEmpty');
                 if (emptyEl) {
                     emptyEl.style.display = 'flex';
-                    // 动态更新文案（可选）
                     const textEl = emptyEl.querySelector('.es-text');
                     if(textEl) textEl.innerText = "太棒了！未发现需要修复的组件命名";
                 }
-                
-                // 更新计数
                 document.getElementById('lintCount').innerText = "0";
-                
             } else {
-                // B. 如果有结果：显示列表和按钮，隐藏缺省页
                 document.getElementById('lintList').style.display = 'block';
                 document.getElementById('lintFooter').style.display = 'flex';
                 const emptyEl = document.getElementById('lintEmpty');
                 if (emptyEl) emptyEl.style.display = 'none';
-                
-                // 执行渲染
                 renderBatch(document.getElementById('lintList'), true); 
             }
-            // 🔥🔥🔥 修复逻辑结束 🔥🔥🔥
         } else {
-            // --- Find 模式逻辑 (🔥 重点修复这里) ---
+            console.log("👀【验证3】程序走进了 -> 'find' (查找替换) 分支！");
+            
             const listEl = document.getElementById('findList');
             const footerEl = document.getElementById('findFooter');
             const headerEl = document.getElementById('findListHeader');
             const countEl = document.getElementById('findCount');
+            const wrapperEl = document.getElementById('findResultsWrapper');
 
-            // 1. 无论有无结果，先强制显示列表容器 (修复白屏问题的关键!)
-            listEl.style.display = 'block'; 
+            // ❌ 验证 HTML 容器是否存在 (如果缺了其中一个，就会白屏)
+            if (!listEl) console.error("❌ 致命错误：HTML 里找不到 id='findList' 的元素！数据没地方放！");
+            if (!wrapperEl) console.error("❌ 致命错误：HTML 里找不到 id='findResultsWrapper' 的元素！");
+
+            if(wrapperEl) wrapperEl.style.display = 'flex';
+            if(listEl) listEl.style.display = 'block'; 
             
-            // 2. 隐藏之前的成功状态 (如果有)
-            const successEl = document.getElementById('lintSuccess');
+            const successEl = document.getElementById('findSuccess');
             if(successEl) successEl.style.display = 'none';
 
             if (results.length === 0) {
-                // A. 无结果
-                headerEl.style.display = 'none';
-                listEl.innerHTML = `<div class="empty-state-refiner"><div class="es-icon">🔍</div><div class="es-text">未找到匹配项</div></div>`;
+                if(headerEl) headerEl.style.display = 'none';
+                if(listEl) listEl.innerHTML = `<div class="empty-state-refiner"><div class="es-icon">🔍</div><div class="es-text">未找到匹配项</div></div>`;
                 if(countEl) countEl.innerText = "0";
-                footerEl.style.display = 'none';
+                if(footerEl) footerEl.style.display = 'none';
             } else {
-                // B. 有结果
-                headerEl.style.display = 'flex'; // 显示头部
-                footerEl.style.display = 'flex'; // 显示底部按钮
+                if(headerEl) headerEl.style.display = 'flex'; 
+                if(footerEl) footerEl.style.display = 'flex'; 
                 
                 // 执行渲染
+                console.log("🚀【验证4】准备调用 renderBatch，目标容器是:", listEl);
                 renderBatch(listEl, false);
             }
         }
     }
-
+    // [核心] 分批渲染函数
     // [核心] 分批渲染函数
     function renderBatch(container, showAll = false) {
+        console.log("🛠️ 开始执行 renderBatch，传入数据总量:", allRefinerData.length);
         container.innerHTML = '';
         
-        // 1. 截取当前批次的数据
         const total = allRefinerData.length;
-        // 如果是 Find 模式，只取前 BATCH_SIZE 个；如果是 Lint 模式，取全部
-        const limit = showAll ? total : BATCH_SIZE; 
+        // 防御性赋值，防止你前面漏写了 BATCH_SIZE 导致报错
+        const limit = showAll ? total : (typeof BATCH_SIZE !== 'undefined' ? BATCH_SIZE : 50); 
         
-        // refinerCache 现在只代表"当前屏幕上显示的这波数据"
         refinerCache = allRefinerData.slice(0, limit);
         refinerCache.forEach((item, i) => { item._index = i; });
         
         const displayCount = refinerCache.length;
         const remaining = total - displayCount;
 
-        // 2. 更新头部计数 (显示：当前显示 / 总数)
         const countId = currentTab === 'lint' ? 'lintCount' : 'findCount';
         const countEl = document.getElementById(countId);
         if(countEl) {
-            if (remaining > 0) {
-                countEl.innerText = `${displayCount} / ${total}`; // 例如: 50 / 1200
-            } else {
-                countEl.innerText = total;
-            }
+            countEl.innerText = remaining > 0 ? `${displayCount} / ${total}` : total;
         }
 
-        // 3. 渲染列表
+        console.log(`🛠️ 准备交给 renderTree 渲染... 数量: ${refinerCache.length}`);
+        
+        // 渲染 HTML
         renderTree(refinerCache, container);
-
-        // 4. 如果还有剩余，在底部显示提示
+        
+        // 🔥 终极验证：看看容器里面是不是真的有 HTML 字符串！
+        console.log(`✅ 渲染完成！当前容器内部 HTML 长度为: ${container.innerHTML.length} 字符`);
+        
+        // 🔥 强行加样式，防止 CSS 坍塌隐藏
+        container.style.minHeight = "200px";
+        
         if (remaining > 0 && !showAll) {
             const tip = document.createElement('div');
             tip.className = 'limit-warning';
             tip.style.marginTop = '10px';
-            tip.innerHTML = `⚡️ 为防止卡顿，仅显示前 <b>${displayCount}</b> 项。处理完这波后，会自动加载剩余的 <b>${remaining}</b> 项。`;
+            tip.innerHTML = `⚡️ 为防止卡顿，仅显示前 <b>${displayCount}</b> 项...`;
             container.appendChild(tip);
         }
         
@@ -9873,6 +10089,30 @@
     function clearTxtFindInput() {
         const input = document.getElementById('txtFindInput');
         const clearBtn = document.getElementById('txtFindClearBtn');
+        if (input) {
+            input.value = '';
+            input.focus();
+        }
+        if (clearBtn) {
+            clearBtn.classList.add('hidden');
+        }
+    }
+
+    // 设置页面输入框清除按钮
+    function toggleSettingsClearBtn(input, btnId) {
+        const clearBtn = document.getElementById(btnId);
+        if (clearBtn) {
+            if (input.value) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+        }
+    }
+
+    function clearSettingsInput(inputId, btnId) {
+        const input = document.getElementById(inputId);
+        const clearBtn = document.getElementById(btnId);
         if (input) {
             input.value = '';
             input.focus();
@@ -11291,17 +11531,14 @@
                     <input type="number" id="numMax" class="search-box" value="${s.max}" style="flex:1">
                 </div>
             </div>
-            <div class="config-group" style="margin-top:12px;">
+            <div class="config-group">
                 <label class="config-label">${i18n[curLang].sf_cfg_decimal}</label>
                 <input type="number" id="numDec" class="search-box" value="${s.decimals}" min="0" max="5">
-            </div>
-            <div style="margin-top:12px;">
-                 <label class="checkbox-row">
+                <label class="checkbox-row" style="margin:8px 0 0 0;">
                     <input type="checkbox" id="numThous" ${s.thousands?'checked':''}> ${i18n[curLang].sf_cfg_thous} 
                 </label>
             </div>
-            
-            <div class="config-group" style="margin-top:16px; border-top:1px dashed #eee; padding-top:12px;">
+            <div class="config-group">
                 <label class="config-label">${i18n[curLang].sf_cfg_sort}</label>
                 ${renderRadioTags('numSort', [
                     {l:'随机', v:'random'}, {l:'升序 1→9', v:'asc'}, {l:'降序 9→1', v:'desc'}
@@ -11329,7 +11566,7 @@
                 </div>
             </div>
           
-            <div class="config-group" style="margin-top:16px;">
+            <div class="config-group">
                 <label class="config-label">${i18n[curLang].sf_cfg_date_fmt}</label>
                 ${renderRadioTags('dateFormat', [
                     {l:'2023-10-01', v:'YYYY-MM-DD'},
@@ -11346,7 +11583,7 @@
                 ], s.format)}
             </div>
             
-            <div class="config-group" style="margin-top:16px;">
+            <div class="config-group">
                 <label class="config-label">${i18n[curLang].sf_cfg_sort}</label>
                 ${renderRadioTags('dateSort', [
                     {l:'随机', v:'random'}, {l:'正序 (old→new)', v:'asc'}, {l:'倒序 (new→old)', v:'desc'}
@@ -11376,7 +11613,7 @@
                 <div style="font-size:11px; color:#999; margin-top:4px;">${i18n[curLang].sf_cfg_time_help}</div>
             </div>
           
-            <div class="config-group" style="margin-top:16px;">
+            <div class="config-group" ">
                 <label class="config-label">${i18n[curLang].sf_cfg_time_fmt}</label>
                 ${renderRadioTags('timeFormat', [
                     {l:'05:05:05', v:'HH:mm:ss'},
@@ -11387,7 +11624,7 @@
                 ], s.format)}
             </div>
             
-            <div class="config-group" style="margin-top:16px;">
+            <div class="config-group">
                 <label class="config-label">${i18n[curLang].sf_cfg_sort}</label>
                 ${renderRadioTags('timeSort', [
                     {l:'随机', v:'random'}, {l:'升序 (早→晚)', v:'asc'}, {l:'降序 (晚→早)', v:'desc'}
@@ -11514,7 +11751,34 @@
         document.getElementById('customTitle').value = '';
         document.getElementById('customContent').value = '';
         document.querySelector('#pageAddCustom .sub-header span:last-child').innerText = "添加自定义数据";
+        // 隐藏清除按钮
+        const clearBtn = document.getElementById('customTitleClearBtn');
+        if (clearBtn) clearBtn.classList.add('hidden');
         openSubPage('pageAddCustom');
+    }
+    
+    // 自定义列表输入框清除按钮
+    function toggleCustomClearBtn(input, btnId) {
+        const clearBtn = document.getElementById(btnId);
+        if (clearBtn) {
+            if (input.value) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+        }
+    }
+
+    function clearCustomInput(inputId, btnId) {
+        const input = document.getElementById(inputId);
+        const clearBtn = document.getElementById(btnId);
+        if (input) {
+            input.value = '';
+            input.focus();
+        }
+        if (clearBtn) {
+            clearBtn.classList.add('hidden');
+        }
     }
     
     // --- 自定义列表逻辑 ---
@@ -11691,12 +11955,46 @@
       const provider = document.getElementById('aiProvider').value;
       const cfg = aiProviders[provider];
       if (cfg) {
-        document.getElementById('aiBaseUrl').value = cfg.url;
-        document.getElementById('aiModelName').value = cfg.model;
+        const baseUrlInput = document.getElementById('aiBaseUrl');
+        const modelNameInput = document.getElementById('aiModelName');
+        const keyInput = document.getElementById('aiKey');
+        
+        baseUrlInput.value = cfg.url;
+        modelNameInput.value = cfg.model;
+        
+        // 手动触发 clear 按钮显示
+        toggleAiConfigClearBtn(baseUrlInput, 'aiBaseUrlClearBtn');
+        toggleAiConfigClearBtn(modelNameInput, 'aiModelNameClearBtn');
+        
         if (cfg.key) {
-          document.getElementById('aiKey').value = cfg.key;
+          keyInput.value = cfg.key;
+          toggleAiConfigClearBtn(keyInput, 'aiKeyClearBtn');
         }
       }
+    }
+
+    // AI 配置输入框清除按钮
+    function toggleAiConfigClearBtn(input, btnId) {
+        const clearBtn = document.getElementById(btnId);
+        if (clearBtn) {
+            if (input.value) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+        }
+    }
+
+    function clearAiConfigInput(inputId, btnId) {
+        const input = document.getElementById(inputId);
+        const clearBtn = document.getElementById(btnId);
+        if (input) {
+            input.value = '';
+            input.focus();
+        }
+        if (clearBtn) {
+            clearBtn.classList.add('hidden');
+        }
     }
 
     function saveAiConfig() {
@@ -11938,7 +12236,40 @@
        document.getElementById('aiResultArea').innerText = '';
        // 可选：让输入框重新获得焦点
        document.getElementById('aiPrompt').focus();
+       // 隐藏清除按钮
+       const clearBtn = document.getElementById('aiPromptClearBtn');
+       if (clearBtn) clearBtn.classList.add('hidden');
     }
+
+    // AI 输入框清除按钮
+    function clearAiPromptInput() {
+        const input = document.getElementById('aiPrompt');
+        const clearBtn = document.getElementById('aiPromptClearBtn');
+        if (input) {
+            input.value = '';
+            input.focus();
+        }
+        if (clearBtn) {
+            clearBtn.classList.add('hidden');
+        }
+    }
+
+    // 监听 AI 输入框内容变化
+    document.addEventListener('DOMContentLoaded', function() {
+        const aiPromptInput = document.getElementById('aiPrompt');
+        if (aiPromptInput) {
+            aiPromptInput.addEventListener('input', function() {
+                const clearBtn = document.getElementById('aiPromptClearBtn');
+                if (clearBtn) {
+                    if (this.value) {
+                        clearBtn.classList.remove('hidden');
+                    } else {
+                        clearBtn.classList.add('hidden');
+                    }
+                }
+            });
+        }
+    });
     
     // --- 新增：保存 AI 结果为自定义列表 ---
     let currentSaveMode = ''; // 'new' | 'append'
@@ -12474,6 +12805,11 @@
         if (config.baseUrl && baseUrl) baseUrl.value = config.baseUrl;
         if (config.model && model) model.value = config.model;
         if (config.key && key) key.value = config.key;
+        
+        // 手动触发 clear 按钮显示
+        if (baseUrl) toggleSettingsClearBtn(baseUrl, 'settingsBaseUrlClearBtn');
+        if (model) toggleSettingsClearBtn(model, 'settingsModelClearBtn');
+        if (key) toggleSettingsClearBtn(key, 'settingsKeyClearBtn');
         
         aiConfig = config;
         syncAiConfigToSmartFill();

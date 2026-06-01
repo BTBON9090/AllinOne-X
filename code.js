@@ -122,7 +122,101 @@ var convertNameAdvanced = function (str, format, sepMode, casing, keepEmoji, rem
 figma.showUI(__html__, { width: 460, height: 640, themeColors: true });
 // 用于存储高亮前的原始样式： Key = "NodeID_Index", Value = OriginalFills
 var highlightCache = {};
-var layerSortDirection = 'asc'; // 用于图层排序切换
+var layerSortDirection = 'asc'; // 用于图层排序切换，默认从上到下
+var trySet = function (dst, propName, value) {
+    try {
+        dst[propName] = value;
+    }
+    catch (e) { }
+};
+function copyNodeStyles(src, dst) {
+    dst.opacity = src.opacity;
+    trySet(dst, 'blendMode', src.blendMode);
+    dst.visible = src.visible;
+    trySet(dst, 'locked', src.locked);
+    trySet(dst, 'rotation', src.rotation);
+    trySet(dst, 'constraints', src.constraints);
+    if ('fills' in src && src.fills !== figma.mixed && Array.isArray(src.fills)) {
+        trySet(dst, 'fills', JSON.parse(JSON.stringify(src.fills)));
+    }
+    if ('fillStyleId' in src && typeof src.fillStyleId === 'string') {
+        trySet(dst, 'fillStyleId', src.fillStyleId);
+    }
+    if ('strokes' in src && src.strokes !== figma.mixed && Array.isArray(src.strokes)) {
+        trySet(dst, 'strokes', JSON.parse(JSON.stringify(src.strokes)));
+    }
+    if ('strokeStyleId' in src && typeof src.strokeStyleId === 'string') {
+        trySet(dst, 'strokeStyleId', src.strokeStyleId);
+    }
+    if ('strokeWeight' in src && typeof src.strokeWeight === 'number') {
+        trySet(dst, 'strokeWeight', src.strokeWeight);
+    }
+    trySet(dst, 'strokeAlign', src.strokeAlign);
+    if ('dashPattern' in src && Array.isArray(src.dashPattern)) {
+        trySet(dst, 'dashPattern', __spreadArray([], src.dashPattern, true));
+    }
+    trySet(dst, 'strokeJoin', src.strokeJoin);
+    trySet(dst, 'strokeCap', src.strokeCap);
+    trySet(dst, 'strokeMiterLimit', src.strokeMiterLimit);
+    if ('effects' in src && src.effects !== figma.mixed && Array.isArray(src.effects)) {
+        trySet(dst, 'effects', JSON.parse(JSON.stringify(src.effects)));
+    }
+    if ('effectStyleId' in src && typeof src.effectStyleId === 'string') {
+        trySet(dst, 'effectStyleId', src.effectStyleId);
+    }
+    trySet(dst, 'clipsContent', src.clipsContent);
+    trySet(dst, 'constrainProportions', src.constrainProportions);
+    if ('cornerRadius' in src) {
+        if (src.cornerRadius !== figma.mixed) {
+            trySet(dst, 'cornerRadius', src.cornerRadius);
+        }
+        else {
+            try {
+                dst.topLeftRadius = src.topLeftRadius;
+                dst.topRightRadius = src.topRightRadius;
+                dst.bottomLeftRadius = src.bottomLeftRadius;
+                dst.bottomRightRadius = src.bottomRightRadius;
+            }
+            catch (e) { }
+        }
+    }
+    if ('cornerSmoothing' in src && src.cornerSmoothing !== figma.mixed) {
+        trySet(dst, 'cornerSmoothing', src.cornerSmoothing);
+    }
+    if ('individualStrokeWeights' in src) {
+        try {
+            dst.individualStrokeWeights = {
+                top: src.individualStrokeWeights.top,
+                right: src.individualStrokeWeights.right,
+                bottom: src.individualStrokeWeights.bottom,
+                left: src.individualStrokeWeights.left
+            };
+        }
+        catch (e) { }
+    }
+    if (src.type === 'FRAME' && dst.type !== 'RECTANGLE') {
+        trySet(dst, 'overflowDirection', src.overflowDirection);
+        trySet(dst, 'primaryAxisSizingMode', src.primaryAxisSizingMode);
+        trySet(dst, 'counterAxisSizingMode', src.counterAxisSizingMode);
+        trySet(dst, 'layoutMode', src.layoutMode);
+        if (src.layoutMode !== 'NONE') {
+            trySet(dst, 'primaryAxisAlignItems', src.primaryAxisAlignItems);
+            trySet(dst, 'counterAxisAlignItems', src.counterAxisAlignItems);
+            trySet(dst, 'paddingLeft', src.paddingLeft);
+            trySet(dst, 'paddingRight', src.paddingRight);
+            trySet(dst, 'paddingTop', src.paddingTop);
+            trySet(dst, 'paddingBottom', src.paddingBottom);
+            trySet(dst, 'itemSpacing', src.itemSpacing);
+            trySet(dst, 'layoutWrap', src.layoutWrap);
+        }
+    }
+    if ('layoutGrids' in src && Array.isArray(src.layoutGrids)) {
+        trySet(dst, 'layoutGrids', JSON.parse(JSON.stringify(src.layoutGrids)));
+    }
+    if ('gridStyleId' in src && typeof src.gridStyleId === 'string') {
+        trySet(dst, 'gridStyleId', src.gridStyleId);
+    }
+}
 figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, function () {
     function rm(n) {
         if (n.layoutMode && n.layoutMode !== 'NONE') {
@@ -131,6 +225,15 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
         }
         if (n.children)
             n.children.forEach(rm);
+    }
+    function collect(n) {
+        if (n.type === 'GROUP')
+            groups_2.push(n);
+        if ('children' in n)
+            for (var _i = 0, _a = n.children; _i < _a.length; _i++) {
+                var child = _a[_i];
+                collect(child);
+            }
     }
     function ul(n) {
         if ('locked' in n && n.locked) {
@@ -168,27 +271,27 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
             });
         });
     }
-    var res, json, e_1, selection, _a, textNodes_4, traverse_1, scope, dataList, mode, distribution, textNodes_5, traverse_2, changeCount, i, node, textToFill, e_2, value, aiConfig, newSelection, _i, selection_1, node, frame, idx, children, _b, children_1, child, newSelection, _c, selection_2, node, r, idx, count, _d, selection_3, node, temp, _e, selection_4, node, img, asyncImg, size, t, pool, _f, pool_1, n, count_1, newSelection, _g, selection_5, node, frame, parent_1, index, newSel, _h, selection_6, node, lines, font, e_3, cy, _j, lines_1, l, t, tNodes, font, e_4, txt, nt, arr_1, arr_2, sel, targets_3, scan_1, count, _k, targets_1, node, h, pool, _l, pool_2, n, count_3, p_1, isReverse_1, count_4, count_2, count, _m, selection_7, node, newX, newY, newW, newH, sel, f, sel_5, searchTargets, _o, sel_1, node, children, _p, sel_2, node, siblings, _q, sel_3, node, children, allPageNodes, uniqueMap_1, finalPool, results, _r, finalPool_1, node, match, n, q, t, ts, isType, isState, s, _s, _t, p, val, v, tgt, runFocus, createdCount, conflicts, errors, localPaints, localTexts, localEffects, _loop_1, _u, selection_8, node, e_5, parts, sel, countFill_1, countStroke_1, countText_1, countEffect_1, paints, texts, effects, paintMap_1, effectMap_1, textMap_1, traverse_3, _v, sel_4, node, e_6, total, n1, n2, x1, y1, x2, y2, findText_1, replaceText, scope, count, textNodes_6, collect_1, _w, textNodes_1, node, font, e_7, pageName, slides, slides, slides, slides, slides, cfg_1, targets_4, targetTypes_1, scopeNodes, collectTargets_1, findRegex_1, escape_1, pat, results_1, checkString_1, _loop_2, _x, targets_2, node, items, count, _y, items_1, item, node, err_1, scope, findText_2, results_2, searchPool, traverse_4, node, cacheKey, font, cachedData, currentFills, highlightPaint, e_8, tasks, replaceText, successCount, processedIds, groups_1, _z, _0, _1, _2, nodeId, node, groupTasks, _3, groupTasks_1, task, currentStr, err_2, count, _4, _5, _6, _7, key, _8, nodeId, indexStr, index, data, node, font, e_9, ids, findText_3, replaceText, count, _9, ids_1, id, node, regex, err_3, dataStr, spots, dataStr, spots, currentSelection, defaultName, newSpot, dataStr, spots, spot, targetPage, nodesToSelect, _10, _11, id, node, e_10, dataStr, spots, dataStr, spots, index, selection_10, r, sx, sy, cosR, sinR, tanX, tanY, m00, m01, m10, m11, _12, selection_9, node, tx, ty, newTransform, data, e_11, e_12, hasSelection, scope, extractTarget, collectionName, nodesToScan, textNodes_3, allCollections, collectionNames, targetColName_1, i18nCollection, modes_1, existingVarMap, origModeId_1, localVars, _13, localVars_1, v, origVal, boundCount, mixedFonts, autoBindMap, newTextMap, _14, textNodes_2, node, text, newPayload, autoBindPayload, isCreate, collectionName_1, collections, collection, origModeId, allTargetLangs_1, modeIdMap_1, _15, _16, lang, newModeId, localVars, varMap, _17, localVars_2, v, baseVal, _18, newPayload_1, item, variable, safeName, varName, _19, _20, _21, langName, translatedText, targetModeId, _22, _23, nodeId, node, e_13, payload, successCount, _24, payload_1, item, targetText, _25, _26, nodeId, node, e_14, e_15;
+    var res, json, e_1, selection, _a, textNodes_4, traverse_1, scope, dataList, mode, distribution, textNodes_5, traverse_2, changeCount, i, node, textToFill, e_2, value, aiConfig, newSelection, selCopy, _i, selCopy_1, node, parent_1, idx, frame, _b, _c, child, newSelection, selCopy, _d, selCopy_2, node, parent_2, _e, _f, child, idx, rect, count, _g, selection_1, node, temp, _h, selection_2, node, img, asyncImg, size, count_1, newSelection, _j, selection_3, node, frame, parent_3, index, newSel, _k, selection_4, node, lines, font, e_3, cy, _l, lines_1, l, t, tNodes, font, e_4, txt, nt, newSel, _m, selection_5, node, grandParent, absX, absY, gpAbsX, gpAbsY, relX, relY, page, newSel, _o, selection_6, node, absX, absY, sel, targets_3, scan_1, _p, targets_1, node, h, pool, _q, pool_1, n, count_3, p_1, isReverse_1, count, groups_2, _r, selection_7, node, _s, groups_1, g, count_2, count, _t, selection_8, node, newX, newY, newW, newH, n1, n2, x1, y1, createdCount, conflicts, errors, localPaints, localTexts, localEffects, _loop_1, _u, selection_9, node, e_5, parts, sel, countFill_1, countStroke_1, countText_1, countEffect_1, paints, texts, effects, paintMap_1, effectMap_1, textMap_1, traverse_3, _v, sel_1, node, e_6, total, sel, f, sel_5, searchTargets, _w, sel_2, node, children, _x, sel_3, node, siblings, allPageNodes, _y, sel_4, node, children, allPageNodes, uniqueMap_1, finalPool, results, _z, finalPool_1, node, match, n, q, t, ts, isType, isState, s, _0, _1, p, val, v, tgt, runFocus, findText_1, replaceText, scope, count, textNodes_6, collect_1, _2, textNodes_1, node, font, e_7, pageName, slides, slides, slides, slides, slides, cfg_1, targets_4, targetTypes_1, scopeNodes, collectTargets_1, findRegex_1, escape_1, pat, results_1, checkString_1, _loop_2, _3, targets_2, node, items, count, _4, items_1, item, node, err_1, scope, findText_2, results_2, searchPool, traverse_4, node, cacheKey, font, cachedData, currentFills, highlightPaint, e_8, tasks, replaceText, successCount, processedIds, groups_3, _5, _6, _7, _8, nodeId, node, groupTasks, _9, groupTasks_1, task, currentStr, err_2, count, _10, _11, _12, _13, key, _14, nodeId, indexStr, index, data, node, font, e_9, ids, findText_3, replaceText, count, _15, ids_1, id, node, regex, err_3, dataStr, spots, dataStr, spots, currentSelection, defaultName, newSpot, dataStr, spots, spot, targetPage, nodesToSelect, _16, _17, id, node, e_10, dataStr, spots, dataStr, spots, index, selection_11, r, sx, sy, cosR, sinR, tanX, tanY, m00, m01, m10, m11, _18, selection_10, node, tx, ty, newTransform, data, e_11, e_12, hasSelection, scope, extractTarget, collectionName, nodesToScan, textNodes_3, allCollections, collectionNames, targetColName_1, i18nCollection, modes_1, existingVarMap, origModeId_1, localVars, _19, localVars_1, v, origVal, boundCount, mixedFonts, autoBindMap, newTextMap, _20, textNodes_2, node, text, newPayload, autoBindPayload, isCreate, collectionName_1, collections, collection, origModeId, allTargetLangs_1, modeIdMap_1, _21, _22, lang, newModeId, localVars, varMap, _23, localVars_2, v, baseVal, _24, newPayload_1, item, variable, safeName, varName, _25, _26, _27, langName, translatedText, targetModeId, _28, _29, nodeId, node, e_13, payload, successCount, _30, payload_1, item, targetText, _31, _32, nodeId, node, e_14, e_15, dx, dy, newW, newH;
     var _this = this;
-    return __generator(this, function (_27) {
-        switch (_27.label) {
+    return __generator(this, function (_33) {
+        switch (_33.label) {
             case 0:
                 if (!msg || !msg.type)
                     return [2 /*return*/];
                 if (!(msg.type === 'do-fetch')) return [3 /*break*/, 6];
-                _27.label = 1;
+                _33.label = 1;
             case 1:
-                _27.trys.push([1, 4, , 5]);
+                _33.trys.push([1, 4, , 5]);
                 return [4 /*yield*/, fetch(msg.url, msg.options)];
             case 2:
-                res = _27.sent();
+                res = _33.sent();
                 return [4 /*yield*/, res.json()];
             case 3:
-                json = _27.sent();
+                json = _33.sent();
                 figma.ui.postMessage({ type: 'api-response', reqId: msg.reqId, data: json });
                 return [3 /*break*/, 5];
             case 4:
-                e_1 = _27.sent();
+                e_1 = _33.sent();
                 figma.ui.postMessage({ type: 'api-response', reqId: msg.reqId, error: e_1.message || String(e_1) });
                 return [3 /*break*/, 5];
             case 5: return [2 /*return*/];
@@ -206,55 +309,57 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     case 'to-rect': return [3 /*break*/, 22];
                     case 'swap-fs': return [3 /*break*/, 23];
                     case 'reset-image': return [3 /*break*/, 24];
-                    case 'select-text': return [3 /*break*/, 29];
-                    case 'remove-al': return [3 /*break*/, 30];
-                    case 'add-al-wrapper': return [3 /*break*/, 31];
-                    case 'split-text': return [3 /*break*/, 32];
-                    case 'join-text': return [3 /*break*/, 40];
-                    case 'up-one': return [3 /*break*/, 45];
-                    case 'up-all': return [3 /*break*/, 46];
-                    case 'rename-content': return [3 /*break*/, 47];
-                    case 'detach-all': return [3 /*break*/, 48];
-                    case 'remove-hidden': return [3 /*break*/, 49];
-                    case 'sort-layers': return [3 /*break*/, 50];
-                    case 'ungroup-all': return [3 /*break*/, 51];
-                    case 'unlock-all': return [3 /*break*/, 52];
-                    case 'pixel-perfect': return [3 /*break*/, 53];
-                    case 'fetch-selection-name': return [3 /*break*/, 54];
-                    case 'find-and-select': return [3 /*break*/, 55];
-                    case 'focus-layers': return [3 /*break*/, 56];
-                    case 'create-styles': return [3 /*break*/, 57];
-                    case 'match-styles': return [3 /*break*/, 68];
-                    case 'swap-positions': return [3 /*break*/, 79];
-                    case 'find-replace': return [3 /*break*/, 80];
-                    case 'ppt-step-1': return [3 /*break*/, 90];
-                    case 'ppt-step-2': return [3 /*break*/, 92];
-                    case 'ppt-step-3': return [3 /*break*/, 94];
-                    case 'ppt-step-4': return [3 /*break*/, 96];
-                    case 'ppt-step-5': return [3 /*break*/, 98];
-                    case 'lint-variants': return [3 /*break*/, 100];
-                    case 'fix-variants': return [3 /*break*/, 101];
-                    case 'text-find-matches': return [3 /*break*/, 108];
-                    case 'locate-node': return [3 /*break*/, 109];
-                    case 'text-replace-batch': return [3 /*break*/, 117];
-                    case 'clear-all-highlights': return [3 /*break*/, 125];
-                    case 'text-replace-batch': return [3 /*break*/, 134];
-                    case 'jb-init': return [3 /*break*/, 142];
-                    case 'jb-save': return [3 /*break*/, 143];
-                    case 'jb-jump': return [3 /*break*/, 144];
-                    case 'jb-delete': return [3 /*break*/, 156];
-                    case 'jb-rename': return [3 /*break*/, 157];
-                    case 'skew-apply': return [3 /*break*/, 158];
-                    case 'req-skew-presets': return [3 /*break*/, 159];
-                    case 'save-skew-presets': return [3 /*break*/, 163];
-                    case 'i18n-check-selection': return [3 /*break*/, 167];
-                    case 'i18n-detect': return [3 /*break*/, 168];
-                    case 'i18n-bind-variables': return [3 /*break*/, 173];
-                    case 'i18n-replace-text': return [3 /*break*/, 186];
-                    case 'resize-drag': return [3 /*break*/, 200];
-                    case 'resize-window': return [3 /*break*/, 200];
+                    case 'remove-al': return [3 /*break*/, 29];
+                    case 'add-al-wrapper': return [3 /*break*/, 30];
+                    case 'split-text': return [3 /*break*/, 31];
+                    case 'join-text': return [3 /*break*/, 39];
+                    case 'up-one': return [3 /*break*/, 44];
+                    case 'up-all': return [3 /*break*/, 45];
+                    case 'rename-content': return [3 /*break*/, 46];
+                    case 'detach-all': return [3 /*break*/, 47];
+                    case 'remove-hidden': return [3 /*break*/, 48];
+                    case 'sort-layers': return [3 /*break*/, 49];
+                    case 'ungroup-all': return [3 /*break*/, 50];
+                    case 'unlock-all': return [3 /*break*/, 51];
+                    case 'pixel-perfect': return [3 /*break*/, 52];
+                    case 'swap-positions': return [3 /*break*/, 53];
+                    case 'create-styles': return [3 /*break*/, 54];
+                    case 'match-styles': return [3 /*break*/, 65];
+                    case 'fetch-selection-name': return [3 /*break*/, 76];
+                    case 'find-and-select': return [3 /*break*/, 77];
+                    case 'focus-layers': return [3 /*break*/, 78];
+                    case 'find-replace': return [3 /*break*/, 79];
+                    case 'ppt-step-1': return [3 /*break*/, 89];
+                    case 'ppt-step-2': return [3 /*break*/, 91];
+                    case 'ppt-step-3': return [3 /*break*/, 93];
+                    case 'ppt-step-4': return [3 /*break*/, 95];
+                    case 'ppt-step-5': return [3 /*break*/, 97];
+                    case 'lint-variants': return [3 /*break*/, 99];
+                    case 'fix-variants': return [3 /*break*/, 100];
+                    case 'text-find-matches': return [3 /*break*/, 107];
+                    case 'locate-node': return [3 /*break*/, 108];
+                    case 'text-replace-batch': return [3 /*break*/, 116];
+                    case 'clear-all-highlights': return [3 /*break*/, 124];
+                    case 'text-replace-batch': return [3 /*break*/, 133];
+                    case 'jb-init': return [3 /*break*/, 141];
+                    case 'jb-save': return [3 /*break*/, 142];
+                    case 'jb-jump': return [3 /*break*/, 143];
+                    case 'jb-delete': return [3 /*break*/, 155];
+                    case 'jb-rename': return [3 /*break*/, 156];
+                    case 'skew-apply': return [3 /*break*/, 157];
+                    case 'req-skew-presets': return [3 /*break*/, 158];
+                    case 'save-skew-presets': return [3 /*break*/, 162];
+                    case 'i18n-check-selection': return [3 /*break*/, 166];
+                    case 'i18n-detect': return [3 /*break*/, 167];
+                    case 'i18n-bind-variables': return [3 /*break*/, 172];
+                    case 'i18n-replace-text': return [3 /*break*/, 185];
+                    case 'resize-start': return [3 /*break*/, 199];
+                    case 'resize-move': return [3 /*break*/, 200];
+                    case 'resize-end': return [3 /*break*/, 201];
+                    case 'resize-drag': return [3 /*break*/, 202];
+                    case 'resize-window': return [3 /*break*/, 202];
                 }
-                return [3 /*break*/, 201];
+                return [3 /*break*/, 203];
             case 7:
                 {
                     textNodes_4 = [];
@@ -267,9 +372,9 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     scope = figma.currentPage.selection.length > 0 ? figma.currentPage.selection : [figma.currentPage];
                     scope.forEach(traverse_1);
                     figma.ui.postMessage({ type: 'selection-count-res', count: textNodes_4.length });
-                    return [3 /*break*/, 201];
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 8;
+                _33.label = 8;
             case 8:
                 dataList = msg.dataList, mode = msg.mode, distribution = msg.distribution;
                 textNodes_5 = [];
@@ -301,18 +406,18 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                 });
                 changeCount = 0;
                 i = 0;
-                _27.label = 9;
+                _33.label = 9;
             case 9:
                 if (!(i < textNodes_5.length)) return [3 /*break*/, 14];
                 node = textNodes_5[i];
-                _27.label = 10;
+                _33.label = 10;
             case 10:
-                _27.trys.push([10, 12, , 13]);
+                _33.trys.push([10, 12, , 13]);
                 // 加载字体
                 return [4 /*yield*/, figma.loadFontAsync(node.fontName)];
             case 11:
                 // 加载字体
-                _27.sent(); // 简单处理，假设非混合字体
+                _33.sent(); // 简单处理，假设非混合字体
                 textToFill = "";
                 if (distribution === 'random') {
                     textToFill = dataList[Math.floor(Math.random() * dataList.length)];
@@ -335,7 +440,7 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                 changeCount++;
                 return [3 /*break*/, 13];
             case 12:
-                e_2 = _27.sent();
+                e_2 = _33.sent();
                 console.error("Fill error", e_2);
                 return [3 /*break*/, 13];
             case 13:
@@ -343,24 +448,24 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                 return [3 /*break*/, 9];
             case 14:
                 figma.notify("\u5DF2\u586B\u5145 ".concat(changeCount, " \u4E2A\u6587\u672C"));
-                return [3 /*break*/, 201];
+                return [3 /*break*/, 203];
             case 15: return [4 /*yield*/, figma.clientStorage.setAsync(msg.key, msg.value)];
             case 16:
-                _27.sent();
+                _33.sent();
                 if (msg.notify)
                     figma.notify("配置已保存");
                 figma.ui.postMessage({ type: 'storage-saved', key: msg.key, value: msg.value });
-                return [3 /*break*/, 201];
+                return [3 /*break*/, 203];
             case 17: return [4 /*yield*/, figma.clientStorage.getAsync(msg.key)];
             case 18:
-                value = _27.sent();
+                value = _33.sent();
                 figma.ui.postMessage({ type: 'storage-loaded', key: msg.key, value: value });
-                return [3 /*break*/, 201];
+                return [3 /*break*/, 203];
             case 19: return [4 /*yield*/, figma.clientStorage.getAsync('smart_ai_config')];
             case 20:
-                aiConfig = _27.sent();
+                aiConfig = _33.sent();
                 figma.ui.postMessage({ type: 'init-ai-config', data: aiConfig || {} });
-                return [3 /*break*/, 201];
+                return [3 /*break*/, 203];
             case 21:
                 {
                     if (selection.length === 0) {
@@ -368,91 +473,90 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                         return [2 /*return*/];
                     }
                     newSelection = [];
-                    for (_i = 0, selection_1 = selection; _i < selection_1.length; _i++) {
-                        node = selection_1[_i];
+                    selCopy = __spreadArray([], selection, true);
+                    for (_i = 0, selCopy_1 = selCopy; _i < selCopy_1.length; _i++) {
+                        node = selCopy_1[_i];
                         if (node.removed)
                             continue;
+                        parent_1 = node.parent;
+                        if (!parent_1)
+                            continue;
+                        idx = parent_1.children.indexOf(node);
                         frame = figma.createFrame();
+                        frame.resize(node.width, node.height);
+                        frame.name = node.name;
                         frame.x = node.x;
                         frame.y = node.y;
-                        frame.resize(node.width, node.height);
-                        frame.rotation = node.rotation;
-                        frame.name = node.name;
-                        if ('fills' in node)
-                            frame.fills = node.fills;
-                        if ('strokes' in node) {
-                            frame.strokes = node.strokes;
-                            frame.strokeWeight = node.strokeWeight;
-                        }
-                        if ('cornerRadius' in node && node.cornerRadius !== figma.mixed)
-                            frame.cornerRadius = node.cornerRadius;
-                        if ('cornerSmoothing' in node)
-                            frame.cornerSmoothing = node.cornerSmoothing;
-                        if (node.parent) {
-                            node.parent.appendChild(frame);
-                            idx = node.parent.children.indexOf(node);
-                            if (idx > -1)
-                                frame.parent.insertChild(idx, frame);
-                        }
+                        parent_1.insertChild(idx, frame);
+                        copyNodeStyles(node, frame);
                         if ('children' in node) {
-                            children = __spreadArray([], node.children, true);
-                            for (_b = 0, children_1 = children; _b < children_1.length; _b++) {
-                                child = children_1[_b];
+                            for (_b = 0, _c = __spreadArray([], node.children, true); _b < _c.length; _b++) {
+                                child = _c[_b];
                                 if (!child.removed)
                                     frame.appendChild(child);
                             }
                         }
-                        if (!node.removed)
+                        try {
                             node.remove();
-                        newSelection.push(frame);
-                    }
-                    figma.currentPage.selection = newSelection;
-                    figma.notify("已转换为 Frame");
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 22;
-            case 22:
-                {
-                    newSelection = [];
-                    for (_c = 0, selection_2 = selection; _c < selection_2.length; _c++) {
-                        node = selection_2[_c];
-                        if ((node.type === "FRAME" || node.type === "GROUP") && !node.removed) {
-                            r = figma.createRectangle();
-                            r.x = node.x;
-                            r.y = node.y;
-                            r.resize(node.width, node.height);
-                            r.rotation = node.rotation;
-                            r.name = node.name;
-                            if ('fills' in node && node.fills !== figma.mixed)
-                                r.fills = node.fills;
-                            if ('strokes' in node) {
-                                r.strokes = node.strokes;
-                                r.strokeWeight = node.strokeWeight;
-                            }
-                            if ('cornerRadius' in node && node.cornerRadius !== figma.mixed)
-                                r.cornerRadius = node.cornerRadius;
-                            if ('cornerSmoothing' in node)
-                                r.cornerSmoothing = node.cornerSmoothing;
-                            if (node.parent) {
-                                node.parent.appendChild(r);
-                                idx = node.parent.children.indexOf(node);
-                                if (idx > -1)
-                                    node.parent.insertChild(idx, r);
-                            }
-                            node.remove();
-                            newSelection.push(r);
                         }
+                        catch (e) { }
+                        newSelection.push(frame);
                     }
                     if (newSelection.length > 0)
                         figma.currentPage.selection = newSelection;
-                    return [3 /*break*/, 201];
+                    figma.notify("已转换为 Frame");
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 23;
+                _33.label = 22;
+            case 22:
+                {
+                    if (selection.length === 0) {
+                        figma.notify("请选择图层");
+                        return [2 /*return*/];
+                    }
+                    newSelection = [];
+                    selCopy = __spreadArray([], selection, true);
+                    for (_d = 0, selCopy_2 = selCopy; _d < selCopy_2.length; _d++) {
+                        node = selCopy_2[_d];
+                        if (node.removed)
+                            continue;
+                        if (node.type !== 'FRAME' && node.type !== 'GROUP' && node.type !== 'SECTION')
+                            continue;
+                        parent_2 = node.parent;
+                        if (!parent_2)
+                            continue;
+                        if ('children' in node) {
+                            for (_e = 0, _f = __spreadArray([], node.children, true); _e < _f.length; _e++) {
+                                child = _f[_e];
+                                if (!child.removed) {
+                                    parent_2.insertChild(parent_2.children.indexOf(node), child);
+                                }
+                            }
+                        }
+                        idx = parent_2.children.indexOf(node);
+                        rect = figma.createRectangle();
+                        rect.resize(node.width, node.height);
+                        rect.name = node.name;
+                        rect.x = node.x;
+                        rect.y = node.y;
+                        parent_2.insertChild(idx, rect);
+                        copyNodeStyles(node, rect);
+                        try {
+                            node.remove();
+                        }
+                        catch (e) { }
+                        newSelection.push(rect);
+                    }
+                    if (newSelection.length > 0)
+                        figma.currentPage.selection = newSelection;
+                    return [3 /*break*/, 203];
+                }
+                _33.label = 23;
             case 23:
                 {
                     count = 0;
-                    for (_d = 0, selection_3 = selection; _d < selection_3.length; _d++) {
-                        node = selection_3[_d];
+                    for (_g = 0, selection_1 = selection; _g < selection_1.length; _g++) {
+                        node = selection_1[_g];
                         if ('fills' in node && 'strokes' in node) {
                             temp = node.fills;
                             node.fills = node.strokes;
@@ -464,129 +568,105 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     }
                     if (count > 0)
                         figma.notify("已交换填充/描边");
-                    return [3 /*break*/, 201];
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 24;
+                _33.label = 24;
             case 24:
-                _e = 0, selection_4 = selection;
-                _27.label = 25;
+                _h = 0, selection_2 = selection;
+                _33.label = 25;
             case 25:
-                if (!(_e < selection_4.length)) return [3 /*break*/, 28];
-                node = selection_4[_e];
+                if (!(_h < selection_2.length)) return [3 /*break*/, 28];
+                node = selection_2[_h];
                 if (!('fills' in node && Array.isArray(node.fills))) return [3 /*break*/, 27];
                 img = node.fills.find(function (f) { return f.type === 'IMAGE'; });
                 if (!(img && img.imageHash)) return [3 /*break*/, 27];
                 asyncImg = figma.getImageByHash(img.imageHash);
                 return [4 /*yield*/, asyncImg.getSizeAsync()];
             case 26:
-                size = _27.sent();
+                size = _33.sent();
                 if (size && size.width)
                     node.resize(node.width, node.width * (size.height / size.width));
-                _27.label = 27;
+                _33.label = 27;
             case 27:
-                _e++;
+                _h++;
                 return [3 /*break*/, 25];
-            case 28: return [3 /*break*/, 201];
+            case 28: return [3 /*break*/, 203];
             case 29:
-                {
-                    t = [];
-                    pool = selection.length > 0 ? selection : [figma.currentPage];
-                    for (_f = 0, pool_1 = pool; _f < pool_1.length; _f++) {
-                        n = pool_1[_f];
-                        if (n.type === 'TEXT')
-                            t.push(n);
-                        if ('findAll' in n)
-                            t = t.concat(n.findAll(function (x) { return x.type === 'TEXT'; }));
-                    }
-                    if (t.length > 0) {
-                        figma.currentPage.selection = t;
-                        figma.notify("\u9009\u4E2D ".concat(t.length, " \u4E2A\u6587\u672C"));
-                    }
-                    else {
-                        figma.notify("未找到文本");
-                    }
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 30;
-            case 30:
                 {
                     count_1 = 0;
                     selection.forEach(rm);
                     figma.notify("\u79FB\u9664 ".concat(count_1, " \u4E2A\u81EA\u52A8\u5E03\u5C40"));
-                    return [3 /*break*/, 201];
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 31;
-            case 31:
+                _33.label = 30;
+            case 30:
                 {
                     newSelection = [];
                     if (selection.length === 0) {
                         figma.notify("请选择图层");
                         return [2 /*return*/];
                     }
-                    for (_g = 0, selection_5 = selection; _g < selection_5.length; _g++) {
-                        node = selection_5[_g];
+                    for (_j = 0, selection_3 = selection; _j < selection_3.length; _j++) {
+                        node = selection_3[_j];
                         if (node.removed || !node.parent)
                             continue;
                         frame = figma.createFrame();
                         frame.name = "Auto Layout Wrapper";
-                        // 设置自动布局属性
                         frame.layoutMode = "VERTICAL";
                         frame.itemSpacing = 10;
                         frame.paddingLeft = 0;
                         frame.paddingRight = 0;
                         frame.paddingTop = 0;
                         frame.paddingBottom = 0;
-                        frame.primaryAxisSizingMode = "AUTO"; // Hug
-                        frame.counterAxisSizingMode = "AUTO"; // Hug
-                        // 设置样式：红底、无描边
+                        frame.primaryAxisSizingMode = "AUTO";
+                        frame.counterAxisSizingMode = "AUTO";
                         frame.fills = [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 } }];
                         frame.strokes = [];
-                        // 保持位置并包裹
                         frame.x = node.x;
                         frame.y = node.y;
-                        parent_1 = node.parent;
-                        index = parent_1.children.indexOf(node);
-                        parent_1.insertChild(index, frame);
+                        parent_3 = node.parent;
+                        index = parent_3.children.indexOf(node);
+                        parent_3.insertChild(index, frame);
                         frame.appendChild(node);
                         newSelection.push(frame);
                     }
                     if (newSelection.length > 0) {
                         figma.currentPage.selection = newSelection;
-                        figma.notify(msg.successMsg || "已添加自动布局外套");
+                        figma.notify("已添加自动布局外套");
                     }
-                    return [3 /*break*/, 201];
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 32;
-            case 32:
+                _33.label = 31;
+            case 31:
                 newSel = [];
-                _h = 0, selection_6 = selection;
-                _27.label = 33;
-            case 33:
-                if (!(_h < selection_6.length)) return [3 /*break*/, 39];
-                node = selection_6[_h];
+                _k = 0, selection_4 = selection;
+                _33.label = 32;
+            case 32:
+                if (!(_k < selection_4.length)) return [3 /*break*/, 38];
+                node = selection_4[_k];
                 if (node.type !== "TEXT")
-                    return [3 /*break*/, 38];
+                    return [3 /*break*/, 37];
                 lines = node.characters.split(/\r\n|\r|\n/);
                 if (lines.length <= 1)
-                    return [3 /*break*/, 38];
+                    return [3 /*break*/, 37];
                 font = node.fontName;
                 if (font === figma.mixed)
                     font = node.getRangeFontName(0, 1);
-                _27.label = 34;
-            case 34:
-                _27.trys.push([34, 36, , 37]);
+                _33.label = 33;
+            case 33:
+                _33.trys.push([33, 35, , 36]);
                 return [4 /*yield*/, figma.loadFontAsync(font)];
+            case 34:
+                _33.sent();
+                return [3 /*break*/, 36];
             case 35:
-                _27.sent();
+                e_3 = _33.sent();
+                figma.notify("字体加载失败");
                 return [3 /*break*/, 37];
             case 36:
-                e_3 = _27.sent();
-                figma.notify("字体加载失败");
-                return [3 /*break*/, 38];
-            case 37:
                 cy = node.y;
-                for (_j = 0, lines_1 = lines; _j < lines_1.length; _j++) {
-                    l = lines_1[_j];
+                for (_l = 0, lines_1 = lines; _l < lines_1.length; _l++) {
+                    l = lines_1[_l];
                     if (!l.trim())
                         continue;
                     t = node.clone();
@@ -598,15 +678,15 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     cy += t.height + 10;
                 }
                 node.remove();
-                _27.label = 38;
+                _33.label = 37;
+            case 37:
+                _k++;
+                return [3 /*break*/, 32];
             case 38:
-                _h++;
-                return [3 /*break*/, 33];
-            case 39:
                 if (newSel.length > 0)
                     figma.currentPage.selection = newSel;
-                return [3 /*break*/, 201];
-            case 40:
+                return [3 /*break*/, 203];
+            case 39:
                 tNodes = selection.filter(function (n) { return n.type === 'TEXT'; }).sort(function (a, b) { return Math.abs(a.y - b.y) > 5 ? a.y - b.y : a.x - b.x; });
                 if (tNodes.length < 2) {
                     figma.notify("请选2个以上文本");
@@ -615,51 +695,73 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                 font = tNodes[0].fontName;
                 if (font === figma.mixed)
                     font = tNodes[0].getRangeFontName(0, 1);
-                _27.label = 41;
-            case 41:
-                _27.trys.push([41, 43, , 44]);
+                _33.label = 40;
+            case 40:
+                _33.trys.push([40, 42, , 43]);
                 return [4 /*yield*/, figma.loadFontAsync(font)];
+            case 41:
+                _33.sent();
+                return [3 /*break*/, 43];
             case 42:
-                _27.sent();
-                return [3 /*break*/, 44];
-            case 43:
-                e_4 = _27.sent();
+                e_4 = _33.sent();
                 figma.notify("字体加载失败");
                 return [2 /*return*/];
-            case 44:
+            case 43:
                 txt = tNodes.map(function (n) { return n.characters; }).join('\n');
                 nt = tNodes[0].clone();
                 nt.characters = txt;
                 nt.textAutoResize = 'HEIGHT';
                 tNodes.forEach(function (n) { return n.remove(); });
                 figma.currentPage.selection = [nt];
-                return [3 /*break*/, 201];
+                return [3 /*break*/, 203];
+            case 44:
+                {
+                    newSel = [];
+                    for (_m = 0, selection_5 = selection; _m < selection_5.length; _m++) {
+                        node = selection_5[_m];
+                        if (node.parent && node.parent.parent && node.parent.type !== 'PAGE') {
+                            grandParent = node.parent.parent;
+                            absX = node.absoluteTransform[0][2];
+                            absY = node.absoluteTransform[1][2];
+                            gpAbsX = grandParent.absoluteTransform[0][2];
+                            gpAbsY = grandParent.absoluteTransform[1][2];
+                            relX = absX - gpAbsX;
+                            relY = absY - gpAbsY;
+                            grandParent.appendChild(node);
+                            if ('layoutMode' in grandParent && grandParent.layoutMode !== 'NONE') {
+                                try {
+                                    node.layoutPositioning = 'ABSOLUTE';
+                                }
+                                catch (e) { }
+                            }
+                            node.x = relX;
+                            node.y = relY;
+                            newSel.push(node);
+                        }
+                    }
+                    if (newSel.length)
+                        figma.currentPage.selection = newSel;
+                    return [3 /*break*/, 203];
+                }
+                _33.label = 45;
             case 45:
                 {
-                    arr_1 = [];
-                    selection.forEach(function (n) {
-                        if (n.parent && n.parent.parent && n.parent !== figma.currentPage) {
-                            n.parent.parent.appendChild(n);
-                            arr_1.push(n);
-                        }
-                    });
-                    if (arr_1.length > 0)
-                        figma.currentPage.selection = arr_1;
-                    return [3 /*break*/, 201];
+                    page = figma.currentPage;
+                    newSel = [];
+                    for (_o = 0, selection_6 = selection; _o < selection_6.length; _o++) {
+                        node = selection_6[_o];
+                        absX = node.absoluteTransform[0][2];
+                        absY = node.absoluteTransform[1][2];
+                        page.appendChild(node);
+                        node.x = absX;
+                        node.y = absY;
+                        newSel.push(node);
+                    }
+                    figma.currentPage.selection = newSel;
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 46;
+                _33.label = 46;
             case 46:
-                {
-                    arr_2 = [];
-                    selection.forEach(function (n) {
-                        figma.currentPage.appendChild(n);
-                        arr_2.push(n);
-                    });
-                    figma.currentPage.selection = arr_2;
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 47;
-            case 47:
                 {
                     selection.forEach(function (n) {
                         var name = "";
@@ -674,10 +776,10 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                             n.name = name.substring(0, 20);
                     });
                     figma.notify("已重命名");
-                    return [3 /*break*/, 201];
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 48;
-            case 48:
+                _33.label = 47;
+            case 47:
                 {
                     sel = figma.currentPage.selection;
                     if (sel.length === 0) {
@@ -686,51 +788,39 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     }
                     targets_3 = [];
                     scan_1 = function (n) {
-                        // 1. 先递归找子级
                         if ('children' in n) {
-                            // 复制一份 children 避免遍历时索引问题
-                            var children = n.children;
-                            for (var _i = 0, children_2 = children; _i < children_2.length; _i++) {
-                                var child = children_2[_i];
+                            for (var _i = 0, _a = n.children; _i < _a.length; _i++) {
+                                var child = _a[_i];
                                 scan_1(child);
                             }
                         }
-                        // 2. 子级找完了，再看自己是不是组件实例
-                        if (n.type === 'INSTANCE') {
+                        if (n.type === 'INSTANCE')
                             targets_3.push(n);
-                        }
                     };
-                    // 开始扫描
                     sel.forEach(scan_1);
                     if (targets_3.length === 0) {
                         figma.notify("未找到可解绑的实例");
                         return [2 /*return*/];
                     }
-                    count = 0;
-                    // 按顺序解绑 (因为已经是“从内到外”的顺序，所以直接执行即可)
-                    for (_k = 0, targets_1 = targets_3; _k < targets_1.length; _k++) {
-                        node = targets_1[_k];
-                        // 再次检查节点是否还存在（防止父级解绑导致子级引用变化，虽然此算法能最大程度避免）
+                    for (_p = 0, targets_1 = targets_3; _p < targets_1.length; _p++) {
+                        node = targets_1[_p];
                         if (!node.removed) {
                             try {
                                 node.detachInstance();
-                                count++;
                             }
-                            catch (e) {
-                                console.error("解绑出错:", e);
-                            }
+                            catch (e) { }
                         }
                     }
-                    figma.notify("\u5DF2\u5F7B\u5E95\u89E3\u7ED1 ".concat(count, " \u4E2A\u7EC4\u4EF6"));
-                    return [3 /*break*/, 201];
+                    figma.notify("\u5DF2\u89E3\u7ED1 ".concat(targets_3.length, " \u4E2A\u7EC4\u4EF6"));
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 49;
-            case 49:
+                _33.label = 48;
+            case 48:
                 {
                     h = [];
                     pool = selection.length > 0 ? selection : [figma.currentPage];
-                    for (_l = 0, pool_2 = pool; _l < pool_2.length; _l++) {
-                        n = pool_2[_l];
+                    for (_q = 0, pool_1 = pool; _q < pool_1.length; _q++) {
+                        n = pool_1[_q];
                         if ('visible' in n && !n.visible)
                             h.push(n);
                         if ('findAll' in n)
@@ -742,86 +832,405 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                         count_3++;
                     } });
                     figma.notify("\u5DF2\u5220\u9664 ".concat(count_3, " \u4E2A\u9690\u85CF\u56FE\u5C42"));
-                    return [3 /*break*/, 201];
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 50;
-            case 50:
+                _33.label = 49;
+            case 49:
                 {
                     if (selection.length > 1) {
                         p_1 = selection[0].parent;
                         if (selection.every(function (n) { return n.parent === p_1; })) {
-                            isReverse_1 = layerSortDirection === 'desc';
+                            isReverse_1 = (layerSortDirection === 'desc');
                             __spreadArray([], selection, true).sort(function (a, b) {
                                 var diffY = a.y - b.y;
                                 var diffX = a.x - b.x;
                                 var result = Math.abs(diffY) > 2 ? diffY : diffX;
                                 return isReverse_1 ? -result : result;
                             }).forEach(function (n) { return p_1.appendChild(n); });
-                            figma.notify(isReverse_1 ? "已【倒序】排列图层 (Z->A)" : "已【正序】排列图层 (A->Z)");
-                            // 切换下次点击的方向
+                            figma.notify(isReverse_1 ? "已反转排列（从下到上）" : "已排列（从上到下）");
                             layerSortDirection = isReverse_1 ? 'asc' : 'desc';
                         }
                     }
                     else {
                         figma.notify("请至少选择两个同级图层");
                     }
-                    return [3 /*break*/, 201];
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 51;
-            case 51:
+                _33.label = 50;
+            case 50:
                 {
-                    count_4 = 0;
-                    selection.forEach(function (n) {
-                        if ('findAll' in n) {
-                            var gs = n.findAll(function (x) { return x.type === 'GROUP'; });
-                            while (gs.length > 0) {
-                                gs.forEach(function (x) { if (!x.removed) {
-                                    figma.ungroup(x);
-                                    count_4++;
-                                } });
-                                gs = n.findAll(function (x) { return x.type === 'GROUP'; });
-                            }
+                    count = 0;
+                    groups_2 = [];
+                    for (_r = 0, selection_7 = selection; _r < selection_7.length; _r++) {
+                        node = selection_7[_r];
+                        collect(node);
+                    }
+                    // 解组（从内向外解组可能更安全，但 ungroup 后子节点会保留）
+                    for (_s = 0, groups_1 = groups_2; _s < groups_1.length; _s++) {
+                        g = groups_1[_s];
+                        if (!g.removed) {
+                            figma.ungroup(g);
+                            count++;
                         }
-                    });
-                    figma.notify("\u5DF2\u89E3\u6563 ".concat(count_4, " \u4E2A\u7EC4"));
-                    return [3 /*break*/, 201];
+                    }
+                    figma.notify("\u5DF2\u89E3\u6563 ".concat(count, " \u4E2A\u7EC4"));
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 52;
-            case 52:
+                _33.label = 51;
+            case 51:
                 {
                     count_2 = 0;
                     selection.forEach(ul);
                     figma.notify("\u5DF2\u89E3\u9501 ".concat(count_2, " \u4E2A\u56FE\u5C42"));
-                    return [3 /*break*/, 201];
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 53;
-            case 53:
+                _33.label = 52;
+            case 52:
                 {
                     if (selection.length === 0) {
                         figma.notify("请选择图层");
                         return [2 /*return*/];
                     }
                     count = 0;
-                    for (_m = 0, selection_7 = selection; _m < selection_7.length; _m++) {
-                        node = selection_7[_m];
+                    for (_t = 0, selection_8 = selection; _t < selection_8.length; _t++) {
+                        node = selection_8[_t];
                         if (!node.removed) {
                             newX = Math.round(node.x);
                             newY = Math.round(node.y);
                             newW = Math.round(node.width);
                             newH = Math.round(node.height);
-                            // 只有发生变化时才操作
-                            if (node.x !== newX || node.y !== newY)
-                                node.x = newX, node.y = newY;
+                            if (node.x !== newX || node.y !== newY) {
+                                node.x = newX;
+                                node.y = newY;
+                            }
                             if (node.width !== newW || node.height !== newH)
                                 node.resize(newW, newH);
                             count++;
                         }
                     }
                     figma.notify("\u5DF2\u5BF9\u9F50 ".concat(count, " \u4E2A\u56FE\u5C42"));
-                    return [3 /*break*/, 201];
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 54;
+                _33.label = 53;
+            case 53:
+                {
+                    if (selection.length !== 2) {
+                        figma.notify("请严格选择 2 个图层进行交换");
+                        return [2 /*return*/];
+                    }
+                    n1 = selection[0];
+                    n2 = selection[1];
+                    x1 = n1.x, y1 = n1.y;
+                    n1.x = n2.x;
+                    n1.y = n2.y;
+                    n2.x = x1;
+                    n2.y = y1;
+                    figma.notify("位置已互换");
+                    return [3 /*break*/, 203];
+                }
+                _33.label = 54;
             case 54:
+                console.log("=== 开始执行创建样式 ===");
+                if (selection.length === 0) {
+                    figma.notify("请选择图层");
+                    return [2 /*return*/];
+                }
+                createdCount = 0;
+                conflicts = [];
+                errors = [];
+                _33.label = 55;
+            case 55:
+                _33.trys.push([55, 63, , 64]);
+                return [4 /*yield*/, figma.getLocalPaintStylesAsync()];
+            case 56:
+                localPaints = _33.sent();
+                return [4 /*yield*/, figma.getLocalTextStylesAsync()];
+            case 57:
+                localTexts = _33.sent();
+                return [4 /*yield*/, figma.getLocalEffectStylesAsync()];
+            case 58:
+                localEffects = _33.sent();
+                _loop_1 = function (node) {
+                    var name_1, exist, style, exist, style, font, err_4, exist, style;
+                    return __generator(this, function (_34) {
+                        switch (_34.label) {
+                            case 0:
+                                if (node.removed)
+                                    return [2 /*return*/, "continue"];
+                                name_1 = node.name;
+                                if ('fills' in node && node.type !== 'GROUP' && node.fills !== figma.mixed && Array.isArray(node.fills) && node.fills.length > 0) {
+                                    if (node.fills[0].type !== 'IMAGE') {
+                                        exist = localPaints.find(function (s) { return s.name === name_1; });
+                                        if (exist) {
+                                            if (!conflicts.includes(name_1))
+                                                conflicts.push(name_1 + " (颜色)");
+                                        }
+                                        else {
+                                            try {
+                                                style = figma.createPaintStyle();
+                                                createdCount++;
+                                                style.name = name_1;
+                                                style.paints = JSON.parse(JSON.stringify(node.fills));
+                                                try {
+                                                    node.fillStyleId = style.id;
+                                                }
+                                                catch (e) { }
+                                            }
+                                            catch (err) {
+                                                errors.push(name_1);
+                                            }
+                                        }
+                                    }
+                                }
+                                if (!(node.type === 'TEXT')) return [3 /*break*/, 5];
+                                exist = localTexts.find(function (s) { return s.name === name_1; });
+                                if (!exist) return [3 /*break*/, 1];
+                                if (!conflicts.includes(name_1))
+                                    conflicts.push(name_1 + " (文本)");
+                                return [3 /*break*/, 5];
+                            case 1:
+                                _34.trys.push([1, 4, , 5]);
+                                style = figma.createTextStyle();
+                                createdCount++;
+                                style.name = name_1;
+                                font = node.fontName;
+                                if (!(font !== figma.mixed)) return [3 /*break*/, 3];
+                                return [4 /*yield*/, figma.loadFontAsync(font)];
+                            case 2:
+                                _34.sent();
+                                style.fontName = font;
+                                style.fontSize = node.fontSize !== figma.mixed ? node.fontSize : 12;
+                                if (node.letterSpacing !== figma.mixed)
+                                    style.letterSpacing = node.letterSpacing;
+                                if (node.lineHeight !== figma.mixed)
+                                    style.lineHeight = node.lineHeight;
+                                if (node.textDecoration !== figma.mixed)
+                                    style.textDecoration = node.textDecoration;
+                                try {
+                                    node.textStyleId = style.id;
+                                }
+                                catch (e) { }
+                                _34.label = 3;
+                            case 3: return [3 /*break*/, 5];
+                            case 4:
+                                err_4 = _34.sent();
+                                errors.push(name_1);
+                                return [3 /*break*/, 5];
+                            case 5:
+                                if ('effects' in node && node.effects !== figma.mixed && Array.isArray(node.effects) && node.effects.length > 0) {
+                                    exist = localEffects.find(function (s) { return s.name === name_1; });
+                                    if (exist) {
+                                        if (!conflicts.includes(name_1))
+                                            conflicts.push(name_1 + " (效果)");
+                                    }
+                                    else {
+                                        try {
+                                            style = figma.createEffectStyle();
+                                            createdCount++;
+                                            style.name = name_1;
+                                            style.effects = JSON.parse(JSON.stringify(node.effects));
+                                            try {
+                                                node.effectStyleId = style.id;
+                                            }
+                                            catch (e) { }
+                                        }
+                                        catch (err) {
+                                            errors.push(name_1);
+                                        }
+                                    }
+                                }
+                                return [2 /*return*/];
+                        }
+                    });
+                };
+                _u = 0, selection_9 = selection;
+                _33.label = 59;
+            case 59:
+                if (!(_u < selection_9.length)) return [3 /*break*/, 62];
+                node = selection_9[_u];
+                return [5 /*yield**/, _loop_1(node)];
+            case 60:
+                _33.sent();
+                _33.label = 61;
+            case 61:
+                _u++;
+                return [3 /*break*/, 59];
+            case 62: return [3 /*break*/, 64];
+            case 63:
+                e_5 = _33.sent();
+                console.error("全局错误:", e_5);
+                figma.notify("样式创建失败: " + String(e_5).slice(0, 50));
+                return [2 /*return*/];
+            case 64:
+                parts = [];
+                if (createdCount > 0)
+                    parts.push("\u65B0\u5EFA ".concat(createdCount, " \u4E2A"));
+                if (conflicts.length > 0)
+                    parts.push("\u8DF3\u8FC7\u91CD\u590D ".concat(conflicts.length, " \u4E2A"));
+                if (errors.length > 0)
+                    parts.push("\u5931\u8D25 ".concat(errors.length, " \u4E2A"));
+                if (parts.length > 0)
+                    figma.notify(parts.join('，'));
+                else
+                    figma.notify("未发现可创建的样式（选中的图层可能没有填充/文本/效果属性）");
+                return [3 /*break*/, 203];
+            case 65:
+                console.log("=== 开始匹配样式 ===");
+                sel = figma.currentPage.selection;
+                if (sel.length === 0) {
+                    figma.notify("请先选择范围");
+                    return [2 /*return*/];
+                }
+                countFill_1 = 0, countStroke_1 = 0, countText_1 = 0, countEffect_1 = 0;
+                _33.label = 66;
+            case 66:
+                _33.trys.push([66, 74, , 75]);
+                return [4 /*yield*/, figma.getLocalPaintStylesAsync()];
+            case 67:
+                paints = _33.sent();
+                return [4 /*yield*/, figma.getLocalTextStylesAsync()];
+            case 68:
+                texts = _33.sent();
+                return [4 /*yield*/, figma.getLocalEffectStylesAsync()];
+            case 69:
+                effects = _33.sent();
+                paintMap_1 = new Map();
+                paints.forEach(function (s) { return paintMap_1.set(JSON.stringify(s.paints), s.id); });
+                effectMap_1 = new Map();
+                effects.forEach(function (s) { return effectMap_1.set(JSON.stringify(s.effects), s.id); });
+                textMap_1 = new Map();
+                texts.forEach(function (s) {
+                    var fingerprint = JSON.stringify({
+                        family: s.fontName.family,
+                        style: s.fontName.style,
+                        size: s.fontSize,
+                        lh: s.lineHeight,
+                        ls: s.letterSpacing,
+                        td: s.textDecoration,
+                        pi: s.paragraphIndent,
+                        ps: s.paragraphSpacing
+                    });
+                    textMap_1.set(fingerprint, s.id);
+                });
+                traverse_3 = function (node) { return __awaiter(_this, void 0, void 0, function () {
+                    var key, e_16, key, e_17, key, e_18, key, e_19, _i, _a, child;
+                    return __generator(this, function (_b) {
+                        switch (_b.label) {
+                            case 0:
+                                if (node.removed)
+                                    return [2 /*return*/];
+                                if (!('fills' in node && node.fills !== figma.mixed && node.fills.length > 0 && node.fillStyleId === '')) return [3 /*break*/, 4];
+                                key = JSON.stringify(node.fills);
+                                if (!paintMap_1.has(key)) return [3 /*break*/, 4];
+                                _b.label = 1;
+                            case 1:
+                                _b.trys.push([1, 3, , 4]);
+                                return [4 /*yield*/, node.setFillStyleIdAsync(paintMap_1.get(key))];
+                            case 2:
+                                _b.sent();
+                                countFill_1++;
+                                return [3 /*break*/, 4];
+                            case 3:
+                                e_16 = _b.sent();
+                                return [3 /*break*/, 4];
+                            case 4:
+                                if (!('strokes' in node && node.strokes !== figma.mixed && node.strokes.length > 0 && node.strokeStyleId === '')) return [3 /*break*/, 8];
+                                key = JSON.stringify(node.strokes);
+                                if (!paintMap_1.has(key)) return [3 /*break*/, 8];
+                                _b.label = 5;
+                            case 5:
+                                _b.trys.push([5, 7, , 8]);
+                                return [4 /*yield*/, node.setStrokeStyleIdAsync(paintMap_1.get(key))];
+                            case 6:
+                                _b.sent();
+                                countStroke_1++;
+                                return [3 /*break*/, 8];
+                            case 7:
+                                e_17 = _b.sent();
+                                return [3 /*break*/, 8];
+                            case 8:
+                                if (!('effects' in node && node.effects !== figma.mixed && node.effects.length > 0 && node.effectStyleId === '')) return [3 /*break*/, 12];
+                                key = JSON.stringify(node.effects);
+                                if (!effectMap_1.has(key)) return [3 /*break*/, 12];
+                                _b.label = 9;
+                            case 9:
+                                _b.trys.push([9, 11, , 12]);
+                                return [4 /*yield*/, node.setEffectStyleIdAsync(effectMap_1.get(key))];
+                            case 10:
+                                _b.sent();
+                                countEffect_1++;
+                                return [3 /*break*/, 12];
+                            case 11:
+                                e_18 = _b.sent();
+                                return [3 /*break*/, 12];
+                            case 12:
+                                if (!(node.type === 'TEXT' && node.textStyleId === '' && node.fontName !== figma.mixed && node.fontSize !== figma.mixed)) return [3 /*break*/, 16];
+                                key = JSON.stringify({
+                                    family: node.fontName.family,
+                                    style: node.fontName.style,
+                                    size: node.fontSize,
+                                    lh: node.lineHeight,
+                                    ls: node.letterSpacing,
+                                    td: node.textDecoration,
+                                    pi: node.paragraphIndent,
+                                    ps: node.paragraphSpacing
+                                });
+                                if (!textMap_1.has(key)) return [3 /*break*/, 16];
+                                _b.label = 13;
+                            case 13:
+                                _b.trys.push([13, 15, , 16]);
+                                return [4 /*yield*/, node.setTextStyleIdAsync(textMap_1.get(key))];
+                            case 14:
+                                _b.sent();
+                                countText_1++;
+                                return [3 /*break*/, 16];
+                            case 15:
+                                e_19 = _b.sent();
+                                return [3 /*break*/, 16];
+                            case 16:
+                                if (!('children' in node)) return [3 /*break*/, 20];
+                                _i = 0, _a = node.children;
+                                _b.label = 17;
+                            case 17:
+                                if (!(_i < _a.length)) return [3 /*break*/, 20];
+                                child = _a[_i];
+                                return [4 /*yield*/, traverse_3(child)];
+                            case 18:
+                                _b.sent();
+                                _b.label = 19;
+                            case 19:
+                                _i++;
+                                return [3 /*break*/, 17];
+                            case 20: return [2 /*return*/];
+                        }
+                    });
+                }); };
+                _v = 0, sel_1 = sel;
+                _33.label = 70;
+            case 70:
+                if (!(_v < sel_1.length)) return [3 /*break*/, 73];
+                node = sel_1[_v];
+                return [4 /*yield*/, traverse_3(node)];
+            case 71:
+                _33.sent();
+                _33.label = 72;
+            case 72:
+                _v++;
+                return [3 /*break*/, 70];
+            case 73: return [3 /*break*/, 75];
+            case 74:
+                e_6 = _33.sent();
+                console.error(e_6);
+                figma.notify("匹配出错");
+                return [2 /*return*/];
+            case 75:
+                total = countFill_1 + countStroke_1 + countText_1 + countEffect_1;
+                if (total > 0)
+                    figma.notify("\u5339\u914D\u6210\u529F: \u586B\u5145".concat(countFill_1, " / \u63CF\u8FB9").concat(countStroke_1, " / \u6587\u672C").concat(countText_1, " / \u6548\u679C").concat(countEffect_1));
+                else
+                    figma.notify("未发现可匹配的样式");
+                return [3 /*break*/, 203];
+            case 76:
                 {
                     sel = figma.currentPage.selection;
                     if (sel.length > 0) {
@@ -830,10 +1239,10 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     else {
                         figma.notify("请先选择一个图层以获取名称");
                     }
-                    return [3 /*break*/, 201];
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 55;
-            case 55:
+                _33.label = 77;
+            case 77:
                 {
                     f = msg.filters;
                     sel_5 = figma.currentPage.selection;
@@ -849,8 +1258,8 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                             figma.notify("⚠️ 请先选择一个容器(Frame/Group)");
                             return [2 /*return*/];
                         }
-                        for (_o = 0, sel_1 = sel_5; _o < sel_1.length; _o++) {
-                            node = sel_1[_o];
+                        for (_w = 0, sel_2 = sel_5; _w < sel_2.length; _w++) {
+                            node = sel_2[_w];
                             if ('findAll' in node) {
                                 children = node.findAll(function () { return true; });
                                 searchTargets.push.apply(searchTargets, children);
@@ -863,8 +1272,8 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                             figma.notify("⚠️ 请先选择一个容器(Frame/Group)");
                             return [2 /*return*/];
                         }
-                        for (_p = 0, sel_2 = sel_5; _p < sel_2.length; _p++) {
-                            node = sel_2[_p];
+                        for (_x = 0, sel_3 = sel_5; _x < sel_3.length; _x++) {
+                            node = sel_3[_x];
                             if ('children' in node) {
                                 searchTargets.push.apply(searchTargets, node.children);
                             }
@@ -881,6 +1290,12 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                             return [2 /*return*/];
                         }
                     }
+                    else if (f.scope === 'page') {
+                        // 模式：全页 - 直接查找当前页面所有图层，忽略选中状态
+                        console.log(">> 策略: 全页面查找");
+                        allPageNodes = figma.currentPage.findAll(function () { return true; });
+                        searchTargets.push.apply(searchTargets, allPageNodes);
+                    }
                     else {
                         // 模式：子孙元素 (descendants) - 默认模式
                         // 逻辑：如果选了图层，查“选中项+选中项内部”；如果没选，查“全页”
@@ -888,8 +1303,8 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                             console.log(">> 策略: 查找选中项及其后代");
                             // 1. 先把【选中项本身】加进去
                             // (使用 for 循环最稳妥)
-                            for (_q = 0, sel_3 = sel_5; _q < sel_3.length; _q++) {
-                                node = sel_3[_q];
+                            for (_y = 0, sel_4 = sel_5; _y < sel_4.length; _y++) {
+                                node = sel_4[_y];
                                 searchTargets.push(node);
                                 // 2. 再把【选中项的子孙】加进去
                                 if ('findAll' in node) {
@@ -912,8 +1327,8 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     // =========================================================
                     // C. 遍历筛选 (Filtering)
                     // =========================================================
-                    for (_r = 0, finalPool_1 = finalPool; _r < finalPool_1.length; _r++) {
-                        node = finalPool_1[_r];
+                    for (_z = 0, finalPool_1 = finalPool; _z < finalPool_1.length; _z++) {
+                        node = finalPool_1[_z];
                         match = true;
                         // 1. 名称匹配
                         if (f.name && f.name.val) {
@@ -989,8 +1404,8 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                         }
                         // 4. 属性匹配 (Props) - 加强容错
                         if (match && f.props && f.props.length > 0) {
-                            for (_s = 0, _t = f.props; _s < _t.length; _s++) {
-                                p = _t[_s];
+                            for (_0 = 0, _1 = f.props; _0 < _1.length; _0++) {
+                                p = _1[_0];
                                 val = undefined;
                                 try {
                                     if (p.key === 'name')
@@ -1054,13 +1469,13 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                         figma.notify("⚠️ 未找到图层，请检查 Console的筛选池大小");
                         figma.ui.postMessage({ type: 'found-layers-result', count: 0, layers: [] });
                     }
-                    return [3 /*break*/, 201];
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 56;
-            case 56:
+                _33.label = 78;
+            case 78:
                 {
                     runFocus = function () { return __awaiter(_this, void 0, void 0, function () {
-                        var ids, nodes, targets, selection_11, currentPageId, _i, nodes_2, node, p, isCurrent, e_16;
+                        var ids, nodes, targets, selection_12, currentPageId, _i, nodes_2, node, p, isCurrent, e_20;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
@@ -1072,7 +1487,7 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                                 case 1:
                                     nodes = _a.sent();
                                     targets = [];
-                                    selection_11 = [];
+                                    selection_12 = [];
                                     currentPageId = figma.currentPage.id;
                                     // 2. 快速筛选
                                     for (_i = 0, nodes_2 = nodes; _i < nodes_2.length; _i++) {
@@ -1102,13 +1517,13 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                                             targets.push(node);
                                             // 如果没锁且可见，也加入“选中目标”
                                             if (!node.locked && node.visible) {
-                                                selection_11.push(node);
+                                                selection_12.push(node);
                                             }
                                         }
                                     }
                                     if (targets.length > 0) {
                                         // A. 尝试选中 (如果全是锁定的，这里就是空数组，会清空选择，是正确的表现)
-                                        figma.currentPage.selection = selection_11;
+                                        figma.currentPage.selection = selection_12;
                                         // B. 视图定位 (这是你要的核心功能)
                                         figma.viewport.scrollAndZoomIntoView(targets);
                                         // C. 只有多选时才提示，单选静默，体验最好
@@ -1118,345 +1533,18 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                                     }
                                     return [3 /*break*/, 3];
                                 case 2:
-                                    e_16 = _a.sent();
-                                    console.log("定位错误 (已忽略):", e_16);
+                                    e_20 = _a.sent();
+                                    console.log("定位错误 (已忽略):", e_20);
                                     return [3 /*break*/, 3];
                                 case 3: return [2 /*return*/];
                             }
                         });
                     }); };
                     runFocus();
-                    return [3 /*break*/, 201];
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 57;
-            case 57:
-                console.log("=== 开始执行创建样式 (Async模式) ===");
-                if (selection.length === 0) {
-                    figma.notify("请选择图层");
-                    return [2 /*return*/];
-                }
-                createdCount = 0;
-                conflicts = [];
-                errors = [];
-                _27.label = 58;
-            case 58:
-                _27.trys.push([58, 66, , 67]);
-                return [4 /*yield*/, figma.getLocalPaintStylesAsync()];
-            case 59:
-                localPaints = _27.sent();
-                return [4 /*yield*/, figma.getLocalTextStylesAsync()];
-            case 60:
-                localTexts = _27.sent();
-                return [4 /*yield*/, figma.getLocalEffectStylesAsync()];
-            case 61:
-                localEffects = _27.sent();
-                _loop_1 = function (node) {
-                    var name_1, exist, style, exist, style, font, err_4, exist, style;
-                    return __generator(this, function (_28) {
-                        switch (_28.label) {
-                            case 0:
-                                if (node.removed)
-                                    return [2 /*return*/, "continue"];
-                                name_1 = node.name;
-                                console.log("\u5904\u7406\u56FE\u5C42: ".concat(name_1));
-                                // --- 1. 处理颜色样式 (Fills) ---
-                                if ('fills' in node && node.type !== 'GROUP' && node.fills !== figma.mixed && Array.isArray(node.fills) && node.fills.length > 0) {
-                                    if (node.fills[0].type !== 'IMAGE') {
-                                        exist = localPaints.find(function (s) { return s.name === name_1; });
-                                        if (exist) {
-                                            if (!conflicts.includes(name_1))
-                                                conflicts.push(name_1 + " (颜色)");
-                                        }
-                                        else {
-                                            try {
-                                                style = figma.createPaintStyle();
-                                                style.name = name_1;
-                                                style.paints = JSON.parse(JSON.stringify(node.fills)); // 克隆防报错
-                                                node.fillStyleId = style.id;
-                                                createdCount++;
-                                            }
-                                            catch (err) {
-                                                errors.push(name_1);
-                                                console.error("颜色创建失败:", err);
-                                            }
-                                        }
-                                    }
-                                }
-                                if (!(node.type === 'TEXT')) return [3 /*break*/, 5];
-                                exist = localTexts.find(function (s) { return s.name === name_1; });
-                                if (!exist) return [3 /*break*/, 1];
-                                if (!conflicts.includes(name_1))
-                                    conflicts.push(name_1 + " (文本)");
-                                return [3 /*break*/, 5];
-                            case 1:
-                                _28.trys.push([1, 4, , 5]);
-                                style = figma.createTextStyle();
-                                style.name = name_1;
-                                font = node.fontName;
-                                if (!(font !== figma.mixed)) return [3 /*break*/, 3];
-                                return [4 /*yield*/, figma.loadFontAsync(font)];
-                            case 2:
-                                _28.sent();
-                                style.fontName = font;
-                                style.fontSize = node.fontSize !== figma.mixed ? node.fontSize : 12;
-                                if (node.letterSpacing !== figma.mixed)
-                                    style.letterSpacing = node.letterSpacing;
-                                if (node.lineHeight !== figma.mixed)
-                                    style.lineHeight = node.lineHeight;
-                                if (node.textDecoration !== figma.mixed)
-                                    style.textDecoration = node.textDecoration;
-                                node.textStyleId = style.id;
-                                createdCount++;
-                                _28.label = 3;
-                            case 3: return [3 /*break*/, 5];
-                            case 4:
-                                err_4 = _28.sent();
-                                errors.push(name_1);
-                                console.error("文本创建失败:", err_4);
-                                return [3 /*break*/, 5];
-                            case 5:
-                                // --- 3. 处理效果样式 (Effects) ---
-                                if ('effects' in node && node.effects !== figma.mixed && Array.isArray(node.effects) && node.effects.length > 0) {
-                                    exist = localEffects.find(function (s) { return s.name === name_1; });
-                                    if (exist) {
-                                        if (!conflicts.includes(name_1))
-                                            conflicts.push(name_1 + " (效果)");
-                                    }
-                                    else {
-                                        try {
-                                            style = figma.createEffectStyle();
-                                            style.name = name_1;
-                                            style.effects = JSON.parse(JSON.stringify(node.effects));
-                                            node.effectStyleId = style.id;
-                                            createdCount++;
-                                        }
-                                        catch (err) {
-                                            errors.push(name_1);
-                                            console.error("效果创建失败:", err);
-                                        }
-                                    }
-                                }
-                                return [2 /*return*/];
-                        }
-                    });
-                };
-                _u = 0, selection_8 = selection;
-                _27.label = 62;
-            case 62:
-                if (!(_u < selection_8.length)) return [3 /*break*/, 65];
-                node = selection_8[_u];
-                return [5 /*yield**/, _loop_1(node)];
-            case 63:
-                _27.sent();
-                _27.label = 64;
-            case 64:
-                _u++;
-                return [3 /*break*/, 62];
-            case 65: return [3 /*break*/, 67];
-            case 66:
-                e_5 = _27.sent();
-                console.error("全局错误:", e_5);
-                figma.notify("发生错误，请查看控制台");
-                return [3 /*break*/, 67];
-            case 67:
-                parts = [];
-                if (createdCount > 0)
-                    parts.push("\u65B0\u5EFA ".concat(createdCount, " \u4E2A"));
-                if (conflicts.length > 0)
-                    parts.push("\u8DF3\u8FC7\u91CD\u590D ".concat(conflicts.length, " \u4E2A"));
-                if (parts.length > 0) {
-                    figma.notify(parts.join('，'));
-                }
-                else {
-                    figma.notify("未执行操作 (可能是无样式属性或已重复)");
-                }
-                console.log("=== 结束 ===");
-                return [3 /*break*/, 201];
-            case 68:
-                console.log("=== 开始匹配样式 (Async修复版) ===");
-                sel = figma.currentPage.selection;
-                if (sel.length === 0) {
-                    figma.notify("请先选择范围 (支持包含子图层)");
-                    return [2 /*return*/];
-                }
-                countFill_1 = 0, countStroke_1 = 0, countText_1 = 0, countEffect_1 = 0;
-                _27.label = 69;
-            case 69:
-                _27.trys.push([69, 77, , 78]);
-                return [4 /*yield*/, figma.getLocalPaintStylesAsync()];
-            case 70:
-                paints = _27.sent();
-                return [4 /*yield*/, figma.getLocalTextStylesAsync()];
-            case 71:
-                texts = _27.sent();
-                return [4 /*yield*/, figma.getLocalEffectStylesAsync()];
-            case 72:
-                effects = _27.sent();
-                paintMap_1 = new Map();
-                paints.forEach(function (s) { return paintMap_1.set(JSON.stringify(s.paints), s.id); });
-                effectMap_1 = new Map();
-                effects.forEach(function (s) { return effectMap_1.set(JSON.stringify(s.effects), s.id); });
-                textMap_1 = new Map();
-                texts.forEach(function (s) {
-                    var fingerprint = JSON.stringify({
-                        family: s.fontName.family,
-                        style: s.fontName.style,
-                        size: s.fontSize,
-                        lh: s.lineHeight,
-                        ls: s.letterSpacing,
-                        td: s.textDecoration,
-                        pi: s.paragraphIndent,
-                        ps: s.paragraphSpacing
-                    });
-                    textMap_1.set(fingerprint, s.id);
-                });
-                traverse_3 = function (node) { return __awaiter(_this, void 0, void 0, function () {
-                    var key, e_17, key, e_18, key, e_19, key, e_20, _i, _a, child;
-                    return __generator(this, function (_b) {
-                        switch (_b.label) {
-                            case 0:
-                                if (node.removed)
-                                    return [2 /*return*/];
-                                if (!('fills' in node && node.fills !== figma.mixed && node.fills.length > 0 && node.fillStyleId === '')) return [3 /*break*/, 4];
-                                key = JSON.stringify(node.fills);
-                                if (!paintMap_1.has(key)) return [3 /*break*/, 4];
-                                _b.label = 1;
-                            case 1:
-                                _b.trys.push([1, 3, , 4]);
-                                // 修复点：使用 setFillStyleIdAsync
-                                return [4 /*yield*/, node.setFillStyleIdAsync(paintMap_1.get(key))];
-                            case 2:
-                                // 修复点：使用 setFillStyleIdAsync
-                                _b.sent();
-                                countFill_1++;
-                                return [3 /*break*/, 4];
-                            case 3:
-                                e_17 = _b.sent();
-                                return [3 /*break*/, 4];
-                            case 4:
-                                if (!('strokes' in node && node.strokes !== figma.mixed && node.strokes.length > 0 && node.strokeStyleId === '')) return [3 /*break*/, 8];
-                                key = JSON.stringify(node.strokes);
-                                if (!paintMap_1.has(key)) return [3 /*break*/, 8];
-                                _b.label = 5;
-                            case 5:
-                                _b.trys.push([5, 7, , 8]);
-                                // 修复点：使用 setStrokeStyleIdAsync
-                                return [4 /*yield*/, node.setStrokeStyleIdAsync(paintMap_1.get(key))];
-                            case 6:
-                                // 修复点：使用 setStrokeStyleIdAsync
-                                _b.sent();
-                                countStroke_1++;
-                                return [3 /*break*/, 8];
-                            case 7:
-                                e_18 = _b.sent();
-                                return [3 /*break*/, 8];
-                            case 8:
-                                if (!('effects' in node && node.effects !== figma.mixed && node.effects.length > 0 && node.effectStyleId === '')) return [3 /*break*/, 12];
-                                key = JSON.stringify(node.effects);
-                                if (!effectMap_1.has(key)) return [3 /*break*/, 12];
-                                _b.label = 9;
-                            case 9:
-                                _b.trys.push([9, 11, , 12]);
-                                // 修复点：使用 setEffectStyleIdAsync
-                                return [4 /*yield*/, node.setEffectStyleIdAsync(effectMap_1.get(key))];
-                            case 10:
-                                // 修复点：使用 setEffectStyleIdAsync
-                                _b.sent();
-                                countEffect_1++;
-                                return [3 /*break*/, 12];
-                            case 11:
-                                e_19 = _b.sent();
-                                return [3 /*break*/, 12];
-                            case 12:
-                                if (!(node.type === 'TEXT' && node.textStyleId === '' && node.fontName !== figma.mixed && node.fontSize !== figma.mixed)) return [3 /*break*/, 16];
-                                key = JSON.stringify({
-                                    family: node.fontName.family,
-                                    style: node.fontName.style,
-                                    size: node.fontSize,
-                                    lh: node.lineHeight,
-                                    ls: node.letterSpacing,
-                                    td: node.textDecoration,
-                                    pi: node.paragraphIndent,
-                                    ps: node.paragraphSpacing
-                                });
-                                if (!textMap_1.has(key)) return [3 /*break*/, 16];
-                                _b.label = 13;
-                            case 13:
-                                _b.trys.push([13, 15, , 16]);
-                                // 修复点：使用 setTextStyleIdAsync
-                                return [4 /*yield*/, node.setTextStyleIdAsync(textMap_1.get(key))];
-                            case 14:
-                                // 修复点：使用 setTextStyleIdAsync
-                                _b.sent();
-                                countText_1++;
-                                return [3 /*break*/, 16];
-                            case 15:
-                                e_20 = _b.sent();
-                                return [3 /*break*/, 16];
-                            case 16:
-                                if (!('children' in node)) return [3 /*break*/, 20];
-                                _i = 0, _a = node.children;
-                                _b.label = 17;
-                            case 17:
-                                if (!(_i < _a.length)) return [3 /*break*/, 20];
-                                child = _a[_i];
-                                return [4 /*yield*/, traverse_3(child)];
-                            case 18:
-                                _b.sent();
-                                _b.label = 19;
-                            case 19:
-                                _i++;
-                                return [3 /*break*/, 17];
-                            case 20: return [2 /*return*/];
-                        }
-                    });
-                }); };
-                _v = 0, sel_4 = sel;
-                _27.label = 73;
-            case 73:
-                if (!(_v < sel_4.length)) return [3 /*break*/, 76];
-                node = sel_4[_v];
-                return [4 /*yield*/, traverse_3(node)];
-            case 74:
-                _27.sent();
-                _27.label = 75;
-            case 75:
-                _v++;
-                return [3 /*break*/, 73];
-            case 76: return [3 /*break*/, 78];
-            case 77:
-                e_6 = _27.sent();
-                console.error("匹配过程出错:", e_6);
-                figma.notify("匹配出错，请检查控制台");
-                return [2 /*return*/];
-            case 78:
-                total = countFill_1 + countStroke_1 + countText_1 + countEffect_1;
-                if (total > 0) {
-                    figma.notify("\u5339\u914D\u6210\u529F: \u586B\u5145".concat(countFill_1, " / \u63CF\u8FB9").concat(countStroke_1, " / \u6587\u672C").concat(countText_1, " / \u6548\u679C").concat(countEffect_1));
-                }
-                else {
-                    figma.notify("未发现可匹配的样式");
-                }
-                return [3 /*break*/, 201];
+                _33.label = 79;
             case 79:
-                {
-                    if (selection.length !== 2) {
-                        figma.notify("请严格选择 2 个图层进行交换");
-                        return [2 /*return*/];
-                    }
-                    n1 = selection[0];
-                    n2 = selection[1];
-                    x1 = n1.x, y1 = n1.y;
-                    x2 = n2.x, y2 = n2.y;
-                    n1.x = x2;
-                    n1.y = y2;
-                    n2.x = x1;
-                    n2.y = y1;
-                    figma.notify("位置已互换");
-                    return [3 /*break*/, 201];
-                }
-                _27.label = 80;
-            case 80:
                 findText_1 = msg.findText, replaceText = msg.replaceText;
                 if (!findText_1) {
                     figma.notify("请输入查找内容，注意区分大小写");
@@ -1476,46 +1564,46 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     figma.notify("范围内没有文本");
                     return [2 /*return*/];
                 }
-                _w = 0, textNodes_1 = textNodes_6;
-                _27.label = 81;
+                _2 = 0, textNodes_1 = textNodes_6;
+                _33.label = 80;
+            case 80:
+                if (!(_2 < textNodes_1.length)) return [3 /*break*/, 88];
+                node = textNodes_1[_2];
+                if (!node.characters.includes(findText_1)) return [3 /*break*/, 87];
+                _33.label = 81;
             case 81:
-                if (!(_w < textNodes_1.length)) return [3 /*break*/, 89];
-                node = textNodes_1[_w];
-                if (!node.characters.includes(findText_1)) return [3 /*break*/, 88];
-                _27.label = 82;
-            case 82:
-                _27.trys.push([82, 87, , 88]);
+                _33.trys.push([81, 86, , 87]);
                 font = node.fontName;
-                if (!(font === figma.mixed)) return [3 /*break*/, 84];
+                if (!(font === figma.mixed)) return [3 /*break*/, 83];
                 // 简化处理：如果是混合字体，尝试加载第一段的字体（复杂情况可能报错，暂跳过）
                 return [4 /*yield*/, figma.loadFontAsync(node.getRangeFontName(0, 1))];
-            case 83:
+            case 82:
                 // 简化处理：如果是混合字体，尝试加载第一段的字体（复杂情况可能报错，暂跳过）
-                _27.sent();
-                return [3 /*break*/, 86];
-            case 84: return [4 /*yield*/, figma.loadFontAsync(font)];
+                _33.sent();
+                return [3 /*break*/, 85];
+            case 83: return [4 /*yield*/, figma.loadFontAsync(font)];
+            case 84:
+                _33.sent();
+                _33.label = 85;
             case 85:
-                _27.sent();
-                _27.label = 86;
-            case 86:
                 // 执行替换
                 node.characters = node.characters.split(findText_1).join(replaceText);
                 count++;
-                return [3 /*break*/, 88];
-            case 87:
-                e_7 = _27.sent();
+                return [3 /*break*/, 87];
+            case 86:
+                e_7 = _33.sent();
                 console.error("字体加载失败或替换出错", e_7);
-                return [3 /*break*/, 88];
+                return [3 /*break*/, 87];
+            case 87:
+                _2++;
+                return [3 /*break*/, 80];
             case 88:
-                _w++;
-                return [3 /*break*/, 81];
-            case 89:
                 if (count > 0)
                     figma.notify("\u5DF2\u66FF\u6362 ".concat(count, " \u5904\u6587\u672C"));
                 else
                     figma.notify("未找到匹配内容");
-                return [3 /*break*/, 201];
-            case 90:
+                return [3 /*break*/, 203];
+            case 89:
                 pageName = figma.currentPage.name.toLowerCase();
                 // --- 修复点 1：安全检查不通过时，要告诉 UI 重置按钮 ---
                 if (!pageName.includes('copy') && !pageName.includes('副本')) {
@@ -1533,43 +1621,43 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                 }
                 // 执行 Step 1 函数
                 return [4 /*yield*/, pptStep1_Init(slides)];
-            case 91:
+            case 90:
                 // 执行 Step 1 函数
-                _27.sent();
-                return [3 /*break*/, 201];
-            case 92:
+                _33.sent();
+                return [3 /*break*/, 203];
+            case 91:
                 slides = getSlides();
                 return [4 /*yield*/, pptStep2_Rasterize(slides)];
+            case 92:
+                _33.sent();
+                return [3 /*break*/, 203];
             case 93:
-                _27.sent();
-                return [3 /*break*/, 201];
-            case 94:
                 slides = getSlides();
                 return [4 /*yield*/, pptStep3_Flatten(slides)];
+            case 94:
+                _33.sent();
+                return [3 /*break*/, 203];
             case 95:
-                _27.sent();
-                return [3 /*break*/, 201];
-            case 96:
                 slides = getSlides();
                 // === 修复：使用绝对坐标排序 ===
                 slides = sortNodesByVisualPosition(slides);
                 // 函数内部会发送 step-done，这里不需要再发了
                 return [4 /*yield*/, pptStep4_Extract(slides)];
-            case 97:
+            case 96:
                 // 函数内部会发送 step-done，这里不需要再发了
-                _27.sent();
-                return [3 /*break*/, 201];
-            case 98:
+                _33.sent();
+                return [3 /*break*/, 203];
+            case 97:
                 slides = getSlides();
                 // === 修复：使用绝对坐标排序 (保持顺序一致) ===
                 slides = sortNodesByVisualPosition(slides);
                 // 同上，内部已发消息
                 return [4 /*yield*/, pptStep5_ExportImages(slides)];
-            case 99:
+            case 98:
                 // 同上，内部已发消息
-                _27.sent();
-                return [3 /*break*/, 201];
-            case 100:
+                _33.sent();
+                return [3 /*break*/, 203];
+            case 99:
                 {
                     console.log("【3】后端：进入严格分类逻辑...");
                     cfg_1 = msg.config || msg;
@@ -1722,43 +1810,43 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                             console.error(e);
                         }
                     };
-                    for (_x = 0, targets_2 = targets_4; _x < targets_2.length; _x++) {
-                        node = targets_2[_x];
+                    for (_3 = 0, targets_2 = targets_4; _3 < targets_2.length; _3++) {
+                        node = targets_2[_3];
                         _loop_2(node);
                     }
                     figma.ui.postMessage({ type: 'lint-results', data: results_1 });
-                    return [3 /*break*/, 201];
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 101;
-            case 101:
+                _33.label = 100;
+            case 100:
                 items = msg.items;
                 count = 0;
-                _y = 0, items_1 = items;
-                _27.label = 102;
+                _4 = 0, items_1 = items;
+                _33.label = 101;
+            case 101:
+                if (!(_4 < items_1.length)) return [3 /*break*/, 106];
+                item = items_1[_4];
+                _33.label = 102;
             case 102:
-                if (!(_y < items_1.length)) return [3 /*break*/, 107];
-                item = items_1[_y];
-                _27.label = 103;
-            case 103:
-                _27.trys.push([103, 105, , 106]);
+                _33.trys.push([102, 104, , 105]);
                 return [4 /*yield*/, figma.getNodeByIdAsync(item.id)];
-            case 104:
-                node = _27.sent();
+            case 103:
+                node = _33.sent();
                 if (node) {
                     node.name = item.fullResult || item.newVal;
                     count++;
                 }
-                return [3 /*break*/, 106];
+                return [3 /*break*/, 105];
+            case 104:
+                err_1 = _33.sent();
+                return [3 /*break*/, 105];
             case 105:
-                err_1 = _27.sent();
-                return [3 /*break*/, 106];
+                _4++;
+                return [3 /*break*/, 101];
             case 106:
-                _y++;
-                return [3 /*break*/, 102];
-            case 107:
                 figma.notify("\u2728 \u5DF2\u6210\u529F\u4FEE\u590D ".concat(count, " \u9879\u547D\u540D"));
-                return [3 /*break*/, 201];
-            case 108:
+                return [3 /*break*/, 203];
+            case 107:
                 {
                     scope = msg.scope, findText_2 = msg.findText;
                     console.log("【后端】收到文本查找请求:", scope, findText_2); // 调试日志
@@ -1810,28 +1898,28 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     if (results_2.length === 0) {
                         figma.notify("未找到匹配文本");
                     }
-                    return [3 /*break*/, 201];
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 109;
-            case 109:
-                _27.trys.push([109, 115, , 116]);
+                _33.label = 108;
+            case 108:
+                _33.trys.push([108, 114, , 115]);
                 return [4 /*yield*/, figma.getNodeByIdAsync(msg.id)];
-            case 110:
-                node = _27.sent();
-                if (!node) return [3 /*break*/, 113];
+            case 109:
+                node = _33.sent();
+                if (!node) return [3 /*break*/, 112];
                 // === 第一步：通用操作 (先选中并聚焦) ===
                 // 这一步对组件、矩形、文本都有效，修复了组件清洗无法定位的问题
                 // 检查节点是否在当前页面，如果在不同页面可能需要切换（但插件API限制通常只能操作当前页）
                 figma.currentPage.selection = [node];
                 figma.viewport.scrollAndZoomIntoView([node]);
-                if (!(node.type === 'TEXT' && typeof msg.index === 'number' && typeof msg.length === 'number')) return [3 /*break*/, 112];
+                if (!(node.type === 'TEXT' && typeof msg.index === 'number' && typeof msg.length === 'number')) return [3 /*break*/, 111];
                 cacheKey = "".concat(msg.id, "_").concat(msg.index);
                 font = node.fontName === figma.mixed
                     ? node.getRangeFontName(0, 1)
                     : node.fontName;
                 return [4 /*yield*/, figma.loadFontAsync(font)];
-            case 111:
-                _27.sent();
+            case 110:
+                _33.sent();
                 // A. 还原颜色
                 if (highlightCache[cacheKey]) {
                     cachedData = highlightCache[cacheKey];
@@ -1848,59 +1936,59 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     figma.notify("已标记 (再次点击可还原)");
                     figma.ui.postMessage({ type: 'highlight-status', key: cacheKey, status: true });
                 }
-                _27.label = 112;
-            case 112: return [3 /*break*/, 114];
-            case 113:
+                _33.label = 111;
+            case 111: return [3 /*break*/, 113];
+            case 112:
                 figma.notify("图层不存在 (可能已被删除)");
-                _27.label = 114;
-            case 114: return [3 /*break*/, 116];
-            case 115:
-                e_8 = _27.sent();
+                _33.label = 113;
+            case 113: return [3 /*break*/, 115];
+            case 114:
+                e_8 = _33.sent();
                 console.error("定位失败:", e_8);
-                return [3 /*break*/, 116];
-            case 116: return [3 /*break*/, 201];
-            case 117:
+                return [3 /*break*/, 115];
+            case 115: return [3 /*break*/, 203];
+            case 116:
                 tasks = msg.tasks, replaceText = msg.replaceText;
                 successCount = 0;
                 processedIds = new Set();
-                groups_1 = {};
+                groups_3 = {};
                 tasks.forEach(function (task) {
-                    if (!groups_1[task.id])
-                        groups_1[task.id] = [];
-                    groups_1[task.id].push(task);
+                    if (!groups_3[task.id])
+                        groups_3[task.id] = [];
+                    groups_3[task.id].push(task);
                 });
-                _z = groups_1;
-                _0 = [];
-                for (_1 in _z)
-                    _0.push(_1);
-                _2 = 0;
-                _27.label = 118;
-            case 118:
-                if (!(_2 < _0.length)) return [3 /*break*/, 124];
-                _1 = _0[_2];
-                if (!(_1 in _z)) return [3 /*break*/, 123];
-                nodeId = _1;
+                _5 = groups_3;
+                _6 = [];
+                for (_7 in _5)
+                    _6.push(_7);
+                _8 = 0;
+                _33.label = 117;
+            case 117:
+                if (!(_8 < _6.length)) return [3 /*break*/, 123];
+                _7 = _6[_8];
+                if (!(_7 in _5)) return [3 /*break*/, 122];
+                nodeId = _7;
                 return [4 /*yield*/, figma.getNodeByIdAsync(nodeId)];
-            case 119:
-                node = _27.sent();
+            case 118:
+                node = _33.sent();
                 if (!node || node.type !== 'TEXT')
-                    return [3 /*break*/, 123];
-                groupTasks = groups_1[nodeId];
+                    return [3 /*break*/, 122];
+                groupTasks = groups_3[nodeId];
                 // 🌟 倒序排序
                 groupTasks.sort(function (a, b) { return b.index - a.index; });
-                _27.label = 120;
-            case 120:
-                _27.trys.push([120, 122, , 123]);
+                _33.label = 119;
+            case 119:
+                _33.trys.push([119, 121, , 122]);
                 // 加载字体
                 return [4 /*yield*/, figma.loadFontAsync(node.fontName === figma.mixed
                         ? node.getRangeFontName(0, 1)
                         : node.fontName)];
-            case 121:
+            case 120:
                 // 加载字体
-                _27.sent();
+                _33.sent();
                 // 执行替换
-                for (_3 = 0, groupTasks_1 = groupTasks; _3 < groupTasks_1.length; _3++) {
-                    task = groupTasks_1[_3];
+                for (_9 = 0, groupTasks_1 = groupTasks; _9 < groupTasks_1.length; _9++) {
+                    task = groupTasks_1[_9];
                     currentStr = node.characters.substring(task.index, task.index + task.length);
                     // 简单的校验，略过严格校验以允许大小写差异
                     node.deleteCharacters(task.index, task.index + task.length);
@@ -1910,15 +1998,15 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     if (task.uid)
                         processedIds.add(task.uid);
                 }
-                return [3 /*break*/, 123];
-            case 122:
-                err_2 = _27.sent();
+                return [3 /*break*/, 122];
+            case 121:
+                err_2 = _33.sent();
                 console.error("\u66FF\u6362\u5931\u8D25 ".concat(nodeId, ":"), err_2);
-                return [3 /*break*/, 123];
+                return [3 /*break*/, 122];
+            case 122:
+                _8++;
+                return [3 /*break*/, 117];
             case 123:
-                _2++;
-                return [3 /*break*/, 118];
-            case 124:
                 // 通知前端哪些任务完成了
                 figma.ui.postMessage({
                     type: 'text-replace-success',
@@ -1926,98 +2014,98 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     processedUids: Array.from(processedIds)
                 });
                 figma.notify("\u5DF2\u66FF\u6362 ".concat(successCount, " \u5904\u6587\u672C"));
-                return [3 /*break*/, 201];
-            case 125:
+                return [3 /*break*/, 203];
+            case 124:
                 count = 0;
-                _4 = highlightCache;
-                _5 = [];
-                for (_6 in _4)
-                    _5.push(_6);
-                _7 = 0;
-                _27.label = 126;
-            case 126:
-                if (!(_7 < _5.length)) return [3 /*break*/, 133];
-                _6 = _5[_7];
-                if (!(_6 in _4)) return [3 /*break*/, 132];
-                key = _6;
-                _8 = key.split('_'), nodeId = _8[0], indexStr = _8[1];
+                _10 = highlightCache;
+                _11 = [];
+                for (_12 in _10)
+                    _11.push(_12);
+                _13 = 0;
+                _33.label = 125;
+            case 125:
+                if (!(_13 < _11.length)) return [3 /*break*/, 132];
+                _12 = _11[_13];
+                if (!(_12 in _10)) return [3 /*break*/, 131];
+                key = _12;
+                _14 = key.split('_'), nodeId = _14[0], indexStr = _14[1];
                 index = parseInt(indexStr);
                 data = highlightCache[key];
-                _27.label = 127;
-            case 127:
-                _27.trys.push([127, 131, , 132]);
+                _33.label = 126;
+            case 126:
+                _33.trys.push([126, 130, , 131]);
                 return [4 /*yield*/, figma.getNodeByIdAsync(nodeId)];
-            case 128:
-                node = _27.sent();
-                if (!(node && node.type === 'TEXT')) return [3 /*break*/, 130];
+            case 127:
+                node = _33.sent();
+                if (!(node && node.type === 'TEXT')) return [3 /*break*/, 129];
                 font = node.fontName === figma.mixed ? node.getRangeFontName(0, 1) : node.fontName;
                 return [4 /*yield*/, figma.loadFontAsync(font)];
-            case 129:
-                _27.sent();
+            case 128:
+                _33.sent();
                 node.setRangeFills(index, index + data.length, data.fills);
                 count++;
-                _27.label = 130;
-            case 130: return [3 /*break*/, 132];
-            case 131:
-                e_9 = _27.sent();
+                _33.label = 129;
+            case 129: return [3 /*break*/, 131];
+            case 130:
+                e_9 = _33.sent();
                 console.log("还原失败", e_9);
-                return [3 /*break*/, 132];
+                return [3 /*break*/, 131];
+            case 131:
+                _13++;
+                return [3 /*break*/, 125];
             case 132:
-                _7++;
-                return [3 /*break*/, 126];
-            case 133:
                 highlightCache = {}; // 清空池子
                 figma.notify("\u5DF2\u8FD8\u539F ".concat(count, " \u5904\u9AD8\u4EAE"));
                 // 通知前端清除所有高亮样式
                 figma.ui.postMessage({ type: 'clear-all-highlights-ui' });
-                return [3 /*break*/, 201];
-            case 134:
+                return [3 /*break*/, 203];
+            case 133:
                 ids = msg.ids, findText_3 = msg.findText, replaceText = msg.replaceText;
                 count = 0;
-                _9 = 0, ids_1 = ids;
-                _27.label = 135;
-            case 135:
-                if (!(_9 < ids_1.length)) return [3 /*break*/, 141];
-                id = ids_1[_9];
+                _15 = 0, ids_1 = ids;
+                _33.label = 134;
+            case 134:
+                if (!(_15 < ids_1.length)) return [3 /*break*/, 140];
+                id = ids_1[_15];
                 return [4 /*yield*/, figma.getNodeByIdAsync(id)];
+            case 135:
+                node = _33.sent();
+                if (!(node && node.type === 'TEXT')) return [3 /*break*/, 139];
+                _33.label = 136;
             case 136:
-                node = _27.sent();
-                if (!(node && node.type === 'TEXT')) return [3 /*break*/, 140];
-                _27.label = 137;
-            case 137:
-                _27.trys.push([137, 139, , 140]);
+                _33.trys.push([136, 138, , 139]);
                 // 加载字体 (必要步骤)
                 return [4 /*yield*/, figma.loadFontAsync(node.fontName === figma.mixed
                         ? node.getRangeFontName(0, 1)
                         : node.fontName)];
-            case 138:
+            case 137:
                 // 加载字体 (必要步骤)
-                _27.sent();
+                _33.sent();
                 regex = new RegExp(findText_3.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
                 if (regex.test(node.characters)) {
                     node.characters = node.characters.replace(regex, replaceText);
                     count++;
                 }
-                return [3 /*break*/, 140];
-            case 139:
-                err_3 = _27.sent();
+                return [3 /*break*/, 139];
+            case 138:
+                err_3 = _33.sent();
                 console.error("\u66FF\u6362\u6587\u672C\u5931\u8D25 (ID: ".concat(id, "):"), err_3);
-                return [3 /*break*/, 140];
+                return [3 /*break*/, 139];
+            case 139:
+                _15++;
+                return [3 /*break*/, 134];
             case 140:
-                _9++;
-                return [3 /*break*/, 135];
-            case 141:
                 figma.notify("\u5DF2\u66FF\u6362 ".concat(count, " \u4E2A\u6587\u672C\u56FE\u5C42"));
-                return [3 /*break*/, 201];
-            case 142:
+                return [3 /*break*/, 203];
+            case 141:
                 {
                     dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
                     spots = dataStr ? JSON.parse(dataStr) : [];
                     figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
-                    return [3 /*break*/, 201];
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 143;
-            case 143:
+                _33.label = 142;
+            case 142:
                 {
                     dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
                     spots = dataStr ? JSON.parse(dataStr) : [];
@@ -2042,10 +2130,10 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     figma.root.setPluginData('JUMPBACK_SPOTS', JSON.stringify(spots));
                     figma.notify("📍 位置已保存");
                     figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
-                    return [3 /*break*/, 201];
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 144;
-            case 144:
+                _33.label = 143;
+            case 143:
                 dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
                 if (!dataStr)
                     return [2 /*return*/];
@@ -2053,46 +2141,46 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                 spot = spots.find(function (s) { return s.id === msg.id; });
                 if (!spot)
                     return [2 /*return*/];
-                _27.label = 145;
-            case 145:
-                _27.trys.push([145, 154, , 155]);
-                if (!(figma.currentPage.id !== spot.pageId)) return [3 /*break*/, 149];
+                _33.label = 144;
+            case 144:
+                _33.trys.push([144, 153, , 154]);
+                if (!(figma.currentPage.id !== spot.pageId)) return [3 /*break*/, 148];
                 return [4 /*yield*/, figma.getNodeByIdAsync(spot.pageId)];
-            case 146:
-                targetPage = _27.sent();
-                if (!(targetPage && targetPage.type === 'PAGE')) return [3 /*break*/, 148];
+            case 145:
+                targetPage = _33.sent();
+                if (!(targetPage && targetPage.type === 'PAGE')) return [3 /*break*/, 147];
                 // === 修复点 2：在 dynamic-page 模式下，必须用 setCurrentPageAsync 切换页面 ===
                 return [4 /*yield*/, figma.setCurrentPageAsync(targetPage)];
-            case 147:
+            case 146:
                 // === 修复点 2：在 dynamic-page 模式下，必须用 setCurrentPageAsync 切换页面 ===
-                _27.sent();
-                return [3 /*break*/, 149];
-            case 148:
+                _33.sent();
+                return [3 /*break*/, 148];
+            case 147:
                 figma.notify("⚠️ 该位置所在的页面已被删除！");
                 return [2 /*return*/];
-            case 149:
+            case 148:
                 // 2. 恢复视角坐标和缩放
                 figma.viewport.center = { x: spot.centerX, y: spot.centerY };
                 figma.viewport.zoom = spot.zoom;
                 nodesToSelect = [];
-                if (!(spot.selectionIds && Array.isArray(spot.selectionIds))) return [3 /*break*/, 153];
-                _10 = 0, _11 = spot.selectionIds;
-                _27.label = 150;
-            case 150:
-                if (!(_10 < _11.length)) return [3 /*break*/, 153];
-                id = _11[_10];
+                if (!(spot.selectionIds && Array.isArray(spot.selectionIds))) return [3 /*break*/, 152];
+                _16 = 0, _17 = spot.selectionIds;
+                _33.label = 149;
+            case 149:
+                if (!(_16 < _17.length)) return [3 /*break*/, 152];
+                id = _17[_16];
                 return [4 /*yield*/, figma.getNodeByIdAsync(id)];
-            case 151:
-                node = _27.sent();
+            case 150:
+                node = _33.sent();
                 // 确保节点还存在，且不是页面本身 (防止意外)
                 if (node && !node.removed && node.type !== 'PAGE' && node.type !== 'DOCUMENT') {
                     nodesToSelect.push(node);
                 }
-                _27.label = 152;
+                _33.label = 151;
+            case 151:
+                _16++;
+                return [3 /*break*/, 149];
             case 152:
-                _10++;
-                return [3 /*break*/, 150];
-            case 153:
                 // 4. 执行选中
                 if (nodesToSelect.length > 0) {
                     figma.currentPage.selection = nodesToSelect;
@@ -2102,14 +2190,14 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     figma.currentPage.selection = [];
                 }
                 figma.notify("🚀 已传送！");
-                return [3 /*break*/, 155];
-            case 154:
-                e_10 = _27.sent();
+                return [3 /*break*/, 154];
+            case 153:
+                e_10 = _33.sent();
                 console.warn("Jumpback failed:", e_10);
                 figma.notify("传送失败，可能是图层结构已发生巨大改变");
-                return [3 /*break*/, 155];
-            case 155: return [3 /*break*/, 201];
-            case 156:
+                return [3 /*break*/, 154];
+            case 154: return [3 /*break*/, 203];
+            case 155:
                 {
                     dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
                     if (!dataStr)
@@ -2122,10 +2210,10 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     // 重新渲染 UI
                     figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
                     figma.notify("🗑️ 锚点已删除");
-                    return [3 /*break*/, 201];
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 157;
-            case 157:
+                _33.label = 156;
+            case 156:
                 {
                     dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
                     if (!dataStr)
@@ -2141,13 +2229,13 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                         // 如果名字为空，发回原数据恢复 UI
                         figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
                     }
-                    return [3 /*break*/, 201];
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 158;
-            case 158:
+                _33.label = 157;
+            case 157:
                 {
-                    selection_10 = figma.currentPage.selection;
-                    if (selection_10.length === 0)
+                    selection_11 = figma.currentPage.selection;
+                    if (selection_11.length === 0)
                         return [2 /*return*/]; // 拖动滑块时高频触发，没选中就静默退出
                     r = (msg.rot * Math.PI) / 180;
                     sx = (msg.angleX * Math.PI) / 180;
@@ -2161,8 +2249,8 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     m10 = sinR + cosR * tanY;
                     m11 = sinR * tanX + cosR;
                     try {
-                        for (_12 = 0, selection_9 = selection_10; _12 < selection_9.length; _12++) {
-                            node = selection_9[_12];
+                        for (_18 = 0, selection_10 = selection_11; _18 < selection_10.length; _18++) {
+                            node = selection_10[_18];
                             if ('relativeTransform' in node) {
                                 tx = node.relativeTransform[0][2];
                                 ty = node.relativeTransform[1][2];
@@ -2177,52 +2265,52 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     catch (error) {
                         console.error("Transform Engine failed:", error);
                     }
-                    return [3 /*break*/, 201];
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 159;
-            case 159:
-                _27.trys.push([159, 161, , 162]);
+                _33.label = 158;
+            case 158:
+                _33.trys.push([158, 160, , 161]);
                 return [4 /*yield*/, figma.clientStorage.getAsync('MY_SKEW_PRESETS')];
-            case 160:
-                data = _27.sent();
+            case 159:
+                data = _33.sent();
                 // 发送回前端渲染
                 figma.ui.postMessage({ type: 'init-skew-presets', data: data || [] });
-                return [3 /*break*/, 162];
-            case 161:
-                e_11 = _27.sent();
+                return [3 /*break*/, 161];
+            case 160:
+                e_11 = _33.sent();
                 console.warn("读取 Skew 预设失败", e_11);
-                return [3 /*break*/, 162];
-            case 162: return [3 /*break*/, 201];
-            case 163:
-                _27.trys.push([163, 165, , 166]);
+                return [3 /*break*/, 161];
+            case 161: return [3 /*break*/, 203];
+            case 162:
+                _33.trys.push([162, 164, , 165]);
                 // 覆盖保存到用户的 Figma 账号下
                 return [4 /*yield*/, figma.clientStorage.setAsync('MY_SKEW_PRESETS', msg.data)];
-            case 164:
+            case 163:
                 // 覆盖保存到用户的 Figma 账号下
-                _27.sent();
-                return [3 /*break*/, 166];
-            case 165:
-                e_12 = _27.sent();
+                _33.sent();
+                return [3 /*break*/, 165];
+            case 164:
+                e_12 = _33.sent();
                 console.warn("保存 Skew 预设失败", e_12);
-                return [3 /*break*/, 166];
-            case 166: return [3 /*break*/, 201];
-            case 167:
+                return [3 /*break*/, 165];
+            case 165: return [3 /*break*/, 203];
+            case 166:
                 {
                     hasSelection = figma.currentPage.selection.length > 0;
                     figma.ui.postMessage({ type: 'i18n-check-selection-result', hasSelection: hasSelection });
-                    return [3 /*break*/, 201];
+                    return [3 /*break*/, 203];
                 }
-                _27.label = 168;
-            case 168:
+                _33.label = 167;
+            case 167:
                 scope = msg.scope, extractTarget = msg.extractTarget, collectionName = msg.collectionName;
                 nodesToScan = scope === 'selection' ? __spreadArray([], figma.currentPage.selection, true) : __spreadArray([], figma.currentPage.children, true);
                 textNodes_3 = [];
                 return [4 /*yield*/, findText(nodesToScan)];
-            case 169:
-                _27.sent();
+            case 168:
+                _33.sent();
                 return [4 /*yield*/, figma.variables.getLocalVariableCollectionsAsync()];
-            case 170:
-                allCollections = _27.sent();
+            case 169:
+                allCollections = _33.sent();
                 collectionNames = allCollections
                     .map(function (c) { return c.name; })
                     .sort(function (a, b) {
@@ -2235,31 +2323,31 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     || allCollections.find(function (c) { return c.name.includes("i18n") || c.name.includes("Dictionary"); });
                 modes_1 = [];
                 existingVarMap = new Map();
-                if (!i18nCollection) return [3 /*break*/, 172];
+                if (!i18nCollection) return [3 /*break*/, 171];
                 origModeId_1 = i18nCollection.modes[0].modeId;
                 i18nCollection.modes.forEach(function (m) {
                     if (m.modeId !== origModeId_1)
                         modes_1.push(m.name);
                 });
                 return [4 /*yield*/, figma.variables.getLocalVariablesAsync('STRING')];
-            case 171:
-                localVars = _27.sent();
-                for (_13 = 0, localVars_1 = localVars; _13 < localVars_1.length; _13++) {
-                    v = localVars_1[_13];
+            case 170:
+                localVars = _33.sent();
+                for (_19 = 0, localVars_1 = localVars; _19 < localVars_1.length; _19++) {
+                    v = localVars_1[_19];
                     if (v.variableCollectionId === i18nCollection.id) {
                         origVal = v.valuesByMode[origModeId_1];
                         if (origVal)
                             existingVarMap.set(origVal, v);
                     }
                 }
-                _27.label = 172;
-            case 172:
+                _33.label = 171;
+            case 171:
                 boundCount = 0;
                 mixedFonts = 0;
                 autoBindMap = new Map();
                 newTextMap = new Map();
-                for (_14 = 0, textNodes_2 = textNodes_3; _14 < textNodes_2.length; _14++) {
-                    node = textNodes_2[_14];
+                for (_20 = 0, textNodes_2 = textNodes_3; _20 < textNodes_2.length; _20++) {
+                    node = textNodes_2[_20];
                     if (node.hasMissingFont)
                         continue;
                     if (node.fontName === figma.mixed) {
@@ -2301,15 +2389,15 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                         modes: modes_1
                     }
                 });
-                return [3 /*break*/, 201];
-            case 173:
+                return [3 /*break*/, 203];
+            case 172:
                 newPayload = msg.newPayload, autoBindPayload = msg.autoBindPayload, isCreate = msg.isCreate, collectionName_1 = msg.collectionName;
-                _27.label = 174;
-            case 174:
-                _27.trys.push([174, 184, , 185]);
+                _33.label = 173;
+            case 173:
+                _33.trys.push([173, 183, , 184]);
                 return [4 /*yield*/, figma.variables.getLocalVariableCollectionsAsync()];
-            case 175:
-                collections = _27.sent();
+            case 174:
+                collections = _33.sent();
                 collection = collections.find(function (c) { return c.name === collectionName_1; });
                 // 1. 确保 Collection 存在
                 if (!collection) {
@@ -2321,8 +2409,8 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                 newPayload.forEach(function (item) { return Object.keys(item.translations).forEach(function (l) { return allTargetLangs_1.add(l); }); });
                 modeIdMap_1 = {};
                 collection.modes.forEach(function (m) { return modeIdMap_1[m.name] = m.modeId; });
-                for (_15 = 0, _16 = Array.from(allTargetLangs_1); _15 < _16.length; _15++) {
-                    lang = _16[_15];
+                for (_21 = 0, _22 = Array.from(allTargetLangs_1); _21 < _22.length; _21++) {
+                    lang = _22[_21];
                     if (!modeIdMap_1[lang]) {
                         try {
                             newModeId = collection.addMode(lang);
@@ -2339,22 +2427,22 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     }
                 }
                 return [4 /*yield*/, figma.variables.getLocalVariablesAsync('STRING')];
-            case 176:
-                localVars = _27.sent();
+            case 175:
+                localVars = _33.sent();
                 varMap = new Map();
-                for (_17 = 0, localVars_2 = localVars; _17 < localVars_2.length; _17++) {
-                    v = localVars_2[_17];
+                for (_23 = 0, localVars_2 = localVars; _23 < localVars_2.length; _23++) {
+                    v = localVars_2[_23];
                     if (v.variableCollectionId === collection.id) {
                         baseVal = v.valuesByMode[origModeId];
                         if (baseVal)
                             varMap.set(baseVal, v);
                     }
                 }
-                _18 = 0, newPayload_1 = newPayload;
-                _27.label = 177;
-            case 177:
-                if (!(_18 < newPayload_1.length)) return [3 /*break*/, 183];
-                item = newPayload_1[_18];
+                _24 = 0, newPayload_1 = newPayload;
+                _33.label = 176;
+            case 176:
+                if (!(_24 < newPayload_1.length)) return [3 /*break*/, 182];
+                item = newPayload_1[_24];
                 variable = varMap.get(item.original);
                 // 如果不存在则创建
                 if (!variable) {
@@ -2364,96 +2452,112 @@ figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, fu
                     variable.setValueForMode(origModeId, item.original);
                 }
                 // 【核心修复】：为该变量在所有目标 Mode 中设置翻译值
-                for (_19 = 0, _20 = Object.entries(item.translations); _19 < _20.length; _19++) {
-                    _21 = _20[_19], langName = _21[0], translatedText = _21[1];
+                for (_25 = 0, _26 = Object.entries(item.translations); _25 < _26.length; _25++) {
+                    _27 = _26[_25], langName = _27[0], translatedText = _27[1];
                     targetModeId = modeIdMap_1[langName];
                     if (targetModeId) {
                         variable.setValueForMode(targetModeId, translatedText);
                     }
                 }
-                _22 = 0, _23 = item.nodeIds;
-                _27.label = 178;
-            case 178:
-                if (!(_22 < _23.length)) return [3 /*break*/, 182];
-                nodeId = _23[_22];
+                _28 = 0, _29 = item.nodeIds;
+                _33.label = 177;
+            case 177:
+                if (!(_28 < _29.length)) return [3 /*break*/, 181];
+                nodeId = _29[_28];
                 return [4 /*yield*/, figma.getNodeByIdAsync(nodeId)];
-            case 179:
-                node = _27.sent();
-                if (!(node && node.type === 'TEXT' && node.fontName !== figma.mixed)) return [3 /*break*/, 181];
+            case 178:
+                node = _33.sent();
+                if (!(node && node.type === 'TEXT' && node.fontName !== figma.mixed)) return [3 /*break*/, 180];
                 return [4 /*yield*/, figma.loadFontAsync(node.fontName)];
-            case 180:
-                _27.sent();
+            case 179:
+                _33.sent();
                 node.setBoundVariable('characters', variable);
-                _27.label = 181;
-            case 181:
-                _22++;
-                return [3 /*break*/, 178];
-            case 182:
-                _18++;
+                _33.label = 180;
+            case 180:
+                _28++;
                 return [3 /*break*/, 177];
-            case 183:
+            case 181:
+                _24++;
+                return [3 /*break*/, 176];
+            case 182:
                 figma.ui.postMessage({ type: 'i18n-bind-success', message: '🎉 多语言 Mode 已同步更新！' });
-                return [3 /*break*/, 185];
-            case 184:
-                e_13 = _27.sent();
+                return [3 /*break*/, 184];
+            case 183:
+                e_13 = _33.sent();
                 figma.ui.postMessage({ type: 'i18n-bind-error', error: e_13.message });
-                return [3 /*break*/, 185];
-            case 185: return [3 /*break*/, 201];
-            case 186:
+                return [3 /*break*/, 184];
+            case 184: return [3 /*break*/, 203];
+            case 185:
                 payload = msg.payload;
                 successCount = 0;
-                _27.label = 187;
+                _33.label = 186;
+            case 186:
+                _33.trys.push([186, 197, , 198]);
+                _30 = 0, payload_1 = payload;
+                _33.label = 187;
             case 187:
-                _27.trys.push([187, 198, , 199]);
-                _24 = 0, payload_1 = payload;
-                _27.label = 188;
-            case 188:
-                if (!(_24 < payload_1.length)) return [3 /*break*/, 197];
-                item = payload_1[_24];
+                if (!(_30 < payload_1.length)) return [3 /*break*/, 196];
+                item = payload_1[_30];
                 targetText = Object.values(item.translations)[0];
-                _25 = 0, _26 = item.nodeIds;
-                _27.label = 189;
+                _31 = 0, _32 = item.nodeIds;
+                _33.label = 188;
+            case 188:
+                if (!(_31 < _32.length)) return [3 /*break*/, 195];
+                nodeId = _32[_31];
+                _33.label = 189;
             case 189:
-                if (!(_25 < _26.length)) return [3 /*break*/, 196];
-                nodeId = _26[_25];
-                _27.label = 190;
-            case 190:
-                _27.trys.push([190, 194, , 195]);
+                _33.trys.push([189, 193, , 194]);
                 return [4 /*yield*/, figma.getNodeByIdAsync(nodeId)];
-            case 191:
-                node = _27.sent();
-                if (!(node && node.type === 'TEXT' && node.fontName !== figma.mixed)) return [3 /*break*/, 193];
+            case 190:
+                node = _33.sent();
+                if (!(node && node.type === 'TEXT' && node.fontName !== figma.mixed)) return [3 /*break*/, 192];
                 return [4 /*yield*/, figma.loadFontAsync(node.fontName)];
-            case 192:
-                _27.sent();
+            case 191:
+                _33.sent();
                 // 【核心修复】：直接替换前，必须解除已有的变量绑定，否则必定被 Figma API 拦截失败！
                 node.setBoundVariable('characters', null);
                 node.characters = targetText;
                 successCount++;
-                _27.label = 193;
-            case 193: return [3 /*break*/, 195];
-            case 194:
-                e_14 = _27.sent();
+                _33.label = 192;
+            case 192: return [3 /*break*/, 194];
+            case 193:
+                e_14 = _33.sent();
                 console.warn("\u8282\u70B9\u66FF\u6362\u5931\u8D25", e_14);
-                return [3 /*break*/, 195];
-            case 195:
-                _25++;
-                return [3 /*break*/, 189];
-            case 196:
-                _24++;
+                return [3 /*break*/, 194];
+            case 194:
+                _31++;
                 return [3 /*break*/, 188];
-            case 197:
+            case 195:
+                _30++;
+                return [3 /*break*/, 187];
+            case 196:
                 figma.ui.postMessage({ type: 'i18n-bind-success', message: "\uD83C\uDF89 \u6210\u529F\u66FF\u6362\u4E86 ".concat(successCount, " \u4E2A\u6587\u672C\u8282\u70B9\uFF01") });
-                return [3 /*break*/, 199];
-            case 198:
-                e_15 = _27.sent();
+                return [3 /*break*/, 198];
+            case 197:
+                e_15 = _33.sent();
                 figma.ui.postMessage({ type: 'i18n-bind-error', error: e_15.message });
-                return [3 /*break*/, 199];
-            case 199: return [3 /*break*/, 201];
+                return [3 /*break*/, 198];
+            case 198: return [3 /*break*/, 203];
+            case 199: 
+            // 记录开始拖拽时的状态
+            return [3 /*break*/, 203];
             case 200:
+                {
+                    dx = msg.clientX - msg.startX;
+                    dy = msg.clientY - msg.startY;
+                    newW = Math.max(170, msg.startW + dx);
+                    newH = Math.max(200, msg.startH + dy);
+                    figma.ui.resize(newW, newH);
+                    return [3 /*break*/, 203];
+                }
+                _33.label = 201;
+            case 201: 
+            // 结束拖拽
+            return [3 /*break*/, 203];
+            case 202:
                 figma.ui.resize(msg.width, msg.height);
-                return [3 /*break*/, 201];
-            case 201: return [2 /*return*/];
+                return [3 /*break*/, 203];
+            case 203: return [2 /*return*/];
         }
     });
 }); };
@@ -2466,8 +2570,8 @@ function getSlides() {
     var selection = figma.currentPage.selection;
     var uniqueMap = new Map();
     // 1. 只找选中的 Frame
-    for (var _i = 0, selection_12 = selection; _i < selection_12.length; _i++) {
-        var node = selection_12[_i];
+    for (var _i = 0, selection_13 = selection; _i < selection_13.length; _i++) {
+        var node = selection_13[_i];
         if (node.type === 'FRAME') {
             uniqueMap.set(node.id, node);
         }
@@ -2580,7 +2684,7 @@ function pptStep2_Rasterize(slides) {
                         return false;
                     };
                     traverse = function (node) { return __awaiter(_this, void 0, void 0, function () {
-                        var name, isUserTarget, isTechTarget, bytes, image, rect, e_21, children, _i, children_3, child;
+                        var name, isUserTarget, isTechTarget, bytes, image, rect, e_21, children, _i, children_1, child;
                         var _a;
                         return __generator(this, function (_b) {
                             switch (_b.label) {
@@ -2624,11 +2728,11 @@ function pptStep2_Rasterize(slides) {
                                 case 4:
                                     if (!('children' in node)) return [3 /*break*/, 8];
                                     children = __spreadArray([], node.children, true);
-                                    _i = 0, children_3 = children;
+                                    _i = 0, children_1 = children;
                                     _b.label = 5;
                                 case 5:
-                                    if (!(_i < children_3.length)) return [3 /*break*/, 8];
-                                    child = children_3[_i];
+                                    if (!(_i < children_1.length)) return [3 /*break*/, 8];
+                                    child = children_1[_i];
                                     return [4 /*yield*/, traverse(child)];
                                 case 6:
                                     _b.sent();
