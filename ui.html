@@ -5255,13 +5255,13 @@
                     </label>
                     
                     <!-- 目标语言 -->
-                    <div class="settings-item" id="i18nTargetLangWrapper" style="border-radius: var(--radius-md); background: var(--bg-surface);">
+                    <div class="settings-item" id="i18nTargetLangWrapper" style="border-radius: var(--radius-md); background: var(--bg-surface); gap: 8px;">
                         <div class="settings-item-label" data-key="i18n_target_lang" style="font-size: 12px; font-weight: 600; color: var(--text-primary);">目标语言</div>
                         <select id="i18nTargetMode" class="search-box" style="flex: 1; width: 100%;"></select>
                     </div>
                     
                     <!-- 变量合集（根据模式动态切换） -->
-                    <div class="settings-item" id="i18nCollectionWrapper" style="border-radius: var(--radius-md); background: var(--bg-surface); margin-top: 12px;">
+                    <div class="settings-item" id="i18nCollectionWrapper" style="border-radius: var(--radius-md); background: var(--bg-surface); margin-top: 12px; gap: 8px;">
                         <div class="settings-item-label" data-key="i18n_collection_prefix" style="font-size: 12px; font-weight: 600; color: var(--text-primary);">变量合集</div>
                         <div id="i18nCollectionControl" style="flex: 1; width: 100%; padding: 0;">
                             <!-- 动态渲染：下拉选择 或 输入框 -->
@@ -5426,7 +5426,7 @@
              <div class="ai-container">
                
                <div class="input-wrapper" style="position: relative; height: 100px;">
-                 <textarea class="ai-textarea" id="aiPrompt" placeholder="例：生成20个高档小区名称..." style="width: 100%; height: 100%; padding-right: 40px; box-sizing: border-box;"></textarea>
+                 <textarea class="ai-textarea" id="aiPrompt" data-key="sf_ai_placeholder" placeholder="例：生成20个高档小区名称..." style="width: 100%; height: 100%; padding-right: 40px; box-sizing: border-box;"></textarea>
                  <div class="btn-clear-input hidden" id="aiPromptClearBtn" onclick="clearAiPromptInput()" style="position: absolute; right: 12px; top: 12px;">✕</div>
                </div>
                
@@ -5507,10 +5507,10 @@
                 <div class="settings-item" style="flex-direction: column; align-items: stretch; padding: 0;">
                   <label class="settings-item-label" style="margin-bottom: 8px;">
                     <span class="settings-item-label-icon">🏷️</span>
-                    <span>列表标题</span>
+                    <span data-key="sf_lbl_custom_title">列表标题</span>
                   </label>
                   <div class="input-wrapper">
-                    <input type="text" id="customTitle" placeholder="标题 (如: 部门列表)" oninput="toggleCustomClearBtn(this, 'customTitleClearBtn')" style="padding: 10px !important;">
+                    <input type="text" id="customTitle" data-key="sf_ph_title" placeholder="标题 (如: 部门列表)" oninput="toggleCustomClearBtn(this, 'customTitleClearBtn')" style="padding: 10px !important;">
                     <div class="btn-clear-input hidden" id="customTitleClearBtn" onclick="clearCustomInput('customTitle', 'customTitleClearBtn')">✕</div>
                   </div>
                 </div>
@@ -5519,10 +5519,10 @@
               <div class="settings-section" style="margin-bottom: 0; flex: 1; display: flex; flex-direction: column;">
                 <div class="settings-section-title">
                   <span style="font-size: 16px;">📋</span>
-                  <span>列表内容</span>
+                  <span data-key="sf_lbl_custom_content">列表内容</span>
                 </div>
                 <div style="flex: 1; display: flex; flex-direction: column; min-height: 200px;">
-                  <textarea id="customContent" class="ai-textarea" style="flex: 1; min-height: 200px; resize: vertical;" placeholder="输入内容，每行一个..."></textarea>
+                  <textarea id="customContent" class="ai-textarea" style="flex: 1; min-height: 200px; resize: vertical;" data-key="sf_ph_content" placeholder="输入内容，每行一个..."></textarea>
                 </div>
               </div>
             </div>
@@ -5530,96 +5530,13 @@
               <button class="primary-btn" onclick="saveCustomList()" style="flex: 1;">
                 <span style="display: flex; align-items: center; justify-content: center; gap: 6px;">
                   <span>💾</span>
-                  <span>保存</span>
+                  <span data-key="sf_btn_save">保存</span>
                 </span>
               </button>
             </div>
           </div>
 
-          <!-- 子页面 2: AI 配置 -->
-          <div id="pageAiConfig" class="sub-page">
-            <div class="sub-header">
-              <span class="btn-back-sub" onclick="closeSubPage('pageAiConfig')">←</span>
-              <span data-key="sf_sub_cfg_title">AI 模型配置</span>
-            </div>
-            <div class="sub-form-container">
-              <div class="settings-section" style="margin-bottom: 0;">
-                <div class="settings-section-title">
-                  <span style="font-size: 16px;">🤖</span>
-                  <span>模型配置</span>
-                </div>
-                
-                <div class="settings-item" style="flex-direction: column; align-items: stretch; padding-top: 0;">
-                  <label class="settings-item-label" style="margin-bottom: 8px;">
-                    <span class="settings-item-label-icon">🏢</span>
-                    <span data-key="sf_lbl_provider">服务商 (API Provider)</span>
-                  </label>
-                  <select id="aiProvider" class="search-box" onchange="updateAiConfigDefaults()">
-                    <optgroup label="热门推荐 (推荐)">
-                      <option value="glm" selected>智谱 GLM (官方 API)</option>
-                      <option value="deepseek">DeepSeek (深度求索)</option>
-                      <option value="kimi">Kimi (Moonshot API)</option>
-                      <option value="volcengine-coding">火山方舟 (doubao)</option>
-                      <option value="aliyun">阿里云百炼 (通义千问等)</option>
-                    </optgroup>
-                    <optgroup label="国内其他优秀平台">
-                      <option value="minimax">MiniMax (名之梦)</option>
-                      <option value="siliconflow">硅基流动 (SiliconFlow)</option>
-                      <option value="tencent">腾讯混元 (Hunyuan)</option>
-                    </optgroup>
-                    <optgroup label="国际平台与聚合">
-                      <option value="openai">OpenAI</option>
-                      <option value="anthropic">Anthropic (原生或第三方)</option>
-                      <option value="gemini">Google Gemini</option>
-                    </optgroup>
-                  </select>
-                </div>
-
-                <div class="settings-item" style="flex-direction: column; align-items: stretch;">
-                  <label class="settings-item-label" style="margin-bottom: 8px;">
-                    <span class="settings-item-label-icon">🔗</span>
-                    <span data-key="sf_lbl_baseurl">API 地址 (Base URL)</span>
-                  </label>
-                  <div class="input-wrapper">
-                    <input type="text" id="aiBaseUrl" placeholder="https://api.example.com/v1" oninput="toggleAiConfigClearBtn(this, 'aiBaseUrlClearBtn')">
-                    <div class="btn-clear-input hidden" id="aiBaseUrlClearBtn" onclick="clearAiConfigInput('aiBaseUrl', 'aiBaseUrlClearBtn')">✕</div>
-                  </div>
-                  <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 6px; padding-left: 28px;">通常以 /v1 结尾。如果使用中转或代理，请填写代理地址。</div>
-                </div>
-
-                <div class="settings-item" style="flex-direction: column; align-items: stretch;">
-                  <label class="settings-item-label" style="margin-bottom: 8px;">
-                    <span class="settings-item-label-icon">⚡</span>
-                    <span data-key="sf_lbl_model">模型名称 (Model / Endpoint ID)</span>
-                  </label>
-                  <div class="input-wrapper">
-                    <input type="text" id="aiModelName" placeholder="glm-4-flash" oninput="toggleAiConfigClearBtn(this, 'aiModelNameClearBtn')">
-                    <div class="btn-clear-input hidden" id="aiModelNameClearBtn" onclick="clearAiConfigInput('aiModelName', 'aiModelNameClearBtn')">✕</div>
-                  </div>
-                </div>
-
-                <div class="settings-item" style="flex-direction: column; align-items: stretch;">
-                  <label class="settings-item-label" style="margin-bottom: 8px;">
-                    <span class="settings-item-label-icon">🔑</span>
-                    <span>API Key / Auth Token</span>
-                  </label>
-                  <div class="input-wrapper">
-                    <input type="password" id="aiKey" placeholder="sk-..." oninput="toggleAiConfigClearBtn(this, 'aiKeyClearBtn')">
-                    <div class="btn-clear-input hidden" id="aiKeyClearBtn" onclick="clearAiConfigInput('aiKey', 'aiKeyClearBtn')">✕</div>
-                  </div>
-                </div>
-
-                <div class="privacy-note" data-key="sf_privacy_note">
-                  隐私说明：本插件没有后台服务器，API Key 仅保存在本地。Figma 卸载重装后需要重新填写 Key，请放心使用。
-                </div>
-              </div>
-            </div>
-            <div class="sub-footer">
-              <button class="primary-btn" onclick="saveAiConfig()" style="flex: 1;" data-key="sf_btn_save_cfg">保存配置</button>
-            </div>
-          </div>
-          
-           <!-- 子页面 3: 简单设置页 (用于基础类型的简单设置) -->
+          <!-- 子页面 2: 基本设置页 (用于基础类型的简单设置) -->
           <div id="pageBasicSetting" class="sub-page">
             <div class="sub-header">
               <span class="btn-back-sub" onclick="closeSubPage('pageBasicSetting')">←</span>
@@ -5687,21 +5604,21 @@
                 </label>
                 <select id="settingsAiProvider" class="search-box" onchange="updateSettingsAiDefaults()">
                   <optgroup label="热门推荐 (推荐)">
-                    <option value="glm" selected>智谱 GLM (官方 API)</option>
-                    <option value="deepseek">DeepSeek (深度求索)</option>
-                    <option value="kimi">Kimi (Moonshot API)</option>
-                    <option value="volcengine-coding">火山方舟 (doubao)</option>
-                    <option value="aliyun">阿里云百炼 (通义千问等)</option>
+                    <option value="glm" selected>GLM (免费使用 4.7flash,比较慢)</option>
+                    <option value="deepseek">DeepSeek</option>
+                    <option value="kimi">Kimi</option>
+                    <option value="volcengine-coding">Doubao</option>
+                    <option value="aliyun">Qwen</option>
                   </optgroup>
                   <optgroup label="国内其他优秀平台">
-                    <option value="minimax">MiniMax (名之梦)</option>
-                    <option value="siliconflow">硅基流动 (SiliconFlow)</option>
-                    <option value="tencent">腾讯混元 (Hunyuan)</option>
+                    <option value="minimax">MiniMax</option>
+                    <option value="siliconflow">SiliconFlow</option>
+                    <option value="tencent">Hunyuan</option>
                   </optgroup>
                   <optgroup label="国际平台与聚合">
                     <option value="openai">OpenAI</option>
                     <option value="anthropic">Anthropic (原生或第三方)</option>
-                    <option value="gemini">Google Gemini</option>
+                    <option value="gemini">Gemini</option>
                   </optgroup>
                 </select>
               </div>
@@ -5720,27 +5637,42 @@
               
               <div class="settings-item" style="flex-direction: column; align-items: stretch; padding: 0 0 16px 0;">
                 <label class="settings-item-label">
-                  <span class="settings-item-label-icon">⚡</span>
-                  <span data-key="sf_lbl_model">模型名称 (Model / Endpoint ID)</span>
-                </label>
-                <div class="input-wrapper">
-                  <input type="text" id="settingsAiModelName" placeholder="glm-4-flash" oninput="toggleSettingsClearBtn(this, 'settingsModelClearBtn')"  style="padding: 10px 12px !important;">
-                  <div class="btn-clear-input hidden" id="settingsModelClearBtn" onclick="clearSettingsInput('settingsAiModelName', 'settingsModelClearBtn')" >✕</div>
-                </div>
-              </div>
-              
-              <div class="settings-item" style="flex-direction: column; align-items: stretch; padding: 0 0 16px 0;">
-                <label class="settings-item-label">
                   <span class="settings-item-label-icon">🔑</span>
                   <span>API Key / Auth Token</span>
                 </label>
                 <div class="input-wrapper">
-                  <input type="password" id="settingsAiKey" placeholder="sk-..." oninput="toggleSettingsClearBtn(this, 'settingsKeyClearBtn')"  style="padding: 10px 12px !important;">
+                  <input type="password" id="settingsAiKey" placeholder="sk-..." oninput="toggleSettingsClearBtn(this, 'settingsKeyClearBtn'); updateGlmFreeNotice();"  style="padding: 10px 12px !important;">
                   <div class="btn-clear-input hidden" id="settingsKeyClearBtn" onclick="clearSettingsInput('settingsAiKey', 'settingsKeyClearBtn')" >✕</div>
+                </div>
+                <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 6px;">GLM 用户留空即可享受内置免费通道</div>
+              </div>
+              
+              <div class="settings-item" style="flex-direction: column; align-items: stretch; padding: 0 0 16px 0;">
+                <label class="settings-item-label">
+                  <span class="settings-item-label-icon">⚡</span>
+                  <span data-key="sf_lbl_model">模型名称 (Model / Endpoint ID)</span>
+                </label>
+                <div class="input-wrapper">
+                  <input type="text" id="settingsAiModelName" placeholder="glm-4.7-flash" oninput="toggleSettingsClearBtn(this, 'settingsModelClearBtn')"  style="padding: 10px 12px !important;">
+                  <div class="btn-clear-input hidden" id="settingsModelClearBtn" onclick="clearSettingsInput('settingsAiModelName', 'settingsModelClearBtn')" >✕</div>
                 </div>
               </div>
               
-              <button class="primary-btn" onclick="saveSettingsAiConfig()" style="margin-top: 16px; width: 100%;" data-key="sf_btn_save_cfg">保存配置</button>
+              <div id="glmFreeNotice" style="margin-top: 8px; padding: 8px 12px; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 6px; font-size: 12px; color: var(--text-secondary); display: none;">
+                💡 <b>免费内置通道</b>：当前使用 GLM-4.7-Flash（免费模型），已锁定不可更改。<br>如需使用其他模型，请填写自己的 API Key。
+              </div>
+              
+              <div style="display: flex; gap: 8px; margin-top: 16px;">
+                <button class="primary-btn" onclick="saveSettingsAiConfig()" style="flex: 1;" data-key="sf_btn_save_cfg">保存配置</button>
+                <button class="secondary-btn" onclick="testAiConnection()" style="flex: 1;" id="testConnectionBtn">测试连接</button>
+              </div>
+              
+              <div id="testConnectionResult" style="margin-top: 12px; padding: 12px; border-radius: 6px; display: none;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span id="testConnectionIcon"></span>
+                  <span id="testConnectionMessage" style="font-size: 13px;"></span>
+                </div>
+              </div>
               
               <div class="privacy-note" data-key="sf_privacy_note">
                 隐私说明：本插件没有后台服务器，API Key 仅保存在本地。Figma 卸载重装后需要重新填写 Key，请放心使用。
@@ -6051,7 +5983,19 @@
       sf_btn_new_list: "💾 存为新列表",
       sf_btn_append_list: "➕ 追加到列表",
       sf_btn_add_new: "+ 添加新列表",
-      sf_empty_custom: "暂无自定义数据\n请在“AI生成”中保存或点击下方添加",
+      sf_empty_custom: '暂无自定义数据\n请在"AI生成"中保存或点击下方添加',
+
+      sf_cfg_settings: "设置",
+      sf_lbl_custom_title: "列表标题",
+      sf_lbl_custom_content: "列表内容",
+      sf_ai_placeholder: "例：生成20个高档小区名称...",
+      sf_sort_num_asc: "升序 1→9",
+      sf_sort_num_desc: "降序 9→1",
+      sf_sort_date_asc: "正序 (old→new)",
+      sf_sort_date_desc: "倒序 (new→old)",
+      sf_sort_time_asc: "升序 (早→晚)",
+      sf_sort_time_desc: "降序 (晚→早)",
+      sf_time_fmt_cn: "中文长格式",
 
       // --- Label 翻译 (Smart Fill Basic) ---
       sf_lbl_name: "姓名",
@@ -6564,6 +6508,18 @@
       sf_btn_add_new: "+ Add New List",
       sf_empty_custom: "No custom data\nSave from AI or click Add below",
 
+      sf_cfg_settings: "Settings",
+      sf_lbl_custom_title: "List Title",
+      sf_lbl_custom_content: "List Content",
+      sf_ai_placeholder: "e.g. Generate 20 luxury neighborhood names...",
+      sf_sort_num_asc: "Asc 1→9",
+      sf_sort_num_desc: "Desc 9→1",
+      sf_sort_date_asc: "Asc (old→new)",
+      sf_sort_date_desc: "Desc (new→old)",
+      sf_sort_time_asc: "Asc (early→late)",
+      sf_sort_time_desc: "Desc (late→early)",
+      sf_time_fmt_cn: "Chinese Format",
+
       // --- Label Translations (Smart Fill Basic) ---
       sf_lbl_name: "Name",
       sf_lbl_address: "Address",
@@ -7010,7 +6966,7 @@
         const k = el.getAttribute('data-key');
         if (t[k]) {
           // 如果是输入框，更新 placeholder
-          if (el.tagName === 'INPUT' && (el.type === 'text' || !el.type)) {
+          if ((el.tagName === 'INPUT' && (el.type === 'text' || !el.type)) || el.tagName === 'TEXTAREA') {
             el.placeholder = t[k];
           } 
           // 普通文本元素 (Label, Span, Button, etc.)
@@ -7247,18 +7203,38 @@
     }
 
     const AI_DEFAULTS = {
-        glm: { baseUrl: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4-flash' },
-        deepseek: { baseUrl: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
-        kimi: { baseUrl: 'https://api.moonshot.cn/v1', model: 'moonshot-v1-8k' },
-        'volcengine-coding': { baseUrl: 'https://ark.cn-beijing.volces.com/api/v3', model: '' },
-        aliyun: { baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen-turbo' },
-        minimax: { baseUrl: 'https://api.minimax.chat/v1', model: 'abab6.5s-chat' },
+        glm: { baseUrl: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4.7-flash' },
+        deepseek: { baseUrl: 'https://api.deepseek.com', model: 'deepseek-v4-flash' },
+        kimi: { baseUrl: 'https://api.moonshot.cn/v1', model: 'kimi-k2.6' },
+        'volcengine-coding': { baseUrl: 'https://ark.cn-beijing.volces.com/api/v3', model: 'Doubao-Seed-2.0-Lite' },
+        aliyun: { baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen3.7-plus' },
+        minimax: { baseUrl: 'https://api.minimax.chat/v1', model: 'MiniMax-M3' },
         siliconflow: { baseUrl: 'https://api.siliconflow.cn/v1', model: 'Qwen/Qwen2.5-7B-Instruct' },
-        tencent: { baseUrl: 'https://api.hunyuan.cloud.tencent.com/v1', model: 'hunyuan-lite' },
-        openai: { baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
-        anthropic: { baseUrl: 'https://api.anthropic.com/v1', model: 'claude-3-haiku-20240307' },
-        gemini: { baseUrl: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-pro' }
+        tencent: { baseUrl: 'https://api.hunyuan.cloud.tencent.com/v1', model: 'hy3-preview' },
+        openai: { baseUrl: 'https://api.openai.com/v1', model: 'gpt-5.5' },
+        anthropic: { baseUrl: 'https://api.anthropic.com/v1', model: 'claude-3-5-sonnet-20240620' },
+        gemini: { baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-1.5-flash' }
     };
+
+    const GLM_PROXY_URL = 'https://1317980685-dbfuimonaz.ap-guangzhou.tencentscf.com';
+
+    function getAiEndpoint() {
+        const provider = (aiConfig.provider || '').toLowerCase();
+        if ((provider === 'glm' || provider.includes('glm')) && !aiConfig.key) {
+            return {
+                url: GLM_PROXY_URL,
+                key: '',
+                model: 'glm-4.7-flash',
+                isProxy: true
+            };
+        }
+        return {
+            url: aiConfig.baseUrl,
+            key: aiConfig.key,
+            model: aiConfig.model || 'glm-4.7-flash',
+            isProxy: false
+        };
+    }
 
     function updateSettingsAiDefaults() {
         const provider = document.getElementById('settingsAiProvider').value;
@@ -7270,9 +7246,32 @@
         baseUrlInput.value = defaults.baseUrl;
         modelInput.value = defaults.model;
         
-        // 手动触发 clear 按钮显示
         toggleSettingsClearBtn(baseUrlInput, 'settingsBaseUrlClearBtn');
         toggleSettingsClearBtn(modelInput, 'settingsModelClearBtn');
+        
+        updateGlmFreeNotice();
+    }
+
+    function updateGlmFreeNotice() {
+        const provider = document.getElementById('settingsAiProvider').value;
+        const key = document.getElementById('settingsAiKey').value;
+        const notice = document.getElementById('glmFreeNotice');
+        const modelInput = document.getElementById('settingsAiModelName');
+        
+        if (provider === 'glm' && !key) {
+            if (notice) notice.style.display = 'block';
+            if (modelInput) {
+                modelInput.value = 'glm-4.7-flash';
+                modelInput.disabled = true;
+                modelInput.style.opacity = '0.6';
+            }
+        } else {
+            if (notice) notice.style.display = 'none';
+            if (modelInput) {
+                modelInput.disabled = false;
+                modelInput.style.opacity = '1';
+            }
+        }
     }
 
     function loadSettingsAiConfig() {
@@ -7282,32 +7281,127 @@
     function saveSettingsAiConfig() {
         const config = {
             provider: document.getElementById('settingsAiProvider').value,
-            baseUrl: document.getElementById('settingsAiBaseUrl').value,
-            model: document.getElementById('settingsAiModelName').value,
-            key: document.getElementById('settingsAiKey').value
+            baseUrl: (document.getElementById('settingsAiBaseUrl').value || '').trim(),
+            model: (document.getElementById('settingsAiModelName').value || '').trim(),
+            key: (document.getElementById('settingsAiKey').value || '').trim()
         };
         
         aiConfig = config;
         postMsg('save-storage', { key: 'smart_ai_config', value: config, notify: true });
-        
-        syncAiConfigToSmartFill();
     }
 
-    function syncAiConfigToSmartFill() {
-        const provider = document.getElementById('settingsAiProvider');
-        const baseUrl = document.getElementById('settingsAiBaseUrl');
-        const model = document.getElementById('settingsAiModelName');
-        const key = document.getElementById('settingsAiKey');
+    async function testAiConnection() {
+        const provider = document.getElementById('settingsAiProvider').value;
+        const baseUrl = (document.getElementById('settingsAiBaseUrl').value || '').trim();
+        const model = (document.getElementById('settingsAiModelName').value || '').trim();
+        const key = (document.getElementById('settingsAiKey').value || '').trim();
         
-        const sfProvider = document.getElementById('aiProvider');
-        const sfBaseUrl = document.getElementById('aiBaseUrl');
-        const sfModel = document.getElementById('aiModelName');
-        const sfKey = document.getElementById('aiKey');
+        const resultDiv = document.getElementById('testConnectionResult');
+        const iconSpan = document.getElementById('testConnectionIcon');
+        const messageSpan = document.getElementById('testConnectionMessage');
+        const testBtn = document.getElementById('testConnectionBtn');
         
-        if (sfProvider && provider) sfProvider.value = provider.value;
-        if (sfBaseUrl && baseUrl) sfBaseUrl.value = baseUrl.value;
-        if (sfModel && model) sfModel.value = model.value;
-        if (sfKey && key) sfKey.value = key.value;
+        const isGlm = provider === 'glm';
+        const useProxy = isGlm && !key;
+        
+        if (!baseUrl || !model) {
+            showTestResult(false, '请填写 Base URL 和模型名称');
+            return;
+        }
+        if (!useProxy && !key) {
+            showTestResult(false, '请填写 API Key，否则将使用内置免费通道');
+            return;
+        }
+        
+        testBtn.disabled = true;
+        testBtn.textContent = '测试中...';
+        resultDiv.style.display = 'block';
+        resultDiv.style.background = 'var(--bg-tertiary)';
+        iconSpan.textContent = '⏳';
+        messageSpan.textContent = useProxy ? '正在通过内置通道连接...' : '正在连接 API...';
+        
+        let testUrl, fetchHeaders, fetchBody;
+        if (useProxy) {
+            testUrl = GLM_PROXY_URL;
+            fetchHeaders = { 'Content-Type': 'application/json' };
+        } else {
+            testUrl = baseUrl.endsWith('/') ? baseUrl + 'chat/completions' : baseUrl + '/chat/completions';
+            fetchHeaders = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${key}`
+            };
+        }
+        fetchBody = JSON.stringify({
+            model: model,
+            messages: [{ role: 'user', content: '你好' }],
+            max_tokens: 10,
+            stream: false
+        });
+        
+        const reqId = 'test_' + Date.now();
+        
+        const fetchPromise = new Promise((resolve, reject) => {
+            const handler = (event) => {
+                const msg = event.data?.pluginMessage;
+                if (msg && msg.type === 'api-response' && msg.reqId === reqId) {
+                    window.removeEventListener('message', handler);
+                    if (msg.error) reject(new Error(msg.error));
+                    else resolve(msg.data);
+                }
+            };
+            window.addEventListener('message', handler);
+            setTimeout(() => { window.removeEventListener('message', handler); reject(new Error('连接超时(15秒)')); }, 15000);
+        });
+        
+        parent.postMessage({
+            pluginMessage: { type: 'do-fetch', reqId: reqId, url: testUrl, options: { method: 'POST', headers: fetchHeaders, body: fetchBody } }
+        }, '*');
+        
+        try {
+            const data = await fetchPromise;
+            if (data.error) {
+                const errMsg = data.error.message || JSON.stringify(data.error);
+                showTestResult(false, `连接失败：${errMsg}`);
+            } else if (data.choices && data.choices.length > 0) {
+                const label = useProxy ? '内置通道' : 'API';
+                showTestResult(true, `连接成功！模型 ${model} 通过${label}响应正常`);
+            } else {
+                showTestResult(false, `连接失败：API 返回格式异常`);
+            }
+        } catch (error) {
+            let errorMsg = '连接失败';
+            if (error.message.includes('超时')) {
+                errorMsg = '连接超时，请检查网络或 Base URL';
+            } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                errorMsg = useProxy ? '内置通道暂时不可用，请稍后重试或填写自己的 API Key' : '网络错误，请检查 Base URL 是否正确';
+            } else {
+                errorMsg = `连接失败：${error.message}`;
+            }
+            showTestResult(false, errorMsg);
+        } finally {
+            testBtn.disabled = false;
+            testBtn.textContent = '测试连接';
+        }
+    }
+
+    function showTestResult(success, message) {
+        const resultDiv = document.getElementById('testConnectionResult');
+        const iconSpan = document.getElementById('testConnectionIcon');
+        const messageSpan = document.getElementById('testConnectionMessage');
+        
+        resultDiv.style.display = 'block';
+        
+        if (success) {
+            resultDiv.style.background = 'rgba(34, 197, 94, 0.1)';
+            resultDiv.style.border = '1px solid rgba(34, 197, 94, 0.3)';
+            iconSpan.textContent = '✅';
+        } else {
+            resultDiv.style.background = 'rgba(239, 68, 68, 0.1)';
+            resultDiv.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+            iconSpan.textContent = '❌';
+        }
+        
+        messageSpan.textContent = message;
     }
 
     // 切换迷你模式
@@ -8477,8 +8571,8 @@
     
     // 6. 调用AI
     async function callTheoryAI(question) {
-      // 检查AI配置
-      if (!aiConfig || !aiConfig.key || !aiConfig.baseUrl) {
+      const endpoint = getAiEndpoint();
+      if (!aiConfig || (!endpoint.key && !endpoint.isProxy) || !endpoint.url) {
         addTheoryChatMessage('ai', '抱歉，AI配置不完整，无法回答问题。请先在设置中配置AI。');
         return;
       }
@@ -8499,7 +8593,7 @@
 - 如果用户问的是设计问题，要结合相关理论给出建议`;
 
         const requestBody = {
-          model: aiConfig.model || 'gpt-3.5-turbo',
+          model: endpoint.model || 'glm-4.7-flash',
           messages: [
             { role: "system", content: systemPrompt },
             ...theoryChatHistory
@@ -8508,9 +8602,18 @@
           stream: false
         };
 
-        let targetUrl = aiConfig.baseUrl.trim().replace(/\/+$/, '');
+        let targetUrl = endpoint.url.trim().replace(/\/+$/, '');
         if (!targetUrl.includes('/chat/completions')) {
           targetUrl += '/chat/completions';
+        }
+
+        const fetchOptions = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody)
+        };
+        if (endpoint.key) {
+          fetchOptions.headers['Authorization'] = `Bearer ${endpoint.key}`;
         }
 
         const reqId = Date.now().toString();
@@ -8538,14 +8641,7 @@
             type: 'do-fetch',
             reqId: reqId,
             url: targetUrl,
-            options: {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${aiConfig.key}`
-              },
-              body: JSON.stringify(requestBody)
-            }
+            options: fetchOptions
           }
         }, '*');
 
@@ -8859,13 +8955,7 @@
           }
           if (msg.key === 'smart_ai_config' && msg.value) {
              aiConfig = msg.value;
-             // 回填配置页
-             document.getElementById('aiProvider').value = aiConfig.provider;
-             document.getElementById('aiBaseUrl').value = aiConfig.baseUrl;
-             document.getElementById('aiModelName').value = aiConfig.model;
-             document.getElementById('aiKey').value = aiConfig.key;
              
-             // AI配置加载完成后，更新问候语
              updateGreeting();
           }
           if (msg.key === 'smart_date_format' && msg.value) {
@@ -11123,8 +11213,8 @@
     let aiConfig = { 
         provider: 'glm', 
         baseUrl: 'https://open.bigmodel.cn/api/paas/v4', 
-        model: 'glm-4-flash', 
-        key: '0f0448fcf32847d7b8ad87f9775ccc81.qYKFBI0ZEx9gcGeT' 
+        model: 'glm-4.7-flash', 
+        key: '' 
     };
     let dateFormat = 'YYYY-MM-DD';
 
@@ -11139,12 +11229,6 @@
     function initSmartFill() {
       renderBasicList();
 
-      // 1. 先把默认值填进去
-      document.getElementById('aiProvider').value = aiConfig.provider;
-      document.getElementById('aiBaseUrl').value = aiConfig.baseUrl;
-      document.getElementById('aiModelName').value = aiConfig.model;
-
-      // 2. 然后再请求保存的配置
       postMsg('load-storage', { key: 'smart_custom_lists' });
       renderBasicList(); // 渲染基础列表
       renderCustomList(); // 渲染自定义列表
@@ -11514,7 +11598,7 @@
       e.stopPropagation();
       currentSettingKey = key;
       const config = basicDataTypes.find(t => t.key === key);
-      document.getElementById('basicSettingTitle').innerText = config.label + " 设置";
+      document.getElementById('basicSettingTitle').innerText = config.label + " " + i18n[curLang].sf_cfg_settings;
       
       const container = document.getElementById('settingFormContainer');
       container.innerHTML = '';
@@ -11541,7 +11625,7 @@
             <div class="config-group">
                 <label class="config-label">${i18n[curLang].sf_cfg_sort}</label>
                 ${renderRadioTags('numSort', [
-                    {l:'随机', v:'random'}, {l:'升序 1→9', v:'asc'}, {l:'降序 9→1', v:'desc'}
+                    {l: i18n[curLang].sf_sort_rand, v:'random'}, {l: i18n[curLang].sf_sort_num_asc, v:'asc'}, {l: i18n[curLang].sf_sort_num_desc, v:'desc'}
                 ], s.sort)}
             </div>
           `;
@@ -11586,7 +11670,7 @@
             <div class="config-group">
                 <label class="config-label">${i18n[curLang].sf_cfg_sort}</label>
                 ${renderRadioTags('dateSort', [
-                    {l:'随机', v:'random'}, {l:'正序 (old→new)', v:'asc'}, {l:'倒序 (new→old)', v:'desc'}
+                    {l: i18n[curLang].sf_sort_rand, v:'random'}, {l: i18n[curLang].sf_sort_date_asc, v:'asc'}, {l: i18n[curLang].sf_sort_date_desc, v:'desc'}
                 ], s.sort)}
             </div>
           `;
@@ -11620,14 +11704,14 @@
                     {l:'05:05', v:'HH:mm'},
                     {l:'05:05 (m:s)', v:'mm:ss'},
                     {l:'5:5:5', v:'H:m:s'},
-                    {l:'中文长格式', v:'cn_long'}
+                    {l: i18n[curLang].sf_time_fmt_cn, v:'cn_long'}
                 ], s.format)}
             </div>
             
             <div class="config-group">
                 <label class="config-label">${i18n[curLang].sf_cfg_sort}</label>
                 ${renderRadioTags('timeSort', [
-                    {l:'随机', v:'random'}, {l:'升序 (早→晚)', v:'asc'}, {l:'降序 (晚→早)', v:'desc'}
+                    {l: i18n[curLang].sf_sort_rand, v:'random'}, {l: i18n[curLang].sf_sort_time_asc, v:'asc'}, {l: i18n[curLang].sf_sort_time_desc, v:'desc'}
                 ], s.sort)}
             </div>
           `;
@@ -11876,151 +11960,6 @@
         reader.readAsText(file);
     }
     
-    // --- AI 逻辑 ---
-    // 补全后的模型配置字典 (全部采用 OpenAI 兼容接口格式)
-    const aiProviders = {
-      // --- 国内大厂 ---
-      'glm': { 
-          url: 'https://open.bigmodel.cn/api/paas/v4', 
-          model: 'glm-4-flash', // 智谱高性价比模型
-          key: '0f0448fcf32847d7b8ad87f9775ccc81.qYKFBI0ZEx9gcGeT'
-      },
-      'deepseek': { 
-          url: 'https://api.deepseek.com', 
-          model: 'deepseek-chat' 
-      },
-      'kimi': { 
-          url: 'https://api.moonshot.cn/v1', 
-          model: 'moonshot-v1-8k' 
-      },
-      'volcengine-coding': { 
-          // 严格遵循火山 Coding Plan 官方文档，必须使用 /api/coding/v3 走 OpenAI 兼容协议免扣费
-          url: 'https://ark.cn-beijing.volces.com/api/v3/chat/completions', 
-          model: 'ep-m-20260310174440-67tw7' // 火山推荐的 Auto 模式模型，也可按需改为 deepseek-v3.2 等
-      },
-      'aliyun': { 
-          url: 'https://dashscope.aliyuncs.com/compatible-mode/v1', 
-          model: 'qwen-plus' // 阿里云百炼 OpenAI 兼容接口
-      },
-      'minimax': {
-          url: 'https://api.minimax.chat/v1',
-          model: 'abab6.5s-chat'
-      },
-      'siliconflow': { 
-          url: 'https://api.siliconflow.cn/v1', 
-          model: 'Qwen/Qwen2.5-7B-Instruct' 
-      },
-      'tencent': {
-          url: 'https://api.hunyuan.cloud.tencent.com/v1',
-          model: 'hunyuan-lite'
-      },
-
-      // --- 国际与聚合 ---
-      'openai': { 
-          url: 'https://api.openai.com/v1', 
-          model: 'gpt-4o-mini' 
-      },
-      'anthropic': { 
-          // 注：Anthropic官方API格式与OpenAI不同。如果你的代码只有一套用 fetch 请求 /v1/chat/completions 的逻辑，
-          // 这里建议留给用户填支持 OpenAI 兼容格式的第三方中转地址。如果是官方API，需要额外处理 Headers。
-          url: 'https://api.anthropic.com/v1', 
-          model: 'claude-3-5-sonnet-20240620' 
-      },
-      'gemini': { 
-          url: 'https://generativelanguage.googleapis.com/v1beta/openai', // 谷歌官方提供的 OpenAI 兼容网关
-          model: 'gemini-1.5-flash' 
-      },
-      'openrouter': {
-          url: 'https://openrouter.ai/api/v1',
-          model: 'anthropic/claude-3.5-sonnet' // OpenRouter 要求带厂商前缀
-      },
-
-      // --- 本地与自定义 ---
-      'litellm': {
-          url: 'http://localhost:4000/v1',
-          model: 'gpt-3.5-turbo'
-      },
-      'ollama': { 
-          url: 'http://localhost:11434/v1', 
-          model: 'llama3' 
-      },
-      'custom': { 
-          url: 'https://你的接口地址/v1', 
-          model: '填写模型名称' 
-      }
-    };
-
-    // 切换下拉框时自动填入数据
-    function updateAiConfigDefaults() {
-      const provider = document.getElementById('aiProvider').value;
-      const cfg = aiProviders[provider];
-      if (cfg) {
-        const baseUrlInput = document.getElementById('aiBaseUrl');
-        const modelNameInput = document.getElementById('aiModelName');
-        const keyInput = document.getElementById('aiKey');
-        
-        baseUrlInput.value = cfg.url;
-        modelNameInput.value = cfg.model;
-        
-        // 手动触发 clear 按钮显示
-        toggleAiConfigClearBtn(baseUrlInput, 'aiBaseUrlClearBtn');
-        toggleAiConfigClearBtn(modelNameInput, 'aiModelNameClearBtn');
-        
-        if (cfg.key) {
-          keyInput.value = cfg.key;
-          toggleAiConfigClearBtn(keyInput, 'aiKeyClearBtn');
-        }
-      }
-    }
-
-    // AI 配置输入框清除按钮
-    function toggleAiConfigClearBtn(input, btnId) {
-        const clearBtn = document.getElementById(btnId);
-        if (clearBtn) {
-            if (input.value) {
-                clearBtn.classList.remove('hidden');
-            } else {
-                clearBtn.classList.add('hidden');
-            }
-        }
-    }
-
-    function clearAiConfigInput(inputId, btnId) {
-        const input = document.getElementById(inputId);
-        const clearBtn = document.getElementById(btnId);
-        if (input) {
-            input.value = '';
-            input.focus();
-        }
-        if (clearBtn) {
-            clearBtn.classList.add('hidden');
-        }
-    }
-
-    function saveAiConfig() {
-       aiConfig = {
-          provider: document.getElementById('aiProvider').value,
-          baseUrl: document.getElementById('aiBaseUrl').value,
-          model: document.getElementById('aiModelName').value,
-          key: document.getElementById('aiKey').value
-       };
-       postMsg('save-storage', { key: 'smart_ai_config', value: aiConfig, notify: true });
-       
-       // 显示成功后 3s 返回
-       const btn = event.target; // 获取点击的按钮
-       const originalText = "保存配置"; // 记录原始文字
-       
-       btn.innerText = "配置成功"; // 1. 去掉 (3s) 文字
-       btn.disabled = true;        // 2. 禁用按钮防止重复点击
-       
-       // 3. 1.5秒后自动返回 (比3秒更流畅)
-       setTimeout(() => {
-          btn.innerText = originalText;
-          btn.disabled = false;
-          closeSubPage('pageAiConfig');
-       }, 1500);
-    }
-
     let aiAbortController = null; // 全局控制器
     
     // --- 辅助函数：强制重置 UI 状态 ---
@@ -12054,8 +11993,10 @@
     
     const promptText = document.getElementById('aiPrompt').value;
     if (!promptText) return alert("请输入提示词");
-    if (!aiConfig.key) return alert("请先配置 API Key");
-    if (!aiConfig.baseUrl) return alert("请先配置 API 接口地址");
+
+    const endpoint = getAiEndpoint();
+    if (!endpoint.key && !endpoint.isProxy) return alert("请先配置 API Key");
+    if (!endpoint.url) return alert("请先配置 API 接口地址");
 
     btn.innerText = "生成中...点击停止";
     btn.style.backgroundColor = "#ff4d4f"; 
@@ -12084,7 +12025,7 @@
 请输出 JSON 数组：`;
 
     const requestBody = {
-        model: aiConfig.model,
+        model: endpoint.model,
         messages:[
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt }
@@ -12094,7 +12035,7 @@
     };
 
     const provider = (aiConfig.provider || '').toLowerCase();
-    const modelName = (aiConfig.model || '').trim().toLowerCase();
+    const modelName = (endpoint.model || '').trim().toLowerCase();
 
     // 针对不同厂商的思考模式参数兼容
     if (!enableThinking) {
@@ -12108,10 +12049,18 @@
     }
 
     try {
-        // 自动处理 URL：如果用户直接填了 /chat/completions 则保留，否则自动追加
-        let targetUrl = aiConfig.baseUrl.trim().replace(/\/+$/, '');
+        let targetUrl = endpoint.url.trim().replace(/\/+$/, '');
         if (!targetUrl.includes('/chat/completions')) {
             targetUrl += '/chat/completions';
+        }
+
+        const fetchOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        };
+        if (endpoint.key) {
+            fetchOptions.headers['Authorization'] = `Bearer ${endpoint.key}`;
         }
 
         const reqId = Date.now().toString(); 
@@ -12144,14 +12093,7 @@
                 type: 'do-fetch',
                 reqId: reqId,
                 url: targetUrl,
-                options: {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${aiConfig.key}`
-                    },
-                    body: JSON.stringify(requestBody)
-                }
+                options: fetchOptions
             }
         }, '*');
 
@@ -12812,7 +12754,7 @@
         if (key) toggleSettingsClearBtn(key, 'settingsKeyClearBtn');
         
         aiConfig = config;
-        syncAiConfigToSmartFill();
+        updateGlmFreeNotice();
       }
       
       // ========== 2. 贴入最新版的 i18n 消息接收逻辑 ==========
@@ -12914,9 +12856,8 @@
     }
     
     async function generateAIGreeting(element, hour) {
-        // 检查AI配置
-        // 💡 注意：确保 aiConfig 在调用此函数前已经被正确赋值！
-        if (!aiConfig || !aiConfig.key || !aiConfig.baseUrl) {
+        const endpoint = getAiEndpoint();
+        if (!aiConfig || (!endpoint.key && !endpoint.isProxy) || !endpoint.url) {
             console.warn('【AI问候语】缺少AI配置 (key 或 baseUrl)，使用简单问候语');
             // 使用简单问候语
             const greetings = [
@@ -12953,8 +12894,10 @@
 
 请生成问候语：`;
 
+            const endpoint = getAiEndpoint();
+
             const requestBody = {
-                model: aiConfig.model || 'gpt-3.5-turbo',
+                model: endpoint.model || 'glm-4.7-flash',
                 messages: [
                     { role: "system", content: systemPrompt },
                     { role: "user", content: userPrompt }
@@ -12963,9 +12906,18 @@
                 stream: false
             };
 
-            let targetUrl = aiConfig.baseUrl.trim().replace(/\/+$/, '');
+            let targetUrl = endpoint.url.trim().replace(/\/+$/, '');
             if (!targetUrl.includes('/chat/completions')) {
                 targetUrl += '/chat/completions';
+            }
+
+            const fetchOptions = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            };
+            if (endpoint.key) {
+                fetchOptions.headers['Authorization'] = `Bearer ${endpoint.key}`;
             }
 
             const reqId = Date.now().toString();
@@ -12982,27 +12934,18 @@
 
                 window.addEventListener('message', messageHandler);
 
-                // 💡 优化 1：超时时间从 5 秒放宽到 15 秒（15000）
                 setTimeout(() => {
                     window.removeEventListener('message', messageHandler);
                     reject(new Error('大模型响应超时(15秒)'));
                 }, 15000);
             });
 
-            // 派发请求给主线程
             parent.postMessage({
                 pluginMessage: {
                     type: 'do-fetch',
                     reqId: reqId,
                     url: targetUrl,
-                    options: {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${aiConfig.key}`
-                        },
-                        body: JSON.stringify(requestBody)
-                    }
+                    options: fetchOptions
                 }
             }, '*');
 
@@ -13207,7 +13150,7 @@
 
         if (mode === 'update') {
             let options = i18nState.collections.length === 0 
-                ? `<option value="">⚠️ 未检测到变量合集</option>` 
+                ? `<option value="">${i18n[curLang].i18n_no_collection}</option>` 
                 : existingOptions;
             container.innerHTML = `<select id="i18nCollectionSelect" class="search-box" style="flex: 1;">${options}</select>`;
             
@@ -13219,13 +13162,13 @@
         } else if (mode === 'create') {
             // 将 "创建新变量合集" 移动到最底部
             let options = existingOptions; 
-            options += `<option value="__new__">✨ 创建新变量合集</option>`;
+            options += `<option value="__new__">✨ ${i18n[curLang].i18n_create_new_collection}</option>`;
             
             container.innerHTML = `
                 <select id="i18nCollectionSelect" class="search-box" style="flex: 1; margin-bottom: 8px;" onchange="i18nToggleNewCollection()">
                     ${options}
                 </select>
-                <input type="text" id="i18nNewCollectionName" class="search-box" style="flex: 1; display: none;" placeholder="输入新变量合集名称">
+                <input type="text" id="i18nNewCollectionName" class="search-box" style="flex: 1; display: none;" placeholder="${i18n[curLang].i18n_new_collection_placeholder}">
             `;
             
             // 恢复之前的值
@@ -13325,16 +13268,23 @@
     async function fetchAITranslation(textsToTranslate, targetLang, reqIdSuffix) {
         if (!textsToTranslate || textsToTranslate.length === 0) return [];
 
-        const aiKey = aiConfig?.key || '';
-        const aiModel = aiConfig?.model || 'gpt-3.5-turbo';
-        let aiUrl = aiConfig?.baseUrl || 'https://api.openai.com/v1';
+        const endpoint = getAiEndpoint();
+        if (!endpoint.key && !endpoint.isProxy) throw new Error("请先在设置面板配置 AI Key");
         
-        if (!aiKey) throw new Error("请先在设置面板配置 AI Key");
-        aiUrl = aiUrl.trim().replace(/\/+$/, '');
+        let aiUrl = endpoint.url.trim().replace(/\/+$/, '');
         if (!aiUrl.includes('/chat/completions')) aiUrl += '/chat/completions';
 
         const prompt = `Translate these UI texts to ${targetLang}. Return ONLY a JSON array with objects containing 'original' and 'translated' keys. Do not add markdown backticks. Texts: ${JSON.stringify(textsToTranslate)}`;
         const reqId = "i18n_" + Date.now().toString() + "_" + reqIdSuffix;
+
+        const fetchOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: endpoint.model, messages: [{ role: 'user', content: prompt }], temperature: 0.3 })
+        };
+        if (endpoint.key) {
+            fetchOptions.headers['Authorization'] = `Bearer ${endpoint.key}`;
+        }
 
         const fetchPromise = new Promise((resolve, reject) => {
             const abortHandler = () => reject(new Error('用户强制中断'));
@@ -13353,7 +13303,7 @@
         });
 
         parent.postMessage({
-            pluginMessage: { type: 'do-fetch', reqId: reqId, url: aiUrl, options: { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${aiKey}` }, body: JSON.stringify({ model: aiModel, messages: [{ role: 'user', content: prompt }], temperature: 0.3 }) } }
+            pluginMessage: { type: 'do-fetch', reqId: reqId, url: aiUrl, options: fetchOptions }
         }, '*');
 
         const response = await fetchPromise;
