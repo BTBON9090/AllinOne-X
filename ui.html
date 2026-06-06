@@ -2198,8 +2198,8 @@
       .lint-controls-wrapper { 
           display: flex; 
           flex-direction: column; 
-          height: 100%; 
-          overflow: visible; 
+          flex: 1; 
+          overflow-y: auto; 
           background: var(--bg-white); 
       }
 
@@ -2209,7 +2209,7 @@
           height: 100%; 
           width: 100%; 
           background: var(--bg-white); 
-          overflow: hidden; 
+          overflow-y: auto; 
       }
       .refiner-tabs {
           display: flex; 
@@ -2263,7 +2263,7 @@
           flex: 1; 
           display: none; 
           flex-direction: column; 
-          overflow: hidden; 
+          overflow: visible; 
           background: var(--bg-body); 
           height: 100%; 
       }
@@ -4481,25 +4481,27 @@
             <div class="nav-item" data-nav="smartFill" onclick="switchGroup('smartFill', this)">
                 <span class="nav-icon-slot">🧠</span><span class="nav-text" data-key="nav_smartFill">智能填充</span><span class="nav-dot"></span>
             </div>
-            <div class="nav-section-label" data-key="nav_section_advanced">高级功能</div>
-            <div class="nav-item" data-nav="refiner" onclick="switchGroup('refiner', this)">
-                <span class="nav-icon-slot">💎</span><span class="nav-text" data-key="nav_refiner">组件清洗</span><span class="nav-dot"></span>
-            </div>
-            <div class="nav-item" data-nav="ppt" onclick="switchGroup('ppt', this)">
-                <span class="nav-icon-slot">📊</span><span class="nav-text" data-key="nav_ppt">PPT 导出</span><span class="nav-dot"></span>
-            </div>
-            <div class="nav-item" data-nav="theory" onclick="switchGroup('theory', this)">
-                <span class="nav-icon-slot">📖</span><span class="nav-text" data-key="nav_theory">设计理论</span><span class="nav-dot"></span>
-            </div>
-            <div class="nav-section-label" data-key="nav_section_lab">实验室</div>
             <div class="nav-item" data-nav="jumpback" onclick="switchGroup('jumpback', this)">
                 <span class="nav-icon-slot">📍</span><span class="nav-text" data-key="nav_jumpback">时空信标</span><span class="nav-dot"></span>
+            </div>
+            <div class="nav-item" data-nav="refiner" onclick="switchGroup('refiner', this)">
+                <span class="nav-icon-slot">💎</span><span class="nav-text" data-key="nav_refiner">组件清洗</span><span class="nav-dot"></span>
             </div>
             <div class="nav-item" data-nav="skew" onclick="switchGroup('skew', this)">
                 <span class="nav-icon-slot">🔷</span><span class="nav-text" data-key="nav_skew">等轴形变</span><span class="nav-dot"></span>
             </div>
+            <div class="nav-section-label" data-key="nav_section_lab">实验室</div>
+            <div class="nav-item" data-nav="ppt" onclick="switchGroup('ppt', this)">
+                <span class="nav-icon-slot">📊</span><span class="nav-text" data-key="nav_ppt">PPT 导出</span><span class="nav-dot"></span>
+            </div>
             <div class="nav-item" data-nav="i18n" onclick="switchGroup('i18n', this)">
                 <span class="nav-icon-slot">🌐</span><span class="nav-text" data-key="nav_i18n">语言切换</span><span class="nav-dot"></span>
+            </div>
+            <div class="nav-item" data-nav="compkit" onclick="switchGroup('compkit', this)">
+                <span class="nav-icon-slot">🎨</span><span class="nav-text" data-key="nav_compkit">CompKit</span><span class="nav-dot"></span>
+            </div>
+            <div class="nav-item" data-nav="theory" onclick="switchGroup('theory', this)">
+                <span class="nav-icon-slot">📖</span><span class="nav-text" data-key="nav_theory">设计理论</span><span class="nav-dot"></span>
             </div>
         </div>
         <div class="sidebar-footer">
@@ -5681,7 +5683,328 @@
           </div>
         </div>
 
-        <!-- Panel 9: 空状态 (Fallback) -->
+        <!-- Panel 9: CompKit - 变体矩阵工具 -->
+        <div id="compkitPanel" style="display: none; flex-direction: column; height: 100%; background: var(--bg-body);">
+          
+          <!-- Tabs -->
+          <div class="refiner-tabs" style="flex-shrink: 0; position: sticky; top: 0; z-index: 10; background: var(--bg-body);">
+            <div class="refiner-tab-item active" onclick="switchCompKitTab('matrix')" data-key="ck_tab_matrix">矩阵排列</div>
+            <div class="refiner-tab-item" onclick="switchCompKitTab('showcase')" data-key="ck_tab_showcase">生成说明书</div>
+            <div class="refiner-tab-item" onclick="switchCompKitTab('batch')" data-key="ck_tab_batch">批量排布</div>
+          </div>
+
+          <!-- Tab 1: 矩阵排列 -->
+          <div id="tabCompKitMatrix" class="refiner-tab-content active" style="overflow-y: auto; padding: 12px;">
+            <!-- 功能说明卡片 -->
+            <div class="selector-card" style="margin-bottom: 16px;">
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                <div style="width: 48px; height: 48px; background: var(--card-purple-bg); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 24px;">🎨</div>
+                <div>
+                  <div style="font-size: 14px; font-weight: 700; color: var(--text-primary);" data-key="ck_matrix_title">变体矩阵排列</div>
+                  <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;" data-key="ck_matrix_desc">自动将 Component Set 按矩阵排列</div>
+                </div>
+              </div>
+              <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.6;" data-key="ck_matrix_tip">
+                选中一个 Component Set（组件集），插件会自动解析变体属性并按照矩阵方式重新排列，让变体结构更清晰。
+              </div>
+            </div>
+
+            <!-- 配置选项 -->
+            <div class="selector-card" style="margin-bottom: 16px;">
+              <div class="section-header" style="margin-bottom: 12px;">
+                <span class="section-title" data-key="ck_config">排列配置</span>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div>
+                  <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block;" data-key="ck_gap_x">横向间距</label>
+                  <input type="number" id="compkitGapX" value="40" min="0" max="200" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; background: var(--bg-surface); color: var(--text-primary);">
+                </div>
+                <div>
+                  <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block;" data-key="ck_gap_y">纵向间距</label>
+                  <input type="number" id="compkitGapY" value="40" min="0" max="200" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; background: var(--bg-surface); color: var(--text-primary);">
+                </div>
+              </div>
+              
+              <div>
+                <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block;" data-key="ck_padding">内边距</label>
+                <input type="number" id="compkitPadding" value="24" min="0" max="100" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; background: var(--bg-surface); color: var(--text-primary);">
+              </div>
+            </div>
+
+            <!-- 执行按钮 -->
+            <button class="primary-btn" onclick="runCompKitMatrix()" style="width: 100%; padding: 14px; font-size: 13px; font-weight: 700;">
+              🎨 <span data-key="ck_btn_matrix">执行矩阵排列</span>
+            </button>
+          </div>
+
+          <!-- Tab 2: 生成说明书 -->
+          <div id="tabCompKitShowcase" class="refiner-tab-content" style="overflow-y: auto; padding: 12px;">
+            <!-- 顶部操作区：属性选择 + 生成按钮 -->
+            <div class="selector-card" style="margin-bottom: 12px;">
+              <div class="section-header" style="margin-bottom: 10px;">
+                <span class="section-title">📐 维度设置</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                <div>
+                  <label style="font-size: 10px; font-weight: 600; color: var(--text-tertiary); margin-bottom: 4px; display: block;">X 轴 (列)</label>
+                  <select id="compkitXSelect" style="width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                    <option value="" data-key="ck_select_placeholder">请先选中组件集</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size: 10px; font-weight: 600; color: var(--text-tertiary); margin-bottom: 4px; display: block;">Y 轴 (行) <span style="font-weight:400;color:var(--text-tertiary);">- 可选</span></label>
+                  <select id="compkitYSelect" style="width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                    <option value="">无（单维度排列）</option>
+                  </select>
+                </div>
+              </div>
+              <div id="compkitPropsInfo" style="padding: 8px 10px; background: var(--info-light); border-radius: var(--radius-sm); font-size: 11px; color: var(--info); display: none;">
+                检测到属性：<span id="compkitPropsList"></span>
+              </div>
+            </div>
+
+            <!-- 快捷设置：语言 / 状态 / 间距 -->
+            <div class="selector-card" style="margin-bottom: 12px;">
+              <div class="section-header" style="margin-bottom: 10px;">
+                <span class="section-title">⚙️ 快捷设置</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                <div>
+                  <label style="font-size: 10px; font-weight: 600; color: var(--text-tertiary); margin-bottom: 4px; display: block;" data-key="ck_language">语言</label>
+                  <select id="showcaseLanguage" style="width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                    <option value="zh" data-key="ck_lang_zh">中文</option>
+                    <option value="en">English</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size: 10px; font-weight: 600; color: var(--text-tertiary); margin-bottom: 4px; display: block;" data-key="ck_component_status">组件状态</label>
+                  <select id="showcaseStatus" style="width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                    <option value="approved" data-key="ck_status_approved">已审核</option>
+                    <option value="draft" data-key="ck_status_draft">草稿</option>
+                    <option value="deprecated" data-key="ck_status_deprecated">已废弃</option>
+                    <option value="review" data-key="ck_status_review">待审核</option>
+                  </select>
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                  <label style="font-size: 10px; font-weight: 600; color: var(--text-tertiary); margin-bottom: 4px; display: block;" data-key="ck_designer">设计者</label>
+                  <input type="text" id="showcaseDesigner" placeholder="输入设计者名称" style="width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                </div>
+                <div>
+                  <label style="font-size: 10px; font-weight: 600; color: var(--text-tertiary); margin-bottom: 4px; display: block;" data-key="ck_usage_page">使用页面</label>
+                  <input type="text" id="showcaseUsagePage" placeholder="如：首页、详情页" style="width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                </div>
+              </div>
+              <div style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between;">
+                <label class="checkbox-row" style="font-size: 11px;">
+                  <input type="checkbox" id="showcaseAiDescription" checked>
+                  <span data-key="ck_ai_description">AI 生成描述</span>
+                </label>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <label style="font-size: 10px; color: var(--text-tertiary); white-space: nowrap;">区块间距</label>
+                  <input type="number" id="showcaseItemSpacing" value="48" min="8" max="120" step="4" style="width: 64px; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary); text-align: center;">
+                </div>
+              </div>
+            </div>
+
+            <!-- 高级配置（可折叠） -->
+            <div class="selector-card" style="margin-bottom: 12px;">
+              <div class="section-header" style="margin-bottom: 0; cursor: pointer; user-select: none;" onclick="toggleShowcaseAdvanced()">
+                <span class="section-title">🔧 高级配置</span>
+                <svg id="showcaseAdvancedArrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition: transform 0.2s; transform: rotate(-90deg);"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+              <div id="showcaseAdvancedContent" style="display: none; margin-top: 10px;">
+                <!-- 组件集设置 -->
+                <div style="margin-bottom: 12px; padding: 10px; background: var(--bg-surface); border-radius: var(--radius-sm);">
+                  <div style="font-size: 11px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">组件集布局</div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                    <div>
+                      <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">内边距</label>
+                      <input type="number" id="showcasePadding" value="32" min="0" max="100" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                    </div>
+                    <div>
+                      <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">横向间距</label>
+                      <input type="number" id="showcaseGapX" value="48" min="0" max="200" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                    </div>
+                    <div>
+                      <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">纵向间距</label>
+                      <input type="number" id="showcaseGapY" value="48" min="0" max="200" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                    </div>
+                    <div>
+                      <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">分组间距</label>
+                      <input type="number" id="showcaseGroupGap" value="120" min="0" max="300" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                    </div>
+                    <div>
+                      <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">圆角</label>
+                      <input type="number" id="showcaseCompRadius" value="0" min="0" max="50" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                    </div>
+                  </div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+                    <div>
+                      <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">描边宽度</label>
+                      <input type="number" id="showcaseCompStroke" value="1" min="0" max="10" step="0.5" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                    </div>
+                    <div>
+                      <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">描边颜色</label>
+                      <input type="color" id="showcaseCompStrokeColor" value="#8C5BD4" style="width: 100%; height: 28px; padding: 2px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-surface); cursor: pointer;">
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- 网格线设置 -->
+                <div style="margin-bottom: 12px; padding: 10px; background: var(--bg-surface); border-radius: var(--radius-sm);">
+                  <div style="font-size: 11px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">网格线</div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <div>
+                      <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">线宽</label>
+                      <input type="number" id="showcaseGridLineWidth" value="1" min="0" max="10" step="0.5" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                    </div>
+                    <div>
+                      <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">线色</label>
+                      <input type="color" id="showcaseGridLineColor" value="#E5E7EB" style="width: 100%; height: 28px; padding: 2px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-surface); cursor: pointer;">
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- 画板设置 -->
+                <div style="margin-bottom: 12px; padding: 10px; background: var(--bg-surface); border-radius: var(--radius-sm);">
+                  <div style="font-size: 11px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">画板样式</div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                    <div>
+                      <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">圆角</label>
+                      <input type="number" id="showcaseBoardRadius" value="24" min="0" max="100" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                    </div>
+                    <div>
+                      <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">左右边距</label>
+                      <input type="number" id="showcaseBoardPaddingX" value="140" min="0" max="300" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                    </div>
+                    <div>
+                      <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">上下边距</label>
+                      <input type="number" id="showcaseBoardPaddingY" value="160" min="0" max="300" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                    </div>
+                    <div>
+                      <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">背景色</label>
+                      <input type="color" id="showcaseBoardBg" value="#F9FAFB" style="width: 100%; height: 28px; padding: 2px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-surface); cursor: pointer;">
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- 绘制选项 -->
+                <div style="padding: 10px; background: var(--bg-surface); border-radius: var(--radius-sm);">
+                  <div style="font-size: 11px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">显示选项</div>
+                  <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <label class="checkbox-row" style="font-size: 11px; margin-bottom: 0 !important;">
+                      <input type="checkbox" id="showcaseDrawGrid" checked>
+                      <span>虚线网格</span>
+                    </label>
+                    <label class="checkbox-row" style="font-size: 11px; margin-bottom: 0 !important;">
+                      <input type="checkbox" id="showcaseDrawLabels" checked>
+                      <span>轴标签</span>
+                    </label>
+                    <label class="checkbox-row" style="font-size: 11px; margin-bottom: 0 !important;">
+                      <input type="checkbox" id="showcaseDrawProps" checked>
+                      <span>属性面板</span>
+                    </label>
+                    <label class="checkbox-row" style="font-size: 11px; margin-bottom: 0 !important;">
+                      <input type="checkbox" id="showcaseDrawUsage" checked>
+                      <span>使用指南</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 预设管理 -->
+            <div class="selector-card" style="margin-bottom: 12px;">
+              <div class="section-header" style="margin-bottom: 8px;">
+                <span class="section-title">💾 预设管理</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <select id="showcasePresetSelect" ondblclick="renameShowcasePreset(this.value)" style="flex: 1; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                  <option value="">默认预设</option>
+                </select>
+                <button onclick="loadShowcasePreset()" style="padding: 8px 12px; background: var(--primary); color: white; border: none; border-radius: var(--radius-sm); font-size: 11px; cursor: pointer; white-space: nowrap;">加载</button>
+                <button onclick="saveShowcasePreset()" style="padding: 8px 12px; background: var(--primary); color: white; border: none; border-radius: var(--radius-sm); font-size: 11px; cursor: pointer; white-space: nowrap;">保存</button>
+                <button onclick="deleteShowcasePreset()" style="padding: 8px 12px; background: #EF4444; color: white; border: none; border-radius: var(--radius-sm); font-size: 11px; cursor: pointer; white-space: nowrap;">删除</button>
+              </div>
+            </div>
+
+            <!-- 执行按钮 -->
+            <button class="primary-btn" onclick="runCompKitShowcase()" id="btnCompKitShowcase" style="width: 100%; padding: 14px; font-size: 14px; font-weight: 700; border-radius: var(--radius-md);">
+              📋 <span data-key="ck_btn_showcase">生成说明书</span>
+            </button>
+          </div>
+
+          <!-- Tab 3: 批量排布 -->
+          <div id="tabCompKitBatch" class="refiner-tab-content" style="overflow-y: auto; padding: 12px;">
+            <!-- 功能说明 -->
+            <div class="selector-card" style="margin-bottom: 12px;">
+              <div class="section-header" style="margin-bottom: 8px;">
+                <span class="section-title" data-key="ck_batch_title">🧩 批量组件集排布</span>
+              </div>
+              <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.6;" data-key="ck_batch_desc">
+                选中多个 Component Set，自动按照默认属性优先级排列所有组件集及其变体，统一放在一个画框中。每个组件集上方显示其名称标题。
+              </div>
+            </div>
+
+            <!-- 排列配置 -->
+            <div class="selector-card" style="margin-bottom: 12px;">
+              <div class="section-header" style="margin-bottom: 10px;">
+                <span class="section-title">⚙️ 排列配置</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                <div>
+                  <label style="font-size: 10px; font-weight: 600; color: var(--text-tertiary); margin-bottom: 4px; display: block;">横向间距</label>
+                  <input type="number" id="batchGapX" value="48" min="0" max="300" style="width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                </div>
+                <div>
+                  <label style="font-size: 10px; font-weight: 600; color: var(--text-tertiary); margin-bottom: 4px; display: block;">纵向间距</label>
+                  <input type="number" id="batchGapY" value="48" min="0" max="300" style="width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                  <label style="font-size: 10px; font-weight: 600; color: var(--text-tertiary); margin-bottom: 4px; display: block;">组件集内边距</label>
+                  <input type="number" id="batchPadding" value="32" min="0" max="100" style="width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                </div>
+                <div>
+                  <label style="font-size: 10px; font-weight: 600; color: var(--text-tertiary); margin-bottom: 4px; display: block;">组件集之间间距</label>
+                  <input type="number" id="batchSetSpacing" value="80" min="0" max="500" style="width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                </div>
+              </div>
+            </div>
+
+            <!-- 显示选项 -->
+            <div class="selector-card" style="margin-bottom: 12px;">
+              <div class="section-header" style="margin-bottom: 8px;">
+                <span class="section-title">👁️ 显示选项</span>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <label class="checkbox-row" style="font-size: 11px;">
+                  <input type="checkbox" id="batchDrawLabels" checked>
+                  <span data-key="ck_draw_labels">显示轴标签</span>
+                </label>
+                <label class="checkbox-row" style="font-size: 11px;">
+                  <input type="checkbox" id="batchDrawGrid" checked>
+                  <span>显示虚线网格</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- 预览信息 -->
+            <div id="batchPreviewInfo" style="margin-bottom: 12px; padding: 10px; background: var(--info-light); border-radius: var(--radius-sm); font-size: 11px; color: var(--info); display: none;">
+              <span id="batchPreviewText"></span>
+            </div>
+
+            <!-- 执行按钮 -->
+            <button class="primary-btn" onclick="runBatchShowcase()" id="btnBatchShowcase" style="width: 100%; padding: 14px; font-size: 14px; font-weight: 700; border-radius: var(--radius-md);">
+              🧩 <span data-key="ck_btn_batch">执行批量排布</span>
+            </button>
+          </div>
+
+        <!-- Panel 10: 空状态 (Fallback) -->
         <div id="emptyPanel" class="empty-state">
           <svg class="empty-icon" viewBox="0 0 24 24" fill="#ccc"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
           <div class="empty-text" data-key="empty_title"></div>
@@ -5733,7 +6056,25 @@
   </div>
   
   <!-- 遮罩层 (用于点击空白关闭) -->
-  <div id="dialogOverlay" onclick="closeSaveDialog()" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 99; display: none;"></div>
+  <div id="dialogOverlay" onclick="closeSaveDialog(); closePresetSaveDialog();" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 99; display: none;"></div>
+
+  <!-- 预设保存弹窗 -->
+  <div id="presetSaveDialog" class="dialog-bottom" style="display: none;">
+    <div class="sub-header">
+      <span data-key="ck_preset_save_title">保存预设</span>
+      <span class="btn-back-sub" onclick="closePresetSaveDialog()" style="margin-left: auto;">✕</span>
+    </div>
+    <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+      <div>
+        <label class="config-label" style="margin-bottom: 8px; display: block;" data-key="ck_preset_name_label">预设名称</label>
+        <input type="text" id="presetNameInput" class="search-box" placeholder="请输入预设名称..." data-key="ck_preset_name_ph">
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button class="btn-ai-action" onclick="closePresetSaveDialog()" style="flex: 1;" data-key="ck_preset_cancel">取消</button>
+        <button class="primary-btn" onclick="confirmPresetSave()" style="flex: 1;" data-key="ck_preset_confirm">保存</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     // =============================================================================
@@ -6181,6 +6522,112 @@
         ref_success_desc_1: "本次共修复",
         ref_success_desc_2: "项",
         ref_success_btn: "继续处理剩余项",
+
+        // =========================================
+        // 2.5 CompKit 变体矩阵工具
+        // =========================================
+        ck_tab_matrix: "矩阵排列",
+        ck_tab_showcase: "生成说明书",
+        ck_tab_batch: "批量排布",
+        
+        ck_matrix_title: "变体矩阵排列",
+        ck_matrix_desc: "自动将 Component Set 按矩阵排列",
+        ck_matrix_tip: "选中一个 Component Set（组件集），插件会自动解析变体属性并按照矩阵方式重新排列，让变体结构更清晰。",
+        
+        ck_showcase_title: "组件说明书生成器",
+        ck_showcase_desc: "生成精美的组件说明书画板",
+        
+        ck_batch_title: "批量组件集排布",
+        ck_batch_desc: "选中多个 Component Set，选择 X/Y 轴属性，自动在同一个画框中排列所有组件集及其变体。每个组件集上方显示其名称标题。",
+        ck_showcase_tip: "选中一个 Component Set，选择 X/Y 轴属性，自动生成包含矩阵排列、标签、属性汇总和使用指南的完整说明书画板。",
+        
+        ck_config: "排列配置",
+        ck_gap_x: "横向间距",
+        ck_gap_y: "纵向间距",
+        ck_padding: "内边距",
+        ck_btn_matrix: "执行矩阵排列",
+        
+        ck_axis_config: "维度设置",
+        ck_x_axis: "X 轴属性 (列)",
+        ck_y_axis: "Y 轴属性 (行)",
+        ck_select_placeholder: "请先选中组件集",
+        ck_detected_props: "检测到属性：",
+        
+        ck_advanced: "高级配置",
+        ck_compset_settings: "组件集设置",
+        ck_group_gap: "分组间距",
+        ck_corner_radius: "圆角",
+        ck_stroke_width: "描边宽度",
+        ck_stroke_color: "描边颜色",
+        ck_grid_settings: "网格线设置",
+        ck_line_width: "线宽",
+        ck_line_color: "线色",
+        ck_board_settings: "画板设置",
+        ck_board_radius: "圆角",
+        ck_board_padding_x: "左右边距",
+        ck_board_padding_y: "上下边距",
+        ck_board_bg: "背景色",
+        ck_draw_options: "绘制选项",
+        ck_draw_grid: "绘制虚线网格",
+        ck_draw_labels: "绘制轴标签",
+        ck_draw_props: "绘制属性汇总面板",
+        ck_draw_usage: "绘制使用指南卡片",
+        
+        // 内容设置
+        ck_content_settings: "内容设置",
+        ck_language: "语言",
+        ck_lang_zh: "中文",
+        ck_lang_en: "English",
+        ck_component_status: "组件状态",
+        ck_status_approved: "已审核",
+        ck_status_draft: "草稿",
+        ck_status_deprecated: "已废弃",
+        ck_status_review: "待审核",
+        ck_designer: "设计者",
+        ck_usage_page: "使用页面",
+        ck_ai_description: "AI 生成描述",
+        ck_ai_generating: "AI 正在分析组件...",
+        ck_ai_failed: "AI 分析失败，使用默认描述",
+        
+        // 标签
+        ck_tag_status: "状态",
+        ck_tag_updated: "更新时间",
+        ck_tag_designer: "设计者",
+        ck_tag_usage: "使用页面",
+        ck_tag_variants: "变体数量",
+        
+        ck_btn_showcase: "生成说明书",
+        ck_btn_batch: "执行批量排布",
+        
+        ck_err_no_selection: "请先选中组件集！",
+        ck_err_same_axis: "X轴和Y轴不能选择相同的属性！",
+        ck_generating: "生成中...",
+        
+        // 预设管理
+        ck_preset_title: "预设管理",
+        ck_preset_default: "默认预设",
+        ck_preset_load: "加载",
+        ck_preset_save: "保存",
+        ck_preset_delete: "删除",
+        ck_preset_hint: "保存当前高级设置为预设，方便快速切换不同风格。双击预设名称可重命名。",
+        ck_preset_save_title: "保存预设",
+        ck_preset_name_label: "预设名称",
+        ck_preset_name_ph: "请输入预设名称...",
+        ck_preset_name_required: "请输入预设名称！",
+        ck_preset_cancel: "取消",
+        ck_preset_confirm: "保存",
+        ck_preset_name_prompt: "请输入预设名称：",
+        ck_preset_overwrite: "预设已存在，是否覆盖？",
+        ck_preset_saved: "预设已保存！",
+        ck_preset_loaded: "预设已加载！",
+        ck_preset_loaded_default: "已加载默认预设！",
+        ck_preset_not_found: "预设不存在！",
+        ck_preset_cannot_delete_default: "无法删除默认预设！",
+        ck_preset_delete_confirm: "确定要删除该预设吗？",
+        ck_preset_deleted: "预设已删除！",
+        ck_preset_rename_prompt: "请输入新的预设名称：",
+        ck_preset_name_exists: "该名称已存在！",
+        ck_preset_renamed: "预设已重命名！",
 
         // =========================================
         // 3. 选择工具 (Selection Tools) - 全量扩充版
@@ -6706,6 +7153,112 @@
         ref_success_btn: "Continue",
         
         // =========================================
+        // 2.5 CompKit Variant Matrix Tool
+        // =========================================
+        ck_tab_matrix: "Matrix Layout",
+        ck_tab_showcase: "Generate Docs",
+        ck_tab_batch: "Batch Layout",
+        
+        ck_matrix_title: "Variant Matrix Layout",
+        ck_matrix_desc: "Auto-arrange Component Set in matrix",
+        ck_matrix_tip: "Select a Component Set, the plugin will parse variant properties and arrange them in a matrix for clearer structure.",
+        
+        ck_showcase_title: "Component Doc Generator",
+        ck_showcase_desc: "Generate beautiful documentation board",
+        
+        ck_batch_title: "Batch Component Set Layout",
+        ck_batch_desc: "Select multiple Component Sets, choose X/Y properties, and automatically lay out all component sets and their variants in a single frame with titles above each set.",
+        ck_showcase_tip: "Select a Component Set, choose X/Y axis properties, auto-generate a complete documentation board with matrix layout, labels, property summary and usage guidelines.",
+        
+        ck_config: "Layout Config",
+        ck_gap_x: "Horizontal Gap",
+        ck_gap_y: "Vertical Gap",
+        ck_padding: "Padding",
+        ck_btn_matrix: "Run Matrix Layout",
+        
+        ck_axis_config: "Axis Settings",
+        ck_x_axis: "X-Axis Property (Columns)",
+        ck_y_axis: "Y-Axis Property (Rows)",
+        ck_select_placeholder: "Select a Component Set first",
+        ck_detected_props: "Detected properties: ",
+        
+        ck_advanced: "Advanced Settings",
+        ck_compset_settings: "Component Set Settings",
+        ck_group_gap: "Group Gap",
+        ck_corner_radius: "Corner Radius",
+        ck_stroke_width: "Stroke Width",
+        ck_stroke_color: "Stroke Color",
+        ck_grid_settings: "Grid Line Settings",
+        ck_line_width: "Line Width",
+        ck_line_color: "Line Color",
+        ck_board_settings: "Board Settings",
+        ck_board_radius: "Corner Radius",
+        ck_board_padding_x: "Horizontal Padding",
+        ck_board_padding_y: "Vertical Padding",
+        ck_board_bg: "Background Color",
+        ck_draw_options: "Draw Options",
+        ck_draw_grid: "Draw dashed grid",
+        ck_draw_labels: "Draw axis labels",
+        ck_draw_props: "Draw property summary",
+        ck_draw_usage: "Draw usage guidelines",
+        
+        // Content Settings
+        ck_content_settings: "Content Settings",
+        ck_language: "Language",
+        ck_lang_zh: "中文",
+        ck_lang_en: "English",
+        ck_component_status: "Component Status",
+        ck_status_approved: "Approved",
+        ck_status_draft: "Draft",
+        ck_status_deprecated: "Deprecated",
+        ck_status_review: "Under Review",
+        ck_designer: "Designer",
+        ck_usage_page: "Usage Page",
+        ck_ai_description: "AI Generate Description",
+        ck_ai_generating: "AI is analyzing component...",
+        ck_ai_failed: "AI analysis failed, using default description",
+        
+        // Tags
+        ck_tag_status: "Status",
+        ck_tag_updated: "Updated",
+        ck_tag_designer: "Designer",
+        ck_tag_usage: "Usage",
+        ck_tag_variants: "Variants",
+        
+        ck_btn_showcase: "Generate Docs",
+        ck_btn_batch: "Batch Layout",
+        
+        ck_err_no_selection: "Please select a Component Set first!",
+        ck_err_same_axis: "X and Y axes cannot be the same property!",
+        ck_generating: "Generating...",
+        
+        // Preset Management
+        ck_preset_title: "Preset Management",
+        ck_preset_default: "Default Preset",
+        ck_preset_load: "Load",
+        ck_preset_save: "Save",
+        ck_preset_delete: "Delete",
+        ck_preset_hint: "Save current settings as preset for quick switching. Double-click preset name to rename.",
+        ck_preset_save_title: "Save Preset",
+        ck_preset_name_label: "Preset Name",
+        ck_preset_name_ph: "Enter preset name...",
+        ck_preset_name_required: "Please enter preset name!",
+        ck_preset_cancel: "Cancel",
+        ck_preset_confirm: "Save",
+        ck_preset_name_prompt: "Enter preset name:",
+        ck_preset_overwrite: "Preset already exists. Overwrite?",
+        ck_preset_saved: "Preset saved!",
+        ck_preset_loaded: "Preset loaded!",
+        ck_preset_loaded_default: "Default preset loaded!",
+        ck_preset_not_found: "Preset not found!",
+        ck_preset_cannot_delete_default: "Cannot delete default preset!",
+        ck_preset_delete_confirm: "Are you sure you want to delete this preset?",
+        ck_preset_deleted: "Preset deleted!",
+        ck_preset_rename_prompt: "Enter new preset name:",
+        ck_preset_name_exists: "This name already exists!",
+        ck_preset_renamed: "Preset renamed!",
+        
+        // =========================================
         // 3. Selection Tools (English) - Fully Extended
         // =========================================
         sel_title_scope: "Search Scope",
@@ -7074,6 +7627,7 @@
         'jumpbackPanel',
         'skewPanel',
         'i18nPanel',
+        'compkitPanel',
         'settingsPanel'
       ];
       const map = {
@@ -7086,7 +7640,8 @@
         'theory':  ['theoryPanel'],
         'jumpback': ['jumpbackPanel'],
         'skew': ['skewPanel'],
-        'i18n': ['i18nPanel'] 
+        'i18n': ['i18nPanel'],
+        'compkit': ['compkitPanel']
       };
       
       // 1. 隐藏所有
@@ -7350,7 +7905,7 @@
                 }
             };
             window.addEventListener('message', handler);
-            setTimeout(() => { window.removeEventListener('message', handler); reject(new Error('连接超时(15秒)')); }, 15000);
+            setTimeout(() => { window.removeEventListener('message', handler); reject(new Error('连接超时(60秒)')); }, 60000);
         });
         
         parent.postMessage({
@@ -8633,7 +9188,7 @@
           setTimeout(() => {
             window.removeEventListener('message', messageHandler);
             reject(new Error('AI响应超时'));
-          }, 30000);
+          }, 60000);
         });
 
         parent.postMessage({
@@ -8960,6 +9515,12 @@
           }
           if (msg.key === 'smart_date_format' && msg.value) {
              dateFormat = msg.value;
+          }
+          if (msg.key === 'compkit_showcase_presets') {
+             showcasePresetsCache = msg.value || {};
+             if (typeof refreshPresetList === 'function') {
+                 refreshPresetList();
+             }
           }
       }
       if (msg.key === 'smart_advanced_settings') smartSettings = msg.value || smartSettings;
@@ -9498,7 +10059,8 @@
 
     // [重要] 命名风格 UI 联动 (互斥逻辑)
     function updateStyleUI() {
-        const formatEl = document.querySelector('#lintConfigPage .radio-item[onclick*="format"].active');
+        // 修复：使用精确选择器匹配 format 按钮
+        const formatEl = document.querySelector('#lintConfigPage .style-section > div:first-child .seg-btn.active');
         const format = formatEl ? formatEl.dataset.value : 'separator';
         
         const separatorArea = document.getElementById('separatorOptions');
@@ -9538,10 +10100,15 @@
             setButtonLoading('btnLintStart', true);
         }
 
-        const scopeEl = document.querySelector('#lintConfigPage .radio-item[onclick*="scope"].active');
-        const formatEl = document.querySelector('#lintConfigPage .radio-item[onclick*="format"].active');
-        const sepEl = document.querySelector('#separatorOptions .radio-item[onclick*="sep"].active');
-        const caseEl = document.querySelector('#separatorOptions .radio-item[onclick*="casing"].active');
+        // 修复：使用更精确的选择器
+        // scope: 第一个 config-group 中的 seg-btn
+        const scopeEl = document.querySelector('#lintConfigPage > .refiner-config > .config-group:first-child .seg-btn.active');
+        // format: style-section 中第一个 segmented-control 的 seg-btn
+        const formatEl = document.querySelector('#lintConfigPage .style-section > div:first-child .seg-btn.active');
+        // sep: separatorOptions 中第一列的 seg-btn
+        const sepEl = document.querySelector('#separatorOptions > .split-col:first-child .seg-btn.active');
+        // case: separatorOptions 中最后一列的 seg-btn
+        const caseEl = document.querySelector('#separatorOptions > .split-col:last-child .seg-btn.active');
 
         const config = {
             mode: 'lint',
@@ -12211,6 +12778,9 @@
                 }
             });
         }
+        
+        // 初始化预设列表（从 clientStorage 加载）
+        postMsg('load-storage', { key: 'compkit_showcase_presets' });
     });
     
     // --- 新增：保存 AI 结果为自定义列表 ---
@@ -12936,8 +13506,8 @@
 
                 setTimeout(() => {
                     window.removeEventListener('message', messageHandler);
-                    reject(new Error('大模型响应超时(15秒)'));
-                }, 15000);
+                    reject(new Error('大模型响应超时(60秒)'));
+                }, 60000);
             });
 
             parent.postMessage({
@@ -12996,6 +13566,648 @@
 
     function trackAndRun(toolId) {
         run(toolId);
+    }
+
+    // ==========================================
+    // CompKit - 变体矩阵工具
+    // ==========================================
+
+    // Tab 切换
+    function switchCompKitTab(tab) {
+        document.querySelectorAll('#compkitPanel .refiner-tab-item').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('#compkitPanel .refiner-tab-content').forEach(el => el.classList.remove('active'));
+        
+        if (tab === 'matrix') {
+            document.querySelector('#compkitPanel .refiner-tab-item:nth-child(1)').classList.add('active');
+            document.getElementById('tabCompKitMatrix').classList.add('active');
+        } else if (tab === 'showcase') {
+            document.querySelector('#compkitPanel .refiner-tab-item:nth-child(2)').classList.add('active');
+            document.getElementById('tabCompKitShowcase').classList.add('active');
+            requestCompKitProps();
+        } else if (tab === 'batch') {
+            document.querySelector('#compkitPanel .refiner-tab-item:nth-child(3)').classList.add('active');
+            document.getElementById('tabCompKitBatch').classList.add('active');
+            requestCompKitPropsForBatch();
+        }
+    }
+
+    // 请求属性列表
+    function requestCompKitProps() {
+        parent.postMessage({ pluginMessage: { type: 'init-compkit' } }, '*');
+    }
+
+    function requestCompKitPropsForBatch() {
+        // 复用同一个后端请求，由消息 handler 统一处理
+        requestCompKitProps();
+    }
+
+    // 接收属性列表并更新下拉框
+    let compkitPropsCache = [];
+    let showcasePresetsCache = {};  // 预设内存缓存
+    window.addEventListener('message', (event) => {
+        const msg = event.data.pluginMessage;
+        if (!msg) return;
+
+        if (msg.type === 'compkit-props') {
+            const { properties, targetId, componentName, propertyValues, variantsCount } = msg;
+            compkitPropsCache = properties;
+            
+            console.log('【CompKit】收到属性更新:', { properties, targetId, componentName, propertyValues, variantsCount });
+            
+            // 保存组件详细信息（用于 AI 生成描述）
+            window.compkitComponentInfo = {
+                name: componentName || '',
+                properties: properties || [],
+                propertyValues: propertyValues || {},
+                variantsCount: variantsCount || 0
+            };
+            
+            console.log('【CompKit】已保存组件信息到 window.compkitComponentInfo:', window.compkitComponentInfo);
+            
+            // 更新 Tab2 (说明书) 的下拉框
+            updateCompKitSelect(
+                'compkitXSelect',
+                'compkitYSelect',
+                'compkitPropsInfo',
+                'compkitPropsList',
+                properties
+            );
+        }
+    });
+
+    // 公用：更新 CompKit 属性下拉框
+    function updateCompKitSelect(xId, yId, infoId, listId, properties) {
+        const xSelect = document.getElementById(xId);
+        const ySelect = document.getElementById(yId);
+        const propsInfo = document.getElementById(infoId);
+        const propsList = document.getElementById(listId);
+        
+        if (!xSelect || !ySelect) return;
+        
+        // 清空旧选项，保留 Y 轴的"无"选项
+        xSelect.innerHTML = '';
+        ySelect.innerHTML = '<option value="">无（单维度排列）</option>';
+        
+        if (!properties || properties.length === 0) {
+            xSelect.innerHTML = '<option value="">请先选中组件集</option>';
+            ySelect.innerHTML = '<option value="">请先选中组件集</option>';
+            if (propsInfo) propsInfo.style.display = 'none';
+            return;
+        }
+        
+        // 填充 X 轴选项
+        properties.forEach((prop, index) => {
+            const xOption = new Option(prop, prop, false, index === 0);
+            xSelect.options.add(xOption);
+        });
+        
+        // 填充 Y 轴选项（多属性时添加，单属性时只有"无"）
+        if (properties.length >= 2) {
+            properties.forEach((prop, index) => {
+                const yOption = new Option(prop, prop, false, index === 1);
+                ySelect.options.add(yOption);
+            });
+        }
+        
+        // 显示检测到的属性
+        if (propsList && propsInfo) {
+            propsList.textContent = properties.join(', ');
+            propsInfo.style.display = 'block';
+        }
+    }
+
+    // 矩阵排列
+    function runCompKitMatrix() {
+        const gapX = parseInt(document.getElementById('compkitGapX').value) || 40;
+        const gapY = parseInt(document.getElementById('compkitGapY').value) || 40;
+        const padding = parseInt(document.getElementById('compkitPadding').value) || 24;
+
+        parent.postMessage({ 
+            pluginMessage: { 
+                type: 'run-compkit', 
+                gapX: gapX,
+                gapY: gapY,
+                padding: padding
+            } 
+        }, '*');
+    }
+
+    // 批量排布：选中多个组件集，统一排列在一个 Frame 中
+    async function runBatchShowcase() {
+        const config = {
+            type: 'generate-batch-showcase',
+            gapX: parseInt(document.getElementById('batchGapX').value) || 48,
+            gapY: parseInt(document.getElementById('batchGapY').value) || 48,
+            padding: parseInt(document.getElementById('batchPadding').value) || 32,
+            setSpacing: parseInt(document.getElementById('batchSetSpacing').value) || 80,
+            drawLabels: document.getElementById('batchDrawLabels').checked,
+            drawGrid: document.getElementById('batchDrawGrid').checked
+        };
+
+        const btn = document.getElementById('btnBatchShowcase');
+        const span = btn.querySelector('span');
+        const originalText = span.innerText;
+        span.innerText = '生成中...';
+
+        parent.postMessage({ pluginMessage: config }, '*');
+
+        setTimeout(() => { span.innerText = originalText; }, 3000);
+    }
+
+    // 生成说明书
+    // 折叠/展开高级配置
+    function toggleShowcaseAdvanced() {
+        const content = document.getElementById('showcaseAdvancedContent');
+        const arrow = document.getElementById('showcaseAdvancedArrow');
+        
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+            arrow.style.transform = 'rotate(0deg)';
+        } else {
+            content.style.display = 'none';
+            arrow.style.transform = 'rotate(-90deg)';
+        }
+    }
+
+    // ==================== 预设管理功能 ====================
+    
+    // 获取当前所有设置
+    function getCurrentShowcaseSettings() {
+        return {
+            padding: document.getElementById('showcasePadding').value,
+            gapX: document.getElementById('showcaseGapX').value,
+            gapY: document.getElementById('showcaseGapY').value,
+            groupGap: document.getElementById('showcaseGroupGap').value,
+            compRadius: document.getElementById('showcaseCompRadius').value,
+            compStroke: document.getElementById('showcaseCompStroke').value,
+            compStrokeColor: document.getElementById('showcaseCompStrokeColor').value,
+            gridLineWidth: document.getElementById('showcaseGridLineWidth').value,
+            gridLineColor: document.getElementById('showcaseGridLineColor').value,
+            boardRadius: document.getElementById('showcaseBoardRadius').value,
+            boardPaddingX: document.getElementById('showcaseBoardPaddingX').value,
+            boardPaddingY: document.getElementById('showcaseBoardPaddingY').value,
+            boardBg: document.getElementById('showcaseBoardBg').value,
+            drawGrid: document.getElementById('showcaseDrawGrid').checked,
+            drawLabels: document.getElementById('showcaseDrawLabels').checked,
+            drawProps: document.getElementById('showcaseDrawProps').checked,
+            drawUsage: document.getElementById('showcaseDrawUsage').checked,
+            // 内容设置
+            language: document.getElementById('showcaseLanguage').value,
+            status: document.getElementById('showcaseStatus').value,
+            designer: document.getElementById('showcaseDesigner').value,
+            usagePage: document.getElementById('showcaseUsagePage').value,
+            aiDescription: document.getElementById('showcaseAiDescription').checked,
+            itemSpacing: parseInt(document.getElementById('showcaseItemSpacing').value) || 48
+        };
+    }
+
+    // 应用设置到表单
+    function applyShowcaseSettings(settings) {
+        if (!settings) return;
+        
+        document.getElementById('showcasePadding').value = settings.padding || 32;
+        document.getElementById('showcaseGapX').value = settings.gapX || 48;
+        document.getElementById('showcaseGapY').value = settings.gapY || 48;
+        document.getElementById('showcaseGroupGap').value = settings.groupGap || 120;
+        document.getElementById('showcaseCompRadius').value = settings.compRadius || 0;
+        document.getElementById('showcaseCompStroke').value = settings.compStroke || 1;
+        document.getElementById('showcaseCompStrokeColor').value = settings.compStrokeColor || '#8C5BD4';
+        document.getElementById('showcaseGridLineWidth').value = settings.gridLineWidth || 1;
+        document.getElementById('showcaseGridLineColor').value = settings.gridLineColor || '#E5E7EB';
+        document.getElementById('showcaseBoardRadius').value = settings.boardRadius || 24;
+        document.getElementById('showcaseBoardPaddingX').value = settings.boardPaddingX || 140;
+        document.getElementById('showcaseBoardPaddingY').value = settings.boardPaddingY || 160;
+        document.getElementById('showcaseBoardBg').value = settings.boardBg || '#F9FAFB';
+        document.getElementById('showcaseDrawGrid').checked = settings.drawGrid !== false;
+        document.getElementById('showcaseDrawLabels').checked = settings.drawLabels !== false;
+        document.getElementById('showcaseDrawProps').checked = settings.drawProps !== false;
+        document.getElementById('showcaseDrawUsage').checked = settings.drawUsage !== false;
+        // 内容设置
+        document.getElementById('showcaseLanguage').value = settings.language || 'zh';
+        document.getElementById('showcaseStatus').value = settings.status || 'approved';
+        document.getElementById('showcaseDesigner').value = settings.designer || '';
+        document.getElementById('showcaseUsagePage').value = settings.usagePage || '';
+        document.getElementById('showcaseAiDescription').checked = settings.aiDescription !== false;
+        document.getElementById('showcaseItemSpacing').value = settings.itemSpacing || 48;
+    }
+
+    // 获取所有预设（从内存缓存）
+    function getShowcasePresets() {
+        return showcasePresetsCache;
+    }
+
+    // 保存预设到 clientStorage（Figma 插件不支持 localStorage）
+    function savePresetsToStorage(presets) {
+        showcasePresetsCache = presets;
+        postMsg('save-storage', { key: 'compkit_showcase_presets', value: presets });
+    }
+
+    // 刷新预设下拉列表
+    function refreshPresetList() {
+        const select = document.getElementById('showcasePresetSelect');
+        const presets = getShowcasePresets();
+        
+        // 清空现有选项（保留默认选项）
+        select.innerHTML = '<option value="" data-key="ck_preset_default">默认预设</option>';
+        
+        // 添加用户预设
+        Object.keys(presets).forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            select.appendChild(option);
+        });
+    }
+
+    // 保存预设
+    function saveShowcasePreset() {
+        const dialog = document.getElementById('presetSaveDialog');
+        const overlay = document.getElementById('dialogOverlay');
+        const input = document.getElementById('presetNameInput');
+        
+        // 清空输入框
+        input.value = '';
+        
+        // 显示弹窗与蒙版（.dialog-bottom 需要 display:flex + .open 类）
+        dialog.style.display = 'flex';
+        dialog.classList.add('open');
+        overlay.style.display = 'block';
+        
+        // 聚焦输入框
+        setTimeout(() => input.focus(), 100);
+    }
+
+    // 关闭预设保存弹窗
+    function closePresetSaveDialog() {
+        const dialog = document.getElementById('presetSaveDialog');
+        const overlay = document.getElementById('dialogOverlay');
+        dialog.classList.remove('open');
+        dialog.style.display = 'none';
+        overlay.style.display = 'none';
+    }
+
+    // 确认保存预设
+    function confirmPresetSave() {
+        const input = document.getElementById('presetNameInput');
+        const name = input.value.trim();
+        
+        if (!name) {
+            alert(i18n[curLang].ck_preset_name_required || '请输入预设名称！');
+            return;
+        }
+        
+        const presets = getShowcasePresets();
+        
+        // 检查是否已存在
+        if (presets[name]) {
+            const overwrite = confirm(i18n[curLang].ck_preset_overwrite || `预设 "${name}" 已存在，是否覆盖？`);
+            if (!overwrite) return;
+        }
+        
+        // 保存当前设置
+        presets[name] = getCurrentShowcaseSettings();
+        savePresetsToStorage(presets);
+        
+        // 关闭弹窗
+        closePresetSaveDialog();
+        
+        // 刷新列表并选中新预设
+        refreshPresetList();
+        document.getElementById('showcasePresetSelect').value = name;
+        
+        alert(i18n[curLang].ck_preset_saved || `预设 "${name}" 已保存！`);
+    }
+
+    // 加载预设
+    function loadShowcasePreset() {
+        const select = document.getElementById('showcasePresetSelect');
+        const presetName = select.value;
+        
+        if (!presetName) {
+            // 加载默认预设
+            applyShowcaseSettings({
+                padding: 32, gapX: 48, gapY: 48, groupGap: 120,
+                compRadius: 0, compStroke: 1, compStrokeColor: '#8C5BD4',
+                gridLineWidth: 1, gridLineColor: '#E5E7EB',
+                boardRadius: 24, boardPaddingX: 140, boardPaddingY: 160, boardBg: '#F9FAFB',
+                drawGrid: true, drawLabels: true, drawProps: true, drawUsage: true
+            });
+            alert(i18n[curLang].ck_preset_loaded_default || '已加载默认预设！');
+            return;
+        }
+        
+        const presets = getShowcasePresets();
+        if (presets[presetName]) {
+            applyShowcaseSettings(presets[presetName]);
+            alert(i18n[curLang].ck_preset_loaded || `预设 "${presetName}" 已加载！`);
+        } else {
+            alert(i18n[curLang].ck_preset_not_found || '预设不存在！');
+        }
+    }
+
+    // 删除预设
+    function deleteShowcasePreset() {
+        const select = document.getElementById('showcasePresetSelect');
+        const presetName = select.value;
+        
+        if (!presetName) {
+            alert(i18n[curLang].ck_preset_cannot_delete_default || '无法删除默认预设！');
+            return;
+        }
+        
+        const confirmDelete = confirm(i18n[curLang].ck_preset_delete_confirm || `确定要删除预设 "${presetName}" 吗？`);
+        if (!confirmDelete) return;
+        
+        const presets = getShowcasePresets();
+        delete presets[presetName];
+        savePresetsToStorage(presets);
+        
+        // 刷新列表并选中默认
+        refreshPresetList();
+        select.value = '';
+        
+        alert(i18n[curLang].ck_preset_deleted || `预设 "${presetName}" 已删除！`);
+    }
+
+    // 重命名预设（双击触发）
+    function renameShowcasePreset(oldName) {
+        if (!oldName) return;
+        
+        const newName = prompt(i18n[curLang].ck_preset_rename_prompt || '请输入新的预设名称：', oldName);
+        if (!newName || !newName.trim() || newName.trim() === oldName) return;
+        
+        const presets = getShowcasePresets();
+        if (!presets[oldName]) return;
+        
+        // 检查新名称是否已存在
+        if (presets[newName]) {
+            alert(i18n[curLang].ck_preset_name_exists || '该名称已存在！');
+            return;
+        }
+        
+        // 重命名
+        presets[newName] = presets[oldName];
+        delete presets[oldName];
+        savePresetsToStorage(presets);
+        
+        // 刷新列表并选中重命名后的预设
+        refreshPresetList();
+        document.getElementById('showcasePresetSelect').value = newName;
+        
+        alert(i18n[curLang].ck_preset_renamed || `预设已重命名为 "${newName}"！`);
+    }
+
+    async function runCompKitShowcase() {
+        const propX = document.getElementById('compkitXSelect').value;
+        const propY = document.getElementById('compkitYSelect').value;
+        
+        if (!propX) {
+            alert(i18n[curLang].ck_err_no_selection || "请先选择 X 轴属性！");
+            return;
+        }
+        
+        // propY 为空时表示单属性模式（自动 1D 排列）
+        if (propY && propX === propY) {
+            alert(i18n[curLang].ck_err_same_axis || "X轴和Y轴不能选择相同的属性！提示：取消 Y 轴选择可自动生成单维度排列。");
+            return;
+        }
+
+        // 辅助函数：解析颜色为 RGB
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16) / 255,
+                g: parseInt(result[2], 16) / 255,
+                b: parseInt(result[3], 16) / 255
+            } : { r: 0.9, g: 0.92, b: 0.94 };
+        }
+
+        const language = document.getElementById('showcaseLanguage').value;
+        const useAiDescription = document.getElementById('showcaseAiDescription').checked;
+        
+        // 显示加载状态
+        const btn = document.getElementById('btnCompKitShowcase');
+        const span = btn.querySelector('span');
+        const originalText = span.innerText;
+        
+        let aiGeneratedDescription = '';
+        
+        // 如果勾选了 AI 生成描述，先调用 AI
+        if (useAiDescription) {
+            console.log('【组件描述AI】用户勾选了AI生成，开始调用...');
+            span.innerText = i18n[curLang].ck_ai_generating || "AI 正在分析组件...";
+            
+            try {
+                aiGeneratedDescription = await generateComponentDescription(language);
+                console.log('【组件描述AI】生成结果:', aiGeneratedDescription ? `成功，长度${aiGeneratedDescription.length}` : '失败/空');
+            } catch (error) {
+                console.error('【组件描述AI】调用失败:', error);
+                // AI 失败时使用默认描述
+                aiGeneratedDescription = '';
+            }
+        } else {
+            console.log('【组件描述AI】用户未勾选AI生成，使用默认描述');
+        }
+
+        const config = {
+            type: 'generate-showcase',
+            propX: propX,
+            propY: propY,
+            // 组件集设置
+            padding: parseInt(document.getElementById('showcasePadding').value) || 32,
+            gapX: parseInt(document.getElementById('showcaseGapX').value) || 48,
+            gapY: parseInt(document.getElementById('showcaseGapY').value) || 48,
+            groupGap: parseInt(document.getElementById('showcaseGroupGap').value) || 120,
+            compRadius: parseInt(document.getElementById('showcaseCompRadius').value) || 0,
+            compStroke: parseFloat(document.getElementById('showcaseCompStroke').value) || 0,
+            compStrokeColor: hexToRgb(document.getElementById('showcaseCompStrokeColor').value),
+            // 网格线设置
+            gridLineWidth: parseFloat(document.getElementById('showcaseGridLineWidth').value) || 1,
+            gridLineColor: hexToRgb(document.getElementById('showcaseGridLineColor').value),
+            // 画板设置
+            boardRadius: parseInt(document.getElementById('showcaseBoardRadius').value) || 24,
+            boardPaddingX: parseInt(document.getElementById('showcaseBoardPaddingX').value) || 140,
+            boardPaddingY: parseInt(document.getElementById('showcaseBoardPaddingY').value) || 160,
+            boardBg: hexToRgb(document.getElementById('showcaseBoardBg').value),
+            // 绘制选项
+            drawGrid: document.getElementById('showcaseDrawGrid').checked,
+            drawLabels: document.getElementById('showcaseDrawLabels').checked,
+            drawProps: document.getElementById('showcaseDrawProps').checked,
+            drawUsage: document.getElementById('showcaseDrawUsage').checked,
+            // 内容设置
+            language: language,
+            status: document.getElementById('showcaseStatus').value,
+            designer: document.getElementById('showcaseDesigner').value,
+            usagePage: document.getElementById('showcaseUsagePage').value,
+            aiDescription: useAiDescription,
+            aiGeneratedDescription: aiGeneratedDescription,
+            itemSpacing: parseInt(document.getElementById('showcaseItemSpacing').value) || 48
+        };
+
+        span.innerText = i18n[curLang].ck_generating || "生成中...";
+
+        parent.postMessage({ pluginMessage: config }, '*');
+
+        // 3秒后恢复按钮
+        setTimeout(() => {
+            span.innerText = originalText;
+        }, 3000);
+    }
+
+    // AI 生成组件描述
+    async function generateComponentDescription(language) {
+        console.log('【组件描述AI】开始生成，语言:', language);
+        
+        const componentInfo = window.compkitComponentInfo;
+        console.log('【组件描述AI】组件信息:', componentInfo);
+        
+        if (!componentInfo || !componentInfo.name) {
+            console.error('【组件描述AI】缺少组件信息，无法生成');
+            return '';
+        }
+
+        const endpoint = getAiEndpoint();
+        console.log('【组件描述AI】AI端点:', { url: endpoint.url, model: endpoint.model, isProxy: endpoint.isProxy, hasKey: !!endpoint.key });
+        
+        if (!endpoint.key && !endpoint.isProxy) {
+            console.warn('【组件描述AI】AI API 未配置');
+            return '';
+        }
+
+        // 构建组件信息摘要
+        const propsSummary = Object.entries(componentInfo.propertyValues)
+            .map(([prop, values]) => `${prop}: ${values.join(', ')}`)
+            .join('; ');
+
+        const systemPrompt = language === 'zh'
+            ? `你是一个专业的 UI/UX 设计文档撰写专家。你的任务是根据组件信息生成结构化的组件描述文档。输出必须严格遵循以下 JSON 格式，不要包含任何其他内容：
+{
+  "componentName": "组件中文翻译名称 / English Name",
+  "usage": "适用场景描述，包括适用情况和不适用情况，以及该组件在不同场景下的表现，",
+  "properties": "属性说明，解释每个属性的作用，结合这些属性可以实现什么样的动作",
+}`
+            : `You are a professional UI/UX design documentation writer. Your task is to generate structured component descriptions based on component information. Output must strictly follow this JSON format without any other content:
+{
+  "componentName": "English Name / 中文翻译名称",
+  "usage": "Usage scenarios description, including suitable and unsuitable cases, and the component's behavior in different scenarios",
+  "properties": "Properties explanation, describing the purpose of each property and available values",
+}`;
+
+        const userPrompt = language === 'zh'
+            ? `请为以下组件生成描述文档：
+
+组件名称：${componentInfo.name}
+变体数量：${componentInfo.variantsCount}
+属性配置：
+${propsSummary}
+
+要求：
+1. 组件名称：提供中文翻译名称和英文名称
+2. 适用场景：说明该组件适用于什么场景，什么情况下不适用，以及该组件在不同场景下的表现
+3. 属性说明：解释每个属性的作用和可选值，结合这些属性可以实现什么样的动作
+
+请输出 JSON：`
+            : `Please generate documentation for the following component:
+
+Component Name: ${componentInfo.name}
+Variants Count: ${componentInfo.variantsCount}
+Properties:
+${propsSummary}
+
+Requirements:
+1. Component Name: Provide both English and Chinese translated names of the component
+2. Usage: Describe suitable and unsuitable scenarios, and the component's behavior in different scenarios
+3. Properties: Explain the purpose of each property and available values, and the actions that can be performed with these properties
+
+Please output JSON:`;
+
+        const requestBody = {
+            model: endpoint.model,
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userPrompt }
+            ],
+            temperature: 0.7,
+            stream: false
+        };
+
+        try {
+            let targetUrl = endpoint.url.trim().replace(/\/+$/, '');
+            if (!targetUrl.includes('/chat/completions')) {
+                targetUrl += '/chat/completions';
+            }
+
+            const fetchOptions = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            };
+            if (endpoint.key) {
+                fetchOptions.headers['Authorization'] = `Bearer ${endpoint.key}`;
+            }
+
+            const reqId = Date.now().toString();
+            console.log('【组件描述AI】发送请求，reqId:', reqId, '目标URL:', targetUrl);
+
+            const response = await new Promise((resolve, reject) => {
+                const messageHandler = (event) => {
+                    const msg = event.data?.pluginMessage || event.data;
+                    if (msg && msg.type === 'api-response' && msg.reqId === reqId) {
+                        window.removeEventListener('message', messageHandler);
+                        console.log('【组件描述AI】收到响应，reqId:', reqId, '错误:', msg.error);
+                        if (msg.error) {
+                            reject(new Error(msg.error));
+                        } else {
+                            resolve(msg.data);
+                        }
+                    }
+                };
+
+                window.addEventListener('message', messageHandler);
+
+                // 【修复】使用 do-fetch 而不是 api-request
+                parent.postMessage({
+                    pluginMessage: {
+                        type: 'do-fetch',
+                        url: targetUrl,
+                        options: fetchOptions,
+                        reqId: reqId
+                    }
+                }, '*');
+                console.log('【组件描述AI】请求已发送，等待响应...');
+
+                // 60秒超时
+                setTimeout(() => {
+                    window.removeEventListener('message', messageHandler);
+                    reject(new Error('AI request timeout'));
+                }, 60000);
+            });
+
+            const data = response;
+            console.log('【组件描述AI】响应数据:', data);
+            
+            const content = data.choices?.[0]?.message?.content || '';
+            console.log('【组件描述AI】AI返回内容:', content.substring(0, 200) + (content.length > 200 ? '...' : ''));
+            
+            // 尝试解析 JSON
+            try {
+                const jsonMatch = content.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    console.log('【组件描述AI】成功提取JSON，长度:', jsonMatch[0].length);
+                    return jsonMatch[0];
+                } else {
+                    console.warn('【组件描述AI】未找到JSON格式内容');
+                }
+            } catch (e) {
+                console.error('【组件描述AI】解析失败:', e);
+            }
+
+            console.warn('【组件描述AI】返回空字符串');
+            return '';
+        } catch (error) {
+            console.error('【组件描述AI】生成失败:', error);
+            return '';
+        }
     }
 
     function initTooltipPosition() {
