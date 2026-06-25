@@ -8910,7 +8910,7 @@
         icon: '⚛️',
         title: '原子设计 (Atomic Design)',
         subtitle: 'Brad Frost：构建设计系统的方法论',
-        desc: '将界面视为由微小组件构成的系统，而非孤立的页面。',
+        desc: '将界面视为由微小组件构成的系统而非孤立的页面。',
         subItems: [
           {
             title: "1. 原子 (Atoms)",
@@ -14547,7 +14547,16 @@ Please output JSON:`;
         }
 
         if (textsToTranslate.length === 0) {
-            return alert("没有找到需要处理的文本，请先点击【扫描】");
+            // 区分两种情况，避免误导用户"请先扫描"
+            if (!i18nState.hasDetected) {
+                return alert("尚未扫描，请先点击【扫描】提取文本。");
+            }
+            // 已扫描但没有待处理文本：说明当前模式下所有文本都已处理过
+            const boundCount = i18nState.autoBindList.length; // 仅用于判断是否全已绑定
+            if (i18nState.extractTarget === 'unbound') {
+                return alert("✅ 当前范围内没有「未绑定」的文本需要处理。\n\n所有文本均已绑定变量。\n\n如需重新翻译，请将「目标文本」切换为【画板全部文本】后再扫描。");
+            }
+            return alert("✅ 当前范围内没有需要处理的文本。");
         }
 
         const btn = document.getElementById('i18nStartBtn');
@@ -14563,9 +14572,9 @@ Please output JSON:`;
             // 动态设置校验界面的徽章和底部确认按钮的文案
             const badge = document.getElementById('i18nReviewBadge');
             const confirmBtn = document.getElementById('i18nBindBtn');
-            if (badge) badge.innerText = isReplace ? '⚡ 直接替换' : (isUpdate ? '补充更新 Mode' : `新建: ${targetMode}`);
+            if (badge) badge.innerText = isReplace ? '⚡ 直接替换' : (isUpdate ? '补充到 Mode' : `新建: ${targetMode}`);
             if (confirmBtn) {
-                if (isReplace) confirmBtn.innerText = `⚡ 确认并替换画板 (${targetMode})`;
+                if (isReplace) confirmBtn.innerText = `⚡ 确认并替换 (${targetMode})`;
                 else if (isUpdate) confirmBtn.innerText = `🔄 确认更新到合集`;
                 else confirmBtn.innerText = `✨ 创建 Mode (${targetMode})`;
             }
