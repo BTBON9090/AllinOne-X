@@ -71,6 +71,7 @@ figma.showUI(__html__, { width: 460, height: 640, themeColors: true });
 // 用于存储高亮前的原始样式： Key = "NodeID_Index", Value = OriginalFills
 let highlightCache = {}; 
 let layerSortDirection = 'asc'; // 用于图层排序切换，默认从上到下
+let layerNameSortDirection = 'asc'; // 用于按名称排序切换，默认 A→Z
 
 const trySet = (dst: any, propName: string, value: any) => {
   try { dst[propName] = value; } catch (e) {}
@@ -669,6 +670,32 @@ figma.ui.onmessage = async (msg) => {
       break;
     }
 
+    case 'sort-by-name': {
+      // 按图层名称字典序排序：首字母→第二个字母→以此类推
+      // 支持两种模式：选中多个同级图层排序；或选中单个容器对其直接子图层排序
+      let p: any = null;
+      let targets: SceneNode[] = [];
+      if (selection.length > 1 && selection.every(n => n.parent === selection[0].parent)) {
+        p = selection[0].parent;
+        targets = [...selection];
+      } else if (selection.length === 1 && 'children' in selection[0]) {
+        p = selection[0];
+        targets = [...(selection[0] as any).children];
+      }
+      if (!p || targets.length < 2) {
+        figma.notify("请选择至少两个同级图层，或选择一个包含多个子图层的容器");
+        return;
+      }
+      const isReverse = (layerNameSortDirection === 'desc');
+      targets.sort((a, b) => {
+        const cmp = a.name < b.name ? -1 : (a.name > b.name ? 1 : 0);
+        return isReverse ? -cmp : cmp;
+      }).forEach(n => p!.appendChild(n));
+      figma.notify(isReverse ? "已按名称倒序排列（Z→A）" : "已按名称排序（A→Z）");
+      layerNameSortDirection = isReverse ? 'asc' : 'desc';
+      break;
+    }
+
     case 'ungroup-all': {
       let count = 0;
       // 收集所有 Group: 包含选中的 Group 以及其内部的 Group
@@ -1173,6 +1200,203 @@ figma.ui.onmessage = async (msg) => {
             runFocus();
             break;
         }
+
+    // ===========================
+    // D. 跨画板查重 (Duplicate Finder)
+    // ===========================
+    case 'dup-check': {
+      const sel = figma.currentPage.selection;
+      // 必须恰好选中两个容器 (Frame/Group/Section/Component 等)
+      const containers = sel.filter(n => 'children' in n);
+      if (sel.length !== 2 || containers.length !== 2) {
+        figma.notify("请在画布上选中恰好两个画板/容器");
+        return;
+      }
+      const [cA, cB] = containers;
+
+      // 递归收集两容器内所有图层 (包含自身)
+      const collectAll = (root: any): SceneNode[] => {
+        const arr = [root];
+        if ('findAll' in root) arr.push(...root.findAll(() => true));
+        return arr;
+      };
+      const nodesA = collectAll(cA);
+      const nodesB = collectAll(cB);
+
+      // 名称分词：按 - _ 空格 . / 切词，统一小写
+      const tokenize = (name: string): string[] => {
+        return name.toLowerCase().split(/[-_\s./]+/).filter(t => t.length > 0);
+      };
+
+      const mode = msg.mode === 'substring' ? 'substring' : 'segment';
+      const excludeNumeric = msg.excludeNumeric !== false;
+      const excludeSet = new Set<string>((msg.excludeWords || []).map((w: string) => w.toLowerCase()));
+
+      // 词段过滤：剔除排除词与纯数字编号
+      const filterTokens = (tokens: string[]): string[] => {
+        return tokens.filter(t => {
+          if (excludeSet.has(t)) return false;
+          if (excludeNumeric && /^\d+$/.test(t)) return false;
+          return true;
+        });
+      };
+
+      // 两两匹配，公共词段 ≥ 2 字符才计入
+      const pairs: any[] = [];
+      for (const a of nodesA) {
+        const ta = filterTokens(tokenize(a.name));
+        if (ta.length === 0) continue;
+        for (const b of nodesB) {
+          if (b.id === a.id) continue;
+          const tb = filterTokens(tokenize(b.name));
+          if (tb.length === 0) continue;
+          let common: string[] = [];
+          if (mode === 'segment') {
+            // 分段匹配：词段完全相同才算命中
+            common = ta.filter(t => t.length >= 2 && tb.includes(t));
+          } else {
+            // 子串匹配：词段被对方完整名称包含即命中
+            const bFull = b.name.toLowerCase();
+            const aFull = a.name.toLowerCase();
+            const hitA = ta.filter(t => t.length >= 2 && bFull.includes(t));
+            const hitB = tb.filter(t => t.length >= 2 && aFull.includes(t));
+            common = Array.from(new Set([...hitA, ...hitB]));
+          }
+          if (common.length > 0) {
+            pairs.push({ aId: a.id, aName: a.name, bId: b.id, bName: b.name, common });
+          }
+        }
+      }
+
+      // 按公共词数量降序
+      pairs.sort((x, y) => y.common.length - x.common.length);
+
+      // 防止结果过多导致 UI 卡死，最多返回 500 对
+      const MAX_PAIRS = 500;
+      const truncated = pairs.length > MAX_PAIRS;
+
+      figma.ui.postMessage({
+        type: 'dup-check-result',
+        data: {
+          pairs: pairs.slice(0, MAX_PAIRS),
+          totalPairs: pairs.length,
+          truncated,
+          aName: cA.name,
+          bName: cB.name,
+          aCount: nodesA.length,
+          bCount: nodesB.length
+        }
+      });
+      break;
+    }
+
+    case 'dup-select-layers': {
+      // 勾选模式: add 加入选中 / remove 移出选中 / set 替换选中
+      const ids: string[] = msg.ids || [];
+      // dynamic-page 模式下必须用异步 API 获取节点
+      const found = await Promise.all(ids.map(id => figma.getNodeByIdAsync(id)));
+      const nodes = found
+        .filter(n => n && (n as any).type !== 'DOCUMENT' && (n as any).type !== 'PAGE') as SceneNode[];
+      const cur = figma.currentPage.selection;
+      let next: SceneNode[];
+      if (msg.mode === 'add') {
+        next = Array.from(new Set([...cur, ...nodes]));
+      } else if (msg.mode === 'remove') {
+        next = cur.filter(n => !ids.includes(n.id));
+      } else {
+        next = nodes;
+      }
+      figma.currentPage.selection = next;
+      figma.notify(`已选中 ${next.length} 个图层`);
+      break;
+    }
+
+    case 'dup-fill-red': {
+      // 自动标记：左(A)侧勾选填红，右(B)侧勾选填绿
+      // 可直接改 fills 的节点直接填充；Instance/Component/Group 等无法改 fills 的节点，
+      // 在其下方插入同尺寸半透明标记矩形兑底，不改动目标节点本身
+      try {
+        const aIds: string[] = msg.aIds || [];
+        const bIds: string[] = msg.bIds || [];
+        console.log('[dup-fill-red] A侧', aIds.length, '个, B侧', bIds.length, '个');
+
+        const runGroup = async (ids: string[], COLOR: RGB, tagName: string): Promise<{ filled: number, marked: number, skipped: number }> => {
+          const stat = { filled: 0, marked: 0, skipped: 0 };
+          if (ids.length === 0) return stat;
+          // dynamic-page 模式下必须用异步 API 获取节点
+          const found = await Promise.all(ids.map(id => figma.getNodeByIdAsync(id)));
+          const nodes: any[] = [];
+          found.forEach((n, i) => {
+            if (n && (n as any).type !== 'DOCUMENT' && (n as any).type !== 'PAGE') {
+              nodes.push(n);
+            } else {
+              console.log('[dup-fill-red] 未找到节点:', ids[i], '->', n ? (n as any).type : null);
+            }
+          });
+
+          // 直接改 fills（Instance/Component 的 fills 只读，赋值会抛错返回 false）
+          const trySetFill = (node: any): boolean => {
+            if (typeof node.fills === 'undefined') return false;
+            try {
+              node.fills = [{ type: 'SOLID', color: COLOR, opacity: 0.35 } as SolidPaint];
+              return true;
+            } catch (e: any) {
+              console.log('[dup-fill-red] 直接填充失败:', node.id, node.type, e && e.message);
+              return false;
+            }
+          };
+
+          // 在节点下方插入同尺寸半透明标记矩形
+          const addMarkRect = (node: any): boolean => {
+            try {
+              const abs = node.absoluteBoundingBox;
+              const parent: any = node.parent;
+              if (!abs || !parent) {
+                console.log('[dup-fill-red] 无包围盒或父容器:', node.id, node.type);
+                return false;
+              }
+              const pabs = parent.absoluteBoundingBox;
+              const rect = figma.createRectangle();
+              rect.name = tagName + ' 查重标记';
+              rect.resize(abs.width, abs.height);
+              rect.x = abs.x - (pabs ? pabs.x : 0);
+              rect.y = abs.y - (pabs ? pabs.y : 0);
+              rect.fills = [{ type: 'SOLID', color: COLOR } as SolidPaint];
+              rect.opacity = 0.35;
+              const idx = parent.children.indexOf(node);
+              parent.insertChild(idx < 0 ? parent.children.length : idx, rect);
+              return true;
+            } catch (e: any) {
+              console.log('[dup-fill-red] 矩形标记失败:', node.id, node.type, e && e.message);
+              return false;
+            }
+          };
+
+          for (const n of nodes) {
+            if ('locked' in n && (n as any).locked) { stat.skipped++; continue; }
+            if (trySetFill(n)) { stat.filled++; continue; }
+            if (addMarkRect(n)) { stat.marked++; }
+            else { stat.skipped++; }
+          }
+          return stat;
+        };
+
+        const red = await runGroup(aIds, { r: 1, g: 0, b: 0 }, '🔴');
+        const green = await runGroup(bIds, { r: 0.18, g: 0.75, b: 0.33 }, '🟢');
+        const redCount = red.filled + red.marked;
+        const greenCount = green.filled + green.marked;
+        const skipped = red.skipped + green.skipped;
+        console.log('[dup-fill-red] 结果: 左红=' + redCount + ' 右绿=' + greenCount + ' 跳过=' + skipped);
+
+        let msgTxt = `已标记 左红 ${redCount} 个 · 右绿 ${greenCount} 个`;
+        if (skipped > 0) msgTxt += `（跳过 ${skipped} 个）`;
+        figma.notify(msgTxt);
+      } catch (e: any) {
+        console.error('[dup-fill-red] 异常:', e);
+        figma.notify('填充失败：' + (e && e.message ? e.message : String(e)));
+      }
+      break;
+    }
 
     // ===========================
     // E. 文本查找与替换

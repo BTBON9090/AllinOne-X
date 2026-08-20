@@ -1895,6 +1895,89 @@
 }
 
       /* =========================================
+   跨画板查重 (Duplicate Finder)
+   ========================================= */
+.dup-pair-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: default;
+}
+.dup-pair-item input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    cursor: pointer;
+    flex-shrink: 0;
+    accent-color: var(--primary);
+}
+.dup-pair-zone {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 6px 8px;
+    margin: -6px -8px;
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+}
+.dup-pair-zone:hover {
+    background: var(--bg-body);
+}
+.dup-pair-zone:hover .dup-pair-name {
+    color: var(--primary);
+}
+.dup-pair-zone:active {
+    background: var(--bg-hover);
+}
+.dup-side-tag {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 5px;
+    border-radius: var(--radius-xs);
+    flex-shrink: 0;
+    max-width: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.dup-side-a { background: var(--primary-light); color: var(--primary); }
+.dup-side-b { background: #fce7f3; color: #db2777; }
+.dup-pair-name {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.dup-pair-name:hover {
+    color: var(--primary);
+}
+.dup-pair-arrow {
+    color: var(--text-tertiary);
+    font-size: 12px;
+    flex-shrink: 0;
+}
+.dup-common-badge {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--primary);
+    background: var(--primary-light);
+    border-radius: var(--radius-full);
+    padding: 2px 8px;
+    flex-shrink: 0;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+      /* =========================================
         9. PPT Master 面板样式
         ========================================= */
       #pptPanel { 
@@ -4426,6 +4509,7 @@
         font-weight: 500;
         position: relative;
         z-index: 1;
+        white-space: nowrap;
     }
     .seg-btn:hover {
         color: var(--text-primary);
@@ -4474,6 +4558,9 @@
             </div>
             <div class="nav-item" data-nav="select" onclick="switchGroup('select', this)">
                 <span class="nav-icon-slot">🔍</span><span class="nav-text" data-key="nav_select">超级选择</span><span class="nav-dot"></span>
+            </div>
+            <div class="nav-item" data-nav="duplicate" onclick="switchGroup('duplicate', this)">
+                <span class="nav-icon-slot">🧬</span><span class="nav-text" data-key="nav_duplicate">查重</span><span class="nav-dot"></span>
             </div>
             <div class="nav-item" data-nav="text" onclick="switchGroup('text', this)">
                 <span class="nav-icon-slot">📝</span><span class="nav-text" data-key="nav_text">文字替换</span><span class="nav-dot"></span>
@@ -4537,6 +4624,7 @@
                     <div class="tool-card theme-orange" onclick="trackAndRun('swap-fs')" data-key="swap_fs" data-category="style"><span class="tc-icon t-orange">🔄</span><span class="tc-title">互换</span><span class="tc-desc">Fill↔Stroke</span><div class="tc-tooltip">交换选中元素的填充和描边颜色，同时保留各自的透明度等属性。</div></div>
                     <div class="tool-card theme-orange" onclick="trackAndRun('reset-image')" data-key="reset_image" data-category="style"><span class="tc-icon t-orange">⚖️</span><span class="tc-title">重置</span><span class="tc-desc">恢复原始尺寸</span><div class="tc-tooltip">将选中的图片恢复至原始尺寸（原生宽高比），适合处理被拉伸变形的图片。</div></div>
                     <div class="tool-card theme-pink" onclick="trackAndRun('sort-layers')" data-key="sort_layers" data-category="layer"><span class="tc-icon t-pink">👁️</span><span class="tc-title">排序</span><span class="tc-desc">按可见度排序</span><div class="tc-tooltip">按照图层可见度进行排序，方便快速检查哪些图层被隐藏或以其他方式显示。</div></div>
+                                        <div class="tool-card theme-pink" onclick="trackAndRun('sort-by-name')" data-key="sort_by_name" data-category="layer"><span class="tc-icon t-pink">🔤</span><span class="tc-title">名称排序</span><span class="tc-desc">按名称A→Z排序</span><div class="tc-tooltip">按图层名称的字母顺序重排图层（首字母相同则比较第二个字母，依次类推）。再点一次可反向排列。</div></div>
                     <div class="tool-card theme-pink" onclick="trackAndRun('rename-content')" data-key="rename_content" data-category="layer"><span class="tc-icon t-pink">🏷️</span><span class="tc-title">重命名</span><span class="tc-desc">文本内容→图层名</span><div class="tc-tooltip">自动用文本图层的内容来重命名图层的名称，方便无需双击即可识别图层。</div></div>
                     <div class="tool-card theme-blue" onclick="trackAndRun('detach-all')" data-key="detach_all" data-category="layer"><span class="tc-icon t-blue">💔</span><span class="tc-title">剥离</span><span class="tc-desc">断开组件链接</span><div class="tc-tooltip">递归解除选中区域中所有实例与母版组件的关联，让它们成为普通图层。</div></div>
                     <div class="tool-card theme-blue" onclick="trackAndRun('remove-hidden')" data-key="remove_hidden" data-category="layer"><span class="tc-icon t-blue">👻</span><span class="tc-title">清理</span><span class="tc-desc">删除隐藏图层</span><div class="tc-tooltip">扫描并删除选区内所有被隐藏的图层，保持文件的整洁干净。</div></div>
@@ -4672,6 +4760,107 @@
              
              <div id="selResultList" class="sel-result-list" style="flex:1; overflow-y:auto; padding:4px 0;">
                 <!-- Items -->
+             </div>
+          </div>
+        </div>
+
+        <!-- ===== 跨画板查重 (Duplicate Finder) ===== -->
+        <div id="duplicatePanel" class="selector-container" style="display: none;">
+          <!-- A. 配置视图 -->
+          <div id="dupConfigView" style="display:flex; flex-direction:column; height:100%;">
+            <div class="selection-scroll-area">
+
+              <!-- 0. 使用提示 -->
+              <div class="selector-card" style="padding:10px 14px;">
+                <div style="font-size:12px; line-height:1.6; color:var(--text-secondary);">
+                  <span data-key="dup_hint">🖱️ 先在画布上选中两个画板，再点击「开始查重」。用于找出两画板中名称相似的重复图层。</span>
+                </div>
+              </div>
+
+              <!-- 1. 匹配模式 -->
+              <div class="selector-card">
+                <div class="section-header">
+                  <span class="section-title" data-key="dup_mode_title">匹配模式</span>
+                </div>
+                <div class="segmented-control" id="dupModeGroup">
+                  <div class="seg-btn active" data-val="segment" onclick="toggleDupMode(this)" data-key="dup_mode_seg" data-tooltip="按连字符切词段，词段完全相同才算命中">分段匹配</div>
+                  <div class="seg-btn" data-val="substring" onclick="toggleDupMode(this)" data-key="dup_mode_sub" data-tooltip="名称包含对方连续片段即命中，更宽松">子串匹配</div>
+                </div>
+              </div>
+
+              <!-- 2. 排除通用词 -->
+              <div class="selector-card">
+                <div class="section-header">
+                  <span class="section-title" data-key="dup_exclude_title">排除通用词</span>
+                </div>
+                <div class="tag-cloud" id="dupExcludeGroup">
+                  <div class="filter-tag active" data-val="frame" onclick="this.classList.toggle('active')">frame</div>
+                  <div class="filter-tag active" data-val="group" onclick="this.classList.toggle('active')">group</div>
+                  <div class="filter-tag active" data-val="instance" onclick="this.classList.toggle('active')">instance</div>
+                  <div class="filter-tag active" data-val="component" onclick="this.classList.toggle('active')">component</div>
+                  <div class="filter-tag active" data-val="icon" onclick="this.classList.toggle('active')">icon</div>
+                  <div class="filter-tag active" data-val="mask" onclick="this.classList.toggle('active')">mask</div>
+                  <div class="filter-tag active" data-val="vector" onclick="this.classList.toggle('active')">vector</div>
+                  <div class="filter-tag active" data-val="rectangle" onclick="this.classList.toggle('active')">rectangle</div>
+                  <div class="filter-tag active" data-val="ellipse" onclick="this.classList.toggle('active')">ellipse</div>
+                  <div class="filter-tag active" data-val="line" onclick="this.classList.toggle('active')">line</div>
+                  <div class="filter-tag active" data-val="text" onclick="this.classList.toggle('active')">text</div>
+                  <div class="filter-tag active" data-val="number" onclick="this.classList.toggle('active')" data-key="dup_excl_num">数字编号</div>
+                </div>
+                <input type="text" id="dupCustomExclude" class="name-input" placeholder="自定义排除词，逗号分隔..." data-key="dup_custom_ph" style="margin-top:10px;">
+              </div>
+
+              <!-- 3. AI 语义精筛 -->
+              <div class="selector-card">
+                <div class="section-header">
+                  <span class="section-title" data-key="dup_ai_title">AI 语义精筛</span>
+                </div>
+                <div class="segmented-control" id="dupAiGroup">
+                  <div class="seg-btn active" data-val="on" onclick="toggleDupAi(this)" data-key="dup_ai_on">开启</div>
+                  <div class="seg-btn" data-val="off" onclick="toggleDupAi(this)" data-key="dup_ai_off">关闭</div>
+                </div>
+                <div style="font-size:11px; color:var(--text-tertiary); margin-top:8px; line-height:1.5;" data-key="dup_ai_hint">由 AI 根据名称判断是否指代同一图标，过滤 arrow-up / arrow-down 这类语义不同的匹配</div>
+              </div>
+
+            </div>
+            <div class="selection-footer">
+              <button class="primary-btn" onclick="runDupCheck()" data-key="dup_btn_run">🧬 开始查重</button>
+            </div>
+          </div>
+
+          <!-- B. 结果视图 -->
+          <div id="dupResultView" style="display:none; flex-direction:column; height:100%;">
+             <div class="sel-result-header" style="display:flex; align-items:center; padding:0 8px; border-bottom:1px solid var(--border); flex-shrink:0;">
+                <button class="icon-btn" onclick="hideDupResults()" style="height:32px; display:flex; align-items:center; gap:4px; padding:0 8px; border:none; background:transparent; cursor:pointer; font-size:13px; color:var(--text-color); font-weight:600;">
+                  <span>⬅</span> <span data-key="dup_res_back">返回</span>
+                </button>
+                <div style="flex:1; text-align:center; font-weight:600; font-size:13px; color:var(--text-color);">
+                  <span data-key="dup_res_title">匹配对</span> <span id="dupResultCountText">0</span>
+                </div>
+                <div style="width:60px;"></div> <!-- 占位平衡 -->
+             </div>
+             <div id="dupAIProgress" style="display:none; padding:8px 12px; border-bottom:1px solid var(--border); background:var(--bg-surface); flex-shrink:0;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                  <span style="font-size:11px; font-weight:600; color:var(--primary);" id="dupAIProgressText">AI 分析中 0/0</span>
+                </div>
+                <div class="ppt-progress-track" style="height:4px; border-radius:var(--radius-full); background:var(--bg-muted); width:100%; margin-top:0;">
+                  <div class="ppt-progress-fill" id="dupAIProgressBar" style="height:100%; background:var(--primary); width:0%; border-radius:var(--radius-full); transition:width 0.3s;"></div>
+                </div>
+             </div>
+             <div id="dupAIResultHint" style="display:none; padding:6px 12px; background:var(--bg-body); color:var(--text-secondary); font-size:11px; border-bottom:1px solid var(--border); flex-shrink:0;"></div>
+             <div id="dupSubHeader" style="display:flex; gap:6px; padding:8px 12px; border-bottom:1px solid var(--border); background:var(--bg-surface); flex-shrink:0;">
+                <button class="secondary-btn" id="dupSelBtnA" style="flex:1; padding:8px 6px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" onclick="dupSelectAllSide('A')" data-key="dup_sel_a">勾选全部 A 侧</button>
+                <button class="secondary-btn" style="flex-shrink:0; padding:8px 10px;" onclick="dupUncheckSide('A')" data-key-title="dup_uncheck_title" title="取消该侧全部勾选">✕</button>
+                <button class="secondary-btn" id="dupSelBtnB" style="flex:1; padding:8px 6px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" onclick="dupSelectAllSide('B')" data-key="dup_sel_b">勾选全部 B 侧</button>
+                <button class="secondary-btn" style="flex-shrink:0; padding:8px 10px;" onclick="dupUncheckSide('B')" data-key-title="dup_uncheck_title" title="取消该侧全部勾选">✕</button>
+             </div>
+             <div id="dupTruncatedHint" style="display:none; padding:8px 12px; background:var(--primary-light); color:var(--primary); font-size:11px; border-bottom:1px solid var(--border); flex-shrink:0;" data-key="dup_truncated">结果过多，仅显示前 500 对</div>
+             <div id="dupResultList" class="sel-result-list" style="flex:1; overflow-y:auto; padding:4px 0;">
+                <!-- Items -->
+             </div>
+             <div class="selection-footer" style="flex-shrink:0;">
+                <span id="dupCheckedCount" style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; font-size:11px; font-weight:600; color:var(--text-secondary); white-space:nowrap;">已勾选 0 个</span>
+                <button class="secondary-btn" id="dupFillBtn" style="flex-shrink:0; padding:8px 12px;" onclick="dupFillSelected()" data-key="dup_btn_fill" data-key-title="dup_btn_fill_title" title="左侧所选填红色，右侧所选填绿色">🎨 填充标记</button>
              </div>
           </div>
         </div>
@@ -6376,6 +6565,7 @@
         // =========================================
         nav_simple: "简易工具",
         nav_select: "超级选择",
+        nav_duplicate: "查重",
         nav_layout: "布局工具",
         nav_text: "文字替换",
         nav_style_tools: "样式工具",
@@ -6853,6 +7043,7 @@
         
         // --- 排序与命名 ---
         sort_layers: ["👁️ 按视觉排序图层", "按坐标重排图层", "根据画布上的 X/Y 坐标，重新排列图层列表顺序（从上到下，从左到右）。再点一次可反向排列", "图层已排序"],
+        sort_by_name: ["🔤 按名称排序图层", "图层名A→Z排序", "按图层名称的字母顺序重排图层（首字母相同则比较第二个字母，依次类推）。再点一次可反向排列。", "图层已按名称排序"],
         rename_content: ["🏷️ 按内容重命名", "图层名同步文本内容", "自动将文本层或包含文本的 Frame 重命名为其内容。", "图层已重命名"],
         
         // --- 实例与清理 ---
@@ -6865,7 +7056,35 @@
         
         // --- 样式管理 ---
         create_styles: ["✨ 生成本地样式", "一键提取样式", "将选中图层的颜色、文本、效果转为本地样式。自动检测重名。", "检查样式完成"],
-        match_styles: ["💅 匹配本地样式", "重新链接样式库", "扫描选中图层，将裸奔的颜色/字体属性与本地样式库重新绑定。", "已完成样式匹配"]
+        match_styles: ["💅 匹配本地样式", "重新链接样式库", "扫描选中图层，将裸奔的颜色/字体属性与本地样式库重新绑定。", "已完成样式匹配"],
+
+        // --- 跨画板查重 (Duplicate Finder) ---
+        dup_hint: "🖱️ 先在画布上选中两个画板，再点击「开始查重」。用于找出两画板中名称相似的重复图层（如 icon-sun-01 与 frame-sun-32 共含 sun）。",
+        dup_mode_title: "匹配模式",
+        dup_mode_seg: "分段匹配",
+        dup_mode_sub: "子串匹配",
+        dup_exclude_title: "排除通用词",
+        dup_excl_num: "数字编号",
+        dup_custom_ph: "自定义排除词，逗号分隔...",
+        dup_btn_run: "🧬 开始查重",
+        dup_res_back: "返回",
+        dup_res_title: "匹配对",
+        dup_sel_a: "勾选全部 {name}",
+        dup_sel_b: "勾选全部 {name}",
+        dup_truncated: "⚠️ 匹配对过多，仅显示前 500 对",
+        dup_res_empty: "未发现重复图层 🎉",
+        dup_checked_split: "{nameA} {a}项 · {nameB} {b}项",
+        dup_btn_fill: "🎨 填充标记",
+        dup_btn_fill_title: "左侧所选填红色，右侧所选填绿色",
+        dup_ai_title: "AI 语义精筛",
+        dup_ai_on: "开启",
+        dup_ai_off: "关闭",
+        dup_ai_hint: "由 AI 根据名称判断是否指代同一图标，过滤 arrow-up / arrow-down 这类语义不同的匹配",
+        dup_ai_progress: "AI 分析中 {cur}/{total}",
+        dup_ai_noconfig: "未配置 AI，已跳过精筛（可在设置中配置）",
+        dup_ai_fail: "AI 调用失败，已保留全部粗筛结果",
+        dup_ai_done: "AI 已过滤 {n} 对非重复匹配",
+        dup_uncheck_title: "取消该侧全部勾选"
       },
       en: {
         // Tool Categories
@@ -7005,6 +7224,7 @@
         // =========================================
         nav_simple: "Simple",
         nav_select: "Super Select",
+        nav_duplicate: "Dupe Check",
         nav_layout: "Layout",
         nav_text: "Text Replace",
         nav_style_tools: "Style",
@@ -7475,6 +7695,7 @@
         reset_image: ["⚖️ Reset Image Ratio", "Fix Aspect Ratio", "Restore the original aspect ratio of distorted images.", "Ratio Reset"],
         
         sort_layers: ["👁️ Sort by Visual", "Sort by Position", "Reorder layer list based on visual X/Y position (Top-Left to Bottom-Right).", "Layers Sorted"],
+        sort_by_name: ["🔤 Sort by Name", "Layer Name A→Z", "Reorder layers alphabetically by their names (letter by letter). Click again to reverse the order.", "Sorted by Name"],
         rename_content: ["🏷️ Rename by Content", "Sync Name to Text", "Rename layers based on their text content for better organization.", "Renamed"],
         
         detach_all: ["💔 Detach Instances", "Detach Nested", "Recursively detach all nested Component Instances within selection.", "Detached"],
@@ -7484,13 +7705,50 @@
         swap_positions: ["🔀 Swap Positions", "Swap Locations", "Swap X/Y coordinates of exactly two selected layers.", "Swapped"],
         
         create_styles: ["✨ Create Styles", "Generate Styles", "Convert properties to local styles based on layer name. Detects conflicts.", "Styles Created"],
-        match_styles: ["💅 Match Styles", "Relink Styles", "Scan selection and bind raw properties to local styles if values match exactly.", "Styles Matched"]
+        match_styles: ["💅 Match Styles", "Relink Styles", "Scan selection and bind raw properties to local styles if values match exactly.", "Styles Matched"],
+
+        // --- Duplicate Finder ---
+        dup_hint: "🖱️ Select two frames on canvas first, then click Start Check. Finds layers with similar names across the two frames (e.g. icon-sun-01 & frame-sun-32 share 'sun').",
+        dup_mode_title: "Match Mode",
+        dup_mode_seg: "Segment",
+        dup_mode_sub: "Substring",
+        dup_exclude_title: "Exclude Common Words",
+        dup_excl_num: "Numbers",
+        dup_custom_ph: "Custom exclude words, comma separated...",
+        dup_btn_run: "🧬 Start Check",
+        dup_res_back: "Back",
+        dup_res_title: "Pairs",
+        dup_sel_a: "Select All {name}",
+        dup_sel_b: "Select All {name}",
+        dup_truncated: "⚠️ Too many pairs, showing first 500 only",
+        dup_res_empty: "No duplicates found 🎉",
+        dup_checked_split: "{nameA} {a} · {nameB} {b}",
+        dup_btn_fill: "🎨 Fill Marks",
+        dup_btn_fill_title: "Left selection filled red, right filled green",
+        dup_ai_title: "AI Semantic Filter",
+        dup_ai_on: "On",
+        dup_ai_off: "Off",
+        dup_ai_hint: "AI judges whether names refer to the same icon, filtering semantically different matches like arrow-up / arrow-down",
+        dup_ai_progress: "AI analyzing {cur}/{total}",
+        dup_ai_noconfig: "AI not configured, skipped semantic filter (configurable in settings)",
+        dup_ai_fail: "AI call failed, kept all rough results",
+        dup_ai_done: "AI filtered {n} non-duplicate pairs",
+        dup_uncheck_title: "Uncheck all on this side"
       }
     };
     
     let curLang = PersistentCache.get('user_lang') || 'zh';
 
+    // 跨画板查重状态 (必须在初始化调用前声明，避免 TDZ 报错)
+    let dupChecked = new Set(); // 已勾选加入 Figma 选中的节点 ID
+    let dupPairsCache = [];     // 当前匹配对缓存
+    let dupFrameNames = { a: '', b: '' }; // 两个画板的实际名称
+    let dupAiEnabled = true;    // AI 语义精筛开关
+    let dupRunToken = 0;        // 查重代次计数，防止旧一轮的 AI 结果污染新一轮结果
+
     updateLanguage();
+    // 恢复查重面板配置 (匹配模式/排除词)
+    initDupPanel();
     
   
     // =============================================================================
@@ -7527,6 +7785,12 @@
             el.innerText = t[k];
           }
         }
+      });
+
+      // 1.5 data-key-title 元素：更新悬停提示
+      document.querySelectorAll('[data-key-title]').forEach(el => {
+        const k = el.getAttribute('data-key-title');
+        if (k && t[k]) el.title = t[k];
       });
 
       // 2. 特殊处理：导航项 (Nav Item) - 必须保留 SVG 图标
@@ -7580,6 +7844,9 @@
       
       const searchInput = document.getElementById('searchInput');
       if(searchInput && t.search_ph) searchInput.placeholder = t.search_ph;
+      
+      // 6. 查重面板：批量按钮文本带画板名，需重新渲染
+      if (typeof updateDupSideLabels === 'function') updateDupSideLabels();
     }
 
     // 通用工具卡片点击事件
@@ -7628,11 +7895,13 @@
         'skewPanel',
         'i18nPanel',
         'compkitPanel',
+        'duplicatePanel',
         'settingsPanel'
       ];
       const map = {
         'simple': ['toolPanel'],
         'select': ['selectionPanel', 'selectionFooter'],
+        'duplicate': ['duplicatePanel'],
         'text':   ['textPanel'],
         'ppt':    ['pptPanel'],
         'smartFill': ['smartFillPanel'],
@@ -9438,6 +9707,11 @@
       // 查找结果处理
       if (msg.type === 'found-layers-result') {
           handleFoundLayersResult(msg);
+      }
+
+      // 查重结果处理
+      if (msg.type === 'dup-check-result') {
+          showDupResults(msg.data);
       }
     
       if (msg.type === 'text-find-results') {
@@ -13566,6 +13840,471 @@
 
     function trackAndRun(toolId) {
         run(toolId);
+    }
+
+    // ==========================================
+    // 跨画板查重 (Duplicate Finder) 逻辑
+    // ==========================================
+
+    // 截断长名称 (保留前 max 个字符)
+    function truncateName(name, max) {
+        if (!name) return '';
+        return name.length > max ? name.slice(0, max) + '…' : name;
+    }
+
+    // 用画板实际名称更新 A/B 侧标签 (行内标签 + 批量按钮)
+    function updateDupSideLabels() {
+        const t = (i18n[curLang]) || {};
+        const btnA = document.getElementById('dupSelBtnA');
+        const btnB = document.getElementById('dupSelBtnB');
+        const fmtA = t.dup_sel_a || '勾选全部 {name}';
+        const fmtB = t.dup_sel_b || '勾选全部 {name}';
+        const nameA = truncateName(dupFrameNames.a, 8) || 'A';
+        const nameB = truncateName(dupFrameNames.b, 8) || 'B';
+        if (btnA) btnA.textContent = fmtA.replace('{name}', nameA);
+        if (btnB) btnB.textContent = fmtB.replace('{name}', nameB);
+    }
+
+    // 匹配模式切换 (分段 / 子串)
+    function toggleDupMode(el) {
+        const parent = document.getElementById('dupModeGroup');
+        if (!parent) return;
+        parent.querySelectorAll('.seg-btn').forEach(btn => btn.classList.remove('active'));
+        el.classList.add('active');
+        PersistentCache.set('dup_mode', el.getAttribute('data-val'));
+    }
+
+    // 收集当前配置并发起查重
+    function runDupCheck() {
+        // 1. 收集排除词
+        const excludeWords = [];
+        let excludeNumeric = false;
+        document.querySelectorAll('#dupExcludeGroup .filter-tag').forEach(tag => {
+            const v = tag.getAttribute('data-val');
+            const isActive = tag.classList.contains('active');
+            if (v === 'number') { excludeNumeric = isActive; return; }
+            if (isActive) excludeWords.push(v);
+        });
+
+        // 2. 自定义排除词
+        const customInput = document.getElementById('dupCustomExclude');
+        const customWords = customInput
+            ? customInput.value.split(/[,，、\s]+/).map(s => s.trim()).filter(Boolean)
+            : [];
+
+        // 3. 持久化配置
+        const activeVals = [];
+        document.querySelectorAll('#dupExcludeGroup .filter-tag.active').forEach(tag => {
+            activeVals.push(tag.getAttribute('data-val'));
+        });
+        PersistentCache.set('dup_excludes', activeVals);
+        PersistentCache.set('dup_custom', customInput ? customInput.value : '');
+
+        // 4. 发起查重
+        dupChecked.clear();
+        const modeBtn = document.querySelector('#dupModeGroup .seg-btn.active');
+        const mode = (modeBtn && modeBtn.getAttribute('data-val')) || 'segment';
+        postMsg('dup-check', {
+            mode,
+            excludeWords: [...excludeWords, ...customWords],
+            excludeNumeric
+        });
+    }
+
+    // 渲染查重结果
+    function showDupResults(data) {
+        dupPairsCache = data.pairs || [];
+        dupChecked.clear();
+        dupFrameNames = { a: data.aName || '', b: data.bName || '' };
+        updateDupSideLabels();
+
+        const cfgView = document.getElementById('dupConfigView');
+        const resView = document.getElementById('dupResultView');
+        if (cfgView) cfgView.style.display = 'none';
+        if (resView) resView.style.display = 'flex';
+
+        const truncEl = document.getElementById('dupTruncatedHint');
+        if (truncEl) truncEl.style.display = data.truncated ? 'block' : 'none';
+
+        // 隐藏上轮 AI 提示
+        const hintEl = document.getElementById('dupAIResultHint');
+        if (hintEl) hintEl.style.display = 'none';
+
+        // 先渲染粗筛结果，再异步 AI 精筛
+        const myToken = ++dupRunToken;
+        renderDupList();
+        if (dupAiEnabled && dupPairsCache.length > 0) {
+            runDupAIFilter(myToken);
+        }
+    }
+
+    // ===== AI 语义精筛 =====
+    // 更新 AI 进度条
+    function updateDupAIProgress(cur, total) {
+        const bar = document.getElementById('dupAIProgressBar');
+        const text = document.getElementById('dupAIProgressText');
+        const wrap = document.getElementById('dupAIProgress');
+        if (wrap) wrap.style.display = 'flex';
+        if (bar) bar.style.width = total > 0 ? Math.round((cur / total) * 100) + '%' : '0%';
+        if (text) {
+            const t = (i18n[curLang]) || {};
+            const tmpl = t.dup_ai_progress || 'AI 分析中 {cur}/{total}';
+            text.innerText = tmpl.replace('{cur}', cur).replace('{total}', total);
+        }
+    }
+
+    function hideDupAIProgress() {
+        const wrap = document.getElementById('dupAIProgress');
+        if (wrap) wrap.style.display = 'none';
+    }
+
+    // 显示 AI 结果提示条
+    function showDupAIHint(text) {
+        const hintEl = document.getElementById('dupAIResultHint');
+        if (!hintEl) return;
+        hintEl.textContent = text;
+        hintEl.style.display = 'block';
+    }
+
+    // 通过 code.ts 沙箱执行 fetch (复用现有 do-fetch 机制)
+    function dupFetchAI(requestBody) {
+        return new Promise((resolve, reject) => {
+            const endpoint = getAiEndpoint();
+            let targetUrl = endpoint.url.trim().replace(/\/+$/, '');
+            if (!targetUrl.includes('/chat/completions')) {
+                targetUrl += '/chat/completions';
+            }
+            const fetchOptions = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            };
+            if (endpoint.key) {
+                fetchOptions.headers['Authorization'] = `Bearer ${endpoint.key}`;
+            }
+            const reqId = 'dup-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+            const messageHandler = (event) => {
+                const m = event.data?.pluginMessage || event.data;
+                if (m && m.type === 'api-response' && m.reqId === reqId) {
+                    window.removeEventListener('message', messageHandler);
+                    if (m.error) reject(new Error(m.error));
+                    else resolve(m.data);
+                }
+            };
+            window.addEventListener('message', messageHandler);
+            setTimeout(() => {
+                window.removeEventListener('message', messageHandler);
+                reject(new Error('AI响应超时'));
+            }, 60000);
+            postMsg('do-fetch', { reqId, url: targetUrl, options: fetchOptions });
+        });
+    }
+
+    // 从 AI 回复文本中提取 JSON 数组
+    function extractJsonArray(text) {
+        if (!text) return null;
+        try { return JSON.parse(text); } catch (e) {}
+        const start = text.indexOf('[');
+        const end = text.lastIndexOf(']');
+        if (start === -1 || end === -1 || end <= start) return null;
+        try { return JSON.parse(text.slice(start, end + 1)); } catch (e) { return null; }
+    }
+
+    // 单批 AI 判断：返回 [{id, dup}] 或 null (失败)
+    async function callAIForDupBatch(batch) {
+        const systemPrompt = `你是 Figma 图标查重助手。判断每对图层名称是否指代同一个图标（重复项）。
+
+判断规则：
+1. 数字序号差异不算不同：arrow-up 与 arrow-up-02 是重复
+2. 仅大小写、连字符、下划线差异：是重复
+3. 语义不同（方向/形状/动作不同）不是重复：arrow-up 与 arrow-down、arrow-up 与 arrow-rise 都不是重复
+4. 同一根词但修饰词不同（-left/-right/-up/-down/-filled/-outline）通常不是重复
+5. 无法确定时倾向判为不重复
+
+输入是 JSON 数组 [{"id":0,"a":"名称A","b":"名称B"}]，
+输出严格 JSON 数组 [{"id":0,"dup":true},{"id":1,"dup":false}]，不要输出任何其他内容。`;
+
+        const userContent = JSON.stringify(batch.map((p, i) => ({ id: i, a: p.aName, b: p.bName })));
+        const endpoint = getAiEndpoint();
+        const requestBody = {
+            model: endpoint.model || 'glm-4.7-flash',
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userContent }
+            ],
+            temperature: 0.1,
+            stream: false
+        };
+        try {
+            const data = await dupFetchAI(requestBody);
+            if (data.choices && data.choices[0] && data.choices[0].message) {
+                const arr = extractJsonArray(data.choices[0].message.content);
+                if (Array.isArray(arr)) return arr;
+            }
+            return null;
+        } catch (e) {
+            console.log('【查重AI】批量判断失败:', e);
+            return null;
+        }
+    }
+
+    // AI 精筛主流程：并发批处理，过滤非重复匹配对
+    async function runDupAIFilter(token) {
+        const endpoint = getAiEndpoint();
+        if (!aiConfig || (!endpoint.key && !endpoint.isProxy) || !endpoint.url) {
+            showDupAIHint((i18n[curLang] || {}).dup_ai_noconfig || '未配置 AI，已跳过精筛（可在设置中配置）');
+            return;
+        }
+
+        const totalPairs = dupPairsCache.length;
+        const BATCH_SIZE = 30;
+        const CONCURRENCY = 3;
+        const batches = [];
+        for (let i = 0; i < dupPairsCache.length; i += BATCH_SIZE) {
+            batches.push(dupPairsCache.slice(i, i + BATCH_SIZE));
+        }
+
+        // 每个 pair 的 AI 判定结果: idx -> true(重复)/false(不重复)，null = 未知(保留)
+        const verdicts = new Array(totalPairs).fill(null);
+        let processed = 0;
+        let aiFailed = false;
+        updateDupAIProgress(0, totalPairs);
+
+        for (let i = 0; i < batches.length; i += CONCURRENCY) {
+            const group = batches.slice(i, i + CONCURRENCY);
+            const groupResults = await Promise.all(group.map(b => callAIForDupBatch(b)));
+            group.forEach((batch, gi) => {
+                const batchStartIdx = (i + gi) * BATCH_SIZE;
+                const result = groupResults[gi];
+                processed += batch.length;
+                if (Array.isArray(result)) {
+                    result.forEach(r => {
+                        if (r && typeof r.id === 'number' && typeof r.dup === 'boolean') {
+                            const pairIdx = batchStartIdx + r.id;
+                            if (pairIdx >= 0 && pairIdx < totalPairs) verdicts[pairIdx] = r.dup;
+                        }
+                    });
+                } else {
+                    aiFailed = true;
+                }
+            });
+            updateDupAIProgress(Math.min(processed, totalPairs), totalPairs);
+            if (token !== dupRunToken) { hideDupAIProgress(); return; } // 新一轮查重已开始，丢弃旧结果
+        }
+
+        // 过滤：AI 判定为 false 的移除；null(失败) 保留
+        if (token !== dupRunToken) { hideDupAIProgress(); return; }
+        const before = dupPairsCache.length;
+        dupPairsCache = dupPairsCache.filter((p, idx) => verdicts[idx] !== false);
+        const filtered = before - dupPairsCache.length;
+
+        hideDupAIProgress();
+        const t = (i18n[curLang]) || {};
+        if (aiFailed && filtered === 0) {
+            showDupAIHint(t.dup_ai_fail || 'AI 调用失败，已保留全部粗筛结果');
+        } else {
+            showDupAIHint((t.dup_ai_done || 'AI 已过滤 {n} 对非重复匹配').replace('{n}', filtered));
+        }
+
+        // 更新统计并重新渲染
+        const countEl = document.getElementById('dupResultCountText');
+        if (countEl) countEl.innerText = dupPairsCache.length;
+        // 过滤后勾选集合可能包含已移除的节点，同步取消 Figma 选中
+        const prevChecked = Array.from(dupChecked);
+        dupChecked.clear();
+        if (prevChecked.length > 0) postMsg('dup-select-layers', { ids: prevChecked, mode: 'remove' });
+        updateDupFooter();
+        renderDupList();
+    }
+
+    // AI 精筛开关
+    function toggleDupAi(el) {
+        const parent = document.getElementById('dupAiGroup');
+        if (!parent) return;
+        parent.querySelectorAll('.seg-btn').forEach(btn => btn.classList.remove('active'));
+        el.classList.add('active');
+        dupAiEnabled = el.getAttribute('data-val') === 'on';
+        PersistentCache.set('dup_ai_enabled', dupAiEnabled);
+    }
+
+    // 取消一侧全部勾选
+    function dupUncheckSide(side) {
+        const ids = dupPairsCache.map(p => (side === 'A' ? p.aId : p.bId));
+        ids.forEach(id => dupChecked.delete(id));
+        postMsg('dup-select-layers', { ids, mode: 'remove' });
+        renderDupList();
+    }
+
+    // 渲染匹配对列表
+    function renderDupList() {
+        const listEl = document.getElementById('dupResultList');
+        if (!listEl) return;
+        listEl.innerHTML = '';
+
+        const t = (i18n[curLang]) || {};
+        if (dupPairsCache.length === 0) {
+            const emptyTxt = t.dup_res_empty || '未发现重复图层';
+            listEl.innerHTML = `<div style="padding:24px; text-align:center; color:var(--text-tertiary); font-size:12px;">${emptyTxt}</div>`;
+            return;
+        }
+
+        dupPairsCache.forEach(pair => {
+            const item = document.createElement('div');
+            item.className = 'sel-result-item dup-pair-item';
+
+            // A 侧勾选
+            const checkA = document.createElement('input');
+            checkA.type = 'checkbox';
+            checkA.checked = dupChecked.has(pair.aId);
+            checkA.onchange = () => toggleDupSelect(pair.aId, checkA.checked);
+
+            // A 侧点击区 (整块可点击定位)
+            const zoneA = document.createElement('div');
+            zoneA.className = 'dup-pair-zone';
+            zoneA.title = `${pair.aName} — 点击定位`;
+            zoneA.onclick = () => postMsg('focus-layers', { ids: [pair.aId] });
+
+            const tagA = document.createElement('span');
+            tagA.className = 'dup-side-tag dup-side-a';
+            tagA.textContent = truncateName(dupFrameNames.a, 6) || 'A';
+            tagA.title = dupFrameNames.a || 'A';
+
+            const nameA = document.createElement('span');
+            nameA.className = 'dup-pair-name';
+            nameA.textContent = pair.aName;
+            zoneA.append(tagA, nameA);
+
+            const arrow = document.createElement('span');
+            arrow.className = 'dup-pair-arrow';
+            arrow.textContent = '↔';
+
+            // B 侧点击区 (整块可点击定位)
+            const zoneB = document.createElement('div');
+            zoneB.className = 'dup-pair-zone';
+            zoneB.title = `${pair.bName} — 点击定位`;
+            zoneB.onclick = () => postMsg('focus-layers', { ids: [pair.bId] });
+
+            const tagB = document.createElement('span');
+            tagB.className = 'dup-side-tag dup-side-b';
+            tagB.textContent = truncateName(dupFrameNames.b, 6) || 'B';
+            tagB.title = dupFrameNames.b || 'B';
+
+            const nameB = document.createElement('span');
+            nameB.className = 'dup-pair-name';
+            nameB.textContent = pair.bName;
+            zoneB.append(tagB, nameB);
+
+            // B 侧勾选
+            const checkB = document.createElement('input');
+            checkB.type = 'checkbox';
+            checkB.checked = dupChecked.has(pair.bId);
+            checkB.onchange = () => toggleDupSelect(pair.bId, checkB.checked);
+
+            // 公共词 badge
+            const badge = document.createElement('span');
+            badge.className = 'dup-common-badge';
+            badge.textContent = pair.common.join(', ');
+            badge.title = pair.common.join(', ');
+
+            item.append(checkA, zoneA, arrow, zoneB, badge, checkB);
+            listEl.appendChild(item);
+        });
+
+        updateDupFooter();
+    }
+
+    // 勾选/取消勾选图层 (同步到 Figma 选中)
+    function toggleDupSelect(nodeId, checked) {
+        if (checked) dupChecked.add(nodeId);
+        else dupChecked.delete(nodeId);
+        postMsg('dup-select-layers', { ids: [nodeId], mode: checked ? 'add' : 'remove' });
+        updateDupFooter();
+    }
+
+    // 批量勾选一侧的全部图层
+    function dupSelectAllSide(side) {
+        const ids = dupPairsCache.map(p => (side === 'A' ? p.aId : p.bId));
+        ids.forEach(id => dupChecked.add(id));
+        postMsg('dup-select-layers', { ids, mode: 'add' });
+        renderDupList();
+    }
+
+    // 更新底部勾选统计
+    function updateDupFooter() {
+        const el = document.getElementById('dupCheckedCount');
+        if (!el) return;
+        const t = (i18n[curLang]) || {};
+        // 分别统计 A/B 侧勾选的节点数（同一节点出现在多个匹配对时只计一次）
+        const aSet = new Set();
+        const bSet = new Set();
+        dupPairsCache.forEach(p => {
+            if (dupChecked.has(p.aId)) aSet.add(p.aId);
+            if (dupChecked.has(p.bId)) bSet.add(p.bId);
+        });
+        const nameA = truncateName(dupFrameNames.a, 6) || 'A';
+        const nameB = truncateName(dupFrameNames.b, 6) || 'B';
+        const tmpl = t.dup_checked_split || '{nameA} {a} · {nameB} {b}';
+        el.innerText = tmpl
+            .replace('{nameA}', nameA)
+            .replace('{nameB}', nameB)
+            .replace('{a}', aSet.size)
+            .replace('{b}', bSet.size);
+        // 同步按钮状态
+        const hasSel = dupChecked.size > 0;
+        const fillBtn = document.getElementById('dupFillBtn');
+        if (fillBtn) fillBtn.style.opacity = hasSel ? '1' : '0.5';
+    }
+
+    // 给勾选图层填充标记色：左侧(A)填红，右侧(B)填绿
+    function dupFillSelected() {
+        const aSet = new Set();
+        const bSet = new Set();
+        dupPairsCache.forEach(p => {
+            if (dupChecked.has(p.aId)) aSet.add(p.aId);
+            if (dupChecked.has(p.bId)) bSet.add(p.bId);
+        });
+        if (aSet.size === 0 && bSet.size === 0) return;
+        postMsg('dup-fill-red', { aIds: [...aSet], bIds: [...bSet] });
+    }
+
+    // 返回配置视图
+    function hideDupResults() {
+        const cfgView = document.getElementById('dupConfigView');
+        const resView = document.getElementById('dupResultView');
+        if (resView) resView.style.display = 'none';
+        if (cfgView) cfgView.style.display = 'flex';
+    }
+
+    // 初始化查重配置 (从缓存恢复)
+    function initDupPanel() {
+        // 匹配模式
+        const savedMode = PersistentCache.get('dup_mode');
+        if (savedMode === 'substring' || savedMode === 'segment') {
+            const btn = document.querySelector(`#dupModeGroup .seg-btn[data-val="${savedMode}"]`);
+            if (btn) toggleDupMode(btn);
+        }
+        // 排除词
+        const savedExcl = PersistentCache.get('dup_excludes');
+        if (Array.isArray(savedExcl)) {
+            document.querySelectorAll('#dupExcludeGroup .filter-tag').forEach(tag => {
+                const v = tag.getAttribute('data-val');
+                tag.classList.toggle('active', savedExcl.includes(v));
+            });
+        }
+        // 自定义排除词
+        const savedCustom = PersistentCache.get('dup_custom');
+        if (savedCustom) {
+            const input = document.getElementById('dupCustomExclude');
+            if (input) input.value = savedCustom;
+        }
+        // AI 精筛开关
+        const savedAi = PersistentCache.get('dup_ai_enabled');
+        if (typeof savedAi === 'boolean' && !savedAi) {
+            dupAiEnabled = false;
+            const onBtn = document.querySelector('#dupAiGroup .seg-btn[data-val="on"]');
+            const offBtn = document.querySelector('#dupAiGroup .seg-btn[data-val="off"]');
+            if (onBtn && offBtn) { onBtn.classList.remove('active'); offBtn.classList.add('active'); }
+        }
     }
 
     // ==========================================
