@@ -1,14 +1,14 @@
 {
-  "name": "allinone-plugin",
-  "version": "1.0.0",
-  "description": "Figma All in One Plugin",
-  "main": "code.js",
+  "name": "allinonex",
+  "version": "4.0.0",
+  "private": true,
+  "description": "All in One dual-platform plugin monorepo for Figma and MasterGo",
   "scripts": {
-    "build": "tsc code.ts --outFile code.js && node -e \"const fs=require('fs');const html=fs.readFileSync('ui.html','utf8');const js=fs.readFileSync('code.js','utf8');fs.writeFileSync('code.js',js.replace(/__html__/g,JSON.stringify(html)));\"",
-    "watch": "tsc code.ts --outFile code.js --watch"
-  },
-  "devDependencies": {
-    "@figma/plugin-typings": "*",
-    "typescript": "^5.0.0"
+    "install:all": "npm ci --prefix figma && npm ci --prefix mastergo",
+    "build": "npm --prefix figma run build && npm --prefix mastergo run build",
+    "verify:figma": "npm --prefix figma run verify",
+    "verify:mastergo": "npm --prefix mastergo run verify",
+    "check:parity": "node scripts/check-dual-platform.mjs",
+    "verify": "npm run verify:figma && npm run verify:mastergo && npm run check:parity"
   }
 }

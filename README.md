@@ -1,40 +1,36 @@
-Below are the steps to get your plugin running. You can also find instructions at:
+# AllinoneX
 
-  https://www.figma.com/plugin-docs/plugin-quickstart-guide/
+AllinoneX 4.0.0 是同仓库双平台插件项目。Figma 与 MasterGo 版本分别保留独立的主线程源码、清单、构建产物和依赖配置，公共功能通过自动等价检查保持同步。
 
-This plugin template uses Typescript and NPM, two standard tools in creating JavaScript applications.
+## 项目结构
 
-First, download Node.js which comes with NPM. This will allow you to install TypeScript and other
-libraries. You can find the download link here:
+```text
+AllinoneX/
+├── figma/       # Figma 插件：code.ts / code.js / ui.html / manifest.json
+├── mastergo/    # MasterGo 插件：main.ts / main.js / ui.html / manifest.json
+├── scripts/     # 跨平台功能与版本等价检查
+└── docs/        # 双平台维护规范
+```
 
-  https://nodejs.org/en/download/
+## 本次 4.0.0 更新
 
-Next, install TypeScript using the command:
+- 合并 Figma V2 与 MasterGo 两个独立项目。
+- Figma 版补齐 MasterGo 新增的实例逆向母版与组件构建器。
+- 修复两个版本超级选择器无法按选中画板的子级/子孙范围查询的问题。
+- 智能填充的用户自定义字段新增顺序与随机两种填充方式。
+- 新增跨平台消息分支、导航、UI ID、国际化键和关键行为等价检查。
 
-  npm install -g typescript
+## 开发与验证
 
-Finally, in the directory of your plugin, get the latest type definitions for the plugin API by running:
+```bash
+npm run install:all
+npm run build
+npm run verify
+```
 
-  npm install --save-dev @figma/plugin-typings
+分别加载：
 
-If you are familiar with JavaScript, TypeScript will look very familiar. In fact, valid JavaScript code
-is already valid Typescript code.
+- Figma：`figma/manifest.json`
+- MasterGo：`mastergo/manifest.json`
 
-TypeScript adds type annotations to variables. This allows code editors such as Visual Studio Code
-to provide information about the Figma API while you are writing code, as well as help catch bugs
-you previously didn't notice.
-
-For more information, visit https://www.typescriptlang.org/
-
-Using TypeScript requires a compiler to convert TypeScript (code.ts) into JavaScript (code.js)
-for the browser to run.
-
-We recommend writing TypeScript code using Visual Studio code:
-
-1. Download Visual Studio Code if you haven't already: https://code.visualstudio.com/.
-2. Open this directory in Visual Studio Code.
-3. Compile TypeScript to JavaScript: Run the "Terminal > Run Build Task..." menu item,
-    then select "npm: watch". You will have to do this again every time
-    you reopen Visual Studio Code.
-
-That's it! Visual Studio Code will regenerate the JavaScript file every time you save.
+双平台同步规则见 [`docs/DUAL_PLATFORM_MAINTENANCE.md`](docs/DUAL_PLATFORM_MAINTENANCE.md)，源版本基线见 [`SOURCE_BASELINES.md`](SOURCE_BASELINES.md)。

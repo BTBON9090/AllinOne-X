@@ -1,0 +1,17 @@
+{
+  "name": "all-in-one-mastergo",
+  "version": "4.0.0",
+  "private": true,
+  "description": "All in One plugin port for MasterGo",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check:ui": "node scripts/check-ui-syntax.mjs",
+    "check:component-builder": "node scripts/check-component-builder.mjs",
+    "check:parity": "node scripts/check-parity.mjs",
+    "verify": "npm run build && npm run check:ui && npm run check:component-builder && npm run check:parity"
+  },
+  "devDependencies": {
+    "@mastergo/plugin-typings": "^2.19.1",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "allinone-plugin",
+  "version": "4.0.0",
+  "description": "Figma All in One Plugin",
+  "main": "code.js",
+  "scripts": {
+    "build": "tsc code.ts --outFile code.js && node -e \"const fs=require('fs');const html=fs.readFileSync('ui.html','utf8');const js=fs.readFileSync('code.js','utf8');fs.writeFileSync('code.js',js.replace(/__html__/g,JSON.stringify(html)));\"",
+    "watch": "tsc code.ts --outFile code.js --watch",
+    "check:ui": "node scripts/check-ui-syntax.mjs",
+    "check:component-builder": "node scripts/check-component-builder.mjs",
+    "verify": "npm run build && npm run check:ui && npm run check:component-builder"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "*",
+    "typescript": "^5.0.0"
+  }
+}

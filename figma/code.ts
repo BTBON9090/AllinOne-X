@@ -5,10 +5,10 @@ declare const __html__: string;
 // -------------------------------------------------------------
 const convertNameAdvanced = (str: string, format: string, sepMode: string, casing: string, keepEmoji: boolean, removeId: boolean, unmarkHidden: boolean) => {
     let s = str;
-    
+
     // 1. 移除 ID
     if (removeId) s = s.replace(/#\d+:\d+$/, '').trim();
-    
+
     // 2. 处理隐藏标记 (. 或 _)
     // 逻辑：先提取出来，如果不清除，最后再加回去
     let hiddenPrefix = "";
@@ -23,9 +23,9 @@ const convertNameAdvanced = (str: string, format: string, sepMode: string, casin
     let emojiPrefix = "";
     if (keepEmoji) {
         const match = s.match(/^(\p{Emoji_Presentation}|\p{Extended_Pictographic}|[\u2000-\u3300]|[\uF000-\uF0FF])+\s*/u);
-        if (match) { 
-            emojiPrefix = match[0].trim(); 
-            s = s.replace(match[0], ''); 
+        if (match) {
+            emojiPrefix = match[0].trim();
+            s = s.replace(match[0], '');
         }
     }
     s = s.trim();
@@ -35,7 +35,7 @@ const convertNameAdvanced = (str: string, format: string, sepMode: string, casin
     let newVal = s;
     if (words && words.length > 0) {
         let processedWords = words;
-        
+
         if (format === 'camelCase') {
             processedWords = words.map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
             newVal = processedWords.join('');
@@ -45,7 +45,7 @@ const convertNameAdvanced = (str: string, format: string, sepMode: string, casin
         } else {
             if (casing === 'upper') processedWords = words.map(w => w.toUpperCase());
             else if (casing === 'lower') processedWords = words.map(w => w.toLowerCase());
-            
+
             let separatorChar = ' ';
             if (sepMode === 'snake') separatorChar = '_';
             if (sepMode === 'kebab') separatorChar = '-';
@@ -69,7 +69,7 @@ const convertNameAdvanced = (str: string, format: string, sepMode: string, casin
 figma.showUI(__html__, { width: 460, height: 640, themeColors: true });
 
 // 用于存储高亮前的原始样式： Key = "NodeID_Index", Value = OriginalFills
-let highlightCache = {}; 
+let highlightCache = {};
 let layerSortDirection = 'asc'; // 用于图层排序切换，默认从上到下
 let layerNameSortDirection = 'asc'; // 用于按名称排序切换，默认 A→Z
 
@@ -180,6 +180,558 @@ function copyNodeStyles(src: SceneNode, dst: SceneNode) {
   }
 }
 
+// -------------------------------------------------------------
+// Component Builder：Frame → Component / Component Set，及实例逆向母版
+// -------------------------------------------------------------
+type BuilderReferenceSnapshot = {
+  path: number[];
+  nodeName: string;
+  nodeType: SceneNode['type'];
+  references: { visible?: string; characters?: string; mainComponent?: string };
+};
+
+type BuilderVariantRecord = {
+  source: SceneNode;
+  target: ComponentNode;
+  references: BuilderReferenceSnapshot[];
+};
+
+const MAX_REVERSED_VARIANTS = 100;
+
+const builderChildren = (node: any): SceneNode[] => {
+  try { return 'children' in node ? Array.from(node.children) as SceneNode[] : []; }
+  catch (_) { return []; }
+};
+
+const builderResolvePath = (root: SceneNode, path: number[]): SceneNode | null => {
+  let current: SceneNode = root;
+  for (const index of path) {
+    const children = builderChildren(current);
+    if (!children[index]) return null;
+    current = children[index];
+  }
+  return current;
+};
+
+const captureBuilderReferences = (root: SceneNode): BuilderReferenceSnapshot[] => {
+  const snapshots: BuilderReferenceSnapshot[] = [];
+  const visit = (node: SceneNode, path: number[], isRoot = false) => {
+    if (!isRoot) {
+      try {
+        const refs = node.componentPropertyReferences;
+        if (refs && Object.keys(refs).length > 0) {
+          snapshots.push({
+            path,
+            nodeName: node.name,
+            nodeType: node.type,
+            references: { ...refs }
+          });
+        }
+      } catch (_) {}
+    }
+    // Figma 不允许把外层属性绑定到嵌套实例内部更深的图层。
+    if (!isRoot && node.type === 'INSTANCE') return;
+    builderChildren(node).forEach((child, index) => visit(child, [...path, index]));
+  };
+  visit(root, [], true);
+  return snapshots;
+};
+
+const builderBasePropertyName = (name: string) =>
+  String(name || '').replace(/#[^#]+$/, '').trim() || 'Property';
+
+const builderUniqueName = (raw: string, fallback: string, used: Set<string>) => {
+  const cleaned = String(raw || '')
+    .replace(/[\r\n\t]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 64) || fallback;
+  let name = cleaned;
+  let suffix = 2;
+  while (used.has(name.toLocaleLowerCase())) name = `${cleaned} ${suffix++}`;
+  used.add(name.toLocaleLowerCase());
+  return name;
+};
+
+const builderCopyMetadata = (source: any, target: ComponentNode | ComponentSetNode) => {
+  if (!source) return;
+  trySet(target, 'description', source.description || '');
+  try {
+    if (Array.isArray(source.documentationLinks)) {
+      target.documentationLinks = source.documentationLinks.map((item: any) => ({ uri: item.uri }));
+    }
+  } catch (_) {}
+  try {
+    for (const key of source.getPluginDataKeys()) {
+      target.setPluginData(key, source.getPluginData(key));
+    }
+  } catch (_) {}
+};
+
+const builderFindEquivalentProperty = (
+  definitions: ComponentPropertyDefinitions,
+  sourceName: string,
+  sourceType: ComponentPropertyType
+) => Object.keys(definitions).find(name => {
+  const definition = definitions[name];
+  return definition.type === sourceType
+    && builderBasePropertyName(name).toLocaleLowerCase()
+      === builderBasePropertyName(sourceName).toLocaleLowerCase();
+});
+
+const restoreBuilderProperties = (
+  sourceOwner: ComponentNode | ComponentSetNode,
+  sourceInstance: InstanceNode,
+  targetOwner: ComponentNode | ComponentSetNode,
+  records: BuilderVariantRecord[],
+  warnings: string[]
+) => {
+  let sourceDefinitions: ComponentPropertyDefinitions = {};
+  let sourceValues: ComponentProperties = {};
+  try { sourceDefinitions = sourceOwner.componentPropertyDefinitions || {}; } catch (_) {}
+  try { sourceValues = sourceInstance.componentProperties || {}; } catch (_) {}
+
+  const propertyMap = new Map<string, string>();
+  const used = new Set<string>();
+  let targetDefinitions: ComponentPropertyDefinitions = {};
+  try { targetDefinitions = targetOwner.componentPropertyDefinitions || {}; } catch (_) {}
+  Object.keys(targetDefinitions).forEach(name => used.add(builderBasePropertyName(name).toLocaleLowerCase()));
+
+  for (const [sourceName, definition] of Object.entries(sourceDefinitions)) {
+    const equivalent = builderFindEquivalentProperty(targetDefinitions, sourceName, definition.type);
+    if (equivalent) {
+      propertyMap.set(sourceName, equivalent);
+      continue;
+    }
+    if (definition.type === 'VARIANT') {
+      warnings.push(`变体属性“${builderBasePropertyName(sourceName)}”由组件名称恢复，未找到时已跳过`);
+      continue;
+    }
+    try {
+      const requestedDefault = sourceValues[sourceName]?.value ?? definition.defaultValue;
+      const defaultValue = typeof requestedDefault === 'string' || typeof requestedDefault === 'boolean'
+        ? requestedDefault
+        : definition.defaultValue;
+      const newName = targetOwner.addComponentProperty(
+        builderUniqueName(builderBasePropertyName(sourceName), 'Property', used),
+        definition.type,
+        defaultValue,
+        definition.type === 'INSTANCE_SWAP'
+          ? { preferredValues: definition.preferredValues || [] }
+          : undefined
+      );
+      propertyMap.set(sourceName, newName);
+      targetDefinitions = targetOwner.componentPropertyDefinitions || targetDefinitions;
+    } catch (error) {
+      warnings.push(`属性“${builderBasePropertyName(sourceName)}”恢复失败：${String((error as any)?.message || error)}`);
+    }
+  }
+
+  for (const record of records) {
+    for (const snapshot of record.references) {
+      const target = builderResolvePath(record.target, snapshot.path);
+      if (!target || target.type !== snapshot.nodeType) continue;
+      const mapped: { visible?: string; characters?: string; mainComponent?: string } = {};
+      for (const [field, oldName] of Object.entries(snapshot.references)) {
+        const newName = oldName ? propertyMap.get(oldName) : undefined;
+        if (newName) mapped[field] = newName;
+      }
+      if (Object.keys(mapped).length === 0) continue;
+      try {
+        target.componentPropertyReferences = {
+          ...(target.componentPropertyReferences || {}),
+          ...mapped
+        };
+      } catch (error) {
+        warnings.push(`图层“${snapshot.nodeName}”的组件属性绑定恢复失败`);
+      }
+    }
+  }
+
+  return propertyMap.size;
+};
+
+const getReversePlacement = (source: InstanceNode, width?: number, height?: number) => {
+  const bounds = source.absoluteBoundingBox || {
+    x: source.x,
+    y: source.y,
+    width: source.width,
+    height: source.height
+  };
+  const candidate = {
+    x: bounds.x + bounds.width + 48,
+    y: bounds.y,
+    width: Math.max(0.01, width ?? bounds.width),
+    height: Math.max(0.01, height ?? bounds.height)
+  };
+  const excluded = new Set<string>();
+  let ancestor: BaseNode | null = source;
+  while (ancestor) {
+    excluded.add(ancestor.id);
+    ancestor = ancestor.parent;
+  }
+  const blockers = figma.currentPage.children
+    .filter(node => !excluded.has(node.id))
+    .map(node => node.absoluteBoundingBox)
+    .filter(Boolean);
+  for (let attempt = 0; attempt < 100; attempt++) {
+    const collisions = blockers.filter(blocker =>
+      candidate.x < blocker.x + blocker.width
+      && candidate.x + candidate.width > blocker.x
+      && candidate.y < blocker.y + blocker.height
+      && candidate.y + candidate.height > blocker.y
+    );
+    if (collisions.length === 0) break;
+    candidate.x = Math.max(...collisions.map(blocker => blocker.x + blocker.width + 48));
+  }
+  return { x: candidate.x, y: candidate.y };
+};
+
+const createReverseVisualSnapshot = async (source: InstanceNode, name: string) => {
+  const width = Math.max(0.01, source.width);
+  const height = Math.max(0.01, source.height);
+  const bytes = await source.exportAsync({
+    format: 'PNG',
+    constraint: { type: 'SCALE', value: 1 }
+  });
+  const image = figma.createImage(bytes);
+  const component = figma.createComponent();
+  const rectangle = figma.createRectangle();
+  try {
+    component.name = name || 'Reversed Component';
+    component.resize(width, height);
+    component.fills = [];
+    component.strokes = [];
+    rectangle.name = '视觉快照（原结构无法解析）';
+    rectangle.resize(width, height);
+    rectangle.fills = [{ type: 'IMAGE', imageHash: image.hash, scaleMode: 'FILL' }];
+    component.appendChild(rectangle);
+    rectangle.x = 0;
+    rectangle.y = 0;
+    return component;
+  } catch (error) {
+    try { rectangle.remove(); } catch (_) {}
+    try { component.remove(); } catch (_) {}
+    throw error;
+  }
+};
+
+const reverseInstanceToMaster = async (source: InstanceNode) => {
+  const warnings: string[] = [];
+  const main = await source.getMainComponentAsync();
+  if (!main) throw new Error('所选实例缺少可访问的主组件');
+  const sourceSet = main.parent?.type === 'COMPONENT_SET'
+    ? main.parent as ComponentSetNode
+    : null;
+  const sourceOwner = sourceSet || main;
+  const selectedReferences = captureBuilderReferences(source);
+  const placement = getReversePlacement(source);
+  const records: BuilderVariantRecord[] = [];
+  const created: ComponentNode[] = [];
+  let overflowVariantCount = 0;
+  let clone: InstanceNode | null = null;
+  let detached: FrameNode | null = null;
+  try {
+    let selectedComponent: ComponentNode;
+    let recoveryMode: 'native' | 'structure' | 'raster' = 'native';
+    try {
+      clone = source.clone();
+      figma.currentPage.appendChild(clone);
+      const sourceBounds = source.absoluteBoundingBox;
+      if (sourceBounds) {
+        clone.x = sourceBounds.x;
+        clone.y = sourceBounds.y;
+      }
+      detached = clone.detachInstance();
+      clone = null;
+      selectedComponent = figma.createComponentFromNode(detached);
+      detached = null;
+    } catch (nativeError) {
+      try { if (clone && !clone.removed) clone.remove(); } catch (_) {}
+      try { if (detached && !detached.removed) detached.remove(); } catch (_) {}
+      clone = null;
+      detached = null;
+      try {
+        selectedComponent = main.clone();
+        figma.currentPage.appendChild(selectedComponent);
+        recoveryMode = 'structure';
+        warnings.push(`实例当前结构无法原生解绑，已从主组件结构恢复；未映射的手工覆盖可能无法保留`);
+      } catch (structureError) {
+        selectedComponent = await createReverseVisualSnapshot(
+          source,
+          main.name || source.name || 'Reversed Component'
+        );
+        recoveryMode = 'raster';
+        warnings.push('实例与主组件结构均无法解析，已用可编辑组件容器承载视觉快照；内部图层与属性无法完整恢复');
+      }
+    }
+    selectedComponent.name = main.name || source.name || 'Reversed Component';
+    builderCopyMetadata(main, selectedComponent);
+    created.push(selectedComponent);
+    records.push({ source, target: selectedComponent, references: selectedReferences });
+
+    let variants: ComponentNode[] = [];
+    if (sourceSet) {
+      try { variants = sourceSet.children.filter(node => node.type === 'COMPONENT') as ComponentNode[]; }
+      catch (_) { warnings.push('原组件集的完整变体目录不可读，已只还原当前变体'); }
+    }
+    if (variants.length > MAX_REVERSED_VARIANTS) {
+      overflowVariantCount = variants.length;
+      variants = [];
+      warnings.push(`原组件集包含 ${overflowVariantCount} 个变体，超过完整还原上限 ${MAX_REVERSED_VARIANTS}；已保留当前实例对应的真实变体`);
+    }
+
+    for (const variant of variants) {
+      if (variant.id === main.id) continue;
+      try {
+        const references = captureBuilderReferences(variant);
+        const variantClone = variant.clone();
+        figma.currentPage.appendChild(variantClone);
+        created.push(variantClone);
+        records.push({ source: variant, target: variantClone, references });
+      } catch (error) {
+        warnings.push(`变体“${variant.name}”无法复制，已跳过`);
+      }
+    }
+
+    let target: ComponentNode | ComponentSetNode = selectedComponent;
+    if (sourceSet) {
+      try {
+        const set = figma.combineAsVariants(created, figma.currentPage);
+        set.name = sourceSet.name || main.name || 'Reversed Component Set';
+        builderCopyMetadata(sourceSet, set);
+        target = set;
+      } catch (error) {
+        warnings.push(`组件集创建失败，已保留为单个组件：${String((error as any)?.message || error)}`);
+        for (const component of created.slice(1)) {
+          try { component.remove(); } catch (_) {}
+        }
+      }
+    }
+
+    const propertyCount = restoreBuilderProperties(
+      sourceOwner,
+      source,
+      target,
+      target.type === 'COMPONENT_SET' ? records : records.slice(0, 1),
+      warnings
+    );
+    const finalPlacement = getReversePlacement(source, target.width, target.height);
+    target.x = finalPlacement.x;
+    target.y = finalPlacement.y;
+    return {
+      target,
+      propertyCount,
+      variantCount: target.type === 'COMPONENT_SET' ? target.children.length : 1,
+      overflowVariantCount,
+      recoveryMode,
+      warnings: [...new Set(warnings)]
+    };
+  } catch (error) {
+    try { if (clone && !clone.removed) clone.remove(); } catch (_) {}
+    try { if (detached && !detached.removed) detached.remove(); } catch (_) {}
+    for (const component of created) {
+      try { if (!component.removed) component.remove(); } catch (_) {}
+    }
+    throw error;
+  }
+};
+
+const commonNamePrefix = (names: string[]) => {
+  if (names.length === 0) return 'Component';
+  const tokenLists = names.map(name => name.split(/[\/_-]/).map(token => token.trim()).filter(Boolean));
+  const first = tokenLists[0];
+  const common: string[] = [];
+  for (let index = 0; index < first.length; index++) {
+    if (tokenLists.every(tokens => tokens[index]?.toLocaleLowerCase() === first[index].toLocaleLowerCase())) {
+      common.push(first[index]);
+    } else break;
+  }
+  return common.join('/') || names[0] || 'Component';
+};
+
+const safeVariantValue = (value: string, index: number) =>
+  String(value || `Variant ${index + 1}`).replace(/[,=]/g, ' ').replace(/\s+/g, ' ').trim();
+
+const wrapFramesAsOneComponent = (frames: FrameNode[], name: string) => {
+  const parent = frames[0]?.parent as BaseNode & ChildrenMixin;
+  if (!parent || !('children' in parent) || frames.some(frame => frame.parent !== parent)) {
+    throw new Error('创建单个组件时，所选 Frame 必须位于同一父级');
+  }
+  const ordered = [...frames].sort((a, b) =>
+    Array.from(parent.children).indexOf(a) - Array.from(parent.children).indexOf(b)
+  );
+  const minX = Math.min(...frames.map(frame => frame.x));
+  const minY = Math.min(...frames.map(frame => frame.y));
+  const maxX = Math.max(...frames.map(frame => frame.x + frame.width));
+  const maxY = Math.max(...frames.map(frame => frame.y + frame.height));
+  const firstIndex = Array.from(parent.children).indexOf(ordered[0]);
+  const positions = ordered.map(frame => ({
+    frame,
+    x: frame.x - minX,
+    y: frame.y - minY,
+    originalX: frame.x,
+    originalY: frame.y,
+    originalIndex: Array.from(parent.children).indexOf(frame)
+  }));
+  const component = figma.createComponent();
+  try {
+    parent.insertChild(Math.max(0, firstIndex), component);
+    component.name = name || commonNamePrefix(frames.map(frame => frame.name));
+    component.x = minX;
+    component.y = minY;
+    component.resize(Math.max(0.01, maxX - minX), Math.max(0.01, maxY - minY));
+    component.fills = [];
+    component.strokes = [];
+    positions.forEach(({ frame, x, y }) => {
+      component.appendChild(frame);
+      frame.x = x;
+      frame.y = y;
+    });
+    return component;
+  } catch (error) {
+    positions.sort((a, b) => a.originalIndex - b.originalIndex).forEach(item => {
+      if (!item.frame.removed && item.frame.parent !== parent) {
+        parent.insertChild(Math.max(0, item.originalIndex), item.frame);
+      }
+      trySet(item.frame, 'x', item.originalX);
+      trySet(item.frame, 'y', item.originalY);
+    });
+    try { component.remove(); } catch (_) {}
+    throw error;
+  }
+};
+
+const collectBuilderCandidates = (
+  component: ComponentNode,
+  exposeText: boolean,
+  exposeInstances: boolean
+) => {
+  const candidates: Array<{ key: string; node: TextNode | InstanceNode }> = [];
+  const visit = (parent: SceneNode, parentKey: string) => {
+    const occurrences = new Map<string, number>();
+    builderChildren(parent).forEach(child => {
+      const normalized = String(child.name || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase();
+      const base = `${child.type}:${normalized}`;
+      const occurrence = (occurrences.get(base) || 0) + 1;
+      occurrences.set(base, occurrence);
+      const key = `${parentKey}/${base}#${occurrence}`;
+      if (child.type === 'INSTANCE') {
+        if (exposeInstances) candidates.push({ key, node: child as InstanceNode });
+        return;
+      }
+      if (child.type === 'TEXT' && exposeText) candidates.push({ key, node: child as TextNode });
+      visit(child, key);
+    });
+  };
+  visit(component, 'root');
+  return candidates;
+};
+
+const exposeBuilderProperties = async (
+  owner: ComponentNode | ComponentSetNode,
+  components: ComponentNode[],
+  exposeText: boolean,
+  exposeInstances: boolean
+) => {
+  const used = new Set<string>();
+  try {
+    Object.keys(owner.componentPropertyDefinitions).forEach(name =>
+      used.add(builderBasePropertyName(name).toLocaleLowerCase())
+    );
+  } catch (_) {}
+  const groups = new Map<string, Array<TextNode | InstanceNode>>();
+  components.forEach(component => {
+    collectBuilderCandidates(component, exposeText, exposeInstances).forEach(candidate => {
+      const group = groups.get(candidate.key) || [];
+      group.push(candidate.node);
+      groups.set(candidate.key, group);
+    });
+  });
+
+  const warnings: string[] = [];
+  let textCount = 0;
+  let instanceCount = 0;
+  for (const nodes of groups.values()) {
+    const first = nodes[0];
+    if (first.type === 'TEXT') {
+      try {
+        const name = builderUniqueName(first.name || first.characters, `Text ${textCount + 1}`, used);
+        const property = owner.addComponentProperty(name, 'TEXT', first.characters);
+        for (const node of nodes) {
+          if (node.type !== 'TEXT') continue;
+          node.componentPropertyReferences = {
+            ...(node.componentPropertyReferences || {}),
+            characters: property
+          };
+        }
+        textCount++;
+      } catch (error) {
+        warnings.push(`文本“${first.name}”属性创建失败：${String((error as any)?.message || error)}`);
+      }
+      continue;
+    }
+
+    const instances = nodes.filter(node => node.type === 'INSTANCE') as InstanceNode[];
+    const resolved: Array<{ node: InstanceNode; main: ComponentNode }> = [];
+    for (const instance of instances) {
+      try {
+        const main = await instance.getMainComponentAsync();
+        if (main) resolved.push({ node: instance, main });
+      } catch (_) {}
+    }
+    if (resolved.length === 0) {
+      warnings.push(`实例“${first.name}”缺少可访问的主组件，已跳过实例属性`);
+      continue;
+    }
+    try {
+      const preferred = new Map<string, InstanceSwapPreferredValue>();
+      for (const { main } of resolved) {
+        if (main.key) preferred.set(`COMPONENT:${main.key}`, { type: 'COMPONENT', key: main.key });
+        if (main.parent?.type === 'COMPONENT_SET' && main.parent.key) {
+          preferred.set(`COMPONENT_SET:${main.parent.key}`, { type: 'COMPONENT_SET', key: main.parent.key });
+        }
+      }
+      const name = builderUniqueName(first.name, `Instance ${instanceCount + 1}`, used);
+      const property = owner.addComponentProperty(
+        name,
+        'INSTANCE_SWAP',
+        resolved[0].main.id,
+        { preferredValues: [...preferred.values()] }
+      );
+      for (const { node } of resolved) {
+        node.componentPropertyReferences = {
+          ...(node.componentPropertyReferences || {}),
+          mainComponent: property
+        };
+      }
+      instanceCount++;
+    } catch (error) {
+      warnings.push(`实例“${first.name}”属性创建失败：${String((error as any)?.message || error)}`);
+    }
+  }
+  return { textCount, instanceCount, warnings };
+};
+
+const sendComponentBuilderSelection = () => {
+  const selection = figma.currentPage.selection;
+  const frames = selection.filter(node => node.type === 'FRAME');
+  const instances = selection.filter(node => node.type === 'INSTANCE');
+  figma.ui.postMessage({
+    type: 'component-builder-selection',
+    total: selection.length,
+    frames: frames.length,
+    instances: instances.length,
+    canReverse: selection.length === 1 && instances.length === 1,
+    canBuild: selection.length > 0 && frames.length === selection.length,
+    sameParent: selection.length > 0 && selection.every(node => node.parent === selection[0].parent),
+    names: selection.slice(0, 4).map(node => node.name)
+  });
+};
+
+figma.on('selectionchange', sendComponentBuilderSelection);
+let componentReverseRunning = false;
+
 // 监听选择变化，主动推送 CompKit 属性更新
 let lastCompKitTargetId: string | null = null;
 figma.on('selectionchange', () => {
@@ -189,18 +741,18 @@ figma.on('selectionchange', () => {
   let componentName = '';
   let propertyValues: { [key: string]: string[] } = {};
   let variantsCount = 0;
-  
+
   if (selection.length === 1) {
     if (selection[0].type === 'COMPONENT_SET') {
       targetId = selection[0].id;
       const componentSet = selection[0] as ComponentSetNode;
       componentName = componentSet.name;
       variantsCount = componentSet.children.length;
-      
+
       if (componentSet.children.length > 0) {
         const sampleName = componentSet.children[0].name;
         properties = sampleName.split(',').map(p => p.split('=')[0].trim());
-        
+
         // 收集每个属性的所有值
         const variants = componentSet.children as ComponentNode[];
         properties.forEach(prop => {
@@ -222,11 +774,11 @@ figma.on('selectionchange', () => {
         targetId = compSet.id;
         componentName = compSet.name;
         variantsCount = compSet.children.length;
-        
+
         if (compSet.children.length > 0) {
           const sampleName = compSet.children[0].name;
           properties = sampleName.split(',').map(p => p.split('=')[0].trim());
-          
+
           // 收集每个属性的所有值
           const variants = compSet.children as ComponentNode[];
           properties.forEach(prop => {
@@ -245,13 +797,13 @@ figma.on('selectionchange', () => {
       }
     }
   }
-  
+
   // 只有当目标变化时才推送
   if (targetId !== lastCompKitTargetId) {
     lastCompKitTargetId = targetId;
-    figma.ui.postMessage({ 
-      type: 'compkit-props', 
-      properties, 
+    figma.ui.postMessage({
+      type: 'compkit-props',
+      properties,
       targetId,
       componentName,
       propertyValues,
@@ -261,7 +813,7 @@ figma.on('selectionchange', () => {
 });
 
 figma.ui.onmessage = async (msg) => {
-  if (!msg || !msg.type) return; 
+  if (!msg || !msg.type) return;
   // 新增：专治跨域不服！拦截 'do-fetch' 指令，由后台沙箱代发请求
   // =======================================================
   if (msg.type === 'do-fetch') {
@@ -272,15 +824,15 @@ figma.ui.onmessage = async (msg) => {
       } catch (e: any) {
           figma.ui.postMessage({ type: 'api-response', reqId: msg.reqId, error: e.message || String(e) });
       }
-      return; 
+      return;
   }
 
   console.log("【2】后端：收到了消息 ->", msg.type);
   const selection = figma.currentPage.selection;
-  
+
   // 核心路由
   switch (msg.type) {
-    
+
     // ===========================
     // H. 智能填充 (Smart Fill)
     // ===========================
@@ -294,17 +846,22 @@ figma.ui.onmessage = async (msg) => {
       };
       const scope = figma.currentPage.selection.length > 0 ? figma.currentPage.selection : [figma.currentPage];
       scope.forEach(traverse);
-      
+
       figma.ui.postMessage({ type: 'selection-count-res', count: textNodes.length });
       break;
     }
 
     // 2. 执行填充
     case 'smart-fill-exec': {
-      const { dataList, mode, distribution } = msg; 
+      const { dataList, mode, distribution } = msg;
       // dataList: string[] - 待填充的内容数组
       // mode: 'replace' | 'prefix' | 'suffix'
       // distribution: 'order' (顺序) | 'random' (随机)
+
+      if (!Array.isArray(dataList) || dataList.length === 0) {
+        figma.notify("填充列表为空");
+        return;
+      }
 
       const textNodes: TextNode[] = [];
       const traverse = (n: any) => {
@@ -333,13 +890,13 @@ figma.ui.onmessage = async (msg) => {
       });
 
       let changeCount = 0;
-      
+
       for (let i = 0; i < textNodes.length; i++) {
         const node = textNodes[i];
         try {
           // 加载字体
           await figma.loadFontAsync(node.fontName as FontName); // 简单处理，假设非混合字体
-          
+
           // 获取填充内容
           let textToFill = "";
           if (distribution === 'random') {
@@ -348,7 +905,7 @@ figma.ui.onmessage = async (msg) => {
             // 顺序循环
             textToFill = dataList[i % dataList.length];
           }
-          
+
           // 根据模式应用
           if (mode === 'prefix') {
             node.characters = textToFill + node.characters;
@@ -363,7 +920,7 @@ figma.ui.onmessage = async (msg) => {
           console.error("Fill error", e);
         }
       }
-      
+
       figma.notify(`已填充 ${changeCount} 个文本`);
       break;
     }
@@ -375,7 +932,7 @@ figma.ui.onmessage = async (msg) => {
       figma.ui.postMessage({ type: 'storage-saved', key: msg.key, value: msg.value });
       break;
     }
-    
+
     case 'load-storage': {
       const value = await figma.clientStorage.getAsync(msg.key);
       figma.ui.postMessage({ type: 'storage-loaded', key: msg.key, value: value });
@@ -401,7 +958,7 @@ figma.ui.onmessage = async (msg) => {
         const parent = node.parent;
         if (!parent) continue;
         const idx = parent.children.indexOf(node);
-        
+
         const frame = figma.createFrame();
         frame.resize(node.width, node.height);
         frame.name = node.name;
@@ -464,8 +1021,8 @@ figma.ui.onmessage = async (msg) => {
       let count = 0;
       for (const node of selection) {
         if ('fills' in node && 'strokes' in node) {
-          const temp = node.fills; 
-          node.fills = node.strokes; 
+          const temp = node.fills;
+          node.fills = node.strokes;
           node.strokes = temp;
           if (node.strokes.length > 0 && node.strokeWeight === 0) node.strokeWeight = 1;
           count++;
@@ -916,16 +1473,16 @@ figma.ui.onmessage = async (msg) => {
       }
       break;
     }
-    
+
     case 'find-and-select': {
         const f = msg.filters;
         const sel = figma.currentPage.selection;
-        
+
         console.log(`=== 开始查找 (v3修复版) ===`);
         console.log(`Scope: ${f.scope} | 选中图层: ${sel.length}`);
 
         // 🔥 1. 使用全新变量名，防止作用域冲突
-        let searchTargets = []; 
+        let searchTargets = [];
 
         // =========================================================
         // A. 构建查找池 (Pool Construction)
@@ -943,7 +1500,7 @@ figma.ui.onmessage = async (msg) => {
                     searchTargets.push(...children);
                 }
             }
-        } 
+        }
         else if (f.scope === 'children') {
             // 模式：仅直系子级
             if (sel.length === 0) {
@@ -965,7 +1522,7 @@ figma.ui.onmessage = async (msg) => {
                 figma.notify("⚠️ 请先选择一个图层");
                 return;
             }
-        } 
+        }
         else if (f.scope === 'page') {
             // 模式：全页 - 直接查找当前页面所有图层，忽略选中状态
             console.log(">> 策略: 全页面查找");
@@ -974,17 +1531,12 @@ figma.ui.onmessage = async (msg) => {
         }
         else {
             // 模式：子孙元素 (descendants) - 默认模式
-            // 逻辑：如果选了图层，查“选中项+选中项内部”；如果没选，查“全页”
-            
+            // 逻辑：如果选了图层，只查其子孙（不包含选中容器本身）；如果没选，查“全页”
+
             if (sel.length > 0) {
                 console.log(">> 策略: 查找选中项及其后代");
-                
-                // 1. 先把【选中项本身】加进去
-                // (使用 for 循环最稳妥)
+
                 for (const node of sel) {
-                    searchTargets.push(node);
-                    
-                    // 2. 再把【选中项的子孙】加进去
                     if ('findAll' in node) {
                         const children = node.findAll(() => true);
                         searchTargets.push(...children);
@@ -1003,7 +1555,7 @@ figma.ui.onmessage = async (msg) => {
         const uniqueMap = new Map();
         searchTargets.forEach(node => uniqueMap.set(node.id, node));
         const finalPool = Array.from(uniqueMap.values());
-        
+
         console.log(`🔍 待筛选池最终大小: ${finalPool.length}`);
 
         const results = [];
@@ -1016,11 +1568,11 @@ figma.ui.onmessage = async (msg) => {
 
             // 1. 名称匹配
             if (f.name && f.name.val) {
-                let n = node.name; 
+                let n = node.name;
                 let q = f.name.val;
-                if (!f.name.caseSensitive) { 
-                    n = n.toLowerCase(); 
-                    q = q.toLowerCase(); 
+                if (!f.name.caseSensitive) {
+                    n = n.toLowerCase();
+                    q = q.toLowerCase();
                 }
                 if (!n.includes(q)) match = false;
             }
@@ -1041,7 +1593,7 @@ figma.ui.onmessage = async (msg) => {
 
                 if (f.types.logic === 'include') {
                     if (!isType) match = false;
-                } else { 
+                } else {
                     if (isType) match = false;
                 }
             }
@@ -1089,15 +1641,15 @@ figma.ui.onmessage = async (msg) => {
                     } catch(e) {}
 
                     if (val === undefined) {
-                        match = false; break; 
+                        match = false; break;
                     }
 
-                    const tgt = p.val; 
+                    const tgt = p.val;
                     // 数字比较 vs 字符串比较
-                    if (p.op === '=') { if (val != tgt) match = false; } 
+                    if (p.op === '=') { if (val != tgt) match = false; }
                     else if (p.op === '!=') { if (val == tgt) match = false; }
-                    else if (p.op === '>') { if (Number(val) <= Number(tgt)) match = false; } 
-                    else if (p.op === '<') { if (Number(val) >= Number(tgt)) match = false; } 
+                    else if (p.op === '>') { if (Number(val) <= Number(tgt)) match = false; }
+                    else if (p.op === '<') { if (Number(val) >= Number(tgt)) match = false; }
                     else if (p.op === 'has') { if (!String(val).toLowerCase().includes(String(tgt).toLowerCase())) match = false; }
                 }
             }
@@ -1108,12 +1660,12 @@ figma.ui.onmessage = async (msg) => {
         }
 
         console.log(`✅ 最终匹配: ${results.length}`);
-        
+
         if (results.length > 0) {
             figma.currentPage.selection = results;
             figma.viewport.scrollAndZoomIntoView(results);
             figma.notify(`✅ 已选中 ${results.length} 个图层`);
-            
+
             // 🔥 新增：将结果回传给 UI
             figma.ui.postMessage({
               type: 'found-layers-result',
@@ -1140,7 +1692,7 @@ figma.ui.onmessage = async (msg) => {
                     // 1. 异步获取图层 (Figma 强制要求)
                     // 使用 Promise.all 确保并发获取，速度极快
                     const nodes = await Promise.all(ids.map(id => figma.getNodeByIdAsync(id)));
-                    
+
                     const targets: SceneNode[] = [];
                     const selection: SceneNode[] = [];
                     const currentPageId = figma.currentPage.id;
@@ -1149,10 +1701,10 @@ figma.ui.onmessage = async (msg) => {
                     for (const node of nodes) {
                         if (!node || node.removed) continue;
                         if (node.type === 'DOCUMENT' || node.type === 'PAGE') continue;
-                        
+
                         // 确保在当前页
                         // 简单的向上查找，确保安全
-                        let p = node.parent; 
+                        let p = node.parent;
                         let isCurrent = false;
                         // 大多数情况父级就是 Page，优化判断速度
                         if (p && p.type === 'PAGE') {
@@ -1171,7 +1723,7 @@ figma.ui.onmessage = async (msg) => {
                         if (isCurrent) {
                             // 只要在当前页，就加入“视图定位目标”
                             targets.push(node as SceneNode);
-                            
+
                             // 如果没锁且可见，也加入“选中目标”
                             if (!node.locked && node.visible) {
                                 selection.push(node as SceneNode);
@@ -1185,7 +1737,7 @@ figma.ui.onmessage = async (msg) => {
 
                         // B. 视图定位 (这是你要的核心功能)
                         figma.viewport.scrollAndZoomIntoView(targets);
-                        
+
                         // C. 只有多选时才提示，单选静默，体验最好
                         if (targets.length > 1) {
                             figma.notify(`已定位 ${targets.length} 项`);
@@ -1404,11 +1956,11 @@ figma.ui.onmessage = async (msg) => {
     case 'find-replace': {
       const { findText, replaceText } = msg;
       if (!findText) { figma.notify("请输入查找内容，注意区分大小写"); return; }
-      
+
       // 确定范围：如果有选区则在选区内查，否则在全页查
       const scope = selection.length > 0 ? selection : [figma.currentPage];
       let count = 0;
-      
+
       // 递归查找文本节点
       const textNodes: TextNode[] = [];
       const collect = (n: any) => {
@@ -1431,7 +1983,7 @@ figma.ui.onmessage = async (msg) => {
             } else {
                await figma.loadFontAsync(font);
             }
-            
+
             // 执行替换
             node.characters = node.characters.split(findText).join(replaceText);
             count++;
@@ -1440,7 +1992,7 @@ figma.ui.onmessage = async (msg) => {
           }
         }
       }
-      
+
       if (count > 0) figma.notify(`已替换 ${count} 处文本`);
       else figma.notify("未找到匹配内容");
       break;
@@ -1451,23 +2003,23 @@ figma.ui.onmessage = async (msg) => {
     // ===========================
     case 'ppt-step-1': { // 初始化
       const pageName = figma.currentPage.name.toLowerCase();
-      
+
       // --- 修复点 1：安全检查不通过时，要告诉 UI 重置按钮 ---
       if (!pageName.includes('copy') && !pageName.includes('副本')) {
         figma.notify("⚠️ 请先将 Page 重命名为 'xxx 副本' 以确保安全！", {error: true});
         // 发送一个 'step-error' 消息给 UI，让它停止转圈
-        figma.ui.postMessage({ type: 'step-error', step: 1 }); 
-        return; 
+        figma.ui.postMessage({ type: 'step-error', step: 1 });
+        return;
       }
-      
+
       const slides = getSlides();
       // --- 修复点 2：没选图层时，也要告诉 UI 重置按钮 ---
-      if (slides.length === 0) { 
-        figma.notify("请至少选择一个 Frame 画板"); 
+      if (slides.length === 0) {
+        figma.notify("请至少选择一个 Frame 画板");
         figma.ui.postMessage({ type: 'step-error', step: 1 });
-        return; 
+        return;
       }
-      
+
       // 执行 Step 1 函数
       await pptStep1_Init(slides);
       break;
@@ -1487,10 +2039,10 @@ figma.ui.onmessage = async (msg) => {
 
     case 'ppt-step-4': { // 提取数据
       let slides = getSlides();
-      
+
       // === 修复：使用绝对坐标排序 ===
       slides = sortNodesByVisualPosition(slides);
-      
+
       // 函数内部会发送 step-done，这里不需要再发了
       await pptStep4_Extract(slides);
       break;
@@ -1498,10 +2050,10 @@ figma.ui.onmessage = async (msg) => {
 
     case 'ppt-step-5': { // 导出资源
       let slides = getSlides();
-      
+
       // === 修复：使用绝对坐标排序 (保持顺序一致) ===
       slides = sortNodesByVisualPosition(slides);
-      
+
       // 同上，内部已发消息
       await pptStep5_ExportImages(slides);
       break;
@@ -1512,12 +2064,12 @@ figma.ui.onmessage = async (msg) => {
     // ===========================
     case 'lint-variants': {
         console.log("【3】后端：进入严格分类逻辑...");
-        
+
         const cfg = msg.config || msg;
         const targets: SceneNode[] = [];
-        
+
         const targetTypes = cfg.targetTypes || { compName: true, propName: true, propValue: true };
-        
+
         let scopeNodes: readonly SceneNode[] = [];
         if (cfg.scope === 'page') {
             scopeNodes = figma.currentPage.children;
@@ -1583,14 +2135,14 @@ figma.ui.onmessage = async (msg) => {
                             });
                         }
                     }
-                } 
-                
+                }
+
                 else if (node.type === 'COMPONENT') {
                     const isVariant = node.parent && node.parent.type === 'COMPONENT_SET';
                     const compId = isVariant ? node.parent!.id : node.id;
                     const CompName = isVariant ? node.parent!.name : node.name;
                     const groupType = isVariant ? 'COMPONENT_SET' : 'COMPONENT';
-                    
+
                     if (!isVariant) {
                         if (targetTypes.compName) {
                             const res = checkString(node.name);
@@ -1611,13 +2163,13 @@ figma.ui.onmessage = async (msg) => {
                          rawProps.forEach(pair => {
                              const parts = pair.split('=');
                              if (parts.length < 2) {
-                                 newProps.push(pair); 
+                                 newProps.push(pair);
                                  return;
                              }
-                             
+
                              const key = parts[0].trim();
                              const val = parts[1].trim();
-                             
+
                              if (targetTypes.propName) {
                                  const resKey = checkString(key);
                                  if (resKey.changed) {
@@ -1645,12 +2197,12 @@ figma.ui.onmessage = async (msg) => {
                                      hasAnyChange = true;
                                  }
                              }
-                             
+
                              const finalKey = (targetTypes.propName && checkString(key).changed) ? checkString(key).val : key;
                              const finalVal = (targetTypes.propValue && checkString(val).changed) ? checkString(val).val : val;
                              newProps.push(`${finalKey}=${finalVal}`);
                          });
-                         
+
                          if (hasAnyChange) {
                              const fullNewName = newProps.join(', ');
                              for (let k = results.length - 1; k >= 0; k--) {
@@ -1701,7 +2253,7 @@ figma.ui.onmessage = async (msg) => {
             searchPool = figma.currentPage.selection;
         } else {
             // 搜索整个页面 (包含页面本身)
-            searchPool = [figma.currentPage]; 
+            searchPool = [figma.currentPage];
         }
 
         if (searchPool.length === 0 && scope === 'selection') {
@@ -1720,7 +2272,7 @@ figma.ui.onmessage = async (msg) => {
                 const escapedFindText = findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                 // 全局、不区分大小写匹配
                 const regex = new RegExp(escapedFindText, 'gi');
-                
+
                 let match;
                 while ((match = regex.exec(fullText)) !== null) {
                     results.push({
@@ -1732,7 +2284,7 @@ figma.ui.onmessage = async (msg) => {
                     });
                 }
             }
-            
+
             // 递归子级
             if ('children' in node) {
                 node.children.forEach(traverse);
@@ -1741,12 +2293,12 @@ figma.ui.onmessage = async (msg) => {
 
         // 3. 执行查找
         searchPool.forEach(traverse);
-        
+
         console.log(`【后端】查找完成，找到 ${results.length} 项`);
 
         // 4. 发送结果给前端
         figma.ui.postMessage({ type: 'text-find-results', data: results });
-        
+
         if (results.length === 0) {
             figma.notify("未找到匹配文本");
         }
@@ -1759,7 +2311,7 @@ figma.ui.onmessage = async (msg) => {
     case 'locate-node': {
         try {
             const node = await figma.getNodeByIdAsync(msg.id);
-            
+
             if (node) {
                 // === 第一步：通用操作 (先选中并聚焦) ===
                 // 这一步对组件、矩形、文本都有效，修复了组件清洗无法定位的问题
@@ -1769,12 +2321,12 @@ figma.ui.onmessage = async (msg) => {
 
                 // === 第二步：文字工具特有逻辑 (仅当是文本且包含索引参数时执行) ===
                 if (node.type === 'TEXT' && typeof msg.index === 'number' && typeof msg.length === 'number') {
-                    
+
                     const cacheKey = `${msg.id}_${msg.index}`;
-                    
+
                     // 加载字体
-                    const font = node.fontName === figma.mixed 
-                                 ? node.getRangeFontName(0, 1) 
+                    const font = node.fontName === figma.mixed
+                                 ? node.getRangeFontName(0, 1)
                                  : node.fontName;
                     await figma.loadFontAsync(font);
 
@@ -1782,19 +2334,19 @@ figma.ui.onmessage = async (msg) => {
                     if (highlightCache[cacheKey]) {
                         const cachedData = highlightCache[cacheKey]; // { fills, length }
                         node.setRangeFills(msg.index, msg.index + cachedData.length, cachedData.fills);
-                        
+
                         delete highlightCache[cacheKey];
                         figma.notify("已还原颜色");
                         figma.ui.postMessage({ type: 'highlight-status', key: cacheKey, status: false });
-                    
+
                     } else {
                         // B. 执行高亮
                         const currentFills = node.getRangeFills(msg.index, msg.index + 1);
                         highlightCache[cacheKey] = { fills: currentFills, length: msg.length };
-                        
+
                         const highlightPaint = [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 } }];
                         node.setRangeFills(msg.index, msg.index + msg.length, highlightPaint);
-                        
+
                         figma.notify("已标记 (再次点击可还原)");
                         figma.ui.postMessage({ type: 'highlight-status', key: cacheKey, status: true });
                     }
@@ -1814,16 +2366,16 @@ figma.ui.onmessage = async (msg) => {
     // 3. 替换功能：支持点对点替换 (修复Bug 1 & 4)
     // -------------------------------------------------------------
     case 'text-replace-batch': {
-        const { tasks, replaceText } = msg; 
+        const { tasks, replaceText } = msg;
         // tasks 是一个数组: [{id, index, length}, ...]
-        
+
         let successCount = 0;
         const processedIds = new Set(); // 用于记录成功的 uniqueId，发回给前端禁用
 
         // 🌟 关键策略：按 Node ID 分组，组内按 Index 倒序排列
         // 为什么倒序？因为替换前面的文字会改变后面文字的索引。
         // 从后往前替换，坐标永远是准的。
-        
+
         const groups = {};
         tasks.forEach(task => {
             if (!groups[task.id]) groups[task.id] = [];
@@ -1840,8 +2392,8 @@ figma.ui.onmessage = async (msg) => {
 
             try {
                 // 加载字体
-                await figma.loadFontAsync(node.fontName === figma.mixed 
-                        ? node.getRangeFontName(0, 1) 
+                await figma.loadFontAsync(node.fontName === figma.mixed
+                        ? node.getRangeFontName(0, 1)
                         : node.fontName);
 
                 // 执行替换
@@ -1849,10 +2401,10 @@ figma.ui.onmessage = async (msg) => {
                     // 再次检查字符是否匹配（防止并发修改导致的错位）
                     const currentStr = node.characters.substring(task.index, task.index + task.length);
                     // 简单的校验，略过严格校验以允许大小写差异
-                    
+
                     node.deleteCharacters(task.index, task.index + task.length);
                     node.insertCharacters(task.index, replaceText);
-                    
+
                     successCount++;
                     // 记录前端传来的唯一标识 (uid)，以便前端禁用
                     if (task.uid) processedIds.add(task.uid);
@@ -1863,12 +2415,12 @@ figma.ui.onmessage = async (msg) => {
         }
 
         // 通知前端哪些任务完成了
-        figma.ui.postMessage({ 
-            type: 'text-replace-success', 
+        figma.ui.postMessage({
+            type: 'text-replace-success',
             count: successCount,
             processedUids: Array.from(processedIds)
         });
-        
+
         figma.notify(`已替换 ${successCount} 处文本`);
         break;
     }
@@ -1899,7 +2451,7 @@ figma.ui.onmessage = async (msg) => {
         figma.ui.postMessage({ type: 'clear-all-highlights-ui' });
         break;
     }
-    
+
     // 另外：在 text-replace-batch 成功后，也要清理对应的缓存，防止还原时报错
     // 在 case 'text-replace-batch' 的循环里，successCount++ 后面加一行：
     // delete highlightCache[`${task.id}_${task.index}`];
@@ -1917,14 +2469,14 @@ figma.ui.onmessage = async (msg) => {
             if (node && node.type === 'TEXT') {
                 try {
                     // 加载字体 (必要步骤)
-                    await figma.loadFontAsync(node.fontName === figma.mixed 
-                        ? node.getRangeFontName(0, 1) 
+                    await figma.loadFontAsync(node.fontName === figma.mixed
+                        ? node.getRangeFontName(0, 1)
                         : node.fontName);
-                    
+
                     // 执行替换 (全局替换该节点内的所有匹配项)
                     // 使用正则进行全局替换 (Global, Case Insensitive)
                     const regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-                    
+
                     if (regex.test(node.characters)) {
                         node.characters = node.characters.replace(regex, replaceText);
                         count++;
@@ -1953,7 +2505,7 @@ figma.ui.onmessage = async (msg) => {
     case 'jb-save': {
       const dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
       let spots = dataStr ? JSON.parse(dataStr) :[];
-      
+
       if (spots.length >= 5) {
         figma.notify("最多只能保存 5 个锚点！");
         return;
@@ -1978,7 +2530,7 @@ figma.ui.onmessage = async (msg) => {
 
       spots.push(newSpot);
       figma.root.setPluginData('JUMPBACK_SPOTS', JSON.stringify(spots));
-      
+
       figma.notify("📍 位置已保存");
       figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
       break;
@@ -1989,7 +2541,7 @@ figma.ui.onmessage = async (msg) => {
       if (!dataStr) return;
       const spots = JSON.parse(dataStr);
       const spot = spots.find((s: any) => s.id === msg.id);
-      
+
       if (!spot) return;
 
       try {
@@ -2017,20 +2569,20 @@ figma.ui.onmessage = async (msg) => {
            for (const id of spot.selectionIds) {
              // === 修复点 3：同样使用 getNodeByIdAsync 获取历史图层 ===
              const node = await figma.getNodeByIdAsync(id);
-             
+
              // 确保节点还存在，且不是页面本身 (防止意外)
              if (node && !node.removed && node.type !== 'PAGE' && node.type !== 'DOCUMENT') {
                 nodesToSelect.push(node as SceneNode);
              }
            }
         }
-        
+
         // 4. 执行选中
         if (nodesToSelect.length > 0) {
            figma.currentPage.selection = nodesToSelect;
         } else {
            // 如果图层被删了，清空当前选中项，视角依然过去 (补全了这里)
-           figma.currentPage.selection = []; 
+           figma.currentPage.selection = [];
         }
 
         figma.notify("🚀 已传送！");
@@ -2045,13 +2597,13 @@ figma.ui.onmessage = async (msg) => {
       const dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
       if (!dataStr) return;
       let spots = JSON.parse(dataStr);
-      
+
       // 过滤掉要删除的 ID
       spots = spots.filter((s: any) => s.id !== msg.id);
-      
+
       // 更新保存
       figma.root.setPluginData('JUMPBACK_SPOTS', JSON.stringify(spots));
-      
+
       // 重新渲染 UI
       figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
       figma.notify("🗑️ 锚点已删除");
@@ -2062,7 +2614,7 @@ figma.ui.onmessage = async (msg) => {
       const dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
       if (!dataStr) return;
       let spots = JSON.parse(dataStr);
-      
+
       const index = spots.findIndex((s: any) => s.id === msg.id);
       if (index > -1 && msg.newName.trim() !== '') {
         spots[index].name = msg.newName.substring(0, 20); // 限制长度
@@ -2111,7 +2663,7 @@ figma.ui.onmessage = async (msg) => {
 
             // 4. 应用最终的 2x3 仿射变换矩阵
             const newTransform: Transform = [
-              [m00, m01, tx], 
+              [m00, m01, tx],
               [m10, m11, ty]
             ];
 
@@ -2160,9 +2712,9 @@ figma.ui.onmessage = async (msg) => {
     }
 
     case 'i18n-detect': {
-        const { scope, extractTarget, collectionName } = msg; 
+        const { scope, extractTarget, collectionName } = msg;
         let nodesToScan = scope === 'selection' ? [...figma.currentPage.selection] : [...figma.currentPage.children];
-        
+
         const textNodes = [];
         async function findText(nodes) {
             for (const node of nodes) {
@@ -2182,7 +2734,7 @@ figma.ui.onmessage = async (msg) => {
                 return aMatch - bMatch;
             });
         const targetColName = collectionName || "i18n Dictionary";
-        const i18nCollection = allCollections.find(c => c.name === targetColName) 
+        const i18nCollection = allCollections.find(c => c.name === targetColName)
                             || allCollections.find(c => c.name.includes("i18n") || c.name.includes("Dictionary"));
 
         let modes = [];
@@ -2197,20 +2749,20 @@ figma.ui.onmessage = async (msg) => {
             for (const v of localVars) {
                 if (v.variableCollectionId === i18nCollection.id) {
                     const origVal = v.valuesByMode[origModeId];
-                    if (origVal) existingVarMap.set(origVal, v); 
+                    if (origVal) existingVarMap.set(origVal, v);
                 }
             }
         }
 
         let boundCount = 0;
         let mixedFonts = 0;
-        const autoBindMap = new Map(); 
-        const newTextMap = new Map();  
+        const autoBindMap = new Map();
+        const newTextMap = new Map();
 
         for (const node of textNodes) {
-            if (node.hasMissingFont) continue; 
+            if (node.hasMissingFont) continue;
             if (node.fontName === figma.mixed) { mixedFonts++; continue; }
-            
+
             if (extractTarget === 'unbound' && node.boundVariables && node.boundVariables['characters']) {
                 boundCount++;
                 continue;
@@ -2228,8 +2780,8 @@ figma.ui.onmessage = async (msg) => {
             }
         }
 
-        figma.ui.postMessage({ 
-            type: 'i18n-detect-result', 
+        figma.ui.postMessage({
+            type: 'i18n-detect-result',
             data: {
                 totalNodes: textNodes.length,
                 boundCount: boundCount,
@@ -2247,15 +2799,15 @@ figma.ui.onmessage = async (msg) => {
         try {
             let collections = await figma.variables.getLocalVariableCollectionsAsync();
             let collection = collections.find(c => c.name === collectionName);
-            
+
             // 1. 确保 Collection 存在
             if (!collection) {
                 collection = figma.variables.createVariableCollection(collectionName);
-                collection.renameMode(collection.modes[0].modeId, 'Original'); 
+                collection.renameMode(collection.modes[0].modeId, 'Original');
             }
 
             const origModeId = collection.modes[0].modeId;
-            
+
             // 2. 收集所有需要处理的语种
             const allTargetLangs = new Set<string>();
             newPayload.forEach(item => Object.keys(item.translations).forEach(l => allTargetLangs.add(l)));
@@ -2272,9 +2824,9 @@ figma.ui.onmessage = async (msg) => {
                         modeIdMap[lang] = newModeId;
                     } catch (e) {
                         // 弹出明确的 Plan 限制提示
-                        figma.ui.postMessage({ 
-                            type: 'i18n-bind-error', 
-                            error: `无法创建 "${lang}" 列。\n原因：Figma 免费版限制每个合集只能有 1 个 Mode（当前已有 "Original"）。\n\n建议：\n1. 升级 Figma 团队版\n2. 或使用插件的 "⚡ 直接替换" 模式。` 
+                        figma.ui.postMessage({
+                            type: 'i18n-bind-error',
+                            error: `无法创建 "${lang}" 列。\n原因：Figma 免费版限制每个合集只能有 1 个 Mode（当前已有 "Original"）。\n\n建议：\n1. 升级 Figma 团队版\n2. 或使用插件的 "⚡ 直接替换" 模式。`
                         });
                         return; // 终止执行
                     }
@@ -2283,7 +2835,7 @@ figma.ui.onmessage = async (msg) => {
 
             // 4. 建立变量索引 (Original Text -> Variable)
             const localVars = await figma.variables.getLocalVariablesAsync('STRING');
-            const varMap = new Map<string, Variable>(); 
+            const varMap = new Map<string, Variable>();
             for (const v of localVars) {
                 if (v.variableCollectionId === collection.id) {
                     const baseVal = v.valuesByMode[origModeId] as string;
@@ -2294,7 +2846,7 @@ figma.ui.onmessage = async (msg) => {
             // 5. 遍历翻译数据，写入变量并执行绑定
             for (const item of newPayload) {
                 let variable = varMap.get(item.original);
-                
+
                 // 如果不存在则创建
                 if (!variable) {
                     let safeName = item.original.slice(0, 15).replace(/[.*{}\/\\\r\n\t]/g, '_').trim() || 'text';
@@ -2315,16 +2867,16 @@ figma.ui.onmessage = async (msg) => {
                 for (const nodeId of item.nodeIds) {
                     const node = await figma.getNodeByIdAsync(nodeId);
                     if (node && node.type === 'TEXT' && node.fontName !== figma.mixed) {
-                        await figma.loadFontAsync(node.fontName); 
+                        await figma.loadFontAsync(node.fontName);
                         node.setBoundVariable('characters', variable);
                     }
                 }
             }
 
             figma.ui.postMessage({ type: 'i18n-bind-success', message: '🎉 多语言 Mode 已同步更新！' });
-            
+
         } catch (e) {
-            figma.ui.postMessage({ type: 'i18n-bind-error', error: e.message }); 
+            figma.ui.postMessage({ type: 'i18n-bind-error', error: e.message });
         }
         break;
     }
@@ -2332,31 +2884,31 @@ figma.ui.onmessage = async (msg) => {
     case 'i18n-replace-text': {
         const { payload } = msg;
         let successCount = 0;
-        
+
         try {
             for (const item of payload) {
-                const targetText = Object.values(item.translations)[0]; 
-                
+                const targetText = Object.values(item.translations)[0];
+
                 for (const nodeId of item.nodeIds) {
                     try {
                         const node = await figma.getNodeByIdAsync(nodeId);
                         if (node && node.type === 'TEXT' && node.fontName !== figma.mixed) {
                             await figma.loadFontAsync(node.fontName);
-                            
+
                             // 【核心修复】：直接替换前，必须解除已有的变量绑定，否则必定被 Figma API 拦截失败！
                             node.setBoundVariable('characters', null);
-                            
+
                             node.characters = targetText;
                             successCount++;
                         }
-                    } catch (e) { 
-                        console.warn(`节点替换失败`, e); 
+                    } catch (e) {
+                        console.warn(`节点替换失败`, e);
                     }
                 }
             }
 
             figma.ui.postMessage({ type: 'i18n-bind-success', message: `🎉 成功替换了 ${successCount} 个文本节点！` });
-            
+
         } catch (e) {
             figma.ui.postMessage({ type: 'i18n-bind-error', error: e.message });
         }
@@ -2385,9 +2937,210 @@ figma.ui.onmessage = async (msg) => {
       break;
 
     // ===========================
-    // I. CompKit - 变体矩阵工具
+    // I. Component Builder - 组件构建器
     // ===========================
-    
+    case 'component-builder-inspect': {
+      sendComponentBuilderSelection();
+      break;
+    }
+
+    case 'component-builder-reverse': {
+      if (selection.length !== 1 || selection[0].type !== 'INSTANCE') {
+        const message = '请只选择一个实例（Instance）后再逆向母版';
+        figma.notify(message);
+        figma.ui.postMessage({ type: 'component-builder-result', ok: false, message });
+        break;
+      }
+      if (componentReverseRunning) {
+        const message = '实例逆向正在处理中，请等待当前操作完成';
+        figma.notify(message);
+        figma.ui.postMessage({ type: 'component-builder-result', ok: false, message });
+        break;
+      }
+
+      componentReverseRunning = true;
+      let result: Awaited<ReturnType<typeof reverseInstanceToMaster>> | null = null;
+      try {
+        result = await reverseInstanceToMaster(selection[0] as InstanceNode);
+      } catch (error) {
+        const message = `逆向失败：${String((error as any)?.message || error)}`;
+        figma.notify(message);
+        figma.ui.postMessage({ type: 'component-builder-result', ok: false, message });
+      } finally {
+        componentReverseRunning = false;
+      }
+      if (!result) break;
+
+      try { figma.commitUndo(); } catch (_) {}
+      try { figma.currentPage.selection = [result.target]; } catch (error) {
+        result.warnings.push(`新母版已创建，但自动选中失败：${String((error as any)?.message || error)}`);
+      }
+      try { figma.viewport.scrollAndZoomIntoView([result.target]); } catch (error) {
+        result.warnings.push(`新母版已创建，但自动定位失败：${String((error as any)?.message || error)}`);
+      }
+      result.warnings = [...new Set(result.warnings)];
+      const variantText = result.variantCount > 1
+        ? `，完整还原 ${result.variantCount} 个真实变体`
+        : '';
+      const overflowText = result.overflowVariantCount > 0
+        ? `，原组件集 ${result.overflowVariantCount} 个变体超过上限 ${MAX_REVERSED_VARIANTS}，已保留当前真实变体`
+        : variantText;
+      const warningText = result.warnings.length > 0
+        ? `；${result.warnings.length} 项内容已安全降级或跳过`
+        : '';
+      const modeText = result.recoveryMode === 'raster' ? '（视觉快照兜底）' : '';
+      const message = `已逆向组件母版${modeText}${overflowText}，并保留 ${result.propertyCount} 个有效属性${warningText}`;
+      figma.notify(message);
+      figma.ui.postMessage({
+        type: 'component-builder-result',
+        ok: true,
+        message,
+        warnings: result.warnings,
+        recoveryMode: result.recoveryMode,
+        variantCount: result.variantCount,
+        overflowVariantCount: result.overflowVariantCount,
+        created: 1
+      });
+      break;
+    }
+
+    case 'component-builder-create': {
+      const frames = selection.filter(node => node.type === 'FRAME') as FrameNode[];
+      if (selection.length === 0 || frames.length !== selection.length) {
+        const message = '请选择一个或多个 Frame；当前选择中不能混入其他图层类型';
+        figma.notify(message);
+        figma.ui.postMessage({ type: 'component-builder-result', ok: false, message });
+        break;
+      }
+      const connectorFrames = frames.filter(frame => {
+        try { return frame.attachedConnectors.length > 0; } catch (_) { return false; }
+      });
+      if (connectorFrames.length > 0) {
+        const message = `有 ${connectorFrames.length} 个 Frame 连接了原型连线；为避免连接目标丢失，本次未转换`;
+        figma.notify(message);
+        figma.ui.postMessage({ type: 'component-builder-result', ok: false, message });
+        break;
+      }
+
+      const mode = ['single', 'multiple', 'set'].includes(msg.mode) ? msg.mode : 'multiple';
+      const exposeText = msg.exposeText === true;
+      const exposeInstances = msg.exposeInstances === true;
+      const requestedName = String(msg.componentName || '').trim();
+      const originalNames = frames.map(frame => frame.name);
+
+      if ((mode === 'single' && frames.length > 1) || mode === 'set') {
+        const sameParent = frames.every(frame => frame.parent === frames[0].parent);
+        if (!sameParent) {
+          const message = mode === 'set'
+            ? '创建组件集时，所选 Frame 必须位于同一父级'
+            : '合并为单个组件时，所选 Frame 必须位于同一父级';
+          figma.notify(message);
+          figma.ui.postMessage({ type: 'component-builder-result', ok: false, message });
+          break;
+        }
+      }
+
+      try {
+        const created: ComponentNode[] = [];
+        const warnings: string[] = [];
+        let targets: SceneNode[] = [];
+
+        if (mode === 'single') {
+          const component = frames.length === 1
+            ? figma.createComponentFromNode(frames[0])
+            : wrapFramesAsOneComponent(frames, requestedName || commonNamePrefix(originalNames));
+          component.name = requestedName || component.name;
+          created.push(component);
+          const exposed = await exposeBuilderProperties(
+            component,
+            [component],
+            exposeText,
+            exposeInstances
+          );
+          warnings.push(...exposed.warnings);
+          targets = [component];
+        } else {
+          for (const frame of frames) {
+            const component = figma.createComponentFromNode(frame);
+            created.push(component);
+          }
+
+          if (mode === 'set') {
+            const variantProperty = String(msg.variantProperty || 'Variant')
+              .replace(/[,=]/g, ' ')
+              .replace(/\s+/g, ' ')
+              .trim() || 'Variant';
+            const usedValues = new Set<string>();
+            created.forEach((component, index) => {
+              const base = safeVariantValue(originalNames[index], index);
+              let value = base;
+              let suffix = 2;
+              while (usedValues.has(value.toLocaleLowerCase())) value = `${base} ${suffix++}`;
+              usedValues.add(value.toLocaleLowerCase());
+              component.name = `${variantProperty}=${value}`;
+            });
+            const parent = frames[0].parent && 'children' in frames[0].parent
+              ? frames[0].parent as BaseNode & ChildrenMixin
+              : figma.currentPage;
+            const set = figma.combineAsVariants(created, parent);
+            set.name = requestedName || commonNamePrefix(originalNames);
+            const exposed = await exposeBuilderProperties(
+              set,
+              set.children.filter(node => node.type === 'COMPONENT') as ComponentNode[],
+              exposeText,
+              exposeInstances
+            );
+            warnings.push(...exposed.warnings);
+            targets = [set];
+          } else {
+            if (requestedName) {
+              created.forEach((component, index) => {
+                component.name = created.length === 1
+                  ? requestedName
+                  : `${requestedName}/${originalNames[index]}`;
+              });
+            }
+            for (const component of created) {
+              const exposed = await exposeBuilderProperties(
+                component,
+                [component],
+                exposeText,
+                exposeInstances
+              );
+              warnings.push(...exposed.warnings);
+            }
+            targets = created;
+          }
+        }
+
+        figma.currentPage.selection = targets;
+        figma.viewport.scrollAndZoomIntoView(targets);
+        figma.commitUndo();
+        const typeLabel = mode === 'set' ? '组件集' : (mode === 'single' ? '单个组件' : '多个组件');
+        const exposedLabel = [exposeText ? '文字属性' : '', exposeInstances ? '实例属性' : '']
+          .filter(Boolean)
+          .join('、');
+        const message = `已创建${typeLabel}${exposedLabel ? `，并生成${exposedLabel}` : ''}${warnings.length ? `；${warnings.length} 项已跳过` : ''}`;
+        figma.notify(message);
+        figma.ui.postMessage({
+          type: 'component-builder-result',
+          ok: true,
+          message,
+          warnings: [...new Set(warnings)],
+          created: targets.length
+        });
+      } catch (error) {
+        const message = `创建失败：${String((error as any)?.message || error)}`;
+        figma.notify(message);
+        figma.ui.postMessage({ type: 'component-builder-result', ok: false, message });
+      }
+      break;
+    }
+
+    // ===========================
+    // J. CompKit - 变体矩阵工具
+    // ===========================
+
     // 初始化：获取组件集属性列表
     case 'init-compkit': {
       const selection = figma.currentPage.selection;
@@ -2451,9 +3204,9 @@ figma.ui.onmessage = async (msg) => {
         }
       }
 
-      figma.ui.postMessage({ 
-        type: 'compkit-props', 
-        properties, 
+      figma.ui.postMessage({
+        type: 'compkit-props',
+        properties,
         targetId,
         componentName,
         propertyValues,
@@ -2488,7 +3241,7 @@ figma.ui.onmessage = async (msg) => {
       const propX = properties[0];
       const hasY = properties.length >= 2; // 有第二个属性才做二维矩阵
       const propY = hasY ? properties[1] : '';
-      
+
       // 分组属性：除 X/Y 轴外的其他属性
       const groupProps = hasY ? properties.filter(p => p !== propX && p !== propY) : properties.filter(p => p !== propX);
 
@@ -2713,7 +3466,7 @@ figma.ui.onmessage = async (msg) => {
 
         // 轴标签和网格线
         const decorationNodes: SceneNode[] = [];
-        
+
         if (drawLabels) {
           // X 轴标签
           xArray.forEach((xVal, index) => {
@@ -2794,19 +3547,19 @@ figma.ui.onmessage = async (msg) => {
       const groupGap = msg.groupGap !== undefined ? msg.groupGap : 120;
       const compRadius = msg.compRadius !== undefined ? msg.compRadius : 0;
       const compStroke = msg.compStroke !== undefined ? msg.compStroke : 1;
-      const compStrokeColor = msg.compStrokeColor || { r: 140/255, g: 91/255, b: 212/255 }; 
+      const compStrokeColor = msg.compStrokeColor || { r: 140/255, g: 91/255, b: 212/255 };
       const gridLineWidth = msg.gridLineWidth !== undefined ? msg.gridLineWidth : 1;
       const gridLineColor = msg.gridLineColor || { r: 0.9, g: 0.92, b: 0.94 };
       const boardRadius = msg.boardRadius !== undefined ? msg.boardRadius : 24;
       const boardPaddingX = msg.boardPaddingX !== undefined ? msg.boardPaddingX : 140;
       const boardPaddingY = msg.boardPaddingY !== undefined ? msg.boardPaddingY : 160;
       const boardBg = msg.boardBg || { r: 249/255, g: 250/255, b: 251/255 };
-      
+
       const drawGrid = msg.drawGrid !== false;
       const drawLabels = msg.drawLabels !== false;
       const drawProps = msg.drawProps !== false;
       const drawUsage = msg.drawUsage !== false;
-      
+
       const language = msg.language || 'zh';
       const status = msg.status || 'approved';
       const designer = msg.designer || '';
@@ -2833,10 +3586,10 @@ figma.ui.onmessage = async (msg) => {
       if (variants.length === 0) break;
 
       // ====== 【核心修复】二次编辑重写与销毁旧画板的递归追溯算法 ======
-      let baseX = componentSet.x; 
+      let baseX = componentSet.x;
       let baseY = componentSet.y;
       let isReedit = false;
-      
+
       let ancestor: BaseNode | null = componentSet.parent;
       let oldBoard: FrameNode | null = null;
       while (ancestor && ancestor.type !== 'DOCUMENT' && ancestor.type !== 'PAGE') {
@@ -2848,7 +3601,7 @@ figma.ui.onmessage = async (msg) => {
       }
 
       if (oldBoard) {
-        baseX = oldBoard.x; 
+        baseX = oldBoard.x;
         baseY = oldBoard.y;
         isReedit = true;
         figma.currentPage.appendChild(componentSet); // 提取组件集到当前页面根目录
@@ -2890,7 +3643,7 @@ figma.ui.onmessage = async (msg) => {
       // 调整内部定位
       componentSet.layoutMode = "NONE";
       if (compRadius > 0) safeCornerRadius(componentSet, compRadius);
-      
+
       // 直接应用描边至组件集本身
       try {
         if (compStroke > 0) {
@@ -2903,7 +3656,7 @@ figma.ui.onmessage = async (msg) => {
       } catch (e) {
         console.warn("ComponentSetNode 描边受限，跳过直接修改", e);
       }
-      
+
       variants.forEach(v => {
         const props = parseVariantName(v.name);
         const colIndex = xArray.indexOf(props[propX]);
@@ -2935,7 +3688,7 @@ figma.ui.onmessage = async (msg) => {
       boardFrame.setPluginData('isShowcaseBoard', 'true');
       boardFrame.fills = [{ type: 'SOLID', color: boardBg }];
       safeCornerRadius(boardFrame, boardRadius);
-      
+
       // 定位修正：如果是新生成，向左向上抵消偏移，让组件集永远留在用户点击的原位上
       boardFrame.x = isReedit ? baseX : (baseX - boardPaddingX - (drawLabels && hasY ? 120 : 0));
       boardFrame.y = isReedit ? baseY : (baseY - boardPaddingY - 330);
@@ -2987,7 +3740,7 @@ figma.ui.onmessage = async (msg) => {
         const lowerTitle = title.toLowerCase();
         return translations[lowerTitle] || title;
       };
-      
+
       const titleText = formatTitle(componentSet.name, language);
 
       const title = figma.createText();
@@ -3007,7 +3760,7 @@ figma.ui.onmessage = async (msg) => {
         'deprecated': { bg: { r: 254/255, g: 226/255, b: 226/255 }, text: { r: 153/255, g: 27/255, b: 27/255 }, label: '已废弃', labelEn: 'DEPRECATED' },
         'review': { bg: { r: 223/255, g: 232/255, b: 255/255 }, text: { r: 67/255, g: 56/255, b: 202/255 }, label: '待审核', labelEn: 'REVIEW' },
       };
-      
+
       const badge = figma.createFrame();
       badge.name = `Status: ${status.toUpperCase()}`;
       badge.layoutMode = "HORIZONTAL";
@@ -3015,7 +3768,7 @@ figma.ui.onmessage = async (msg) => {
       safeCornerRadius(badge, 8);
       const statusInfo = statusConfig[status] || statusConfig['approved'];
       badge.fills = [{ type: 'SOLID', color: statusInfo.bg }];
-      
+
       const badgeText = figma.createText();
       badgeText.name = "Status Text";
       badgeText.characters = language === 'zh' ? statusInfo.label : statusInfo.labelEn;
@@ -3083,7 +3836,7 @@ figma.ui.onmessage = async (msg) => {
         tag.paddingLeft = 8; tag.paddingRight = 8; tag.paddingTop = 4; tag.paddingBottom = 4;
         safeCornerRadius(tag, 4);
         tag.fills = [{ type: 'SOLID', color: bgColor }];
-        
+
         const tagText = figma.createText();
         tagText.name = "Tag Label";
         tagText.characters = `${label}: ${value}`;
@@ -3097,7 +3850,7 @@ figma.ui.onmessage = async (msg) => {
 
       createTag(language === 'zh' ? '变体数量' : 'Variants', `${variants.length}`, { r: 243/255, g: 244/255, b: 246/255 }, { r: 55/255, g: 65/255, b: 81/255 });
       const now = new Date();
-      const dateStr = language === 'zh' 
+      const dateStr = language === 'zh'
         ? `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`
         : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       createTag(language === 'zh' ? '更新日期' : 'Updated', dateStr, { r: 243/255, g: 244/255, b: 246/255 }, { r: 55/255, g: 65/255, b: 81/255 });
@@ -3129,10 +3882,10 @@ figma.ui.onmessage = async (msg) => {
       // 矩阵绘制区域（绝对定位容器置于舞台中央）
       const componentArea = figma.createFrame();
       componentArea.name = "Component Draw Area";
-      componentArea.layoutMode = "NONE"; 
+      componentArea.layoutMode = "NONE";
       componentArea.fills = [];
       matrixStage.appendChild(componentArea);
-      
+
       const areaWidth = compSetWidth + (drawLabels && hasY ? 120 : 0);
       const areaHeight = compSetHeight + (drawLabels ? 60 : 0);
       componentArea.layoutSizingHorizontal = "FIXED";
@@ -3141,7 +3894,7 @@ figma.ui.onmessage = async (msg) => {
 
       // 将组件集安置于有偏移的精确定位上，防止裁剪行/列标签
       componentArea.appendChild(componentSet);
-      componentSet.x = (drawLabels && hasY) ? 120 : 0; 
+      componentSet.x = (drawLabels && hasY) ? 120 : 0;
       componentSet.y = drawLabels ? 40 : 0;
 
       // 绘制虚线网格和行列标签
@@ -3272,17 +4025,17 @@ figma.ui.onmessage = async (msg) => {
 
           Array.from(vals).forEach(val => {
             const pill = figma.createFrame();
-            pill.layoutMode = "HORIZONTAL"; 
+            pill.layoutMode = "HORIZONTAL";
             safeCornerRadius(pill, 6); pill.fills = [{ type: 'SOLID', color: { r: 243/255, g: 244/255, b: 246/255 } }];
             pill.strokes = [{ type: 'SOLID', color: { r: 229/255, g: 231/255, b: 235/255 } }];
             pill.paddingLeft = 10; pill.paddingRight = 10; pill.paddingTop = 6; pill.paddingBottom = 6;
-            
+
             const pVal = figma.createText(); pVal.characters = val;
             pVal.fontSize = 13; pVal.fontName = { family: "Inter", style: "Regular" };
             pVal.fills = [{ type: 'SOLID', color: { r: 55/255, g: 65/255, b: 81/255 } }];
             pill.appendChild(pVal);
             propRow.appendChild(pill);
-            
+
             pill.layoutSizingHorizontal = "HUG";
             pill.layoutSizingVertical = "HUG";
             pVal.layoutSizingHorizontal = "HUG";
@@ -3330,41 +4083,41 @@ figma.ui.onmessage = async (msg) => {
         doCard.strokes = [{ type: 'SOLID', color: { r: 229/255, g: 231/255, b: 235/255 } }];
         doCard.strokeWeight = 1;
         doDontContainer.appendChild(doCard);
-        
-        doCard.layoutSizingHorizontal = "FILL"; 
-        doCard.layoutSizingVertical = "HUG";   
+
+        doCard.layoutSizingHorizontal = "FILL";
+        doCard.layoutSizingVertical = "HUG";
 
         const doTopBar = figma.createFrame();
-        doTopBar.resize(100, 6); 
+        doTopBar.resize(100, 6);
         doTopBar.fills = [{ type: 'SOLID', color: { r: 34/255, g: 197/255, b: 94/255 } }];
         doCard.appendChild(doTopBar);
         doTopBar.layoutSizingHorizontal = "FILL";
         doTopBar.layoutSizingVertical = "FIXED";
-        
+
         const doContent = figma.createFrame();
         doContent.layoutMode = "HORIZONTAL";
         doContent.itemSpacing = 12;
         doContent.paddingLeft = 24; doContent.paddingRight = 24; doContent.paddingTop = 20; doContent.paddingBottom = 24;
         doContent.fills = [];
         doCard.appendChild(doContent);
-        
+
         doContent.layoutSizingHorizontal = "FILL";
         doContent.layoutSizingVertical = "HUG";
-        
+
         const doIcon = figma.createText();
         doIcon.characters = "✅";
         doIcon.fontSize = 18;
         doContent.appendChild(doIcon);
         doIcon.layoutSizingHorizontal = "HUG";
         doIcon.layoutSizingVertical = "HUG";
-        
+
         const doText = figma.createText();
         doText.characters = "Do: 在这里放置组件的正确使用场景、对齐方式以及相关的上下文示例。";
         doText.fontSize = 15; doText.fontName = { family: "Inter", style: "Medium" };
         doText.fills = [{ type: 'SOLID', color: { r: 55/255, g: 65/255, b: 81/255 } }];
         doContent.appendChild(doText);
-        
-        doText.layoutSizingHorizontal = "FILL"; 
+
+        doText.layoutSizingHorizontal = "FILL";
         doText.layoutSizingVertical = "HUG";
         doText.textAutoResize = "HEIGHT";
 
@@ -3378,8 +4131,8 @@ figma.ui.onmessage = async (msg) => {
         dontCard.strokes = [{ type: 'SOLID', color: { r: 229/255, g: 231/255, b: 235/255 } }];
         dontCard.strokeWeight = 1;
         doDontContainer.appendChild(dontCard);
-        
-        dontCard.layoutSizingHorizontal = "FILL"; 
+
+        dontCard.layoutSizingHorizontal = "FILL";
         dontCard.layoutSizingVertical = "HUG";
 
         const dontTopBar = figma.createFrame();
@@ -3388,31 +4141,31 @@ figma.ui.onmessage = async (msg) => {
         dontCard.appendChild(dontTopBar);
         dontTopBar.layoutSizingHorizontal = "FILL";
         dontTopBar.layoutSizingVertical = "FIXED";
-        
+
         const dontContent = figma.createFrame();
         dontContent.layoutMode = "HORIZONTAL";
         dontContent.itemSpacing = 12;
         dontContent.paddingLeft = 24; dontContent.paddingRight = 24; dontContent.paddingTop = 20; dontContent.paddingBottom = 24;
         dontContent.fills = [];
         dontCard.appendChild(dontContent);
-        
+
         dontContent.layoutSizingHorizontal = "FILL";
         dontContent.layoutSizingVertical = "HUG";
-        
+
         const dontIcon = figma.createText();
         dontIcon.characters = "🚫";
         dontIcon.fontSize = 18;
         dontContent.appendChild(dontIcon);
         dontIcon.layoutSizingHorizontal = "HUG";
         dontIcon.layoutSizingVertical = "HUG";
-        
+
         const dontText = figma.createText();
         dontText.characters = "Don't: 避免在此处放置反面教材，例如错误的缩放比例、不规范的颜色叠加等。";
         dontText.fontSize = 15; dontText.fontName = { family: "Inter", style: "Medium" };
         dontText.fills = [{ type: 'SOLID', color: { r: 55/255, g: 65/255, b: 81/255 } }];
         dontContent.appendChild(dontText);
-        
-        dontText.layoutSizingHorizontal = "FILL"; 
+
+        dontText.layoutSizingHorizontal = "FILL";
         dontText.layoutSizingVertical = "HUG";
         dontText.textAutoResize = "HEIGHT";
       }
@@ -3425,7 +4178,7 @@ figma.ui.onmessage = async (msg) => {
       break;
     }
 
-      
+
   }
 };
 
@@ -3455,7 +4208,7 @@ function getSlides() {
   const finalSlides = frames.filter(node => {
      let parent = node.parent;
      while(parent && parent.type !== 'PAGE' && parent.type !== 'DOCUMENT') {
-        if (uniqueMap.has(parent.id)) return false; 
+        if (uniqueMap.has(parent.id)) return false;
         parent = parent.parent;
      }
      return true;
@@ -3468,15 +4221,15 @@ function getSlides() {
 // Step 1: 初始化 (防崩溃稳健版)
 // 将 "解绑" 和 "清理" 分离，彻底解决 WASM 内存越界问题
 async function pptStep1_Init(slides: FrameNode[]) {
-  
+
   // === 阶段一：暴力解绑 (Iterative Detach) ===
   // 只要还有 Instance，就一直循环处理，直到解绑干净
   for (const slide of slides) {
     let loopCount = 0;
-    
+
     // 初次扫描
     let instances = slide.findAll(n => n.type === 'INSTANCE');
-    
+
     while (instances.length > 0) {
       // 安全熔断机制：防止极个别情况下的死循环
       loopCount++;
@@ -3487,7 +4240,7 @@ async function pptStep1_Init(slides: FrameNode[]) {
 
       // 取出列表里的第一个实例
       const target = instances[0];
-      
+
       try {
         // 执行解绑
         // 注意：解绑后，target 这个变量就“死”了，不能再访问它的属性
@@ -3512,20 +4265,20 @@ async function pptStep1_Init(slides: FrameNode[]) {
     // === 新增：黑盒保护 ===
     // 如果名字以 p_img 开头，视为用户指定的整体图标，不清洗内部，直接跳过子级遍历
     if (node.name.toLowerCase().startsWith('p_img')) {
-      return; 
+      return;
     }
 
     // 1. 解锁
     if ('locked' in node && node.locked) {
         node.locked = false;
     }
-    
+
     // 2. 移除隐藏图层
     if ('visible' in node && !node.visible) {
       node.remove();
       return; // 删了就不用看子级了
     }
-    
+
     // 3. 移除 AutoLayout
     if (node.type === 'FRAME' && node.layoutMode !== 'NONE') {
       node.layoutMode = 'NONE';
@@ -3540,7 +4293,7 @@ async function pptStep1_Init(slides: FrameNode[]) {
 
   // 对所有 Slide 执行清洗
   slides.forEach(slide => traverse(slide));
-  
+
   // 通知 UI 完成
   figma.ui.postMessage({ type: 'step-done', step: 1 });
 }
@@ -3552,7 +4305,7 @@ async function pptStep2_Rasterize(slides: FrameNode[]) {
   const generateHexId = () => 'p_' + Math.random().toString(16).substring(2, 8);
 
   const isLineLike = (node: SceneNode) => {
-    if (node.type === 'LINE') return true; 
+    if (node.type === 'LINE') return true;
     if (node.type === 'VECTOR') {
       if (node.width < 2 || node.height < 2) return true;
       const ratio = node.width / node.height;
@@ -3564,10 +4317,10 @@ async function pptStep2_Rasterize(slides: FrameNode[]) {
   const traverse = async (node: SceneNode) => {
     if (node.removed || !node.visible) return;
     const name = node.name.toLowerCase();
-    
+
     const isUserTarget = name.startsWith('p_img');
     let isTechTarget = false;
-    
+
     if ('effects' in node && node.effects.some(e => e.type === 'LAYER_BLUR' && e.visible)) isTechTarget = true;
     else if (node.type === 'BOOLEAN_OPERATION') isTechTarget = true;
     else if (node.type === 'VECTOR' && !isLineLike(node)) isTechTarget = true;
@@ -3577,21 +4330,21 @@ async function pptStep2_Rasterize(slides: FrameNode[]) {
       try {
         const bytes = await node.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 3 } });
         const image = figma.createImage(bytes);
-        
+
         const rect = figma.createRectangle();
         rect.x = node.x; rect.y = node.y;
         rect.resize(node.width, node.height);
-        
+
         // === 使用 Hex ID 重命名 ===
-        rect.name = generateHexId(); 
-        
+        rect.name = generateHexId();
+
         rect.fills = [{ type: 'IMAGE', scaleMode: 'FIT', imageHash: image.hash }];
         rect.rotation = node.rotation;
-        
+
         node.parent?.insertChild(node.parent.children.indexOf(node), rect);
         node.remove();
         count++;
-        return; 
+        return;
       } catch (e) {}
     }
 
@@ -3607,7 +4360,7 @@ async function pptStep2_Rasterize(slides: FrameNode[]) {
 
 // Step 3: 深度扁平化 (修复混合属性导致的崩溃)
 async function pptStep3_Flatten(slides: FrameNode[]) {
-  
+
   for (const slide of slides) {
     let hasNested = true;
     let loopCount = 0; // 防止死循环保险丝
@@ -3615,7 +4368,7 @@ async function pptStep3_Flatten(slides: FrameNode[]) {
     while (hasNested) {
       hasNested = false;
       loopCount++;
-      
+
       // 如果层级太深(超过2000次循环)，强制休息一下，防止浏览器卡死
       if (loopCount % 100 === 0) {
         await new Promise(r => setTimeout(r, 20));
@@ -3631,52 +4384,52 @@ async function pptStep3_Flatten(slides: FrameNode[]) {
         // 如果不是容器(Group/Frame)，且视觉不可见，直接删除
         if (node.type !== 'GROUP' && node.type !== 'FRAME' && isNodeInvisible(node)) {
           node.remove();
-          continue; 
+          continue;
         }
 
         // 情况 A: Group -> 直接解散
         if (node.type === 'GROUP') {
           figma.ungroup(node);
           hasNested = true;
-        } 
+        }
         // 情况 B: Frame -> 转换为背景矩形(如需要) + 解散
         else if (node.type === 'FRAME') {
-          
+
           try {
             // 2. === 修改：判断是否生成背景 ===
             // 使用 isNodeInvisible 判断：如果不透明且有填充/描边，才生成背景矩形
             // 如果是透明容器，则跳过此步，直接进入下面的 ungroup
             if (!isNodeInvisible(node)) {
                const rect = figma.createRectangle();
-               rect.x = node.x; 
+               rect.x = node.x;
                rect.y = node.y;
                rect.resize(node.width, node.height);
-               
+
                // 复制样式
                if (node.fills !== figma.mixed) rect.fills = node.fills;
                if (node.strokes !== figma.mixed) rect.strokes = node.strokes;
-               
+
                // 安全复制粗细
                if (node.strokeWeight !== figma.mixed) rect.strokeWeight = node.strokeWeight;
-               else rect.strokeWeight = 0; 
-               
+               else rect.strokeWeight = 0;
+
                // 安全复制圆角
                if (node.cornerRadius !== figma.mixed) safeCornerRadius(rect, node.cornerRadius);
-               else safeCornerRadius(rect, 0); 
-               
+               else safeCornerRadius(rect, 0);
+
                // 复制特效
                if (node.effects !== figma.mixed) rect.effects = node.effects;
-               
+
                // 复制透明度
                rect.opacity = node.opacity;
 
                // === 关键修复：复制旋转角度 ===
-               rect.rotation = node.rotation; 
+               rect.rotation = node.rotation;
 
                // 将矩形插入到 Frame 所在位置
-               node.parent.insertChild(i, rect); 
+               node.parent.insertChild(i, rect);
             }
-            
+
             // 3. 处理子元素 (核心扁平化逻辑)
             if (node.children.length > 0) {
               figma.ungroup(node);
@@ -3713,7 +4466,7 @@ async function pptStep3_Flatten(slides: FrameNode[]) {
       }
     }
   }
-  
+
   figma.ui.postMessage({ type: 'step-done', step: 3 });
 }
 
@@ -3733,28 +4486,28 @@ async function pptStep4_Extract(slides: FrameNode[]) {
 
   for (let i = 0; i < slides.length; i++) {
     const slide = slides[i];
-    
+
     // 强制休息，释放上一页内存
     await new Promise(r => setTimeout(r, 50));
 
-    const slideAbs = slide.absoluteBoundingBox; 
+    const slideAbs = slide.absoluteBoundingBox;
     const slideX = slideAbs ? slideAbs.x : slide.x;
     const slideY = slideAbs ? slideAbs.y : slide.y;
 
-    figma.ui.postMessage({ 
-      type: 'ppt-start-slide', index: i, width: slide.width, height: slide.height 
+    figma.ui.postMessage({
+      type: 'ppt-start-slide', index: i, width: slide.width, height: slide.height
     });
 
     let chunkBuffer = [];
     const children = slide.children;
     // 已移除 imgCounter，不再需要
-    
+
     for (let j = 0; j < children.length; j++) {
       const node = children[j];
-      
+
       // 1. 基础过滤：只过滤不可见图层，保留所有尺寸的元素
       if (!node.visible) continue;
-      
+
       // 2. 获取位置：如果获取失败则跳过
       const nodeAbs = node.absoluteBoundingBox;
       if (!nodeAbs) continue;
@@ -3763,8 +4516,8 @@ async function pptStep4_Extract(slides: FrameNode[]) {
       const centerX = (nodeAbs.x + nodeAbs.width / 2) - slideX;
       const centerY = (nodeAbs.y + nodeAbs.height / 2) - slideY;
 
-      const el: any = { 
-        cx: centerX, cy: centerY, w: node.width, h: node.height, rotation: node.rotation 
+      const el: any = {
+        cx: centerX, cy: centerY, w: node.width, h: node.height, rotation: node.rotation
       };
 
       if ('opacity' in node) el.opacity = node.opacity;
@@ -3793,7 +4546,7 @@ async function pptStep4_Extract(slides: FrameNode[]) {
             };
           }
         }
-        
+
         let visibleFill = null;
         if ('fills' in node && node.fills !== figma.mixed && node.fills.length > 0) {
           visibleFill = node.fills.find(f => f.type === 'SOLID' && f.visible !== false && f.opacity > 0);
@@ -3810,27 +4563,27 @@ async function pptStep4_Extract(slides: FrameNode[]) {
 
         // A. 直线 & 连接线 (以及看起来像线的 Vector)
         const isLineLike = (node.type === 'LINE' || node.type === 'CONNECTOR');
-        
+
         if (isLineLike) {
           el.type = 'line';
-          
+
           if ('dashPattern' in node && node.dashPattern.length > 0) el.dashPattern = node.dashPattern;
-          
+
           const arrowCaps = ['ARROW_LINES', 'ARROW_EQUILATERAL', 'TRIANGLE_FILLED', 'TRIANGLE_WIRED', 'DIAMOND_FILLED', 'CIRCLE_FILLED'];
           if ('lineStartCap' in node && arrowCaps.includes(node.lineStartCap)) el.headArrow = 'triangle';
           if ('lineEndCap' in node && arrowCaps.includes(node.lineEndCap)) el.tailArrow = 'triangle';
-          
+
           // 必须要有一条可见的描边，否则跳过
           if (!el.strokeColor) continue;
-          
+
           chunkBuffer.push(el);
         }
 
         // B. 文本
         else if (node.type === 'TEXT') {
           el.type = 'text';
-          el.text = node.characters.substring(0, 2000); 
-          
+          el.text = node.characters.substring(0, 2000);
+
           // --- 1. 强制获取基准字号 ---
           let baseSize = 12;
           if (node.fontSize !== figma.mixed) {
@@ -3855,17 +4608,17 @@ async function pptStep4_Extract(slides: FrameNode[]) {
 
           // --- 3. 计算绝对像素值 ---
           // 默认 Auto = 1.3 倍
-          let finalPx = baseSize * 1.3; 
+          let finalPx = baseSize * 1.3;
 
           if (lh.unit === 'PIXELS') {
               finalPx = lh.value;
           } else if (lh.unit === 'PERCENT') {
               finalPx = baseSize * (lh.value / 100);
           }
-          
+
           // 存入变量
           el.lineHeightPx = finalPx;
-          
+
           // 4. 其他属性
           if (node.fontName !== figma.mixed) {
              el.fontFace = node.fontName.family;
@@ -3891,7 +4644,7 @@ async function pptStep4_Extract(slides: FrameNode[]) {
           if (node.textAlignVertical === 'CENTER') el.vAlignFigma = 'middle';
           else if (node.textAlignVertical === 'BOTTOM') el.vAlignFigma = 'bottom';
           else el.vAlignFigma = 'top';
-          
+
           if (!visibleFill) el.fillAlpha = el.opacity || 1;
           chunkBuffer.push(el);
         }
@@ -3899,18 +4652,18 @@ async function pptStep4_Extract(slides: FrameNode[]) {
         else if (node.type === 'RECTANGLE' && node.fills !== figma.mixed && node.fills.length > 0 && node.fills.some(p => p.type === 'IMAGE' && p.visible !== false)) {
           el.type = 'placeholder';
           // 直接使用图层名 (p_xxxxxx)
-          el.imageName = node.name; 
+          el.imageName = node.name;
           el.fillAlpha = el.opacity || 1;
           chunkBuffer.push(el);
         }
 
         // D. 形状 (矩形、圆、星形、多边形) - 排除 LINE/CONNECTOR
         else if (
-          node.type === 'RECTANGLE' || node.type === 'ELLIPSE' || 
-          node.type === 'VECTOR' || node.type === 'STAR' || 
+          node.type === 'RECTANGLE' || node.type === 'ELLIPSE' ||
+          node.type === 'VECTOR' || node.type === 'STAR' ||
           node.type === 'POLYGON' || node.type === 'BOOLEAN_OPERATION'
         ) {
-          el.type = 'shape'; 
+          el.type = 'shape';
           el.pptShape = 'rect'; // 默认
 
           if (node.type === 'ELLIPSE') el.pptShape = 'ellipse';
@@ -3926,7 +4679,7 @@ async function pptStep4_Extract(slides: FrameNode[]) {
               else if (c === 6) el.pptShape = 'hexagon';
               else if (c === 8) el.pptShape = 'octagon';
           }
-          
+
           if (!el.color && !el.strokeColor) continue;
           chunkBuffer.push(el);
         }
@@ -4005,16 +4758,16 @@ function isNodeInvisible(node: SceneNode): boolean {
 
   // 3. 样式检查：针对有 fills/strokes 的节点
   if ('fills' in node && 'strokes' in node) {
-    
+
     // 有效填充：存在 + 可见 + 不透明
-    const hasFill = node.fills !== figma.mixed && 
-                    node.fills.length > 0 && 
+    const hasFill = node.fills !== figma.mixed &&
+                    node.fills.length > 0 &&
                     node.fills.some(p => p.visible !== false && p.opacity > 0);
 
     // 有效描边：存在 + 粗细>0 + 可见 + 不透明
-    const hasStroke = node.strokes !== figma.mixed && 
-                      node.strokes.length > 0 && 
-                      node.strokeWeight > 0 && 
+    const hasStroke = node.strokes !== figma.mixed &&
+                      node.strokes.length > 0 &&
+                      node.strokeWeight > 0 &&
                       node.strokes.some(p => p.visible !== false && p.opacity > 0);
 
     // 如果既无有效填充，也无有效描边 -> 视为不可见 (忽略特效)
