@@ -46,7 +46,8 @@ const checks = [
   ['嵌套实例母版 ID 全部安全读取', main.includes('const safeMainComponentId =') && (main.match(/safeMainComponent\([^\n]+\)\?\.id/g) || []).length === 1],
   ['失效节点最终错误转为中文说明', main.includes('const describeReverseFailure =') && main.includes('组件仍包含已删除的节点引用')],
   ['选中变体优先保留当前实例覆盖', main.includes('const isSelectedVariant = sameComponentIdentity(sourceVariant, main)') && /if \(isSelectedVariant\) \{[\s\S]+buildReversedComponentWithMainFallback\(\s*source,\s*sourceVariant,/.test(main)],
-  ['全部真实变体一次合并', main.includes('mg.combineAsVariants(records.map(record => record.component))')],
+  ['全部真实变体一次合并', main.includes('const stagingComponents = records.map(record => record.component)')
+    && main.includes('mg.combineAsVariants(stagingComponents)')],
   ['变体数量与节点身份完整性校验', main.includes('validateRestoredVariantSet(set, records, warnings)') && main.includes('actualComponents.length !== records.length') && main.includes('actualIds.has(record.component.id)')],
   ['宿主名称规范化不再误判失败', !main.includes('const sameNames') && main.includes('名称不是稳定身份') && main.includes('已按组件节点身份确认全部变体完整')],
   ['无法证明完整性时拒绝伪组件集', main.includes('无法证明其他变体完整性') && main.includes('已停止生成伪组件集')],

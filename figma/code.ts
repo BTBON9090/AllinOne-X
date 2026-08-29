@@ -497,9 +497,31 @@ const reverseInstanceToMaster = async (source: InstanceNode) => {
     let target: ComponentNode | ComponentSetNode = selectedComponent;
     if (sourceSet) {
       try {
+        // 合并前先用紧凑网格摆放，避免 API 按原始绝对坐标生成数千像素宽的组件集。
+        const preColumns = Math.max(1, Math.ceil(Math.sqrt(created.length)));
+        const preMaxWidth = Math.max(...created.map(component => Math.max(1, component.width)));
+        const preMaxHeight = Math.max(...created.map(component => Math.max(1, component.height)));
+        created.forEach((component, index) => {
+          component.x = (index % preColumns) * (preMaxWidth + 24);
+          component.y = Math.floor(index / preColumns) * (preMaxHeight + 24);
+        });
         const set = figma.combineAsVariants(created, figma.currentPage);
         set.name = sourceSet.name || main.name || 'Reversed Component Set';
         builderCopyMetadata(sourceSet, set);
+        set.layoutMode = 'NONE';
+        const setComponents = set.children.filter(node => node.type === 'COMPONENT') as ComponentNode[];
+        const columns = Math.max(1, Math.ceil(Math.sqrt(setComponents.length)));
+        const maxWidth = Math.max(...setComponents.map(component => Math.max(1, component.width)));
+        const maxHeight = Math.max(...setComponents.map(component => Math.max(1, component.height)));
+        setComponents.forEach((component, index) => {
+          component.x = 24 + (index % columns) * (maxWidth + 24) + (maxWidth - component.width) / 2;
+          component.y = 24 + Math.floor(index / columns) * (maxHeight + 24) + (maxHeight - component.height) / 2;
+        });
+        const rows = Math.ceil(setComponents.length / columns);
+        set.resize(
+          48 + columns * maxWidth + Math.max(0, columns - 1) * 24,
+          48 + rows * maxHeight + Math.max(0, rows - 1) * 24
+        );
         target = set;
       } catch (error) {
         warnings.push(`组件集创建失败，已保留为单个组件：${String((error as any)?.message || error)}`);
@@ -713,18 +735,208 @@ const exposeBuilderProperties = async (
   return { textCount, instanceCount, warnings };
 };
 
+const buildComponentAiContext = (language = 'zh') => {
+  const selection = figma.currentPage.selection;
+  const selectedComponents = selection.filter(node => node.type === 'COMPONENT') as ComponentNode[];
+  const selectedSets = selection.filter(node => node.type === 'COMPONENT_SET') as ComponentSetNode[];
+  const valid = (selection.length === 1 && selectedSets.length === 1)
+    || (selection.length >= 1 && selection.length <= 10 && selectedComponents.length === selection.length);
+  if (!valid) throw new Error(language === 'en'
+    ? 'Select one component set or 1–10 standalone components.'
+    : '请选择 1 个组件集，或 1–10 个独立组件。');
+
+  const owners: Array<ComponentNode | ComponentSetNode> = selectedSets.length ? selectedSets : selectedComponents;
+  const issues: Array<{ code: string; severity: 'warning' | 'info'; targetId: string; message: string }> = [];
+  const selectedNameCounts = new Map<string, number>();
+  owners.forEach(owner => {
+    const key = owner.name.trim().toLocaleLowerCase();
+    selectedNameCounts.set(key, (selectedNameCounts.get(key) || 0) + 1);
+  });
+
+  const targets = owners.map(owner => {
+    const variants = owner.type === 'COMPONENT_SET'
+      ? owner.children.filter(node => node.type === 'COMPONENT') as ComponentNode[]
+      : [];
+    const values: Record<string, Set<string>> = {};
+    const signatures = new Map<string, string[]>();
+    const propertyPresence = new Map<string, number>();
+    variants.forEach(variant => {
+      const props = parseVariantName(variant.name);
+      const keys = Object.keys(props);
+      keys.forEach(key => {
+        if (!values[key]) values[key] = new Set<string>();
+        values[key].add(props[key]);
+        propertyPresence.set(key, (propertyPresence.get(key) || 0) + 1);
+      });
+      const signature = keys.sort().map(key => `${key.toLocaleLowerCase()}=${props[key].toLocaleLowerCase()}`).join('|');
+      const names = signatures.get(signature) || [];
+      names.push(variant.name);
+      signatures.set(signature, names);
+    });
+
+    signatures.forEach(names => {
+      if (names.length < 2) return;
+      issues.push({
+        code: 'duplicate-variant', severity: 'warning', targetId: owner.id,
+        message: language === 'en'
+          ? `${owner.name}: ${names.length} variants use the same property combination.`
+          : `${owner.name}：发现 ${names.length} 个属性组合重复的变体。`
+      });
+    });
+    propertyPresence.forEach((count, property) => {
+      if (variants.length > 0 && count < variants.length) {
+        issues.push({
+          code: 'missing-property', severity: 'warning', targetId: owner.id,
+          message: language === 'en'
+            ? `${owner.name}: “${property}” is missing from ${variants.length - count} variants.`
+            : `${owner.name}：属性“${property}”在 ${variants.length - count} 个变体中缺失。`
+        });
+      }
+    });
+    if (/^(component|组件|variant|变体)(\s*\d+)?$/i.test(owner.name.trim())) {
+      issues.push({
+        code: 'generic-name', severity: 'info', targetId: owner.id,
+        message: language === 'en' ? `${owner.name}: the name is too generic.` : `${owner.name}：名称过于宽泛。`
+      });
+    }
+    if ((selectedNameCounts.get(owner.name.trim().toLocaleLowerCase()) || 0) > 1) {
+      issues.push({
+        code: 'duplicate-name', severity: 'warning', targetId: owner.id,
+        message: language === 'en' ? `${owner.name}: duplicate selected component name.` : `${owner.name}：所选组件中存在重名。`
+      });
+    }
+
+    const definitions = (() => {
+      try { return owner.componentPropertyDefinitions || {}; } catch (_) { return {}; }
+    })();
+    const propertyDefinitions = Object.entries(definitions).map(([key, definition]) => ({
+      key,
+      name: key.split('#')[0],
+      type: definition.type,
+      defaultValue: 'defaultValue' in definition ? String(definition.defaultValue) : ''
+    }));
+    const propertyValues = Object.fromEntries(
+      Object.entries(values).map(([key, set]) => [key, Array.from(set).slice(0, 24)])
+    );
+    return {
+      id: owner.id,
+      type: owner.type,
+      name: owner.name,
+      description: (() => { try { return owner.description || ''; } catch (_) { return ''; } })(),
+      propertyDefinitions,
+      propertyValues,
+      variantCount: variants.length,
+      variantNames: variants.slice(0, 40).map(variant => variant.name),
+      variantsTruncated: Math.max(0, variants.length - 40)
+    };
+  });
+
+  return { platform: 'figma', language, selectionIds: owners.map(owner => owner.id), targets, issues };
+};
+
+const applyComponentAiPlan = async (plan: any) => {
+  const selection = figma.currentPage.selection;
+  const allowedIds = new Set(selection.map(node => node.id));
+  const selectedComponents = selection.filter(node => node.type === 'COMPONENT');
+  const selectedSets = selection.filter(node => node.type === 'COMPONENT_SET');
+  const valid = (selection.length === 1 && selectedSets.length === 1)
+    || (selection.length >= 1 && selection.length <= 10 && selectedComponents.length === selection.length);
+  if (!valid) throw new Error('当前选择已变化，请重新分析后再应用');
+
+  let changed = 0;
+  const warnings: string[] = [];
+  const targetPlans = Array.isArray(plan?.targets) ? plan.targets.slice(0, 10) : [];
+  const desiredNameCounts = new Map<string, number>();
+  targetPlans.forEach((targetPlan: any) => {
+    const key = String(targetPlan?.name || '').trim().toLocaleLowerCase();
+    if (key) desiredNameCounts.set(key, (desiredNameCounts.get(key) || 0) + 1);
+  });
+  for (const targetPlan of targetPlans) {
+    const id = String(targetPlan?.id || '');
+    if (!allowedIds.has(id)) continue;
+    const owner = await figma.getNodeByIdAsync(id);
+    if (!owner || (owner.type !== 'COMPONENT' && owner.type !== 'COMPONENT_SET')) continue;
+
+    const nextName = String(targetPlan.name || '').trim().slice(0, 120);
+    const description = String(targetPlan.description || '').trim().slice(0, 1000);
+    if (nextName && nextName !== owner.name) {
+      if ((desiredNameCounts.get(nextName.toLocaleLowerCase()) || 0) > 1) warnings.push(`方案中的组件名“${nextName}”重复，已跳过`);
+      else { owner.name = nextName; changed++; }
+    }
+    if (description) {
+      try { owner.description = description; changed++; } catch (_) { warnings.push(`${owner.name} 的描述无法写入`); }
+    }
+
+    if (owner.type === 'COMPONENT_SET') {
+      const valueRenames = Array.isArray(targetPlan.valueRenames) ? targetPlan.valueRenames.slice(0, 120) : [];
+      for (const rename of valueRenames) {
+        const property = String(rename?.property || '').trim();
+        const from = String(rename?.from || '').trim();
+        const to = String(rename?.to || '').trim().replace(/[,=]/g, ' ').slice(0, 80);
+        if (!property || !from || !to || from === to) continue;
+        const existingValues = new Set(
+          owner.children.filter(node => node.type === 'COMPONENT')
+            .map(node => parseVariantName(node.name)[property])
+            .filter(Boolean)
+        );
+        if (existingValues.has(to)) {
+          warnings.push(`${owner.name} 的属性“${property}”已存在值“${to}”，为避免重复变体已跳过`);
+          continue;
+        }
+        owner.children.filter(node => node.type === 'COMPONENT').forEach(node => {
+          const component = node as ComponentNode;
+          const parts = component.name.split(',').map(part => part.trim()).filter(Boolean);
+          let touched = false;
+          const updated = parts.map(part => {
+            const eq = part.indexOf('=');
+            if (eq < 0) return part;
+            const key = part.slice(0, eq).trim();
+            const value = part.slice(eq + 1).trim();
+            if (key === property && value === from) { touched = true; return `${key}=${to}`; }
+            return part;
+          });
+          if (touched) { component.name = updated.join(', '); changed++; }
+        });
+      }
+    }
+
+    const propertyRenames = Array.isArray(targetPlan.propertyRenames) ? targetPlan.propertyRenames.slice(0, 40) : [];
+    for (const rename of propertyRenames) {
+      const from = String(rename?.from || '').trim();
+      const to = String(rename?.to || '').trim().replace(/[,=]/g, ' ').slice(0, 80);
+      if (!from || !to || from === to) continue;
+      const definitions = owner.componentPropertyDefinitions || {};
+      const key = Object.keys(definitions).find(candidate => candidate === from || candidate.split('#')[0] === from);
+      if (!key) { warnings.push(`${owner.name} 中未找到属性“${from}”`); continue; }
+      const hasNameCollision = Object.keys(definitions).some(candidate => candidate !== key && candidate.split('#')[0].toLocaleLowerCase() === to.toLocaleLowerCase());
+      if (hasNameCollision) { warnings.push(`${owner.name} 中已存在属性“${to}”，已跳过`); continue; }
+      try { owner.editComponentProperty(key, { name: to }); changed++; }
+      catch (_) { warnings.push(`${owner.name} 的属性“${from}”无法重命名`); }
+    }
+  }
+  return { changed, warnings };
+};
+
 const sendComponentBuilderSelection = () => {
   const selection = figma.currentPage.selection;
   const frames = selection.filter(node => node.type === 'FRAME');
   const instances = selection.filter(node => node.type === 'INSTANCE');
+  const components = selection.filter(node => node.type === 'COMPONENT');
+  const componentSets = selection.filter(node => node.type === 'COMPONENT_SET');
+  const canOptimize = (selection.length === 1 && componentSets.length === 1)
+    || (selection.length >= 1 && selection.length <= 10 && components.length === selection.length);
   figma.ui.postMessage({
     type: 'component-builder-selection',
     total: selection.length,
     frames: frames.length,
     instances: instances.length,
+    components: components.length,
+    componentSets: componentSets.length,
+    canOptimize,
     canReverse: selection.length === 1 && instances.length === 1,
     canBuild: selection.length > 0 && frames.length === selection.length,
     sameParent: selection.length > 0 && selection.every(node => node.parent === selection[0].parent),
+    selectionIds: selection.map(node => node.id),
     names: selection.slice(0, 4).map(node => node.name)
   });
 };
@@ -2944,6 +3156,32 @@ figma.ui.onmessage = async (msg) => {
       break;
     }
 
+    case 'component-ai-inspect': {
+      try {
+        figma.ui.postMessage({ type: 'component-ai-context', context: buildComponentAiContext(msg.language || 'zh') });
+      } catch (error) {
+        figma.ui.postMessage({ type: 'component-ai-error', message: String((error as any)?.message || error) });
+      }
+      break;
+    }
+
+    case 'component-ai-apply': {
+      try {
+        const result = await applyComponentAiPlan(msg.plan);
+        figma.currentPage.selection = figma.currentPage.selection;
+        figma.commitUndo();
+        const message = `已应用 ${result.changed} 项组件规范优化${result.warnings.length ? `；${result.warnings.length} 项未能修改` : ''}`;
+        figma.notify(message);
+        figma.ui.postMessage({ type: 'component-ai-applied', ok: true, message, warnings: result.warnings });
+        sendComponentBuilderSelection();
+      } catch (error) {
+        const message = `应用失败：${String((error as any)?.message || error)}`;
+        figma.notify(message, { error: true });
+        figma.ui.postMessage({ type: 'component-ai-applied', ok: false, message });
+      }
+      break;
+    }
+
     case 'component-builder-reverse': {
       if (selection.length !== 1 || selection[0].type !== 'INSTANCE') {
         const message = '请只选择一个实例（Instance）后再逆向母版';
@@ -3270,7 +3508,9 @@ figma.ui.onmessage = async (msg) => {
       // 5. 设定间距和单元格尺寸
       const cellWidth = maxWidth + gapX;
       const cellHeight = hasY ? maxHeight + gapY : 0;
-      const singleGroupHeight = yArray.length * cellHeight;
+      const singleGroupHeight = hasY
+        ? yArray.length * maxHeight + Math.max(0, yArray.length - 1) * gapY
+        : maxHeight;
 
       // 6. 关闭 Component Set 的自动布局
       componentSet.layoutMode = "NONE";
@@ -3285,18 +3525,18 @@ figma.ui.onmessage = async (msg) => {
         const groupIndex = groups.indexOf(gSign);
 
         if (colIndex !== -1 && rowIndex !== -1 && groupIndex !== -1) {
-          const groupOffsetY = groupIndex * (singleGroupHeight + (hasY ? 80 : 0));
-          v.x = padding + colIndex * cellWidth + (cellWidth - v.width) / 2;
+          const groupOffsetY = groupIndex * (singleGroupHeight + (hasY ? gapY : 0));
+          v.x = padding + colIndex * cellWidth + (maxWidth - v.width) / 2;
           v.y = hasY
-            ? padding + groupOffsetY + rowIndex * cellHeight + (cellHeight - v.height) / 2
+            ? padding + groupOffsetY + rowIndex * cellHeight + (maxHeight - v.height) / 2
             : padding + (maxHeight - v.height) / 2; // 1D 垂直居中
         }
       });
 
       // 8. 重置 Component Set 的总宽高
-      const totalWidth = padding * 2 + xArray.length * cellWidth;
+      const totalWidth = padding * 2 + xArray.length * maxWidth + Math.max(0, xArray.length - 1) * gapX;
       const totalHeight = hasY
-        ? padding * 2 + groups.length * singleGroupHeight + Math.max(0, groups.length - 1) * 80
+        ? padding * 2 + groups.length * singleGroupHeight + Math.max(0, groups.length - 1) * gapY
         : padding * 2 + maxHeight;
       componentSet.resize(totalWidth, totalHeight);
 
@@ -3309,12 +3549,14 @@ figma.ui.onmessage = async (msg) => {
 
     // 批量排布：多个组件集统一排列
     case 'generate-batch-showcase': {
-      const gapX = msg.gapX !== undefined ? msg.gapX : 48;
-      const gapY = msg.gapY !== undefined ? msg.gapY : 48;
-      const padding = msg.padding !== undefined ? msg.padding : 32;
-      const setSpacing = msg.setSpacing !== undefined ? msg.setSpacing : 80;
+      const gapX = msg.gapX !== undefined ? msg.gapX : 16;
+      const gapY = msg.gapY !== undefined ? msg.gapY : 16;
+      const padding = msg.padding !== undefined ? msg.padding : 20;
+      const setSpacing = msg.setSpacing !== undefined ? msg.setSpacing : 32;
       const drawLabels = msg.drawLabels !== false;
       const drawGrid = msg.drawGrid !== false;
+      const orientation = msg.orientation === 'portrait' ? 'portrait' : 'landscape';
+      const isDark = msg.theme === 'dark';
 
       const selection = figma.currentPage.selection;
       // 从选中项中提取组件集（支持直接选中 ComponentSet 或已生成的说明书画板）
@@ -3344,14 +3586,17 @@ figma.ui.onmessage = async (msg) => {
 
       // 外层容器 Frame
       const container = figma.createFrame();
-      container.name = "🧩 Batch Layout";
-      container.layoutMode = "VERTICAL";
+      container.name = "🧩 Component Specs Catalog";
+      container.setPluginData('isShowcaseBoard', 'true');
+      container.layoutMode = orientation === 'portrait' ? "VERTICAL" : "HORIZONTAL";
       container.primaryAxisSizingMode = "AUTO";
       container.counterAxisSizingMode = "AUTO";
       container.itemSpacing = setSpacing;
-      container.paddingLeft = 60; container.paddingRight = 60;
-      container.paddingTop = 60; container.paddingBottom = 60;
-      container.fills = [];
+      container.paddingLeft = 32; container.paddingRight = 32;
+      container.paddingTop = 32; container.paddingBottom = 32;
+      container.fills = [{ type: 'SOLID', color: isDark
+        ? { r: 17/255, g: 24/255, b: 39/255 }
+        : { r: 249/255, g: 250/255, b: 251/255 } }];
 
       let maxSetWidth = 0;
 
@@ -3407,7 +3652,9 @@ figma.ui.onmessage = async (msg) => {
 
         const cellW = maxW + gapX;
         const cellH = localHasY ? maxH + gapY : 0;
-        const groupH = yArray.length * cellH;
+        const groupH = localHasY
+          ? yArray.length * maxH + Math.max(0, yArray.length - 1) * gapY
+          : maxH;
 
         // 排列变体
         componentSet.layoutMode = "NONE";
@@ -3419,14 +3666,14 @@ figma.ui.onmessage = async (msg) => {
           const groupIndex = groups.indexOf(gSign);
 
           if (colIndex !== -1 && rowIndex !== -1 && groupIndex !== -1) {
-            const offY = groupIndex * (groupH + (localHasY ? 80 : 0));
-            v.x = padding + colIndex * cellW + (cellW - v.width) / 2;
-            v.y = localHasY ? padding + offY + rowIndex * cellH + (cellH - v.height) / 2 : padding + (maxH - v.height) / 2;
+            const offY = groupIndex * (groupH + (localHasY ? gapY : 0));
+            v.x = padding + colIndex * cellW + (maxW - v.width) / 2;
+            v.y = localHasY ? padding + offY + rowIndex * cellH + (maxH - v.height) / 2 : padding + (maxH - v.height) / 2;
           }
         });
 
-        const csWidth = padding * 2 + xArray.length * cellW;
-        const csHeight = localHasY ? padding * 2 + groups.length * groupH + Math.max(0, groups.length - 1) * 80 : padding * 2 + maxH;
+        const csWidth = padding * 2 + xArray.length * maxW + Math.max(0, xArray.length - 1) * gapX;
+        const csHeight = localHasY ? padding * 2 + groups.length * groupH + Math.max(0, groups.length - 1) * gapY : padding * 2 + maxH;
         componentSet.resize(csWidth, csHeight);
 
         if (csWidth > maxSetWidth) maxSetWidth = csWidth;
@@ -3444,7 +3691,9 @@ figma.ui.onmessage = async (msg) => {
         const titleText = figma.createText();
         titleText.characters = componentSet.name;
         titleText.fontSize = 20; titleText.fontName = { family: "Inter", style: "Bold" };
-        titleText.fills = [{ type: 'SOLID', color: { r: 17/255, g: 24/255, b: 39/255 } }];
+        titleText.fills = [{ type: 'SOLID', color: isDark
+          ? { r: 243/255, g: 244/255, b: 246/255 }
+          : { r: 17/255, g: 24/255, b: 39/255 } }];
         setGroup.appendChild(titleText);
 
         // 内部包装块（组件集 + 标签/网格）
@@ -3474,14 +3723,14 @@ figma.ui.onmessage = async (msg) => {
             label.characters = `${localPropX}: ${xVal}`.toUpperCase();
             label.fontSize = 12; label.fontName = { family: "Inter", style: "Semi Bold" };
             label.fills = [{ type: 'SOLID', color: { r: 107/255, g: 114/255, b: 128/255 } }];
-            label.x = componentSet.x + padding + index * cellW + cellW / 2 - label.width / 2;
+            label.x = componentSet.x + padding + index * cellW + maxW / 2 - label.width / 2;
             label.y = componentSet.y - 32;
             innerBlock.appendChild(label); decorationNodes.push(label);
           });
         }
 
         groups.forEach((gSign, gIndex) => {
-          const gAbsY = componentSet.y + padding + gIndex * (groupH + (localHasY ? 80 : 0));
+          const gAbsY = componentSet.y + padding + gIndex * (groupH + (localHasY ? gapY : 0));
 
           // Y 轴标签（仅二维）
           if (localHasY && drawLabels) {
@@ -3491,7 +3740,7 @@ figma.ui.onmessage = async (msg) => {
               label.fontSize = 12; label.fontName = { family: "Inter", style: "Semi Bold" };
               label.fills = [{ type: 'SOLID', color: { r: 156/255, g: 163/255, b: 175/255 } }];
               label.x = componentSet.x - label.width - 16;
-              label.y = gAbsY + rowIndex * cellH + cellH / 2 - label.height / 2;
+              label.y = gAbsY + rowIndex * cellH + maxH / 2 - label.height / 2;
               innerBlock.appendChild(label); decorationNodes.push(label);
             });
           }
@@ -3501,7 +3750,7 @@ figma.ui.onmessage = async (msg) => {
             if (localHasY) {
               for (let r = 1; r < yArray.length; r++) {
                 const line = figma.createLine(); line.resize(xArray.length * cellW, 0);
-                line.x = componentSet.x + padding; line.y = gAbsY + r * cellH;
+                line.x = componentSet.x + padding; line.y = gAbsY + r * cellH - gapY / 2;
                 line.dashPattern = [4, 4]; line.strokeWeight = 1;
                 line.strokes = [{ type: 'SOLID', color: { r: 0.9, g: 0.92, b: 0.94 } }];
                 innerBlock.appendChild(line); decorationNodes.push(line);
@@ -3510,7 +3759,7 @@ figma.ui.onmessage = async (msg) => {
             for (let c = 1; c < xArray.length; c++) {
               const lineH = localHasY ? groupH : csHeight - padding * 2;
               const line = figma.createLine(); line.resize(lineH, 0); line.rotation = -90;
-              line.x = componentSet.x + padding + c * cellW; line.y = gAbsY + (localHasY ? 0 : padding);
+              line.x = componentSet.x + padding + c * cellW - gapX / 2; line.y = gAbsY + (localHasY ? 0 : padding);
               line.dashPattern = [4, 4]; line.strokeWeight = 1;
               line.strokes = [{ type: 'SOLID', color: { r: 0.9, g: 0.92, b: 0.94 } }];
               innerBlock.appendChild(line); decorationNodes.push(line);
@@ -3533,6 +3782,24 @@ figma.ui.onmessage = async (msg) => {
       container.x = centerX - 200;
       container.y = centerY - 200;
 
+      // 组件集作为最外层说明书画板的直接子项，保留占位与装饰但缩短资产引用路径。
+      const containerBounds = container.absoluteBoundingBox;
+      const directPlacements = compSets.map(componentSet => ({
+        componentSet,
+        bounds: componentSet.absoluteBoundingBox
+      }));
+      if (containerBounds) {
+        directPlacements.forEach(({ componentSet, bounds }) => {
+          if (!bounds || componentSet.removed) return;
+          container.appendChild(componentSet);
+          try { (componentSet as any).layoutPositioning = 'ABSOLUTE'; } catch (_) {}
+          componentSet.x = bounds.x - containerBounds.x;
+          componentSet.y = bounds.y - containerBounds.y;
+        });
+      }
+      figma.currentPage.selection = [container];
+      figma.viewport.scrollAndZoomIntoView([container]);
+
       figma.notify(`✅ 批量排布完成！共 ${compSets.length} 个组件集`);
       break;
     }
@@ -3541,18 +3808,18 @@ figma.ui.onmessage = async (msg) => {
     case 'generate-showcase': {
       const propX = msg.propX;
       const propY = msg.propY || ''; // propY 可以为空（单属性组件集）
-      const padding = msg.padding !== undefined ? msg.padding : 32;
-      const gapX = msg.gapX !== undefined ? msg.gapX : 48;
-      const gapY = msg.gapY !== undefined ? msg.gapY : 48;
-      const groupGap = msg.groupGap !== undefined ? msg.groupGap : 120;
+      const padding = msg.padding !== undefined ? msg.padding : 20;
+      const gapX = msg.gapX !== undefined ? msg.gapX : 16;
+      const gapY = msg.gapY !== undefined ? msg.gapY : 16;
+      const groupGap = msg.groupGap !== undefined ? msg.groupGap : 32;
       const compRadius = msg.compRadius !== undefined ? msg.compRadius : 0;
       const compStroke = msg.compStroke !== undefined ? msg.compStroke : 1;
       const compStrokeColor = msg.compStrokeColor || { r: 140/255, g: 91/255, b: 212/255 };
       const gridLineWidth = msg.gridLineWidth !== undefined ? msg.gridLineWidth : 1;
       const gridLineColor = msg.gridLineColor || { r: 0.9, g: 0.92, b: 0.94 };
-      const boardRadius = msg.boardRadius !== undefined ? msg.boardRadius : 24;
-      const boardPaddingX = msg.boardPaddingX !== undefined ? msg.boardPaddingX : 140;
-      const boardPaddingY = msg.boardPaddingY !== undefined ? msg.boardPaddingY : 160;
+      const boardRadius = msg.boardRadius !== undefined ? msg.boardRadius : 12;
+      const boardPaddingX = msg.boardPaddingX !== undefined ? msg.boardPaddingX : 48;
+      const boardPaddingY = msg.boardPaddingY !== undefined ? msg.boardPaddingY : 56;
       const boardBg = msg.boardBg || { r: 249/255, g: 250/255, b: 251/255 };
 
       const drawGrid = msg.drawGrid !== false;
@@ -3565,7 +3832,13 @@ figma.ui.onmessage = async (msg) => {
       const designer = msg.designer || '';
       const usagePage = msg.usagePage || '';
       const aiGeneratedDescription = msg.aiGeneratedDescription || '';
-      const itemSpacing = msg.itemSpacing !== undefined ? msg.itemSpacing : 48;
+      const itemSpacing = msg.itemSpacing !== undefined ? msg.itemSpacing : 24;
+      const orientation = msg.orientation === 'portrait' ? 'portrait' : 'landscape';
+      const isDark = msg.theme === 'dark';
+      const themeText: RGB = isDark ? { r: 243/255, g: 244/255, b: 246/255 } : { r: 17/255, g: 24/255, b: 39/255 };
+      const themeMuted: RGB = isDark ? { r: 156/255, g: 163/255, b: 175/255 } : { r: 75/255, g: 85/255, b: 99/255 };
+      const themeSurface: RGB = isDark ? { r: 31/255, g: 41/255, b: 55/255 } : { r: 1, g: 1, b: 1 };
+      const themeBorder: RGB = isDark ? { r: 55/255, g: 65/255, b: 81/255 } : { r: 229/255, g: 231/255, b: 235/255 };
 
       const selection = figma.currentPage.selection;
       let targetNode: ComponentSetNode | null = null;
@@ -3638,7 +3911,9 @@ figma.ui.onmessage = async (msg) => {
       });
 
       const cellWidth = maxWidth + gapX; const cellHeight = hasY ? maxHeight + gapY : 0;
-      const singleGroupHeight = yArray.length * cellHeight;
+      const singleGroupHeight = hasY
+        ? yArray.length * maxHeight + Math.max(0, yArray.length - 1) * gapY
+        : maxHeight;
 
       // 调整内部定位
       componentSet.layoutMode = "NONE";
@@ -3666,14 +3941,14 @@ figma.ui.onmessage = async (msg) => {
 
         if (colIndex !== -1 && rowIndex !== -1 && groupIndex !== -1) {
           const groupOffsetY = groupIndex * (singleGroupHeight + groupGap);
-          v.x = padding + colIndex * cellWidth + (cellWidth - v.width) / 2;
+          v.x = padding + colIndex * cellWidth + (maxWidth - v.width) / 2;
           v.y = hasY
-            ? padding + groupOffsetY + rowIndex * cellHeight + (cellHeight - v.height) / 2
+            ? padding + groupOffsetY + rowIndex * cellHeight + (maxHeight - v.height) / 2
             : padding + (maxHeight - v.height) / 2; // 单属性：垂直居中
         }
       });
 
-      const compSetWidth = padding * 2 + xArray.length * cellWidth;
+      const compSetWidth = padding * 2 + xArray.length * maxWidth + Math.max(0, xArray.length - 1) * gapX;
       const compSetHeight = hasY
         ? padding * 2 + groups.length * singleGroupHeight + Math.max(0, groups.length - 1) * groupGap
         : padding * 2 + maxHeight;
@@ -3681,7 +3956,11 @@ figma.ui.onmessage = async (msg) => {
 
       // ================= 视觉绘制层 =================
       // 计算自适应宽度，为两旁留出呼吸空间
-      const boardWidth = compSetWidth + boardPaddingX * 2 + (drawLabels && hasY ? 120 : 0);
+      const minimumBoardWidth = orientation === 'portrait' ? 720 : 1120;
+      const boardWidth = Math.max(
+        compSetWidth + boardPaddingX * 2 + (drawLabels && hasY ? 120 : 0),
+        minimumBoardWidth
+      );
 
       const boardFrame = figma.createFrame();
       boardFrame.name = `📚 ${componentSet.name} Specs`;
@@ -3691,7 +3970,7 @@ figma.ui.onmessage = async (msg) => {
 
       // 定位修正：如果是新生成，向左向上抵消偏移，让组件集永远留在用户点击的原位上
       boardFrame.x = isReedit ? baseX : (baseX - boardPaddingX - (drawLabels && hasY ? 120 : 0));
-      boardFrame.y = isReedit ? baseY : (baseY - boardPaddingY - 330);
+      boardFrame.y = isReedit ? baseY : (baseY - boardPaddingY - 96);
 
       // 顶级画板：开启自动布局
       boardFrame.layoutMode = "VERTICAL";
@@ -3746,8 +4025,8 @@ figma.ui.onmessage = async (msg) => {
       const title = figma.createText();
       title.name = "Component Title";
       title.characters = titleText;
-      title.fontSize = 64; title.fontName = { family: "Inter", style: "Bold" };
-      title.fills = [{ type: 'SOLID', color: { r: 17/255, g: 24/255, b: 39/255 } }];
+      title.fontSize = 36; title.fontName = { family: "Inter", style: "Bold" };
+      title.fills = [{ type: 'SOLID', color: themeText }];
       headerFrame.appendChild(title);
       title.layoutSizingHorizontal = "FILL";
       title.layoutSizingVertical = "HUG";
@@ -3764,7 +4043,7 @@ figma.ui.onmessage = async (msg) => {
       const badge = figma.createFrame();
       badge.name = `Status: ${status.toUpperCase()}`;
       badge.layoutMode = "HORIZONTAL";
-      badge.paddingLeft = 16; badge.paddingRight = 16; badge.paddingTop = 10; badge.paddingBottom = 10;
+      badge.paddingLeft = 12; badge.paddingRight = 12; badge.paddingTop = 7; badge.paddingBottom = 7;
       safeCornerRadius(badge, 8);
       const statusInfo = statusConfig[status] || statusConfig['approved'];
       badge.fills = [{ type: 'SOLID', color: statusInfo.bg }];
@@ -3772,7 +4051,7 @@ figma.ui.onmessage = async (msg) => {
       const badgeText = figma.createText();
       badgeText.name = "Status Text";
       badgeText.characters = language === 'zh' ? statusInfo.label : statusInfo.labelEn;
-      badgeText.fontSize = 20; badgeText.fontName = { family: "Inter", style: "Bold" };
+      badgeText.fontSize = 12; badgeText.fontName = { family: "Inter", style: "Bold" };
       badgeText.fills = [{ type: 'SOLID', color: statusInfo.text }];
       badge.appendChild(badgeText);
       headerFrame.appendChild(badge);
@@ -3783,16 +4062,16 @@ figma.ui.onmessage = async (msg) => {
       const metaCard = figma.createFrame();
       metaCard.name = "Metadata Spec Card";
       metaCard.layoutMode = "VERTICAL";
-      metaCard.itemSpacing = 12;
-      metaCard.paddingLeft = 24; metaCard.paddingRight = 24; metaCard.paddingTop = 20; metaCard.paddingBottom = 20;
+      metaCard.itemSpacing = 8;
+      metaCard.paddingLeft = 16; metaCard.paddingRight = 16; metaCard.paddingTop = 14; metaCard.paddingBottom = 14;
       safeCornerRadius(metaCard, 12);
-      metaCard.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }]; // 精美的白卡片背景
-      metaCard.strokes = [{ type: 'SOLID', color: { r: 229/255, g: 231/255, b: 235/255 } }];
+      metaCard.fills = [{ type: 'SOLID', color: themeSurface }];
+      metaCard.strokes = [{ type: 'SOLID', color: themeBorder }];
       boardFrame.appendChild(metaCard);
       metaCard.layoutSizingHorizontal = "FILL";
       metaCard.layoutSizingVertical = "HUG";
 
-      let aiDesc: { componentName?: string; usage?: string; properties?: string; variants?: string } | null = null;
+      let aiDesc: { componentName?: string; usage?: string; properties?: string; propertyDescriptions?: Record<string, string>; do?: string; dont?: string } | null = null;
       if (aiGeneratedDescription) {
         try { aiDesc = JSON.parse(aiGeneratedDescription); } catch (e) { console.error('Failed to parse AI description:', e); }
       }
@@ -3803,7 +4082,7 @@ figma.ui.onmessage = async (msg) => {
         textNode.characters = content;
         textNode.fontSize = isHeader ? 14 : 13;
         textNode.fontName = { family: "Inter", style: isHeader ? "Semi Bold" : "Regular" };
-        textNode.fills = [{ type: 'SOLID', color: isHeader ? { r: 31/255, g: 41/255, b: 55/255 } : { r: 107/255, g: 114/255, b: 128/255 } }];
+        textNode.fills = [{ type: 'SOLID', color: isHeader ? themeText : themeMuted }];
         metaCard.appendChild(textNode);
         textNode.layoutSizingHorizontal = "FILL";
         textNode.layoutSizingVertical = "HUG";
@@ -3871,10 +4150,11 @@ figma.ui.onmessage = async (msg) => {
       const matrixStage = figma.createFrame();
       matrixStage.name = "Matrix Stage";
       matrixStage.layoutMode = "VERTICAL";
-      matrixStage.paddingLeft = 40; matrixStage.paddingRight = 40; matrixStage.paddingTop = 40; matrixStage.paddingBottom = 40;
-      safeCornerRadius(matrixStage, 16);
-      matrixStage.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }]; // 精美的纯白舞台背景
-      matrixStage.strokes = [{ type: 'SOLID', color: { r: 229/255, g: 231/255, b: 235/255 } }];
+      matrixStage.paddingLeft = 24; matrixStage.paddingRight = 24; matrixStage.paddingTop = 24; matrixStage.paddingBottom = 24;
+      safeCornerRadius(matrixStage, 12);
+      matrixStage.fills = [{ type: 'SOLID', color: themeSurface }];
+      matrixStage.strokes = [{ type: 'SOLID', color: themeBorder }];
+      matrixStage.counterAxisAlignItems = "CENTER";
       boardFrame.appendChild(matrixStage);
       matrixStage.layoutSizingHorizontal = "FILL";
       matrixStage.layoutSizingVertical = "HUG";
@@ -3907,7 +4187,7 @@ figma.ui.onmessage = async (msg) => {
           label.characters = `${propX}: ${xVal}`.toUpperCase();
           label.fontSize = 12; label.fontName = { family: "Inter", style: "Semi Bold" };
           label.fills = [{ type: 'SOLID', color: { r: 107/255, g: 114/255, b: 128/255 } }];
-          label.x = componentSet.x + padding + index * cellWidth + cellWidth / 2 - label.width / 2;
+          label.x = componentSet.x + padding + index * cellWidth + maxWidth / 2 - label.width / 2;
           label.y = componentSet.y - 32;
           componentArea.appendChild(label); matrixNodes.push(label);
         });
@@ -3936,7 +4216,7 @@ figma.ui.onmessage = async (msg) => {
             label.fontSize = 12; label.fontName = { family: "Inter", style: "Semi Bold" };
             label.fills = [{ type: 'SOLID', color: { r: 156/255, g: 163/255, b: 175/255 } }];
             label.x = componentSet.x - label.width - 24;
-            label.y = groupAbsoluteY + rowIndex * cellHeight + cellHeight / 2 - label.height / 2;
+            label.y = groupAbsoluteY + rowIndex * cellHeight + maxHeight / 2 - label.height / 2;
             componentArea.appendChild(label); matrixNodes.push(label);
           });
         }
@@ -3946,7 +4226,7 @@ figma.ui.onmessage = async (msg) => {
           if (hasY) {
             for (let r = 1; r < yArray.length; r++) {
               const line = figma.createLine(); line.resize(xArray.length * cellWidth, 0);
-              line.x = componentSet.x + padding; line.y = groupAbsoluteY + r * cellHeight;
+              line.x = componentSet.x + padding; line.y = groupAbsoluteY + r * cellHeight - gapY / 2;
               line.dashPattern = [4, 4]; line.strokeWeight = gridLineWidth; line.strokes = [{ type: 'SOLID', color: gridLineColor }];
               componentArea.appendChild(line); matrixNodes.push(line);
             }
@@ -3955,7 +4235,7 @@ figma.ui.onmessage = async (msg) => {
           for (let c = 1; c < xArray.length; c++) {
             const lineHeight = hasY ? singleGroupHeight : compSetHeight - padding * 2;
             const line = figma.createLine(); line.resize(lineHeight, 0); line.rotation = -90;
-            line.x = componentSet.x + padding + c * cellWidth; line.y = groupAbsoluteY + (hasY ? 0 : padding);
+            line.x = componentSet.x + padding + c * cellWidth - gapX / 2; line.y = groupAbsoluteY + (hasY ? 0 : padding);
             line.dashPattern = [4, 4]; line.strokeWeight = gridLineWidth; line.strokes = [{ type: 'SOLID', color: gridLineColor }];
             componentArea.appendChild(line); matrixNodes.push(line);
           }
@@ -3967,6 +4247,25 @@ figma.ui.onmessage = async (msg) => {
         matrixGroup.name = "Matrix Decorations";
       }
 
+      const describeVariantProperty = (prop: string, values: string[]) => {
+        const key = prop.toLocaleLowerCase();
+        const joined = values.slice(0, 6).join(language === 'zh' ? '、' : ', ');
+        const semantic = /size|尺寸|scale/.test(key)
+          ? (language === 'zh' ? '控制组件的尺寸层级与使用密度。' : 'Controls component scale and interface density.')
+          : /state|status|状态|interaction/.test(key)
+            ? (language === 'zh' ? '描述组件在交互流程中的状态。' : 'Describes the component state in an interaction flow.')
+            : /theme|mode|主题|模式|appearance/.test(key)
+              ? (language === 'zh' ? '切换视觉主题或外观模式。' : 'Switches the visual theme or appearance mode.')
+              : /type|kind|variant|style|类型|样式/.test(key)
+                ? (language === 'zh' ? '区分组件的语义类型与视觉层级。' : 'Distinguishes semantic variants and visual hierarchy.')
+                : /icon|图标/.test(key)
+                  ? (language === 'zh' ? '控制图标内容、位置或显隐。' : 'Controls icon content, placement, or visibility.')
+                  : /direction|position|placement|align|方向|位置|对齐/.test(key)
+                    ? (language === 'zh' ? '控制内容方向、位置或对齐关系。' : 'Controls direction, placement, or alignment.')
+                    : (language === 'zh' ? '控制该组件的一组可复用表现。' : 'Controls a reusable aspect of the component.');
+        return `${semantic}${joined ? (language === 'zh' ? ` 可选：${joined}。` : ` Options: ${joined}.`) : ''}`;
+      };
+
       // --- Properties 属性汇总面板（自动布局，完美自适应高度）---
       if (drawProps) {
         // 包装容器：标题 + 卡片作为一组
@@ -3974,7 +4273,7 @@ figma.ui.onmessage = async (msg) => {
         propsGroup.name = "Properties & Tokens Group";
         propsGroup.fills = [];
         propsGroup.layoutMode = "VERTICAL";
-        propsGroup.itemSpacing = 16;
+        propsGroup.itemSpacing = 10;
         boardFrame.appendChild(propsGroup);
         propsGroup.layoutSizingHorizontal = "FILL";
         propsGroup.layoutSizingVertical = "HUG";
@@ -3983,8 +4282,8 @@ figma.ui.onmessage = async (msg) => {
         const specTitle = figma.createText();
         specTitle.name = "Properties & Tokens Title";
         specTitle.characters = "Properties & Tokens";
-        specTitle.fontSize = 24; specTitle.fontName = { family: "Inter", style: "Bold" };
-        specTitle.fills = [{ type: 'SOLID', color: { r: 17/255, g: 24/255, b: 39/255 } }];
+        specTitle.fontSize = 18; specTitle.fontName = { family: "Inter", style: "Bold" };
+        specTitle.fills = [{ type: 'SOLID', color: themeText }];
         propsGroup.appendChild(specTitle);
         specTitle.layoutSizingHorizontal = "FILL";
         specTitle.layoutSizingVertical = "HUG";
@@ -3992,11 +4291,11 @@ figma.ui.onmessage = async (msg) => {
         const propsPanel = figma.createFrame();
         propsPanel.name = "Properties & Tokens Panel";
         propsPanel.layoutMode = "VERTICAL";
-        propsPanel.itemSpacing = 24;// 属性行间距
-        propsPanel.paddingLeft = 24; propsPanel.paddingRight = 24; propsPanel.paddingTop = 24; propsPanel.paddingBottom = 24;
-        safeCornerRadius(propsPanel, 16);// 属性面板圆角
-        propsPanel.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }];
-        propsPanel.strokes = [{ type: 'SOLID', color: { r: 229/255, g: 231/255, b: 235/255 } }];
+        propsPanel.itemSpacing = 14;
+        propsPanel.paddingLeft = 16; propsPanel.paddingRight = 16; propsPanel.paddingTop = 16; propsPanel.paddingBottom = 16;
+        safeCornerRadius(propsPanel, 12);
+        propsPanel.fills = [{ type: 'SOLID', color: themeSurface }];
+        propsPanel.strokes = [{ type: 'SOLID', color: themeBorder }];
         propsGroup.appendChild(propsPanel);
         propsPanel.layoutSizingHorizontal = "FILL";
         propsPanel.layoutSizingVertical = "HUG";
@@ -4007,34 +4306,54 @@ figma.ui.onmessage = async (msg) => {
 
           const propRow = figma.createFrame();
           propRow.name = "Property Row";
-          propRow.layoutMode = "HORIZONTAL";
-          propRow.itemSpacing = 12;
-          propRow.counterAxisAlignItems = "CENTER";
+          propRow.layoutMode = "VERTICAL";
+          propRow.itemSpacing = 5;
           propsPanel.appendChild(propRow);
           propRow.layoutSizingHorizontal = "FILL";
           propRow.layoutSizingVertical = "HUG";
 
           const pName = figma.createText();
           pName.name = "Property Name";
-          pName.characters = prop; pName.fontSize = 15; pName.fontName = { family: "Inter", style: "Medium" };
-          pName.fills = [{ type: 'SOLID', color: { r: 75/255, g: 85/255, b: 99/255 } }];
-          pName.resize(140, pName.height);
+          pName.characters = prop; pName.fontSize = 13; pName.fontName = { family: "Inter", style: "Semi Bold" };
+          pName.fills = [{ type: 'SOLID', color: themeText }];
           propRow.appendChild(pName);
-          pName.layoutSizingHorizontal = "FIXED";
+          pName.layoutSizingHorizontal = "HUG";
           pName.layoutSizingVertical = "HUG";
+
+          const semanticText = figma.createText();
+          semanticText.name = "Property Description";
+          semanticText.characters = aiDesc?.propertyDescriptions?.[prop]
+            || describeVariantProperty(prop, Array.from(vals));
+          semanticText.fontSize = 11;
+          semanticText.fontName = { family: "Inter", style: "Regular" };
+          semanticText.fills = [{ type: 'SOLID', color: themeMuted }];
+          propRow.appendChild(semanticText);
+          semanticText.layoutSizingHorizontal = "FILL";
+          semanticText.layoutSizingVertical = "HUG";
+          semanticText.textAutoResize = "HEIGHT";
+
+          const valuesRow = figma.createFrame();
+          valuesRow.name = "Property Values";
+          valuesRow.layoutMode = "HORIZONTAL";
+          valuesRow.itemSpacing = 6;
+          valuesRow.fills = [];
+          propRow.appendChild(valuesRow);
+          valuesRow.layoutSizingHorizontal = "FILL";
+          valuesRow.layoutSizingVertical = "HUG";
+          try { valuesRow.layoutWrap = "WRAP"; valuesRow.counterAxisSpacing = 6; } catch (_) {}
 
           Array.from(vals).forEach(val => {
             const pill = figma.createFrame();
             pill.layoutMode = "HORIZONTAL";
-            safeCornerRadius(pill, 6); pill.fills = [{ type: 'SOLID', color: { r: 243/255, g: 244/255, b: 246/255 } }];
-            pill.strokes = [{ type: 'SOLID', color: { r: 229/255, g: 231/255, b: 235/255 } }];
-            pill.paddingLeft = 10; pill.paddingRight = 10; pill.paddingTop = 6; pill.paddingBottom = 6;
+            safeCornerRadius(pill, 6); pill.fills = [{ type: 'SOLID', color: isDark ? { r: 55/255, g: 65/255, b: 81/255 } : { r: 243/255, g: 244/255, b: 246/255 } }];
+            pill.strokes = [{ type: 'SOLID', color: themeBorder }];
+            pill.paddingLeft = 8; pill.paddingRight = 8; pill.paddingTop = 4; pill.paddingBottom = 4;
 
             const pVal = figma.createText(); pVal.characters = val;
-            pVal.fontSize = 13; pVal.fontName = { family: "Inter", style: "Regular" };
-            pVal.fills = [{ type: 'SOLID', color: { r: 55/255, g: 65/255, b: 81/255 } }];
+            pVal.fontSize = 11; pVal.fontName = { family: "Inter", style: "Regular" };
+            pVal.fills = [{ type: 'SOLID', color: themeText }];
             pill.appendChild(pVal);
-            propRow.appendChild(pill);
+            valuesRow.appendChild(pill);
 
             pill.layoutSizingHorizontal = "HUG";
             pill.layoutSizingVertical = "HUG";
@@ -4050,7 +4369,7 @@ figma.ui.onmessage = async (msg) => {
         usagePanel.name = "Best Practices Panel";
         usagePanel.fills = [];
         usagePanel.layoutMode = "VERTICAL";
-        usagePanel.itemSpacing = 24;
+        usagePanel.itemSpacing = 10;
         boardFrame.appendChild(usagePanel);
         usagePanel.layoutSizingHorizontal = "FILL";
         usagePanel.layoutSizingVertical = "HUG";
@@ -4058,8 +4377,8 @@ figma.ui.onmessage = async (msg) => {
         const usageTitle = figma.createText();
         usageTitle.name = "Best Practices Title";
         usageTitle.characters = "Best Practices";
-        usageTitle.fontSize = 24; usageTitle.fontName = { family: "Inter", style: "Bold" };
-        usageTitle.fills = [{ type: 'SOLID', color: { r: 17/255, g: 24/255, b: 39/255 } }];
+        usageTitle.fontSize = 18; usageTitle.fontName = { family: "Inter", style: "Bold" };
+        usageTitle.fills = [{ type: 'SOLID', color: themeText }];
         usagePanel.appendChild(usageTitle);
         usageTitle.layoutSizingHorizontal = "FILL";
         usageTitle.layoutSizingVertical = "HUG";
@@ -4068,7 +4387,7 @@ figma.ui.onmessage = async (msg) => {
         doDontContainer.name = "Do-Dont Container";
         doDontContainer.fills = [];
         doDontContainer.layoutMode = "HORIZONTAL";
-        doDontContainer.itemSpacing = 24;
+        doDontContainer.itemSpacing = 12;
         usagePanel.appendChild(doDontContainer);
         doDontContainer.layoutSizingHorizontal = "FILL";
         doDontContainer.layoutSizingVertical = "HUG";
@@ -4078,9 +4397,9 @@ figma.ui.onmessage = async (msg) => {
         doCard.name = "Do Card";
         doCard.layoutMode = "VERTICAL";
         doCard.itemSpacing = 0;
-        safeCornerRadius(doCard, 16);
-        doCard.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }];
-        doCard.strokes = [{ type: 'SOLID', color: { r: 229/255, g: 231/255, b: 235/255 } }];
+        safeCornerRadius(doCard, 12);
+        doCard.fills = [{ type: 'SOLID', color: themeSurface }];
+        doCard.strokes = [{ type: 'SOLID', color: themeBorder }];
         doCard.strokeWeight = 1;
         doDontContainer.appendChild(doCard);
 
@@ -4097,7 +4416,7 @@ figma.ui.onmessage = async (msg) => {
         const doContent = figma.createFrame();
         doContent.layoutMode = "HORIZONTAL";
         doContent.itemSpacing = 12;
-        doContent.paddingLeft = 24; doContent.paddingRight = 24; doContent.paddingTop = 20; doContent.paddingBottom = 24;
+        doContent.paddingLeft = 16; doContent.paddingRight = 16; doContent.paddingTop = 14; doContent.paddingBottom = 16;
         doContent.fills = [];
         doCard.appendChild(doContent);
 
@@ -4112,9 +4431,11 @@ figma.ui.onmessage = async (msg) => {
         doIcon.layoutSizingVertical = "HUG";
 
         const doText = figma.createText();
-        doText.characters = "Do: 在这里放置组件的正确使用场景、对齐方式以及相关的上下文示例。";
-        doText.fontSize = 15; doText.fontName = { family: "Inter", style: "Medium" };
-        doText.fills = [{ type: 'SOLID', color: { r: 55/255, g: 65/255, b: 81/255 } }];
+        doText.characters = aiDesc?.do || (language === 'zh'
+          ? `建议：在设计稿中通过 ${properties.slice(0, 2).join('、') || '组件属性'} 切换状态，保持实例与母版同步。`
+          : `Do: switch states with ${properties.slice(0, 2).join(', ') || 'component properties'} and keep instances linked to the master.`);
+        doText.fontSize = 12; doText.fontName = { family: "Inter", style: "Medium" };
+        doText.fills = [{ type: 'SOLID', color: themeText }];
         doContent.appendChild(doText);
 
         doText.layoutSizingHorizontal = "FILL";
@@ -4126,9 +4447,9 @@ figma.ui.onmessage = async (msg) => {
         dontCard.name = "Don't Card";
         dontCard.layoutMode = "VERTICAL";
         dontCard.itemSpacing = 0;
-        safeCornerRadius(dontCard, 16);
-        dontCard.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }];
-        dontCard.strokes = [{ type: 'SOLID', color: { r: 229/255, g: 231/255, b: 235/255 } }];
+        safeCornerRadius(dontCard, 12);
+        dontCard.fills = [{ type: 'SOLID', color: themeSurface }];
+        dontCard.strokes = [{ type: 'SOLID', color: themeBorder }];
         dontCard.strokeWeight = 1;
         doDontContainer.appendChild(dontCard);
 
@@ -4145,7 +4466,7 @@ figma.ui.onmessage = async (msg) => {
         const dontContent = figma.createFrame();
         dontContent.layoutMode = "HORIZONTAL";
         dontContent.itemSpacing = 12;
-        dontContent.paddingLeft = 24; dontContent.paddingRight = 24; dontContent.paddingTop = 20; dontContent.paddingBottom = 24;
+        dontContent.paddingLeft = 16; dontContent.paddingRight = 16; dontContent.paddingTop = 14; dontContent.paddingBottom = 16;
         dontContent.fills = [];
         dontCard.appendChild(dontContent);
 
@@ -4160,9 +4481,11 @@ figma.ui.onmessage = async (msg) => {
         dontIcon.layoutSizingVertical = "HUG";
 
         const dontText = figma.createText();
-        dontText.characters = "Don't: 避免在此处放置反面教材，例如错误的缩放比例、不规范的颜色叠加等。";
-        dontText.fontSize = 15; dontText.fontName = { family: "Inter", style: "Medium" };
-        dontText.fills = [{ type: 'SOLID', color: { r: 55/255, g: 65/255, b: 81/255 } }];
+        dontText.characters = aiDesc?.dont || (language === 'zh'
+          ? '避免解绑实例后手工复制状态，也不要用重复的属性值表达同一种语义。'
+          : 'Avoid detaching instances to copy states, and do not use duplicate property values for the same meaning.');
+        dontText.fontSize = 12; dontText.fontName = { family: "Inter", style: "Medium" };
+        dontText.fills = [{ type: 'SOLID', color: themeText }];
         dontContent.appendChild(dontText);
 
         dontText.layoutSizingHorizontal = "FILL";
@@ -4172,6 +4495,18 @@ figma.ui.onmessage = async (msg) => {
 
       // ====== 【核心修复】启用高度自适应 HUG (在此之后严禁再调用 resize(..., height)) ======
       boardFrame.layoutSizingVertical = "HUG";
+
+      // 组件集直接挂在最外层说明书画板下，装饰区保留原尺寸作为布局占位。
+      const componentBounds = componentSet.absoluteBoundingBox;
+      const boardBounds = boardFrame.absoluteBoundingBox;
+      if (componentBounds && boardBounds) {
+        boardFrame.appendChild(componentSet);
+        try { (componentSet as any).layoutPositioning = 'ABSOLUTE'; } catch (_) {}
+        componentSet.x = componentBounds.x - boardBounds.x;
+        componentSet.y = componentBounds.y - boardBounds.y;
+      }
+      figma.currentPage.selection = [boardFrame];
+      figma.viewport.scrollAndZoomIntoView([boardFrame]);
 
       figma.notify("✅ 说明书生成完毕！");
       figma.commitUndo();

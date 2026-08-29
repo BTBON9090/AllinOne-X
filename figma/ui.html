@@ -1899,13 +1899,20 @@
       /* =========================================
    跨画板查重 (Duplicate Finder)
    ========================================= */
-.dup-pair-item {
-    display: flex;
+#dupResultList .dup-pair-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr);
     align-items: center;
-    gap: 8px;
-    cursor: default;
+    gap: 0;
+    padding: 8px 10px;
+    cursor: pointer;
 }
-.dup-pair-item input[type="checkbox"] {
+#dupResultList .dup-pair-item:focus-visible {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary-light);
+}
+.dup-pair-item input[type="checkbox"],
+.dup-side-header input[type="checkbox"] {
     width: 14px;
     height: 14px;
     margin: 0;
@@ -1914,70 +1921,87 @@
     accent-color: var(--primary);
 }
 .dup-pair-zone {
-    flex: 1;
     min-width: 0;
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 18px;
     align-items: center;
-    gap: 6px;
-    cursor: pointer;
+    gap: 8px;
     padding: 6px 8px;
-    margin: -6px -8px;
     border-radius: var(--radius-sm);
     transition: all var(--transition-fast);
 }
 .dup-pair-zone:hover {
     background: var(--bg-body);
 }
-.dup-pair-zone:hover .dup-pair-name {
-    color: var(--primary);
-}
 .dup-pair-zone:active {
     background: var(--bg-hover);
 }
-.dup-side-tag {
-    font-size: 9px;
-    font-weight: 700;
-    padding: 2px 5px;
-    border-radius: var(--radius-xs);
-    flex-shrink: 0;
-    max-width: 60px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-.dup-side-a { background: var(--primary-light); color: var(--primary); }
-.dup-side-b { background: #fce7f3; color: #db2777; }
 .dup-pair-name {
-    flex: 1;
     min-width: 0;
     font-size: 12px;
     font-weight: 500;
     color: var(--text-primary);
-    cursor: pointer;
+    text-align: left;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-.dup-pair-name:hover {
-    color: var(--primary);
 }
 .dup-pair-arrow {
+    display: grid;
+    place-items: center;
     color: var(--text-tertiary);
     font-size: 12px;
+    pointer-events: none;
+}
+.dup-subheader {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr);
+    align-items: stretch;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-surface);
     flex-shrink: 0;
 }
-.dup-common-badge {
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--primary);
-    background: var(--primary-light);
-    border-radius: var(--radius-full);
-    padding: 2px 8px;
-    flex-shrink: 0;
-    max-width: 140px;
+.dup-side-header {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 0 8px;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 650;
+}
+.dup-side-header-name {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    text-align: left;
+}
+.dup-side-select-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-tertiary);
+    font-size: 10px;
+    cursor: pointer;
+}
+.dup-header-arrow {
+    display: grid;
+    place-items: center;
+    color: var(--text-tertiary);
+}
+.dup-config-actions {
+    display: grid;
+    grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+    gap: 8px;
+    width: 100%;
+}
+.dup-config-actions > button {
+    min-width: 0;
+    min-height: 38px;
+    flex: 0 0 auto;
 }
       /* =========================================
         9. PPT Master 面板样式
@@ -2353,6 +2377,22 @@
           height: 100%;
       }
       .refiner-tab-content.active { display: flex; }
+      #compkitPanel .refiner-tab-content { min-height: 0; }
+      #compkitPanel .compkit-action {
+          flex: 0 0 auto;
+          min-height: 42px;
+          align-self: stretch;
+      }
+      .compkit-inline-note {
+          display: none;
+          margin-top: 8px;
+          padding: 8px 10px;
+          border-radius: var(--radius-sm);
+          background: var(--info-light);
+          color: var(--info);
+          font-size: 10px;
+          line-height: 1.5;
+      }
 
       .refiner-config {
           padding: 12px;
@@ -4684,6 +4724,31 @@
     .builder-result.show { display: block; }
     .builder-result.success { background: rgba(34,197,94,.1); color: #16803a; }
     .builder-result.error { background: rgba(239,68,68,.09); color: #c53131; }
+    .component-ai-limit {
+        padding: 8px 10px;
+        border-left: 3px solid #f59e0b;
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        background: rgba(245,158,11,.08);
+        color: var(--text-secondary);
+        font-size: 10px;
+        line-height: 1.5;
+    }
+    .component-ai-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 11px; }
+    .component-ai-field label { display: block; margin-bottom: 5px; color: var(--text-secondary); font-size: 9px; font-weight: 700; }
+    .component-ai-field select {
+        width: 100%; min-width: 0; padding: 7px 23px 7px 8px;
+        border: 1px solid var(--border); border-radius: var(--radius-sm);
+        outline: none; background: var(--bg-muted); color: var(--text-primary);
+        font: inherit; font-size: 10px; cursor: pointer;
+    }
+    .component-ai-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 11px; }
+    .component-ai-feedback {
+        display: none; margin-top: 10px; padding: 10px;
+        border: 1px solid var(--border); border-radius: var(--radius-sm);
+        background: var(--bg-muted); color: var(--text-secondary);
+        font-size: 10px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere;
+    }
+    .component-ai-feedback.show { display: block; }
 
   </style>
 </head>
@@ -4712,9 +4777,6 @@
             <div class="nav-item" data-nav="select" onclick="switchGroup('select', this)">
                 <span class="nav-icon-slot">🔍</span><span class="nav-text" data-key="nav_select">超级选择</span><span class="nav-dot"></span>
             </div>
-            <div class="nav-item" data-nav="duplicate" onclick="switchGroup('duplicate', this)">
-                <span class="nav-icon-slot">🧬</span><span class="nav-text" data-key="nav_duplicate">查重</span><span class="nav-dot"></span>
-            </div>
             <div class="nav-item" data-nav="text" onclick="switchGroup('text', this)">
                 <span class="nav-icon-slot">📝</span><span class="nav-text" data-key="nav_text">文字替换</span><span class="nav-dot"></span>
             </div>
@@ -4731,6 +4793,9 @@
                 <span class="nav-icon-slot">🔷</span><span class="nav-text" data-key="nav_skew">等轴形变</span><span class="nav-dot"></span>
             </div>
             <div class="nav-section-label" data-key="nav_section_lab">实验室</div>
+            <div class="nav-item" data-nav="duplicate" onclick="switchGroup('duplicate', this)">
+                <span class="nav-icon-slot">🧬</span><span class="nav-text" data-key="nav_duplicate">查重</span><span class="nav-dot"></span>
+            </div>
             <div class="nav-item" data-nav="ppt" onclick="switchGroup('ppt', this)">
                 <span class="nav-icon-slot">📊</span><span class="nav-text" data-key="nav_ppt">PPT 导出</span><span class="nav-dot"></span>
             </div>
@@ -4981,7 +5046,10 @@
 
             </div>
             <div class="selection-footer">
-              <button class="primary-btn" onclick="runDupCheck()" data-key="dup_btn_run">🧬 开始查重</button>
+              <div class="dup-config-actions">
+                <button class="secondary-btn" id="dupLastResultBtn" onclick="showLastDupResults()" disabled data-key="dup_btn_last">上次查重结果</button>
+                <button class="primary-btn" onclick="runDupCheck()" data-key="dup_btn_run">🧬 开始查重</button>
+              </div>
             </div>
           </div>
 
@@ -5005,11 +5073,16 @@
                 </div>
              </div>
              <div id="dupAIResultHint" style="display:none; padding:6px 12px; background:var(--bg-body); color:var(--text-secondary); font-size:11px; border-bottom:1px solid var(--border); flex-shrink:0;"></div>
-             <div id="dupSubHeader" style="display:flex; gap:6px; padding:8px 12px; border-bottom:1px solid var(--border); background:var(--bg-surface); flex-shrink:0;">
-                <button class="secondary-btn" id="dupSelBtnA" style="flex:1; padding:8px 6px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" onclick="dupSelectAllSide('A')" data-key="dup_sel_a">勾选全部 A 侧</button>
-                <button class="secondary-btn" style="flex-shrink:0; padding:8px 10px;" onclick="dupUncheckSide('A')" data-key-title="dup_uncheck_title" title="取消该侧全部勾选">✕</button>
-                <button class="secondary-btn" id="dupSelBtnB" style="flex:1; padding:8px 6px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" onclick="dupSelectAllSide('B')" data-key="dup_sel_b">勾选全部 B 侧</button>
-                <button class="secondary-btn" style="flex-shrink:0; padding:8px 10px;" onclick="dupUncheckSide('B')" data-key-title="dup_uncheck_title" title="取消该侧全部勾选">✕</button>
+             <div id="dupSubHeader" class="dup-subheader">
+                <label class="dup-side-header" title="左侧画板">
+                  <span class="dup-side-header-name" id="dupHeaderNameA">A</span>
+                  <span class="dup-side-select-all"><span data-key="dup_select_all">全部</span><input type="checkbox" id="dupSelectAllA" onchange="toggleDupAllSide('A', this.checked)"></span>
+                </label>
+                <span class="dup-header-arrow">↔</span>
+                <label class="dup-side-header" title="右侧画板">
+                  <span class="dup-side-header-name" id="dupHeaderNameB">B</span>
+                  <span class="dup-side-select-all"><span data-key="dup_select_all">全部</span><input type="checkbox" id="dupSelectAllB" onchange="toggleDupAllSide('B', this.checked)"></span>
+                </label>
              </div>
              <div id="dupTruncatedHint" style="display:none; padding:8px 12px; background:var(--primary-light); color:var(--primary); font-size:11px; border-bottom:1px solid var(--border); flex-shrink:0;" data-key="dup_truncated">结果过多，仅显示前 500 对</div>
              <div id="dupResultList" class="sel-result-list" style="flex:1; overflow-y:auto; padding:4px 0;">
@@ -6093,6 +6166,39 @@
               </button>
               <div class="builder-result" id="builderResult" role="status" aria-live="polite"></div>
             </section>
+
+            <section class="builder-card">
+              <div class="builder-card-head">
+                <span class="builder-card-index">02</span>
+                <span class="builder-card-title" data-key="cb_ai_title">AI 组件规范优化</span>
+              </div>
+              <p class="builder-card-desc" data-key="cb_ai_desc">主动分析命名、变体属性和异常项，生成可审核的修改方案，并写入组件描述。</p>
+              <div class="component-ai-limit" data-key="cb_ai_limit">为避免卡顿，每次仅允许选择 1 个组件集，或最多 10 个独立组件。</div>
+              <div class="component-ai-grid">
+                <div class="component-ai-field">
+                  <label for="componentAiLanguage" data-key="cb_ai_language">输出语言</label>
+                  <select id="componentAiLanguage"><option value="zh">中文</option><option value="en">English</option></select>
+                </div>
+                <div class="component-ai-field">
+                  <label for="componentAiCase" data-key="cb_ai_case">命名风格</label>
+                  <select id="componentAiCase">
+                    <option value="camel">camelCase</option><option value="pascal">PascalCase</option>
+                    <option value="upper">UPPER</option><option value="lower">lower</option>
+                  </select>
+                </div>
+                <div class="component-ai-field">
+                  <label for="componentAiSeparator" data-key="cb_ai_separator">分隔符</label>
+                  <select id="componentAiSeparator">
+                    <option value="snake">snake_case</option><option value="kebab">kebab-case</option><option value="space">word space</option>
+                  </select>
+                </div>
+              </div>
+              <div class="component-ai-actions">
+                <button class="builder-action secondary" id="componentAiAnalyzeBtn" type="button" onclick="runComponentAiAnalyze()" disabled><span data-key="cb_ai_analyze">AI 分析</span></button>
+                <button class="builder-action" id="componentAiApplyBtn" type="button" onclick="applyComponentAiPlan()" disabled><span data-key="cb_ai_apply">应用审核方案</span></button>
+              </div>
+              <div class="component-ai-feedback" id="componentAiFeedback" role="status" aria-live="polite"></div>
+            </section>
           </div>
         </div>
 
@@ -6103,7 +6209,6 @@
           <div class="refiner-tabs" style="flex-shrink: 0; position: sticky; top: 0; z-index: 10; background: var(--bg-body);">
             <div class="refiner-tab-item active" onclick="switchCompKitTab('matrix')" data-key="ck_tab_matrix">矩阵排列</div>
             <div class="refiner-tab-item" onclick="switchCompKitTab('showcase')" data-key="ck_tab_showcase">生成说明书</div>
-            <div class="refiner-tab-item" onclick="switchCompKitTab('batch')" data-key="ck_tab_batch">批量排布</div>
           </div>
 
           <!-- Tab 1: 矩阵排列 -->
@@ -6146,7 +6251,7 @@
             </div>
 
             <!-- 执行按钮 -->
-            <button class="primary-btn" onclick="runCompKitMatrix()" style="width: 100%; padding: 14px; font-size: 13px; font-weight: 700;">
+            <button class="primary-btn compkit-action" onclick="runCompKitMatrix()" style="width: 100%; padding: 14px; font-size: 13px; font-weight: 700;">
               🎨 <span data-key="ck_btn_matrix">执行矩阵排列</span>
             </button>
           </div>
@@ -6158,6 +6263,25 @@
               <div class="section-header" style="margin-bottom: 10px;">
                 <span class="section-title">📐 维度设置</span>
               </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                <div>
+                  <label style="font-size:10px;font-weight:600;color:var(--text-tertiary);margin-bottom:4px;display:block;" data-key="ck_output_scope">输出范围</label>
+                  <select id="showcaseScope" onchange="updateCompKitScopeUI()" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:11px;background:var(--bg-surface);color:var(--text-primary);">
+                    <option value="single" data-key="ck_scope_single">单个说明书</option>
+                    <option value="batch" data-key="ck_scope_batch">批量目录</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size:10px;font-weight:600;color:var(--text-tertiary);margin-bottom:4px;display:block;" data-key="ck_builtin_preset">内置方案</label>
+                  <select id="showcaseBuiltInPreset" onchange="applyBuiltInShowcasePreset(this.value)" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:11px;background:var(--bg-surface);color:var(--text-primary);">
+                    <option value="compactLight" data-key="ck_preset_compact_light">紧凑浅色</option>
+                    <option value="compactDark" data-key="ck_preset_compact_dark">紧凑深色</option>
+                    <option value="landscapeMinimal" data-key="ck_preset_landscape_minimal">横向简洁</option>
+                    <option value="portraitFull" data-key="ck_preset_portrait_full">竖向完整</option>
+                  </select>
+                </div>
+              </div>
+              <div id="showcaseBatchHint" class="compkit-inline-note" data-key="ck_batch_integrated_hint">批量目录会自动读取每个组件集的前两个变体属性，并复用下方间距与显示配置。</div>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
                 <div>
                   <label style="font-size: 10px; font-weight: 600; color: var(--text-tertiary); margin-bottom: 4px; display: block;">X 轴 (列)</label>
@@ -6217,7 +6341,7 @@
                 </label>
                 <div style="display: flex; align-items: center; gap: 6px;">
                   <label style="font-size: 10px; color: var(--text-tertiary); white-space: nowrap;">区块间距</label>
-                  <input type="number" id="showcaseItemSpacing" value="48" min="8" max="120" step="4" style="width: 64px; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary); text-align: center;">
+                  <input type="number" id="showcaseItemSpacing" value="24" min="8" max="120" step="4" style="width: 64px; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary); text-align: center;">
                 </div>
               </div>
             </div>
@@ -6235,19 +6359,19 @@
                   <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
                     <div>
                       <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">内边距</label>
-                      <input type="number" id="showcasePadding" value="32" min="0" max="100" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                      <input type="number" id="showcasePadding" value="20" min="0" max="100" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
                     </div>
                     <div>
                       <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">横向间距</label>
-                      <input type="number" id="showcaseGapX" value="48" min="0" max="200" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                      <input type="number" id="showcaseGapX" value="16" min="0" max="200" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
                     </div>
                     <div>
                       <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">纵向间距</label>
-                      <input type="number" id="showcaseGapY" value="48" min="0" max="200" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                      <input type="number" id="showcaseGapY" value="16" min="0" max="200" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
                     </div>
                     <div>
                       <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">分组间距</label>
-                      <input type="number" id="showcaseGroupGap" value="120" min="0" max="300" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                      <input type="number" id="showcaseGroupGap" value="32" min="0" max="300" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
                     </div>
                     <div>
                       <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">圆角</label>
@@ -6287,19 +6411,35 @@
                   <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
                     <div>
                       <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">圆角</label>
-                      <input type="number" id="showcaseBoardRadius" value="24" min="0" max="100" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                      <input type="number" id="showcaseBoardRadius" value="12" min="0" max="100" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
                     </div>
                     <div>
                       <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">左右边距</label>
-                      <input type="number" id="showcaseBoardPaddingX" value="140" min="0" max="300" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                      <input type="number" id="showcaseBoardPaddingX" value="48" min="0" max="300" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
                     </div>
                     <div>
                       <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">上下边距</label>
-                      <input type="number" id="showcaseBoardPaddingY" value="160" min="0" max="300" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
+                      <input type="number" id="showcaseBoardPaddingY" value="56" min="0" max="300" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
                     </div>
                     <div>
                       <label style="font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; display: block;">背景色</label>
                       <input type="color" id="showcaseBoardBg" value="#F9FAFB" style="width: 100%; height: 28px; padding: 2px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-surface); cursor: pointer;">
+                    </div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+                    <div>
+                      <label style="font-size:10px;color:var(--text-tertiary);margin-bottom:3px;display:block;" data-key="ck_orientation">版式</label>
+                      <select id="showcaseOrientation" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:11px;background:var(--bg-surface);color:var(--text-primary);">
+                        <option value="landscape" data-key="ck_landscape">横版</option>
+                        <option value="portrait" data-key="ck_portrait">竖版</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style="font-size:10px;color:var(--text-tertiary);margin-bottom:3px;display:block;" data-key="ck_theme">主题</label>
+                      <select id="showcaseTheme" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:11px;background:var(--bg-surface);color:var(--text-primary);">
+                        <option value="light" data-key="ck_theme_light">浅色</option>
+                        <option value="dark" data-key="ck_theme_dark">深色</option>
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -6345,7 +6485,7 @@
             </div>
 
             <!-- 执行按钮 -->
-            <button class="primary-btn" onclick="runCompKitShowcase()" id="btnCompKitShowcase" style="width: 100%; padding: 14px; font-size: 14px; font-weight: 700; border-radius: var(--radius-md);">
+            <button class="primary-btn compkit-action" onclick="runCompKitShowcase()" id="btnCompKitShowcase" style="width: 100%; padding: 14px; font-size: 14px; font-weight: 700; border-radius: var(--radius-md);">
               📋 <span data-key="ck_btn_showcase">生成说明书</span>
             </button>
           </div>
@@ -6951,6 +7091,8 @@
         cb_selection_hint: "选择 1 个及以上 Frame",
         cb_selection_instance: "已就绪：1 个实例",
         cb_selection_frames: "已就绪：{count} 个 Frame",
+        cb_selection_components: "已就绪：{count} 个组件",
+        cb_selection_set: "已就绪：1 个组件集",
         cb_selection_invalid: "选择类型不匹配",
         cb_reverse_title: "实例逆向母版",
         cb_reverse_desc: "基于实例当前状态创建新的本地母版；原实例不变，并尽量保留文字、布尔、实例切换和变体属性。",
@@ -6969,6 +7111,18 @@
         cb_processing: "处理中…",
         cb_err_reverse: "请只选择一个实例后再逆向母版",
         cb_err_frames: "请选择一个或多个 Frame",
+        cb_ai_title: "AI 组件规范优化",
+        cb_ai_desc: "主动分析命名、变体属性和异常项，生成可审核的修改方案，并写入组件描述。",
+        cb_ai_limit: "为避免卡顿，每次仅允许选择 1 个组件集，或最多 10 个独立组件。",
+        cb_ai_language: "输出语言",
+        cb_ai_case: "命名风格",
+        cb_ai_separator: "分隔符",
+        cb_ai_analyze: "AI 分析",
+        cb_ai_apply: "应用审核方案",
+        cb_ai_invalid: "请选择 1 个组件集，或 1–10 个独立组件",
+        cb_ai_processing: "AI 正在分析组件…",
+        cb_ai_no_config: "请先在设置中配置 AI 服务",
+        cb_ai_ready: "分析完成，请审核后应用",
 
         // =========================================
         // 2.5 CompKit 变体矩阵工具
@@ -6976,6 +7130,21 @@
         ck_tab_matrix: "矩阵排列",
         ck_tab_showcase: "生成说明书",
         ck_tab_batch: "批量排布",
+        ck_output_scope: "输出范围",
+        ck_scope_single: "单个说明书",
+        ck_scope_batch: "批量目录",
+        ck_builtin_preset: "内置方案",
+        ck_preset_compact_light: "紧凑浅色",
+        ck_preset_compact_dark: "紧凑深色",
+        ck_preset_landscape_minimal: "横向简洁",
+        ck_preset_portrait_full: "竖向完整",
+        ck_batch_integrated_hint: "批量目录会自动读取每个组件集的前两个变体属性，并复用下方间距与显示配置。",
+        ck_orientation: "版式",
+        ck_landscape: "横版",
+        ck_portrait: "竖版",
+        ck_theme: "主题",
+        ck_theme_light: "浅色",
+        ck_theme_dark: "深色",
 
         ck_matrix_title: "变体矩阵排列",
         ck_matrix_desc: "自动将 Component Set 按矩阵排列",
@@ -7325,6 +7494,10 @@
         dup_excl_num: "数字编号",
         dup_custom_ph: "自定义排除词，逗号分隔...",
         dup_btn_run: "🧬 开始查重",
+        dup_btn_last: "上次查重结果",
+        dup_select_all: "全部",
+        dup_last_empty: "暂无可恢复的查重结果",
+        dup_last_restored: "已恢复最近一次查重结果，不会重新调用 AI",
         dup_res_back: "返回",
         dup_res_title: "匹配对",
         dup_sel_a: "勾选全部 {name}",
@@ -7644,6 +7817,8 @@
         cb_selection_hint: "Select 1 or more Frames",
         cb_selection_instance: "Ready: 1 instance",
         cb_selection_frames: "Ready: {count} Frames",
+        cb_selection_components: "Ready: {count} components",
+        cb_selection_set: "Ready: 1 component set",
         cb_selection_invalid: "Unsupported selection",
         cb_reverse_title: "Reverse Instance to Master",
         cb_reverse_desc: "Creates a new local master from the instance's current state. The source instance stays untouched and component properties are preserved when supported.",
@@ -7662,6 +7837,18 @@
         cb_processing: "Processing…",
         cb_err_reverse: "Select exactly one instance to reverse",
         cb_err_frames: "Select one or more Frames",
+        cb_ai_title: "AI Component Optimizer",
+        cb_ai_desc: "Proactively review names, variant properties, and anomalies, then write an approved summary to the component description.",
+        cb_ai_limit: "To avoid freezing, select one component set or no more than 10 standalone components per run.",
+        cb_ai_language: "Language",
+        cb_ai_case: "Naming style",
+        cb_ai_separator: "Separator",
+        cb_ai_analyze: "Analyze with AI",
+        cb_ai_apply: "Apply Reviewed Plan",
+        cb_ai_invalid: "Select one component set or 1–10 standalone components",
+        cb_ai_processing: "AI is analyzing components…",
+        cb_ai_no_config: "Configure an AI service in Settings first",
+        cb_ai_ready: "Analysis complete. Review before applying.",
 
         // =========================================
         // 2.5 CompKit Variant Matrix Tool
@@ -7669,6 +7856,21 @@
         ck_tab_matrix: "Matrix Layout",
         ck_tab_showcase: "Generate Docs",
         ck_tab_batch: "Batch Layout",
+        ck_output_scope: "Output Scope",
+        ck_scope_single: "Single Doc",
+        ck_scope_batch: "Batch Catalog",
+        ck_builtin_preset: "Built-in Style",
+        ck_preset_compact_light: "Compact Light",
+        ck_preset_compact_dark: "Compact Dark",
+        ck_preset_landscape_minimal: "Landscape Minimal",
+        ck_preset_portrait_full: "Portrait Full",
+        ck_batch_integrated_hint: "Batch Catalog automatically uses the first two variant properties of each set and reuses the spacing and display settings below.",
+        ck_orientation: "Orientation",
+        ck_landscape: "Landscape",
+        ck_portrait: "Portrait",
+        ck_theme: "Theme",
+        ck_theme_light: "Light",
+        ck_theme_dark: "Dark",
 
         ck_matrix_title: "Variant Matrix Layout",
         ck_matrix_desc: "Auto-arrange Component Set in matrix",
@@ -8008,6 +8210,10 @@
         dup_excl_num: "Numbers",
         dup_custom_ph: "Custom exclude words, comma separated...",
         dup_btn_run: "🧬 Start Check",
+        dup_btn_last: "Last Result",
+        dup_select_all: "All",
+        dup_last_empty: "No previous duplicate result is available",
+        dup_last_restored: "Restored the latest result without running AI again",
         dup_res_back: "Back",
         dup_res_title: "Pairs",
         dup_sel_a: "Select All {name}",
@@ -8037,6 +8243,7 @@
     let dupFrameNames = { a: '', b: '' }; // 两个画板的实际名称
     let dupAiEnabled = true;    // AI 语义精筛开关
     let dupRunToken = 0;        // 查重代次计数，防止旧一轮的 AI 结果污染新一轮结果
+    let dupLastResultData = PersistentCache.get('dup_last_result');
 
     updateLanguage();
     // 恢复查重面板配置 (匹配模式/排除词)
@@ -8140,6 +8347,7 @@
 
       // 6. 查重面板：批量按钮文本带画板名，需重新渲染
       if (typeof updateDupSideLabels === 'function') updateDupSideLabels();
+      if (typeof updateDupLastResultButton === 'function') updateDupLastResultButton();
     }
 
     // 通用工具卡片点击事件
@@ -14152,17 +14360,53 @@
         return name.length > max ? name.slice(0, max) + '…' : name;
     }
 
-    // 用画板实际名称更新 A/B 侧标签 (行内标签 + 批量按钮)
+    // 用画板实际名称更新左右两栏表头
     function updateDupSideLabels() {
-        const t = (i18n[curLang]) || {};
-        const btnA = document.getElementById('dupSelBtnA');
-        const btnB = document.getElementById('dupSelBtnB');
-        const fmtA = t.dup_sel_a || '勾选全部 {name}';
-        const fmtB = t.dup_sel_b || '勾选全部 {name}';
-        const nameA = truncateName(dupFrameNames.a, 8) || 'A';
-        const nameB = truncateName(dupFrameNames.b, 8) || 'B';
-        if (btnA) btnA.textContent = fmtA.replace('{name}', nameA);
-        if (btnB) btnB.textContent = fmtB.replace('{name}', nameB);
+        const headerA = document.getElementById('dupHeaderNameA');
+        const headerB = document.getElementById('dupHeaderNameB');
+        if (headerA) {
+            headerA.textContent = dupFrameNames.a || 'A';
+            headerA.title = dupFrameNames.a || 'A';
+        }
+        if (headerB) {
+            headerB.textContent = dupFrameNames.b || 'B';
+            headerB.title = dupFrameNames.b || 'B';
+        }
+    }
+
+    function updateDupLastResultButton() {
+        const button = document.getElementById('dupLastResultBtn');
+        if (!button) return;
+        const saved = dupLastResultData || PersistentCache.get('dup_last_result');
+        const valid = Boolean(saved && Array.isArray(saved.pairs));
+        button.disabled = !valid;
+        if (valid && saved.savedAt) {
+            button.title = `${new Date(saved.savedAt).toLocaleString()} - ${saved.pairs.length} 对`;
+        } else {
+            button.title = (i18n[curLang] || {}).dup_last_empty || '暂无可恢复的查重结果';
+        }
+    }
+
+    function saveDupLastResult(extra = {}) {
+        dupLastResultData = {
+            pairs: dupPairsCache,
+            totalPairs: extra.totalPairs ?? dupPairsCache.length,
+            truncated: Boolean(extra.truncated),
+            aName: dupFrameNames.a,
+            bName: dupFrameNames.b,
+            savedAt: Date.now()
+        };
+        PersistentCache.set('dup_last_result', dupLastResultData);
+        updateDupLastResultButton();
+    }
+
+    function showLastDupResults() {
+        const saved = dupLastResultData || PersistentCache.get('dup_last_result');
+        if (!saved || !Array.isArray(saved.pairs)) {
+            showErrorToast((i18n[curLang] || {}).dup_last_empty || '暂无可恢复的查重结果');
+            return;
+        }
+        showDupResults(saved, { fromCache: true });
     }
 
     // 匹配模式切换 (分段 / 子串)
@@ -14212,7 +14456,7 @@
     }
 
     // 渲染查重结果
-    function showDupResults(data) {
+    function showDupResults(data, options = {}) {
         dupPairsCache = data.pairs || [];
         dupChecked.clear();
         dupFrameNames = { a: data.aName || '', b: data.bName || '' };
@@ -14225,6 +14469,8 @@
 
         const truncEl = document.getElementById('dupTruncatedHint');
         if (truncEl) truncEl.style.display = data.truncated ? 'block' : 'none';
+        const countEl = document.getElementById('dupResultCountText');
+        if (countEl) countEl.innerText = dupPairsCache.length;
 
         // 隐藏上轮 AI 提示
         const hintEl = document.getElementById('dupAIResultHint');
@@ -14233,8 +14479,12 @@
         // 先渲染粗筛结果，再异步 AI 精筛
         const myToken = ++dupRunToken;
         renderDupList();
-        if (dupAiEnabled && dupPairsCache.length > 0) {
+        if (!options.fromCache) saveDupLastResult(data);
+        if (!options.fromCache && dupAiEnabled && dupPairsCache.length > 0) {
             runDupAIFilter(myToken);
+        } else if (options.fromCache) {
+            const t = (i18n[curLang]) || {};
+            showDupAIHint(t.dup_last_restored || '已恢复最近一次查重结果，不会重新调用 AI');
         }
     }
 
@@ -14415,6 +14665,7 @@
         if (prevChecked.length > 0) postMsg('dup-select-layers', { ids: prevChecked, mode: 'remove' });
         updateDupFooter();
         renderDupList();
+        saveDupLastResult({ totalPairs: dupPairsCache.length, truncated: false });
     }
 
     // AI 精筛开关
@@ -14435,6 +14686,11 @@
         renderDupList();
     }
 
+    function toggleDupAllSide(side, checked) {
+        if (checked) dupSelectAllSide(side);
+        else dupUncheckSide(side);
+    }
+
     // 渲染匹配对列表
     function renderDupList() {
         const listEl = document.getElementById('dupResultList');
@@ -14451,62 +14707,60 @@
         dupPairsCache.forEach(pair => {
             const item = document.createElement('div');
             item.className = 'sel-result-item dup-pair-item';
+            item.tabIndex = 0;
+            item.setAttribute('role', 'button');
+            item.title = `${pair.aName} ↔ ${pair.bName}${Array.isArray(pair.common) && pair.common.length ? ` (${pair.common.join(', ')})` : ''}`;
+            item.onclick = () => postMsg('focus-layers', { ids: [pair.aId, pair.bId] });
+            item.onkeydown = (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    item.click();
+                }
+            };
 
-            // A 侧勾选
+            // 左侧名称靠左，筛选框靠右
             const checkA = document.createElement('input');
             checkA.type = 'checkbox';
             checkA.checked = dupChecked.has(pair.aId);
-            checkA.onchange = () => toggleDupSelect(pair.aId, checkA.checked);
+            checkA.setAttribute('aria-label', `选择 ${pair.aName}`);
+            checkA.onclick = event => event.stopPropagation();
+            checkA.onchange = event => {
+                event.stopPropagation();
+                toggleDupSelect(pair.aId, checkA.checked);
+            };
 
-            // A 侧点击区 (整块可点击定位)
             const zoneA = document.createElement('div');
             zoneA.className = 'dup-pair-zone';
-            zoneA.title = `${pair.aName} — 点击定位`;
-            zoneA.onclick = () => postMsg('focus-layers', { ids: [pair.aId] });
-
-            const tagA = document.createElement('span');
-            tagA.className = 'dup-side-tag dup-side-a';
-            tagA.textContent = truncateName(dupFrameNames.a, 6) || 'A';
-            tagA.title = dupFrameNames.a || 'A';
 
             const nameA = document.createElement('span');
             nameA.className = 'dup-pair-name';
             nameA.textContent = pair.aName;
-            zoneA.append(tagA, nameA);
+            zoneA.append(nameA, checkA);
 
             const arrow = document.createElement('span');
             arrow.className = 'dup-pair-arrow';
             arrow.textContent = '↔';
 
-            // B 侧点击区 (整块可点击定位)
             const zoneB = document.createElement('div');
             zoneB.className = 'dup-pair-zone';
-            zoneB.title = `${pair.bName} — 点击定位`;
-            zoneB.onclick = () => postMsg('focus-layers', { ids: [pair.bId] });
-
-            const tagB = document.createElement('span');
-            tagB.className = 'dup-side-tag dup-side-b';
-            tagB.textContent = truncateName(dupFrameNames.b, 6) || 'B';
-            tagB.title = dupFrameNames.b || 'B';
 
             const nameB = document.createElement('span');
             nameB.className = 'dup-pair-name';
             nameB.textContent = pair.bName;
-            zoneB.append(tagB, nameB);
+            zoneB.append(nameB);
 
-            // B 侧勾选
             const checkB = document.createElement('input');
             checkB.type = 'checkbox';
             checkB.checked = dupChecked.has(pair.bId);
-            checkB.onchange = () => toggleDupSelect(pair.bId, checkB.checked);
+            checkB.setAttribute('aria-label', `选择 ${pair.bName}`);
+            checkB.onclick = event => event.stopPropagation();
+            checkB.onchange = event => {
+                event.stopPropagation();
+                toggleDupSelect(pair.bId, checkB.checked);
+            };
+            zoneB.append(checkB);
 
-            // 公共词 badge
-            const badge = document.createElement('span');
-            badge.className = 'dup-common-badge';
-            badge.textContent = pair.common.join(', ');
-            badge.title = pair.common.join(', ');
-
-            item.append(checkA, zoneA, arrow, zoneB, badge, checkB);
+            item.append(zoneA, arrow, zoneB);
             listEl.appendChild(item);
         });
 
@@ -14518,7 +14772,7 @@
         if (checked) dupChecked.add(nodeId);
         else dupChecked.delete(nodeId);
         postMsg('dup-select-layers', { ids: [nodeId], mode: checked ? 'add' : 'remove' });
-        updateDupFooter();
+        renderDupList();
     }
 
     // 批量勾选一侧的全部图层
@@ -14553,6 +14807,13 @@
         const hasSel = dupChecked.size > 0;
         const fillBtn = document.getElementById('dupFillBtn');
         if (fillBtn) fillBtn.style.opacity = hasSel ? '1' : '0.5';
+        [['A', aSet], ['B', bSet]].forEach(([side, selected]) => {
+            const all = new Set(dupPairsCache.map(pair => side === 'A' ? pair.aId : pair.bId));
+            const input = document.getElementById(`dupSelectAll${side}`);
+            if (!input) return;
+            input.checked = all.size > 0 && selected.size === all.size;
+            input.indeterminate = selected.size > 0 && selected.size < all.size;
+        });
     }
 
     // 给勾选图层填充标记色：左侧(A)填红，右侧(B)填绿
@@ -14605,18 +14866,24 @@
             const offBtn = document.querySelector('#dupAiGroup .seg-btn[data-val="off"]');
             if (onBtn && offBtn) { onBtn.classList.remove('active'); offBtn.classList.add('active'); }
         }
+        updateDupLastResultButton();
     }
 
     // ==========================================
     // Component Builder - 组件构建器
     // ==========================================
     let componentBuilderMode = 'multiple';
+    let componentAiBusy = false;
+    let componentAiPlan = null;
     let componentBuilderSelection = {
         total: 0,
         frames: 0,
         instances: 0,
+        components: 0,
+        componentSets: 0,
         canReverse: false,
         canBuild: false,
+        canOptimize: false,
         sameParent: false,
         names: []
     };
@@ -14641,16 +14908,18 @@
         const label = document.getElementById('builderSelectionLabel');
         const names = document.getElementById('builderSelectionNames');
         const createButton = document.getElementById('builderCreateBtn');
+        const aiAnalyzeButton = document.getElementById('componentAiAnalyzeBtn');
         const t = i18n[curLang] || i18n.zh;
         const selection = componentBuilderSelection;
 
-        if (state) state.classList.toggle('ready', selection.canBuild);
+        if (state) state.classList.toggle('ready', selection.canBuild || selection.canOptimize);
 
         let canCreate = selection.canBuild;
         if ((componentBuilderMode === 'single' && selection.frames > 1) || componentBuilderMode === 'set') {
             canCreate = canCreate && selection.sameParent;
         }
         if (createButton) createButton.disabled = !canCreate;
+        if (aiAnalyzeButton) aiAnalyzeButton.disabled = !selection.canOptimize || componentAiBusy;
 
         if (!selection.total) {
             if (label) label.textContent = t.cb_selection_empty;
@@ -14662,6 +14931,11 @@
             if (selection.canBuild) {
                 label.textContent = (t.cb_selection_frames || '{count} Frames selected')
                     .replace('{count}', selection.frames);
+            } else if (selection.componentSets === 1) {
+                label.textContent = t.cb_selection_set || '已就绪：1 个组件集';
+            } else if (selection.components > 0 && selection.canOptimize) {
+                label.textContent = (t.cb_selection_components || '已就绪：{count} 个组件')
+                    .replace('{count}', selection.components);
             } else {
                 label.textContent = t.cb_selection_invalid;
             }
@@ -14714,12 +14988,204 @@
         });
     }
 
+    function setComponentAiBusy(busy) {
+        componentAiBusy = busy;
+        const analyzeButton = document.getElementById('componentAiAnalyzeBtn');
+        const applyButton = document.getElementById('componentAiApplyBtn');
+        const analyzeText = analyzeButton?.querySelector('span');
+        const t = i18n[curLang] || i18n.zh;
+        if (analyzeText) analyzeText.textContent = busy ? t.cb_ai_processing : t.cb_ai_analyze;
+        if (analyzeButton) analyzeButton.disabled = busy || !componentBuilderSelection.canOptimize;
+        if (applyButton) applyButton.disabled = busy || !componentAiPlan;
+    }
+
+    function showComponentAiFeedback(text, isError = false) {
+        const feedback = document.getElementById('componentAiFeedback');
+        if (!feedback) return;
+        feedback.textContent = String(text || '');
+        feedback.classList.toggle('show', Boolean(text));
+        feedback.style.borderColor = isError ? 'var(--danger)' : 'var(--border)';
+        feedback.style.color = isError ? 'var(--danger)' : 'var(--text-secondary)';
+    }
+
+    function extractJsonObject(text) {
+        if (!text) return null;
+        try { return JSON.parse(text); } catch (_) {}
+        const start = text.indexOf('{');
+        const end = text.lastIndexOf('}');
+        if (start < 0 || end <= start) return null;
+        try { return JSON.parse(text.slice(start, end + 1)); } catch (_) { return null; }
+    }
+
+    function formatComponentAiName(value, preferences) {
+        const raw = String(value || '').trim().replace(/[,=]/g, ' ');
+        if (!raw) return '';
+        const separator = preferences.separator === 'kebab' ? '-' : (preferences.separator === 'space' ? ' ' : '_');
+        if (preferences.language === 'zh' && /[\u3400-\u9fff]/.test(raw)) {
+            return raw.replace(/[\/_\-\s]+/g, preferences.caseStyle === 'camel' || preferences.caseStyle === 'pascal' ? '' : separator);
+        }
+        const tokens = raw
+            .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+            .split(/[\/_\-\s]+/)
+            .map(token => token.replace(/[^a-zA-Z0-9\u3400-\u9fff]/g, ''))
+            .filter(Boolean);
+        if (!tokens.length) return raw;
+        if (preferences.caseStyle === 'camel') {
+            return tokens[0].toLocaleLowerCase() + tokens.slice(1).map(token => token.charAt(0).toLocaleUpperCase() + token.slice(1).toLocaleLowerCase()).join('');
+        }
+        if (preferences.caseStyle === 'pascal') {
+            return tokens.map(token => token.charAt(0).toLocaleUpperCase() + token.slice(1).toLocaleLowerCase()).join('');
+        }
+        const joined = tokens.join(separator);
+        return preferences.caseStyle === 'upper' ? joined.toLocaleUpperCase() : joined.toLocaleLowerCase();
+    }
+
+    function normalizeComponentAiPlan(rawPlan, context, preferences) {
+        const contextTargets = new Map((context.targets || []).map(target => [target.id, target]));
+        const targets = [];
+        for (const rawTarget of Array.isArray(rawPlan?.targets) ? rawPlan.targets : []) {
+            const source = contextTargets.get(String(rawTarget?.id || ''));
+            if (!source) continue;
+            const propertyNames = new Set([
+                ...(source.propertyDefinitions || []).map(property => property.name),
+                ...Object.keys(source.propertyValues || {})
+            ]);
+            const propertyRenames = (Array.isArray(rawTarget.propertyRenames) ? rawTarget.propertyRenames : [])
+                .filter(rename => propertyNames.has(String(rename?.from || '').trim()))
+                .map(rename => ({
+                    from: String(rename.from).trim(),
+                    to: formatComponentAiName(rename.to, preferences)
+                }))
+                .filter(rename => rename.to && rename.to !== rename.from)
+                .slice(0, 40);
+            const valueRenames = (Array.isArray(rawTarget.valueRenames) ? rawTarget.valueRenames : [])
+                .filter(rename => {
+                    const property = String(rename?.property || '').trim();
+                    const from = String(rename?.from || '').trim();
+                    return propertyNames.has(property) && (source.propertyValues?.[property] || []).includes(from);
+                })
+                .map(rename => ({
+                    property: String(rename.property).trim(),
+                    from: String(rename.from).trim(),
+                    to: formatComponentAiName(rename.to, preferences)
+                }))
+                .filter(rename => rename.to && rename.to !== rename.from)
+                .slice(0, 120);
+            targets.push({
+                id: source.id,
+                originalName: source.name,
+                name: rawTarget.name ? formatComponentAiName(rawTarget.name, preferences) : source.name,
+                description: String(rawTarget.description || '').trim().slice(0, 1000),
+                propertyRenames,
+                valueRenames
+            });
+        }
+        if (!targets.length) throw new Error('AI 未返回可用的组件修改方案');
+        return {
+            summary: String(rawPlan?.summary || '').trim(),
+            issues: Array.isArray(rawPlan?.issues) ? rawPlan.issues.slice(0, 30).map(issue => typeof issue === 'string' ? issue : (issue?.message || issue?.detail || '')).filter(Boolean) : [],
+            targets
+        };
+    }
+
+    function renderComponentAiPlan(plan, context) {
+        const t = i18n[curLang] || i18n.zh;
+        const lines = [plan.summary || t.cb_ai_ready];
+        const allIssues = [...(context.issues || []).map(issue => issue.message), ...(plan.issues || [])];
+        if (allIssues.length) {
+            lines.push('', curLang === 'en' ? 'Findings' : '问题反馈');
+            allIssues.forEach(issue => lines.push(`• ${issue}`));
+        }
+        lines.push('', curLang === 'en' ? 'Change preview' : '修改预览');
+        plan.targets.forEach(target => {
+            lines.push(`• ${target.originalName}${target.name !== target.originalName ? ` → ${target.name}` : ''}`);
+            target.propertyRenames.forEach(rename => lines.push(`  ${rename.from} → ${rename.to}`));
+            target.valueRenames.slice(0, 12).forEach(rename => lines.push(`  ${rename.property}: ${rename.from} → ${rename.to}`));
+            if (target.valueRenames.length > 12) lines.push(`  +${target.valueRenames.length - 12}`);
+            if (target.description) lines.push(`  ${curLang === 'en' ? 'Description will be updated' : '将写入组件描述'}`);
+        });
+        showComponentAiFeedback(lines.join('\n'));
+    }
+
+    async function runComponentAiAnalyze() {
+        const t = i18n[curLang] || i18n.zh;
+        if (!componentBuilderSelection.canOptimize) {
+            showComponentAiFeedback(t.cb_ai_invalid, true);
+            return;
+        }
+        const endpoint = getAiEndpoint();
+        if (!endpoint.url || (!endpoint.key && !endpoint.isProxy)) {
+            showComponentAiFeedback(t.cb_ai_no_config, true);
+            return;
+        }
+        componentAiPlan = null;
+        showComponentAiFeedback(t.cb_ai_processing);
+        setComponentAiBusy(true);
+        postMsg('component-ai-inspect', { language: document.getElementById('componentAiLanguage').value });
+    }
+
+    async function analyzeComponentAiContext(context) {
+        const preferences = {
+            language: document.getElementById('componentAiLanguage').value,
+            caseStyle: document.getElementById('componentAiCase').value,
+            separator: document.getElementById('componentAiSeparator').value
+        };
+        const endpoint = getAiEndpoint();
+        const systemPrompt = `You are a component-library governance assistant. Analyze the compact JSON context from Figma or MasterGo. Propose semantic component names, property names, property values, a useful component description, and actionable issue feedback. Preserve meaning and do not invent target IDs, property names, or source values. Missing properties and duplicate variants must be reported, not silently repaired. Output strict JSON only: {"summary":"...","issues":["..."],"targets":[{"id":"exact id","name":"...","description":"...","propertyRenames":[{"from":"exact source property","to":"..."}],"valueRenames":[{"property":"exact source property","from":"exact source value","to":"..."}]}]}. Use ${preferences.language === 'zh' ? 'Chinese' : 'English'} for semantic text. Naming will be normalized by the client to ${preferences.caseStyle} with ${preferences.separator} separators.`;
+        const requestBody = {
+            model: endpoint.model || 'glm-4.7-flash',
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: JSON.stringify(context) }
+            ],
+            temperature: 0.2,
+            stream: false
+        };
+        try {
+            const data = await dupFetchAI(requestBody);
+            const content = data?.choices?.[0]?.message?.content || '';
+            const rawPlan = extractJsonObject(content);
+            if (!rawPlan) throw new Error('AI 返回内容不是有效 JSON');
+            componentAiPlan = normalizeComponentAiPlan(rawPlan, context, preferences);
+            renderComponentAiPlan(componentAiPlan, context);
+        } catch (error) {
+            componentAiPlan = null;
+            showComponentAiFeedback(String(error?.message || error), true);
+        } finally {
+            setComponentAiBusy(false);
+        }
+    }
+
+    function applyComponentAiPlan() {
+        if (!componentAiPlan) return;
+        setComponentAiBusy(true);
+        postMsg('component-ai-apply', { plan: componentAiPlan });
+    }
+
     window.addEventListener('message', event => {
         const message = event.data?.pluginMessage || event.data;
         if (!message) return;
         if (message.type === 'component-builder-selection') {
+            const selectedIds = (message.selectionIds || []).slice().sort().join('|');
+            const plannedIds = (componentAiPlan?.targets || []).map(target => target.id).sort().join('|');
+            if (componentAiPlan && selectedIds !== plannedIds) {
+                componentAiPlan = null;
+                showComponentAiFeedback('');
+            }
             componentBuilderSelection = message;
             updateComponentBuilderControls();
+        } else if (message.type === 'component-ai-context') {
+            analyzeComponentAiContext(message.context);
+        } else if (message.type === 'component-ai-error') {
+            componentAiPlan = null;
+            setComponentAiBusy(false);
+            showComponentAiFeedback(message.message, true);
+        } else if (message.type === 'component-ai-applied') {
+            setComponentAiBusy(false);
+            showComponentAiFeedback(message.message, !message.ok);
+            if (message.ok) componentAiPlan = null;
+            const applyButton = document.getElementById('componentAiApplyBtn');
+            if (applyButton) applyButton.disabled = true;
         } else if (message.type === 'component-builder-result') {
             setComponentBuilderBusy('create', false);
             showComponentBuilderResult(message);
@@ -14743,10 +15209,6 @@
             document.querySelector('#compkitPanel .refiner-tab-item:nth-child(2)').classList.add('active');
             document.getElementById('tabCompKitShowcase').classList.add('active');
             requestCompKitProps();
-        } else if (tab === 'batch') {
-            document.querySelector('#compkitPanel .refiner-tab-item:nth-child(3)').classList.add('active');
-            document.getElementById('tabCompKitBatch').classList.add('active');
-            requestCompKitPropsForBatch();
         }
     }
 
@@ -14763,12 +15225,64 @@
     // 接收属性列表并更新下拉框
     let compkitPropsCache = [];
     let showcasePresetsCache = {};  // 预设内存缓存
+    const BUILTIN_SHOWCASE_PRESETS = {
+        compactLight: {
+            padding: 20, gapX: 16, gapY: 16, groupGap: 32, compRadius: 0,
+            compStroke: 1, compStrokeColor: '#8C5BD4', gridLineWidth: 1,
+            gridLineColor: '#E5E7EB', boardRadius: 12, boardPaddingX: 48,
+            boardPaddingY: 56, boardBg: '#F9FAFB', drawGrid: true,
+            drawLabels: true, drawProps: true, drawUsage: true,
+            aiDescription: true, itemSpacing: 24, orientation: 'landscape', theme: 'light'
+        },
+        compactDark: {
+            padding: 20, gapX: 16, gapY: 16, groupGap: 32, compRadius: 0,
+            compStroke: 1, compStrokeColor: '#A78BFA', gridLineWidth: 1,
+            gridLineColor: '#374151', boardRadius: 12, boardPaddingX: 48,
+            boardPaddingY: 56, boardBg: '#111827', drawGrid: true,
+            drawLabels: true, drawProps: true, drawUsage: true,
+            aiDescription: true, itemSpacing: 24, orientation: 'landscape', theme: 'dark'
+        },
+        landscapeMinimal: {
+            padding: 16, gapX: 12, gapY: 12, groupGap: 24, compRadius: 0,
+            compStroke: 0, compStrokeColor: '#64748B', gridLineWidth: 1,
+            gridLineColor: '#E5E7EB', boardRadius: 8, boardPaddingX: 40,
+            boardPaddingY: 40, boardBg: '#FFFFFF', drawGrid: false,
+            drawLabels: true, drawProps: false, drawUsage: false,
+            aiDescription: false, itemSpacing: 20, orientation: 'landscape', theme: 'light'
+        },
+        portraitFull: {
+            padding: 24, gapX: 20, gapY: 20, groupGap: 40, compRadius: 0,
+            compStroke: 1, compStrokeColor: '#8C5BD4', gridLineWidth: 1,
+            gridLineColor: '#E5E7EB', boardRadius: 12, boardPaddingX: 40,
+            boardPaddingY: 48, boardBg: '#F9FAFB', drawGrid: true,
+            drawLabels: true, drawProps: true, drawUsage: true,
+            aiDescription: true, itemSpacing: 28, orientation: 'portrait', theme: 'light'
+        }
+    };
+
+    function updateCompKitScopeUI() {
+        const isBatch = document.getElementById('showcaseScope')?.value === 'batch';
+        const hint = document.getElementById('showcaseBatchHint');
+        const xSelect = document.getElementById('compkitXSelect');
+        const ySelect = document.getElementById('compkitYSelect');
+        const aiToggle = document.getElementById('showcaseAiDescription');
+        if (hint) hint.style.display = isBatch ? 'block' : 'none';
+        if (xSelect) xSelect.disabled = isBatch;
+        if (ySelect) ySelect.disabled = isBatch;
+        if (aiToggle) aiToggle.disabled = isBatch;
+    }
+
+    function applyBuiltInShowcasePreset(name) {
+        const preset = BUILTIN_SHOWCASE_PRESETS[name] || BUILTIN_SHOWCASE_PRESETS.compactLight;
+        applyShowcaseSettings(preset);
+    }
+
     window.addEventListener('message', (event) => {
         const msg = event.data.pluginMessage;
         if (!msg) return;
 
         if (msg.type === 'compkit-props') {
-            const { properties, targetId, componentName, propertyValues, variantsCount } = msg;
+            const { properties, targetId, componentName, propertyValues, variantsCount, totalSets } = msg;
             compkitPropsCache = properties;
 
             console.log('【CompKit】收到属性更新:', { properties, targetId, componentName, propertyValues, variantsCount });
@@ -14778,7 +15292,8 @@
                 name: componentName || '',
                 properties: properties || [],
                 propertyValues: propertyValues || {},
-                variantsCount: variantsCount || 0
+                variantsCount: variantsCount || 0,
+                totalSets: totalSets || 0
             };
 
             console.log('【CompKit】已保存组件信息到 window.compkitComponentInfo:', window.compkitComponentInfo);
@@ -14836,10 +15351,16 @@
     }
 
     // 矩阵排列
+    function readCompKitNumber(id, fallback) {
+        const input = document.getElementById(id);
+        const value = Number(input?.value);
+        return Number.isFinite(value) ? value : fallback;
+    }
+
     function runCompKitMatrix() {
-        const gapX = parseInt(document.getElementById('compkitGapX').value) || 40;
-        const gapY = parseInt(document.getElementById('compkitGapY').value) || 40;
-        const padding = parseInt(document.getElementById('compkitPadding').value) || 24;
+        const gapX = readCompKitNumber('compkitGapX', 40);
+        const gapY = readCompKitNumber('compkitGapY', 40);
+        const padding = readCompKitNumber('compkitPadding', 24);
 
         parent.postMessage({
             pluginMessage: {
@@ -14855,10 +15376,10 @@
     async function runBatchShowcase() {
         const config = {
             type: 'generate-batch-showcase',
-            gapX: parseInt(document.getElementById('batchGapX').value) || 48,
-            gapY: parseInt(document.getElementById('batchGapY').value) || 48,
-            padding: parseInt(document.getElementById('batchPadding').value) || 32,
-            setSpacing: parseInt(document.getElementById('batchSetSpacing').value) || 80,
+            gapX: readCompKitNumber('batchGapX', 48),
+            gapY: readCompKitNumber('batchGapY', 48),
+            padding: readCompKitNumber('batchPadding', 32),
+            setSpacing: readCompKitNumber('batchSetSpacing', 80),
             drawLabels: document.getElementById('batchDrawLabels').checked,
             drawGrid: document.getElementById('batchDrawGrid').checked
         };
@@ -14916,7 +15437,10 @@
             designer: document.getElementById('showcaseDesigner').value,
             usagePage: document.getElementById('showcaseUsagePage').value,
             aiDescription: document.getElementById('showcaseAiDescription').checked,
-            itemSpacing: parseInt(document.getElementById('showcaseItemSpacing').value) || 48
+            itemSpacing: parseInt(document.getElementById('showcaseItemSpacing').value) || 24,
+            scope: document.getElementById('showcaseScope').value,
+            orientation: document.getElementById('showcaseOrientation').value,
+            theme: document.getElementById('showcaseTheme').value
         };
     }
 
@@ -14924,18 +15448,18 @@
     function applyShowcaseSettings(settings) {
         if (!settings) return;
 
-        document.getElementById('showcasePadding').value = settings.padding || 32;
-        document.getElementById('showcaseGapX').value = settings.gapX || 48;
-        document.getElementById('showcaseGapY').value = settings.gapY || 48;
-        document.getElementById('showcaseGroupGap').value = settings.groupGap || 120;
-        document.getElementById('showcaseCompRadius').value = settings.compRadius || 0;
-        document.getElementById('showcaseCompStroke').value = settings.compStroke || 1;
+        document.getElementById('showcasePadding').value = settings.padding ?? 20;
+        document.getElementById('showcaseGapX').value = settings.gapX ?? 16;
+        document.getElementById('showcaseGapY').value = settings.gapY ?? 16;
+        document.getElementById('showcaseGroupGap').value = settings.groupGap ?? 32;
+        document.getElementById('showcaseCompRadius').value = settings.compRadius ?? 0;
+        document.getElementById('showcaseCompStroke').value = settings.compStroke ?? 1;
         document.getElementById('showcaseCompStrokeColor').value = settings.compStrokeColor || '#8C5BD4';
-        document.getElementById('showcaseGridLineWidth').value = settings.gridLineWidth || 1;
+        document.getElementById('showcaseGridLineWidth').value = settings.gridLineWidth ?? 1;
         document.getElementById('showcaseGridLineColor').value = settings.gridLineColor || '#E5E7EB';
-        document.getElementById('showcaseBoardRadius').value = settings.boardRadius || 24;
-        document.getElementById('showcaseBoardPaddingX').value = settings.boardPaddingX || 140;
-        document.getElementById('showcaseBoardPaddingY').value = settings.boardPaddingY || 160;
+        document.getElementById('showcaseBoardRadius').value = settings.boardRadius ?? 12;
+        document.getElementById('showcaseBoardPaddingX').value = settings.boardPaddingX ?? 48;
+        document.getElementById('showcaseBoardPaddingY').value = settings.boardPaddingY ?? 56;
         document.getElementById('showcaseBoardBg').value = settings.boardBg || '#F9FAFB';
         document.getElementById('showcaseDrawGrid').checked = settings.drawGrid !== false;
         document.getElementById('showcaseDrawLabels').checked = settings.drawLabels !== false;
@@ -14947,7 +15471,11 @@
         document.getElementById('showcaseDesigner').value = settings.designer || '';
         document.getElementById('showcaseUsagePage').value = settings.usagePage || '';
         document.getElementById('showcaseAiDescription').checked = settings.aiDescription !== false;
-        document.getElementById('showcaseItemSpacing').value = settings.itemSpacing || 48;
+        document.getElementById('showcaseItemSpacing').value = settings.itemSpacing || 24;
+        document.getElementById('showcaseScope').value = settings.scope || document.getElementById('showcaseScope').value || 'single';
+        document.getElementById('showcaseOrientation').value = settings.orientation || 'landscape';
+        document.getElementById('showcaseTheme').value = settings.theme || 'light';
+        updateCompKitScopeUI();
     }
 
     // 获取所有预设（从内存缓存）
@@ -15043,14 +15571,7 @@
         const presetName = select.value;
 
         if (!presetName) {
-            // 加载默认预设
-            applyShowcaseSettings({
-                padding: 32, gapX: 48, gapY: 48, groupGap: 120,
-                compRadius: 0, compStroke: 1, compStrokeColor: '#8C5BD4',
-                gridLineWidth: 1, gridLineColor: '#E5E7EB',
-                boardRadius: 24, boardPaddingX: 140, boardPaddingY: 160, boardBg: '#F9FAFB',
-                drawGrid: true, drawLabels: true, drawProps: true, drawUsage: true
-            });
+            applyBuiltInShowcasePreset('compactLight');
             alert(i18n[curLang].ck_preset_loaded_default || '已加载默认预设！');
             return;
         }
@@ -15117,6 +15638,25 @@
     }
 
     async function runCompKitShowcase() {
+        const scope = document.getElementById('showcaseScope').value;
+        if (scope === 'batch') {
+            const btn = document.getElementById('btnCompKitShowcase');
+            const span = btn.querySelector('span');
+            const originalText = span.innerText;
+            span.innerText = i18n[curLang].ck_generating || '生成中...';
+            postMsg('generate-batch-showcase', {
+                gapX: readCompKitNumber('showcaseGapX', 16),
+                gapY: readCompKitNumber('showcaseGapY', 16),
+                padding: readCompKitNumber('showcasePadding', 20),
+                setSpacing: readCompKitNumber('showcaseGroupGap', 32),
+                drawLabels: document.getElementById('showcaseDrawLabels').checked,
+                drawGrid: document.getElementById('showcaseDrawGrid').checked,
+                orientation: document.getElementById('showcaseOrientation').value,
+                theme: document.getElementById('showcaseTheme').value
+            });
+            setTimeout(() => { span.innerText = originalText; }, 3000);
+            return;
+        }
         const propX = document.getElementById('compkitXSelect').value;
         const propY = document.getElementById('compkitYSelect').value;
 
@@ -15173,20 +15713,20 @@
             propX: propX,
             propY: propY,
             // 组件集设置
-            padding: parseInt(document.getElementById('showcasePadding').value) || 32,
-            gapX: parseInt(document.getElementById('showcaseGapX').value) || 48,
-            gapY: parseInt(document.getElementById('showcaseGapY').value) || 48,
-            groupGap: parseInt(document.getElementById('showcaseGroupGap').value) || 120,
-            compRadius: parseInt(document.getElementById('showcaseCompRadius').value) || 0,
-            compStroke: parseFloat(document.getElementById('showcaseCompStroke').value) || 0,
+            padding: readCompKitNumber('showcasePadding', 20),
+            gapX: readCompKitNumber('showcaseGapX', 16),
+            gapY: readCompKitNumber('showcaseGapY', 16),
+            groupGap: readCompKitNumber('showcaseGroupGap', 32),
+            compRadius: readCompKitNumber('showcaseCompRadius', 0),
+            compStroke: readCompKitNumber('showcaseCompStroke', 0),
             compStrokeColor: hexToRgb(document.getElementById('showcaseCompStrokeColor').value),
             // 网格线设置
-            gridLineWidth: parseFloat(document.getElementById('showcaseGridLineWidth').value) || 1,
+            gridLineWidth: readCompKitNumber('showcaseGridLineWidth', 1),
             gridLineColor: hexToRgb(document.getElementById('showcaseGridLineColor').value),
             // 画板设置
-            boardRadius: parseInt(document.getElementById('showcaseBoardRadius').value) || 24,
-            boardPaddingX: parseInt(document.getElementById('showcaseBoardPaddingX').value) || 140,
-            boardPaddingY: parseInt(document.getElementById('showcaseBoardPaddingY').value) || 160,
+            boardRadius: readCompKitNumber('showcaseBoardRadius', 12),
+            boardPaddingX: readCompKitNumber('showcaseBoardPaddingX', 48),
+            boardPaddingY: readCompKitNumber('showcaseBoardPaddingY', 56),
             boardBg: hexToRgb(document.getElementById('showcaseBoardBg').value),
             // 绘制选项
             drawGrid: document.getElementById('showcaseDrawGrid').checked,
@@ -15200,7 +15740,9 @@
             usagePage: document.getElementById('showcaseUsagePage').value,
             aiDescription: useAiDescription,
             aiGeneratedDescription: aiGeneratedDescription,
-            itemSpacing: parseInt(document.getElementById('showcaseItemSpacing').value) || 48
+            itemSpacing: readCompKitNumber('showcaseItemSpacing', 24),
+            orientation: document.getElementById('showcaseOrientation').value,
+            theme: document.getElementById('showcaseTheme').value
         };
 
         span.innerText = i18n[curLang].ck_generating || "生成中...";
@@ -15242,14 +15784,20 @@
             ? `你是一个专业的 UI/UX 设计文档撰写专家。你的任务是根据组件信息生成结构化的组件描述文档。输出必须严格遵循以下 JSON 格式，不要包含任何其他内容：
 {
   "componentName": "组件中文翻译名称 / English Name",
-  "usage": "适用场景描述，包括适用情况和不适用情况，以及该组件在不同场景下的表现，",
-  "properties": "属性说明，解释每个属性的作用，结合这些属性可以实现什么样的动作",
+  "usage": "适用场景描述，包括适用情况、不适用情况和不同场景表现",
+  "properties": "整体属性策略说明",
+  "propertyDescriptions": {"属性原名": "该属性的语义、控制内容和适用方式"},
+  "do": "一条具体的正确使用建议",
+  "dont": "一条具体的错误使用警告"
 }`
             : `You are a professional UI/UX design documentation writer. Your task is to generate structured component descriptions based on component information. Output must strictly follow this JSON format without any other content:
 {
   "componentName": "English Name / 中文翻译名称",
   "usage": "Usage scenarios description, including suitable and unsuitable cases, and the component's behavior in different scenarios",
-  "properties": "Properties explanation, describing the purpose of each property and available values",
+  "properties": "Overall property strategy",
+  "propertyDescriptions": {"Original property name": "Semantic purpose, controlled behavior, and usage"},
+  "do": "One concrete best practice",
+  "dont": "One concrete misuse warning"
 }`;
 
         const userPrompt = language === 'zh'
@@ -15263,7 +15811,8 @@ ${propsSummary}
 要求：
 1. 组件名称：提供中文翻译名称和英文名称
 2. 适用场景：说明该组件适用于什么场景，什么情况下不适用，以及该组件在不同场景下的表现
-3. 属性说明：解释每个属性的作用和可选值，结合这些属性可以实现什么样的动作
+3. 属性说明：逐个解释属性的语义和行为，不要只是重复属性名或属性值
+4. 给出一条具体的正确用法和一条具体的错误用法
 
 请输出 JSON：`
             : `Please generate documentation for the following component:
@@ -15276,7 +15825,8 @@ ${propsSummary}
 Requirements:
 1. Component Name: Provide both English and Chinese translated names of the component
 2. Usage: Describe suitable and unsuitable scenarios, and the component's behavior in different scenarios
-3. Properties: Explain the purpose of each property and available values, and the actions that can be performed with these properties
+3. Properties: Explain each property's semantics and behavior instead of repeating its name or values
+4. Provide one concrete best practice and one concrete misuse warning
 
 Please output JSON:`;
 

@@ -1883,10 +1883,32 @@ const reverseFullComponentSet = async (source, main, sourceSet, sourceVariants, 
         if (records.length !== sourceVariants.length || records.length < 2) {
             throw new Error(`完整性校验失败：发现 ${sourceVariants.length} 个真实变体，但只还原 ${records.length} 个`);
         }
-        set = mg.combineAsVariants(records.map(record => record.component));
+        // 合并前先将临时组件收进二维网格；此前单行递增会让结果组件集宽到 4500px 以上。
+        const stagingComponents = records.map(record => record.component);
+        const stagingColumns = Math.max(1, Math.ceil(Math.sqrt(stagingComponents.length)));
+        const stagingMaxWidth = Math.max(...stagingComponents.map(component => Math.max(1, safeRead(() => component.width, 1))));
+        const stagingMaxHeight = Math.max(...stagingComponents.map(component => Math.max(1, safeRead(() => component.height, 1))));
+        stagingComponents.forEach((component, index) => {
+            placeReverseTarget(component, {
+                x: placement.x + (index % stagingColumns) * (stagingMaxWidth + 24),
+                y: placement.y + Math.floor(index / stagingColumns) * (stagingMaxHeight + 24)
+            });
+        });
+        set = mg.combineAsVariants(stagingComponents);
         set.name = masterName;
         validateRestoredVariantSet(set, records, warnings);
         copyPublishableMetadata(sourceSet, set);
+        set.flexMode = 'NONE';
+        const compactComponents = getChildren(set).filter(node => node.type === 'COMPONENT');
+        const columns = Math.max(1, Math.ceil(Math.sqrt(compactComponents.length)));
+        const maxWidth = Math.max(...compactComponents.map(component => Math.max(1, safeRead(() => component.width, 1))));
+        const maxHeight = Math.max(...compactComponents.map(component => Math.max(1, safeRead(() => component.height, 1))));
+        compactComponents.forEach((component, index) => {
+            component.x = 24 + (index % columns) * (maxWidth + 24) + (maxWidth - component.width) / 2;
+            component.y = 24 + Math.floor(index / columns) * (maxHeight + 24) + (maxHeight - component.height) / 2;
+        });
+        const rows = Math.ceil(compactComponents.length / columns);
+        set.resize(48 + columns * maxWidth + Math.max(0, columns - 1) * 24, 48 + rows * maxHeight + Math.max(0, rows - 1) * 24);
         placeReverseTarget(set, getReversePlacement(source, safeRead(() => set.width, safeRead(() => source.width, 0.01)), safeRead(() => set.height, safeRead(() => source.height, 0.01)), [set]));
         const restored = restoreReversedSetProperties(set, records, properties, fallbackReferences);
         warnings.push(...restored.warnings);
@@ -2129,18 +2151,221 @@ const wrapFramesAsOneComponent = (frames, name) => {
         throw error;
     }
 };
+const buildComponentAiContext = (language = 'zh') => {
+    const selection = mg.document.currentPage.selection;
+    const selectedComponents = selection.filter(node => node.type === 'COMPONENT');
+    const selectedSets = selection.filter(node => node.type === 'COMPONENT_SET');
+    const valid = (selection.length === 1 && selectedSets.length === 1)
+        || (selection.length >= 1 && selection.length <= 10 && selectedComponents.length === selection.length);
+    if (!valid)
+        throw new Error(language === 'en'
+            ? 'Select one component set or 1–10 standalone components.'
+            : '请选择 1 个组件集，或 1–10 个独立组件。');
+    const owners = selectedSets.length ? selectedSets : selectedComponents;
+    const issues = [];
+    const selectedNameCounts = new Map();
+    owners.forEach(owner => {
+        const key = owner.name.trim().toLocaleLowerCase();
+        selectedNameCounts.set(key, (selectedNameCounts.get(key) || 0) + 1);
+    });
+    const targets = owners.map(owner => {
+        const variants = owner.type === 'COMPONENT_SET'
+            ? getChildren(owner).filter(node => node.type === 'COMPONENT')
+            : [];
+        const values = {};
+        const signatures = new Map();
+        const propertyPresence = new Map();
+        variants.forEach(variant => {
+            const props = parseVariantName(variant.name);
+            const keys = Object.keys(props);
+            keys.forEach(key => {
+                if (!values[key])
+                    values[key] = new Set();
+                values[key].add(props[key]);
+                propertyPresence.set(key, (propertyPresence.get(key) || 0) + 1);
+            });
+            const signature = keys.sort().map(key => `${key.toLocaleLowerCase()}=${props[key].toLocaleLowerCase()}`).join('|');
+            const names = signatures.get(signature) || [];
+            names.push(variant.name);
+            signatures.set(signature, names);
+        });
+        signatures.forEach(names => {
+            if (names.length < 2)
+                return;
+            issues.push({
+                code: 'duplicate-variant', severity: 'warning', targetId: owner.id,
+                message: language === 'en'
+                    ? `${owner.name}: ${names.length} variants use the same property combination.`
+                    : `${owner.name}：发现 ${names.length} 个属性组合重复的变体。`
+            });
+        });
+        propertyPresence.forEach((count, property) => {
+            if (variants.length > 0 && count < variants.length) {
+                issues.push({
+                    code: 'missing-property', severity: 'warning', targetId: owner.id,
+                    message: language === 'en'
+                        ? `${owner.name}: “${property}” is missing from ${variants.length - count} variants.`
+                        : `${owner.name}：属性“${property}”在 ${variants.length - count} 个变体中缺失。`
+                });
+            }
+        });
+        if (/^(component|组件|variant|变体)(\s*\d+)?$/i.test(owner.name.trim())) {
+            issues.push({
+                code: 'generic-name', severity: 'info', targetId: owner.id,
+                message: language === 'en' ? `${owner.name}: the name is too generic.` : `${owner.name}：名称过于宽泛。`
+            });
+        }
+        if ((selectedNameCounts.get(owner.name.trim().toLocaleLowerCase()) || 0) > 1) {
+            issues.push({
+                code: 'duplicate-name', severity: 'warning', targetId: owner.id,
+                message: language === 'en' ? `${owner.name}: duplicate selected component name.` : `${owner.name}：所选组件中存在重名。`
+            });
+        }
+        const definitions = safeRead(() => owner.componentPropertyValues || [], []);
+        const propertyDefinitions = definitions.map(definition => {
+            var _a;
+            return ({
+                key: definition.id || definition.name,
+                name: definition.name,
+                type: definition.type,
+                defaultValue: String((_a = definition.defaultValue) !== null && _a !== void 0 ? _a : '')
+            });
+        });
+        const propertyValues = Object.fromEntries(Object.entries(values).map(([key, set]) => [key, Array.from(set).slice(0, 24)]));
+        return {
+            id: owner.id,
+            type: owner.type,
+            name: owner.name,
+            description: safeRead(() => owner.description || '', ''),
+            propertyDefinitions,
+            propertyValues,
+            variantCount: variants.length,
+            variantNames: variants.slice(0, 40).map(variant => variant.name),
+            variantsTruncated: Math.max(0, variants.length - 40)
+        };
+    });
+    return { platform: 'mastergo', language, selectionIds: owners.map(owner => owner.id), targets, issues };
+};
+const applyComponentAiPlan = (plan) => {
+    const selection = mg.document.currentPage.selection;
+    const allowedIds = new Set(selection.map(node => node.id));
+    const selectedComponents = selection.filter(node => node.type === 'COMPONENT');
+    const selectedSets = selection.filter(node => node.type === 'COMPONENT_SET');
+    const valid = (selection.length === 1 && selectedSets.length === 1)
+        || (selection.length >= 1 && selection.length <= 10 && selectedComponents.length === selection.length);
+    if (!valid)
+        throw new Error('当前选择已变化，请重新分析后再应用');
+    let changed = 0;
+    const warnings = [];
+    const targetPlans = Array.isArray(plan === null || plan === void 0 ? void 0 : plan.targets) ? plan.targets.slice(0, 10) : [];
+    const desiredNameCounts = new Map();
+    targetPlans.forEach((targetPlan) => {
+        const key = String((targetPlan === null || targetPlan === void 0 ? void 0 : targetPlan.name) || '').trim().toLocaleLowerCase();
+        if (key)
+            desiredNameCounts.set(key, (desiredNameCounts.get(key) || 0) + 1);
+    });
+    targetPlans.forEach((targetPlan) => {
+        const id = String((targetPlan === null || targetPlan === void 0 ? void 0 : targetPlan.id) || '');
+        if (!allowedIds.has(id))
+            return;
+        const owner = mg.getNodeById(id);
+        if (!owner || (owner.type !== 'COMPONENT' && owner.type !== 'COMPONENT_SET'))
+            return;
+        const nextName = String(targetPlan.name || '').trim().slice(0, 120);
+        const description = String(targetPlan.description || '').trim().slice(0, 1000);
+        if (nextName && nextName !== owner.name) {
+            if ((desiredNameCounts.get(nextName.toLocaleLowerCase()) || 0) > 1)
+                warnings.push(`方案中的组件名“${nextName}”重复，已跳过`);
+            else {
+                owner.name = nextName;
+                changed++;
+            }
+        }
+        if (description) {
+            try {
+                owner.description = description;
+                changed++;
+            }
+            catch (_) {
+                warnings.push(`${owner.name} 的描述无法写入`);
+            }
+        }
+        if (owner.type === 'COMPONENT_SET') {
+            const valueRenames = Array.isArray(targetPlan.valueRenames) ? targetPlan.valueRenames.slice(0, 120) : [];
+            for (const rename of valueRenames) {
+                const property = String((rename === null || rename === void 0 ? void 0 : rename.property) || '').trim();
+                const from = String((rename === null || rename === void 0 ? void 0 : rename.from) || '').trim();
+                const to = String((rename === null || rename === void 0 ? void 0 : rename.to) || '').trim().replace(/[,=]/g, ' ').slice(0, 80);
+                if (!property || !from || !to || from === to)
+                    continue;
+                const existingValues = new Set(getChildren(owner).filter(node => node.type === 'COMPONENT')
+                    .map(node => parseVariantName(node.name)[property])
+                    .filter(Boolean));
+                if (existingValues.has(to)) {
+                    warnings.push(`${owner.name} 的属性“${property}”已存在值“${to}”，为避免重复变体已跳过`);
+                    continue;
+                }
+                try {
+                    owner.editVariantPropertyValues({ [property]: { oldValue: from, newValue: to } });
+                    changed++;
+                }
+                catch (_) {
+                    warnings.push(`${owner.name} 的属性值“${property}=${from}”无法重命名`);
+                }
+            }
+        }
+        const propertyRenames = Array.isArray(targetPlan.propertyRenames) ? targetPlan.propertyRenames.slice(0, 40) : [];
+        for (const rename of propertyRenames) {
+            const from = String((rename === null || rename === void 0 ? void 0 : rename.from) || '').trim();
+            const to = String((rename === null || rename === void 0 ? void 0 : rename.to) || '').trim().replace(/[,=]/g, ' ').slice(0, 80);
+            if (!from || !to || from === to)
+                continue;
+            const definition = safeRead(() => owner.componentPropertyValues.find(property => property.name === from), undefined);
+            if (!definition) {
+                warnings.push(`${owner.name} 中未找到属性“${from}”`);
+                continue;
+            }
+            const hasNameCollision = safeRead(() => owner.componentPropertyValues.some(property => property.name !== from && property.name.toLocaleLowerCase() === to.toLocaleLowerCase()), false);
+            if (hasNameCollision) {
+                warnings.push(`${owner.name} 中已存在属性“${to}”，已跳过`);
+                continue;
+            }
+            try {
+                if (owner.type === 'COMPONENT_SET' && definition.type === 'VARIANT') {
+                    owner.editVariantProperties({ [from]: to });
+                }
+                else {
+                    owner.editComponentProperty(definition.id || definition.name, { name: to });
+                }
+                changed++;
+            }
+            catch (_) {
+                warnings.push(`${owner.name} 的属性“${from}”无法重命名`);
+            }
+        }
+    });
+    return { changed, warnings };
+};
 const sendComponentBuilderSelection = () => {
     const selection = mg.document.currentPage.selection;
     const frames = selection.filter(node => node.type === 'FRAME');
     const instances = selection.filter(node => node.type === 'INSTANCE');
+    const components = selection.filter(node => node.type === 'COMPONENT');
+    const componentSets = selection.filter(node => node.type === 'COMPONENT_SET');
+    const canOptimize = (selection.length === 1 && componentSets.length === 1)
+        || (selection.length >= 1 && selection.length <= 10 && components.length === selection.length);
     sendToUI({
         type: 'component-builder-selection',
         total: selection.length,
         frames: frames.length,
         instances: instances.length,
+        components: components.length,
+        componentSets: componentSets.length,
+        canOptimize,
         canReverse: selection.length === 1 && instances.length === 1,
         canBuild: selection.length > 0 && frames.length === selection.length,
         sameParent: selection.length > 0 && selection.every(node => node.parent === selection[0].parent),
+        selectionIds: selection.map(node => node.id),
         names: selection.slice(0, 4).map(node => node.name)
     });
 };
@@ -4422,6 +4647,31 @@ mg.ui.onmessage = async (rawMessage) => {
             sendComponentBuilderSelection();
             break;
         }
+        case 'component-ai-inspect': {
+            try {
+                sendToUI({ type: 'component-ai-context', context: buildComponentAiContext(msg.language || 'zh') });
+            }
+            catch (error) {
+                sendToUI({ type: 'component-ai-error', message: String((error === null || error === void 0 ? void 0 : error.message) || error) });
+            }
+            break;
+        }
+        case 'component-ai-apply': {
+            try {
+                const result = applyComponentAiPlan(msg.plan);
+                mg.commitUndo();
+                const message = `已应用 ${result.changed} 项组件规范优化${result.warnings.length ? `；${result.warnings.length} 项未能修改` : ''}`;
+                mg.notify(message, { type: result.warnings.length ? 'warning' : 'success' });
+                sendToUI({ type: 'component-ai-applied', ok: true, message, warnings: result.warnings });
+                sendComponentBuilderSelection();
+            }
+            catch (error) {
+                const message = `应用失败：${String((error === null || error === void 0 ? void 0 : error.message) || error)}`;
+                mg.notify(message, { type: 'error' });
+                sendToUI({ type: 'component-ai-applied', ok: false, message });
+            }
+            break;
+        }
         case 'component-builder-reverse': {
             if (selection.length !== 1 || selection[0].type !== 'INSTANCE') {
                 const message = '请只选择一个实例（Instance）后再逆向母版';
@@ -4729,7 +4979,9 @@ mg.ui.onmessage = async (rawMessage) => {
             // 5. 设定间距和单元格尺寸
             const cellWidth = maxWidth + gapX;
             const cellHeight = hasY ? maxHeight + gapY : 0;
-            const singleGroupHeight = yArray.length * cellHeight;
+            const singleGroupHeight = hasY
+                ? yArray.length * maxHeight + Math.max(0, yArray.length - 1) * gapY
+                : maxHeight;
             // 6. 关闭 Component Set 的自动布局
             componentSet.flexMode = "NONE";
             // 7. 开始重排绝对坐标
@@ -4741,17 +4993,17 @@ mg.ui.onmessage = async (rawMessage) => {
                 const gSign = groupProps.map(p => `${p}=${props[p]}`).join(', ') || 'Default';
                 const groupIndex = groups.indexOf(gSign);
                 if (colIndex !== -1 && rowIndex !== -1 && groupIndex !== -1) {
-                    const groupOffsetY = groupIndex * (singleGroupHeight + (hasY ? 80 : 0));
-                    v.x = padding + colIndex * cellWidth + (cellWidth - v.width) / 2;
+                    const groupOffsetY = groupIndex * (singleGroupHeight + (hasY ? gapY : 0));
+                    v.x = padding + colIndex * cellWidth + (maxWidth - v.width) / 2;
                     v.y = hasY
-                        ? padding + groupOffsetY + rowIndex * cellHeight + (cellHeight - v.height) / 2
+                        ? padding + groupOffsetY + rowIndex * cellHeight + (maxHeight - v.height) / 2
                         : padding + (maxHeight - v.height) / 2; // 1D 垂直居中
                 }
             });
             // 8. 重置 Component Set 的总宽高
-            const totalWidth = padding * 2 + xArray.length * cellWidth;
+            const totalWidth = padding * 2 + xArray.length * maxWidth + Math.max(0, xArray.length - 1) * gapX;
             const totalHeight = hasY
-                ? padding * 2 + groups.length * singleGroupHeight + Math.max(0, groups.length - 1) * 80
+                ? padding * 2 + groups.length * singleGroupHeight + Math.max(0, groups.length - 1) * gapY
                 : padding * 2 + maxHeight;
             componentSet.resize(totalWidth, totalHeight);
             let resultMsg = hasY
@@ -4762,12 +5014,17 @@ mg.ui.onmessage = async (rawMessage) => {
         }
         // 批量排布：多个组件集统一排列
         case 'generate-batch-showcase': {
-            const gapX = msg.gapX !== undefined ? msg.gapX : 48;
-            const gapY = msg.gapY !== undefined ? msg.gapY : 48;
-            const padding = msg.padding !== undefined ? msg.padding : 32;
-            const setSpacing = msg.setSpacing !== undefined ? msg.setSpacing : 80;
+            const gapX = msg.gapX !== undefined ? msg.gapX : 16;
+            const gapY = msg.gapY !== undefined ? msg.gapY : 16;
+            const padding = msg.padding !== undefined ? msg.padding : 20;
+            const setSpacing = msg.setSpacing !== undefined ? msg.setSpacing : 32;
             const drawLabels = msg.drawLabels !== false;
             const drawGrid = msg.drawGrid !== false;
+            const orientation = msg.orientation === 'portrait' ? 'portrait' : 'landscape';
+            const theme = msg.theme === 'dark' ? 'dark' : 'light';
+            const darkTheme = theme === 'dark';
+            const boardFill = darkTheme ? { r: 17 / 255, g: 24 / 255, b: 39 / 255 } : { r: 249 / 255, g: 250 / 255, b: 251 / 255 };
+            const titleFill = darkTheme ? { r: 243 / 255, g: 244 / 255, b: 246 / 255 } : { r: 17 / 255, g: 24 / 255, b: 39 / 255 };
             const selection = mg.document.currentPage.selection;
             // 从选中项中提取组件集（支持直接选中 ComponentSet 或已生成的说明书画板）
             const compSets = [];
@@ -4795,17 +5052,19 @@ mg.ui.onmessage = async (rawMessage) => {
             centerY /= compSets.length;
             // 外层容器 Frame
             const container = mg.createFrame();
-            container.name = "🧩 Batch Layout";
-            container.flexMode = "VERTICAL";
+            container.name = "🧩 Component Specs Catalog";
+            container.setPluginData('isShowcaseBoard', 'true');
+            container.flexMode = orientation === 'portrait' ? "VERTICAL" : "HORIZONTAL";
             container.mainAxisSizingMode = "AUTO";
             container.crossAxisSizingMode = "AUTO";
             container.itemSpacing = setSpacing;
-            container.paddingLeft = 60;
-            container.paddingRight = 60;
-            container.paddingTop = 60;
-            container.paddingBottom = 60;
-            container.fills = [];
+            container.paddingLeft = 32;
+            container.paddingRight = 32;
+            container.paddingTop = 32;
+            container.paddingBottom = 32;
+            container.fills = [solidPaint(boardFill)];
             let maxSetWidth = 0;
+            const directPlacements = [];
             // 处理每个组件集
             for (const componentSet of compSets) {
                 const variants = componentSet.children;
@@ -4858,7 +5117,9 @@ mg.ui.onmessage = async (rawMessage) => {
                     maxH = v.height; });
                 const cellW = maxW + gapX;
                 const cellH = localHasY ? maxH + gapY : 0;
-                const groupH = yArray.length * cellH;
+                const groupH = localHasY
+                    ? yArray.length * maxH + Math.max(0, yArray.length - 1) * gapY
+                    : maxH;
                 // 排列变体
                 componentSet.flexMode = "NONE";
                 variants.forEach(v => {
@@ -4868,13 +5129,13 @@ mg.ui.onmessage = async (rawMessage) => {
                     const gSign = groupProps.map(p => `${p}=${props[p]}`).join(', ') || 'Default';
                     const groupIndex = groups.indexOf(gSign);
                     if (colIndex !== -1 && rowIndex !== -1 && groupIndex !== -1) {
-                        const offY = groupIndex * (groupH + (localHasY ? 80 : 0));
-                        v.x = padding + colIndex * cellW + (cellW - v.width) / 2;
-                        v.y = localHasY ? padding + offY + rowIndex * cellH + (cellH - v.height) / 2 : padding + (maxH - v.height) / 2;
+                        const offY = groupIndex * (groupH + (localHasY ? gapY : 0));
+                        v.x = padding + colIndex * cellW + (maxW - v.width) / 2;
+                        v.y = localHasY ? padding + offY + rowIndex * cellH + (maxH - v.height) / 2 : padding + (maxH - v.height) / 2;
                     }
                 });
-                const csWidth = padding * 2 + xArray.length * cellW;
-                const csHeight = localHasY ? padding * 2 + groups.length * groupH + Math.max(0, groups.length - 1) * 80 : padding * 2 + maxH;
+                const csWidth = padding * 2 + xArray.length * maxW + Math.max(0, xArray.length - 1) * gapX;
+                const csHeight = localHasY ? padding * 2 + groups.length * groupH + Math.max(0, groups.length - 1) * gapY : padding * 2 + maxH;
                 componentSet.resize(csWidth, csHeight);
                 if (csWidth > maxSetWidth)
                     maxSetWidth = csWidth;
@@ -4891,7 +5152,7 @@ mg.ui.onmessage = async (rawMessage) => {
                 titleText.characters = componentSet.name;
                 setTextFontSize(titleText, 20);
                 setTextFontName(titleText, { family: "Inter", style: "Bold" });
-                titleText.fills = [solidPaint({ r: 17 / 255, g: 24 / 255, b: 39 / 255 })];
+                titleText.fills = [solidPaint(titleFill)];
                 setGroup.appendChild(titleText);
                 // 内部包装块（组件集 + 标签/网格）
                 const innerBlock = mg.createFrame();
@@ -4917,14 +5178,14 @@ mg.ui.onmessage = async (rawMessage) => {
                         setTextFontSize(label, 12);
                         setTextFontName(label, { family: "Inter", style: "Semi Bold" });
                         label.fills = [solidPaint({ r: 107 / 255, g: 114 / 255, b: 128 / 255 })];
-                        label.x = componentSet.x + padding + index * cellW + cellW / 2 - label.width / 2;
+                        label.x = componentSet.x + padding + index * cellW + maxW / 2 - label.width / 2;
                         label.y = componentSet.y - 32;
                         innerBlock.appendChild(label);
                         decorationNodes.push(label);
                     });
                 }
                 groups.forEach((gSign, gIndex) => {
-                    const gAbsY = componentSet.y + padding + gIndex * (groupH + (localHasY ? 80 : 0));
+                    const gAbsY = componentSet.y + padding + gIndex * (groupH + (localHasY ? gapY : 0));
                     // Y 轴标签（仅二维）
                     if (localHasY && drawLabels) {
                         yArray.forEach((yVal, rowIndex) => {
@@ -4934,7 +5195,7 @@ mg.ui.onmessage = async (rawMessage) => {
                             setTextFontName(label, { family: "Inter", style: "Semi Bold" });
                             label.fills = [solidPaint({ r: 156 / 255, g: 163 / 255, b: 175 / 255 })];
                             label.x = componentSet.x - label.width - 16;
-                            label.y = gAbsY + rowIndex * cellH + cellH / 2 - label.height / 2;
+                            label.y = gAbsY + rowIndex * cellH + maxH / 2 - label.height / 2;
                             innerBlock.appendChild(label);
                             decorationNodes.push(label);
                         });
@@ -4946,7 +5207,7 @@ mg.ui.onmessage = async (rawMessage) => {
                                 const line = mg.createLine();
                                 line.resize(xArray.length * cellW, 0);
                                 line.x = componentSet.x + padding;
-                                line.y = gAbsY + r * cellH;
+                                line.y = gAbsY + r * cellH - gapY / 2;
                                 line.strokeDashes = [4, 4];
                                 line.strokeWeight = 1;
                                 line.strokes = [solidPaint({ r: 0.9, g: 0.92, b: 0.94 })];
@@ -4959,7 +5220,7 @@ mg.ui.onmessage = async (rawMessage) => {
                             const line = mg.createLine();
                             line.resize(lineH, 0);
                             line.rotation = -90;
-                            line.x = componentSet.x + padding + c * cellW;
+                            line.x = componentSet.x + padding + c * cellW - gapX / 2;
                             line.y = gAbsY + (localHasY ? 0 : padding);
                             line.strokeDashes = [4, 4];
                             line.strokeWeight = 1;
@@ -4976,10 +5237,25 @@ mg.ui.onmessage = async (rawMessage) => {
                 componentSet.x = labelOffset;
                 componentSet.y = drawLabels ? 40 : 0;
                 container.appendChild(setGroup);
+                directPlacements.push(componentSet);
             }
             // 容器定位
             container.x = centerX - 200;
             container.y = centerY - 200;
+            // 组件集保持为最外层说明书画板的直接子项，避免库引用路径层层嵌套。
+            const containerBounds = container.absoluteBoundingBox;
+            if (containerBounds) {
+                directPlacements.map(componentSet => ({ componentSet, bounds: componentSet.absoluteBoundingBox })).forEach(({ componentSet, bounds }) => {
+                    if (!bounds || componentSet.removed)
+                        return;
+                    container.appendChild(componentSet);
+                    trySet(componentSet, 'layoutPositioning', 'ABSOLUTE');
+                    componentSet.x = bounds.x - containerBounds.x;
+                    componentSet.y = bounds.y - containerBounds.y;
+                });
+            }
+            mg.document.currentPage.selection = [container];
+            mg.viewport.scrollAndZoomIntoView([container]);
             mg.notify(`✅ 批量排布完成！共 ${compSets.length} 个组件集`);
             break;
         }
@@ -4987,18 +5263,18 @@ mg.ui.onmessage = async (rawMessage) => {
         case 'generate-showcase': {
             const propX = msg.propX;
             const propY = msg.propY || ''; // propY 可以为空（单属性组件集）
-            const padding = msg.padding !== undefined ? msg.padding : 32;
-            const gapX = msg.gapX !== undefined ? msg.gapX : 48;
-            const gapY = msg.gapY !== undefined ? msg.gapY : 48;
-            const groupGap = msg.groupGap !== undefined ? msg.groupGap : 120;
+            const padding = msg.padding !== undefined ? msg.padding : 20;
+            const gapX = msg.gapX !== undefined ? msg.gapX : 16;
+            const gapY = msg.gapY !== undefined ? msg.gapY : 16;
+            const groupGap = msg.groupGap !== undefined ? msg.groupGap : 32;
             const compRadius = msg.compRadius !== undefined ? msg.compRadius : 0;
             const compStroke = msg.compStroke !== undefined ? msg.compStroke : 1;
             const compStrokeColor = msg.compStrokeColor || { r: 140 / 255, g: 91 / 255, b: 212 / 255 };
             const gridLineWidth = msg.gridLineWidth !== undefined ? msg.gridLineWidth : 1;
             const gridLineColor = msg.gridLineColor || { r: 0.9, g: 0.92, b: 0.94 };
-            const boardRadius = msg.boardRadius !== undefined ? msg.boardRadius : 24;
-            const boardPaddingX = msg.boardPaddingX !== undefined ? msg.boardPaddingX : 140;
-            const boardPaddingY = msg.boardPaddingY !== undefined ? msg.boardPaddingY : 160;
+            const boardRadius = msg.boardRadius !== undefined ? msg.boardRadius : 12;
+            const boardPaddingX = msg.boardPaddingX !== undefined ? msg.boardPaddingX : 48;
+            const boardPaddingY = msg.boardPaddingY !== undefined ? msg.boardPaddingY : 56;
             const boardBg = msg.boardBg || { r: 249 / 255, g: 250 / 255, b: 251 / 255 };
             const drawGrid = msg.drawGrid !== false;
             const drawLabels = msg.drawLabels !== false;
@@ -5009,7 +5285,13 @@ mg.ui.onmessage = async (rawMessage) => {
             const designer = msg.designer || '';
             const usagePage = msg.usagePage || '';
             const aiGeneratedDescription = msg.aiGeneratedDescription || '';
-            const itemSpacing = msg.itemSpacing !== undefined ? msg.itemSpacing : 48;
+            const itemSpacing = msg.itemSpacing !== undefined ? msg.itemSpacing : 24;
+            const orientation = msg.orientation === 'portrait' ? 'portrait' : 'landscape';
+            const isDark = msg.theme === 'dark';
+            const themeText = isDark ? { r: 243 / 255, g: 244 / 255, b: 246 / 255 } : { r: 17 / 255, g: 24 / 255, b: 39 / 255 };
+            const themeMuted = isDark ? { r: 156 / 255, g: 163 / 255, b: 175 / 255 } : { r: 75 / 255, g: 85 / 255, b: 99 / 255 };
+            const themeSurface = isDark ? { r: 31 / 255, g: 41 / 255, b: 55 / 255 } : { r: 1, g: 1, b: 1 };
+            const themeBorder = isDark ? { r: 55 / 255, g: 65 / 255, b: 81 / 255 } : { r: 229 / 255, g: 231 / 255, b: 235 / 255 };
             const selection = mg.document.currentPage.selection;
             let targetNode = null;
             if (selection.length === 1) {
@@ -5081,7 +5363,9 @@ mg.ui.onmessage = async (rawMessage) => {
             });
             const cellWidth = maxWidth + gapX;
             const cellHeight = hasY ? maxHeight + gapY : 0;
-            const singleGroupHeight = yArray.length * cellHeight;
+            const singleGroupHeight = hasY
+                ? yArray.length * maxHeight + Math.max(0, yArray.length - 1) * gapY
+                : maxHeight;
             // 调整内部定位
             componentSet.flexMode = "NONE";
             if (compRadius > 0)
@@ -5108,20 +5392,21 @@ mg.ui.onmessage = async (rawMessage) => {
                 const groupIndex = groups.indexOf(gSign);
                 if (colIndex !== -1 && rowIndex !== -1 && groupIndex !== -1) {
                     const groupOffsetY = groupIndex * (singleGroupHeight + groupGap);
-                    v.x = padding + colIndex * cellWidth + (cellWidth - v.width) / 2;
+                    v.x = padding + colIndex * cellWidth + (maxWidth - v.width) / 2;
                     v.y = hasY
-                        ? padding + groupOffsetY + rowIndex * cellHeight + (cellHeight - v.height) / 2
+                        ? padding + groupOffsetY + rowIndex * cellHeight + (maxHeight - v.height) / 2
                         : padding + (maxHeight - v.height) / 2; // 单属性：垂直居中
                 }
             });
-            const compSetWidth = padding * 2 + xArray.length * cellWidth;
+            const compSetWidth = padding * 2 + xArray.length * maxWidth + Math.max(0, xArray.length - 1) * gapX;
             const compSetHeight = hasY
                 ? padding * 2 + groups.length * singleGroupHeight + Math.max(0, groups.length - 1) * groupGap
                 : padding * 2 + maxHeight;
             componentSet.resize(compSetWidth, compSetHeight);
             // ================= 视觉绘制层 =================
             // 计算自适应宽度，为两旁留出呼吸空间
-            const boardWidth = compSetWidth + boardPaddingX * 2 + (drawLabels && hasY ? 120 : 0);
+            const minimumBoardWidth = orientation === 'portrait' ? 720 : 1120;
+            const boardWidth = Math.max(compSetWidth + boardPaddingX * 2 + (drawLabels && hasY ? 120 : 0), minimumBoardWidth);
             const boardFrame = mg.createFrame();
             boardFrame.name = `📚 ${componentSet.name} Specs`;
             boardFrame.setPluginData('isShowcaseBoard', 'true');
@@ -5129,7 +5414,7 @@ mg.ui.onmessage = async (rawMessage) => {
             safeCornerRadius(boardFrame, boardRadius);
             // 定位修正：如果是新生成，向左向上抵消偏移，让组件集永远留在用户点击的原位上
             boardFrame.x = isReedit ? baseX : (baseX - boardPaddingX - (drawLabels && hasY ? 120 : 0));
-            boardFrame.y = isReedit ? baseY : (baseY - boardPaddingY - 330);
+            boardFrame.y = isReedit ? baseY : (baseY - boardPaddingY - 96);
             // 顶级画板：开启自动布局
             boardFrame.flexMode = "VERTICAL";
             setHorizontalSizing(boardFrame, 'FIXED');
@@ -5178,9 +5463,9 @@ mg.ui.onmessage = async (rawMessage) => {
             const title = mg.createText();
             title.name = "Component Title";
             title.characters = titleText;
-            setTextFontSize(title, 64);
+            setTextFontSize(title, 36);
             setTextFontName(title, { family: "Inter", style: "Bold" });
-            title.fills = [solidPaint({ r: 17 / 255, g: 24 / 255, b: 39 / 255 })];
+            title.fills = [solidPaint(themeText)];
             headerFrame.appendChild(title);
             setHorizontalSizing(title, 'FILL');
             setVerticalSizing(title, 'HUG');
@@ -5195,17 +5480,17 @@ mg.ui.onmessage = async (rawMessage) => {
             const badge = mg.createFrame();
             badge.name = `Status: ${status.toUpperCase()}`;
             badge.flexMode = "HORIZONTAL";
-            badge.paddingLeft = 16;
-            badge.paddingRight = 16;
-            badge.paddingTop = 10;
-            badge.paddingBottom = 10;
+            badge.paddingLeft = 12;
+            badge.paddingRight = 12;
+            badge.paddingTop = 7;
+            badge.paddingBottom = 7;
             safeCornerRadius(badge, 8);
             const statusInfo = statusConfig[status] || statusConfig['approved'];
             badge.fills = [solidPaint(statusInfo.bg)];
             const badgeText = mg.createText();
             badgeText.name = "Status Text";
             badgeText.characters = language === 'zh' ? statusInfo.label : statusInfo.labelEn;
-            setTextFontSize(badgeText, 20);
+            setTextFontSize(badgeText, 12);
             setTextFontName(badgeText, { family: "Inter", style: "Bold" });
             badgeText.fills = [solidPaint(statusInfo.text)];
             badge.appendChild(badgeText);
@@ -5216,14 +5501,14 @@ mg.ui.onmessage = async (rawMessage) => {
             const metaCard = mg.createFrame();
             metaCard.name = "Metadata Spec Card";
             metaCard.flexMode = "VERTICAL";
-            metaCard.itemSpacing = 12;
-            metaCard.paddingLeft = 24;
-            metaCard.paddingRight = 24;
-            metaCard.paddingTop = 20;
-            metaCard.paddingBottom = 20;
+            metaCard.itemSpacing = 8;
+            metaCard.paddingLeft = 16;
+            metaCard.paddingRight = 16;
+            metaCard.paddingTop = 14;
+            metaCard.paddingBottom = 14;
             safeCornerRadius(metaCard, 12);
-            metaCard.fills = [solidPaint({ r: 1, g: 1, b: 1 })]; // 精美的白卡片背景
-            metaCard.strokes = [solidPaint({ r: 229 / 255, g: 231 / 255, b: 235 / 255 })];
+            metaCard.fills = [solidPaint(themeSurface)];
+            metaCard.strokes = [solidPaint(themeBorder)];
             boardFrame.appendChild(metaCard);
             setHorizontalSizing(metaCard, 'FILL');
             setVerticalSizing(metaCard, 'HUG');
@@ -5242,7 +5527,7 @@ mg.ui.onmessage = async (rawMessage) => {
                 textNode.characters = content;
                 setTextFontSize(textNode, isHeader ? 14 : 13);
                 setTextFontName(textNode, { family: "Inter", style: isHeader ? "Semi Bold" : "Regular" });
-                textNode.fills = [solidPaint(isHeader ? { r: 31 / 255, g: 41 / 255, b: 55 / 255 } : { r: 107 / 255, g: 114 / 255, b: 128 / 255 })];
+                textNode.fills = [solidPaint(isHeader ? themeText : themeMuted)];
                 metaCard.appendChild(textNode);
                 setHorizontalSizing(textNode, 'FILL');
                 setVerticalSizing(textNode, 'HUG');
@@ -5306,13 +5591,14 @@ mg.ui.onmessage = async (rawMessage) => {
             const matrixStage = mg.createFrame();
             matrixStage.name = "Matrix Stage";
             matrixStage.flexMode = "VERTICAL";
-            matrixStage.paddingLeft = 40;
-            matrixStage.paddingRight = 40;
-            matrixStage.paddingTop = 40;
-            matrixStage.paddingBottom = 40;
-            safeCornerRadius(matrixStage, 16);
-            matrixStage.fills = [solidPaint({ r: 1, g: 1, b: 1 })]; // 精美的纯白舞台背景
-            matrixStage.strokes = [solidPaint({ r: 229 / 255, g: 231 / 255, b: 235 / 255 })];
+            matrixStage.paddingLeft = 24;
+            matrixStage.paddingRight = 24;
+            matrixStage.paddingTop = 24;
+            matrixStage.paddingBottom = 24;
+            safeCornerRadius(matrixStage, 12);
+            matrixStage.fills = [solidPaint(themeSurface)];
+            matrixStage.strokes = [solidPaint(themeBorder)];
+            matrixStage.crossAxisAlignItems = "CENTER";
             boardFrame.appendChild(matrixStage);
             setHorizontalSizing(matrixStage, 'FILL');
             setVerticalSizing(matrixStage, 'HUG');
@@ -5341,7 +5627,7 @@ mg.ui.onmessage = async (rawMessage) => {
                     setTextFontSize(label, 12);
                     setTextFontName(label, { family: "Inter", style: "Semi Bold" });
                     label.fills = [solidPaint({ r: 107 / 255, g: 114 / 255, b: 128 / 255 })];
-                    label.x = componentSet.x + padding + index * cellWidth + cellWidth / 2 - label.width / 2;
+                    label.x = componentSet.x + padding + index * cellWidth + maxWidth / 2 - label.width / 2;
                     label.y = componentSet.y - 32;
                     componentArea.appendChild(label);
                     matrixNodes.push(label);
@@ -5372,7 +5658,7 @@ mg.ui.onmessage = async (rawMessage) => {
                         setTextFontName(label, { family: "Inter", style: "Semi Bold" });
                         label.fills = [solidPaint({ r: 156 / 255, g: 163 / 255, b: 175 / 255 })];
                         label.x = componentSet.x - label.width - 24;
-                        label.y = groupAbsoluteY + rowIndex * cellHeight + cellHeight / 2 - label.height / 2;
+                        label.y = groupAbsoluteY + rowIndex * cellHeight + maxHeight / 2 - label.height / 2;
                         componentArea.appendChild(label);
                         matrixNodes.push(label);
                     });
@@ -5384,7 +5670,7 @@ mg.ui.onmessage = async (rawMessage) => {
                             const line = mg.createLine();
                             line.resize(xArray.length * cellWidth, 0);
                             line.x = componentSet.x + padding;
-                            line.y = groupAbsoluteY + r * cellHeight;
+                            line.y = groupAbsoluteY + r * cellHeight - gapY / 2;
                             line.strokeDashes = [4, 4];
                             line.strokeWeight = gridLineWidth;
                             line.strokes = [solidPaint(gridLineColor)];
@@ -5398,7 +5684,7 @@ mg.ui.onmessage = async (rawMessage) => {
                         const line = mg.createLine();
                         line.resize(lineHeight, 0);
                         line.rotation = -90;
-                        line.x = componentSet.x + padding + c * cellWidth;
+                        line.x = componentSet.x + padding + c * cellWidth - gapX / 2;
                         line.y = groupAbsoluteY + (hasY ? 0 : padding);
                         line.strokeDashes = [4, 4];
                         line.strokeWeight = gridLineWidth;
@@ -5412,6 +5698,24 @@ mg.ui.onmessage = async (rawMessage) => {
                 const matrixGroup = groupInParent(matrixNodes, componentArea);
                 matrixGroup.name = "Matrix Decorations";
             }
+            const describeVariantProperty = (prop, values) => {
+                const key = prop.toLocaleLowerCase();
+                const joined = values.slice(0, 6).join(language === 'zh' ? '、' : ', ');
+                const semantic = /size|尺寸|scale/.test(key)
+                    ? (language === 'zh' ? '控制组件的尺寸层级与使用密度。' : 'Controls component scale and interface density.')
+                    : /state|status|状态|interaction/.test(key)
+                        ? (language === 'zh' ? '描述组件在交互流程中的状态。' : 'Describes the component state in an interaction flow.')
+                        : /theme|mode|主题|模式|appearance/.test(key)
+                            ? (language === 'zh' ? '切换视觉主题或外观模式。' : 'Switches the visual theme or appearance mode.')
+                            : /type|kind|variant|style|类型|样式/.test(key)
+                                ? (language === 'zh' ? '区分组件的语义类型与视觉层级。' : 'Distinguishes semantic variants and visual hierarchy.')
+                                : /icon|图标/.test(key)
+                                    ? (language === 'zh' ? '控制图标内容、位置或显隐。' : 'Controls icon content, placement, or visibility.')
+                                    : /direction|position|placement|align|方向|位置|对齐/.test(key)
+                                        ? (language === 'zh' ? '控制内容方向、位置或对齐关系。' : 'Controls direction, placement, or alignment.')
+                                        : (language === 'zh' ? '控制该组件的一组可复用表现。' : 'Controls a reusable aspect of the component.');
+                return `${semantic}${joined ? (language === 'zh' ? ` 可选：${joined}。` : ` Options: ${joined}.`) : ''}`;
+            };
             // --- Properties 属性汇总面板（自动布局，完美自适应高度）---
             if (drawProps) {
                 // 包装容器：标题 + 卡片作为一组
@@ -5419,7 +5723,7 @@ mg.ui.onmessage = async (rawMessage) => {
                 propsGroup.name = "Properties & Tokens Group";
                 propsGroup.fills = [];
                 propsGroup.flexMode = "VERTICAL";
-                propsGroup.itemSpacing = 16;
+                propsGroup.itemSpacing = 10;
                 boardFrame.appendChild(propsGroup);
                 setHorizontalSizing(propsGroup, 'FILL');
                 setVerticalSizing(propsGroup, 'HUG');
@@ -5427,65 +5731,85 @@ mg.ui.onmessage = async (rawMessage) => {
                 const specTitle = mg.createText();
                 specTitle.name = "Properties & Tokens Title";
                 specTitle.characters = "Properties & Tokens";
-                setTextFontSize(specTitle, 24);
+                setTextFontSize(specTitle, 18);
                 setTextFontName(specTitle, { family: "Inter", style: "Bold" });
-                specTitle.fills = [solidPaint({ r: 17 / 255, g: 24 / 255, b: 39 / 255 })];
+                specTitle.fills = [solidPaint(themeText)];
                 propsGroup.appendChild(specTitle);
                 setHorizontalSizing(specTitle, 'FILL');
                 setVerticalSizing(specTitle, 'HUG');
                 const propsPanel = mg.createFrame();
                 propsPanel.name = "Properties & Tokens Panel";
                 propsPanel.flexMode = "VERTICAL";
-                propsPanel.itemSpacing = 24; // 属性行间距
-                propsPanel.paddingLeft = 24;
-                propsPanel.paddingRight = 24;
-                propsPanel.paddingTop = 24;
-                propsPanel.paddingBottom = 24;
-                safeCornerRadius(propsPanel, 16); // 属性面板圆角
-                propsPanel.fills = [solidPaint({ r: 1, g: 1, b: 1 })];
-                propsPanel.strokes = [solidPaint({ r: 229 / 255, g: 231 / 255, b: 235 / 255 })];
+                propsPanel.itemSpacing = 14;
+                propsPanel.paddingLeft = 16;
+                propsPanel.paddingRight = 16;
+                propsPanel.paddingTop = 16;
+                propsPanel.paddingBottom = 16;
+                safeCornerRadius(propsPanel, 12);
+                propsPanel.fills = [solidPaint(themeSurface)];
+                propsPanel.strokes = [solidPaint(themeBorder)];
                 propsGroup.appendChild(propsPanel);
                 setHorizontalSizing(propsPanel, 'FILL');
                 setVerticalSizing(propsPanel, 'HUG');
                 properties.forEach(prop => {
+                    var _a;
                     const vals = new Set();
                     variants.forEach(v => { const p = parseVariantName(v.name); if (p[prop])
                         vals.add(p[prop]); });
                     const propRow = mg.createFrame();
                     propRow.name = "Property Row";
-                    propRow.flexMode = "HORIZONTAL";
-                    propRow.itemSpacing = 12;
-                    propRow.crossAxisAlignItems = "CENTER";
+                    propRow.flexMode = "VERTICAL";
+                    propRow.itemSpacing = 5;
                     propsPanel.appendChild(propRow);
                     setHorizontalSizing(propRow, 'FILL');
                     setVerticalSizing(propRow, 'HUG');
                     const pName = mg.createText();
                     pName.name = "Property Name";
                     pName.characters = prop;
-                    setTextFontSize(pName, 15);
-                    setTextFontName(pName, { family: "Inter", style: "Medium" });
-                    pName.fills = [solidPaint({ r: 75 / 255, g: 85 / 255, b: 99 / 255 })];
-                    pName.resize(140, pName.height);
+                    setTextFontSize(pName, 13);
+                    setTextFontName(pName, { family: "Inter", style: "Semi Bold" });
+                    pName.fills = [solidPaint(themeText)];
                     propRow.appendChild(pName);
-                    setHorizontalSizing(pName, 'FIXED');
+                    setHorizontalSizing(pName, 'HUG');
                     setVerticalSizing(pName, 'HUG');
+                    const semanticText = mg.createText();
+                    semanticText.name = "Property Description";
+                    semanticText.characters = ((_a = aiDesc === null || aiDesc === void 0 ? void 0 : aiDesc.propertyDescriptions) === null || _a === void 0 ? void 0 : _a[prop])
+                        || describeVariantProperty(prop, Array.from(vals));
+                    setTextFontSize(semanticText, 11);
+                    setTextFontName(semanticText, { family: "Inter", style: "Regular" });
+                    semanticText.fills = [solidPaint(themeMuted)];
+                    propRow.appendChild(semanticText);
+                    setHorizontalSizing(semanticText, 'FILL');
+                    setVerticalSizing(semanticText, 'HUG');
+                    semanticText.textAutoResize = "HEIGHT";
+                    const valuesRow = mg.createFrame();
+                    valuesRow.name = "Property Values";
+                    valuesRow.flexMode = "HORIZONTAL";
+                    valuesRow.itemSpacing = 6;
+                    valuesRow.fills = [];
+                    trySet(valuesRow, 'flexWrap', 'WRAP');
+                    trySet(valuesRow, 'crossAxisSpacing', 6);
+                    propRow.appendChild(valuesRow);
+                    setHorizontalSizing(valuesRow, 'FILL');
+                    setVerticalSizing(valuesRow, 'HUG');
                     Array.from(vals).forEach(val => {
                         const pill = mg.createFrame();
                         pill.flexMode = "HORIZONTAL";
                         safeCornerRadius(pill, 6);
-                        pill.fills = [solidPaint({ r: 243 / 255, g: 244 / 255, b: 246 / 255 })];
-                        pill.strokes = [solidPaint({ r: 229 / 255, g: 231 / 255, b: 235 / 255 })];
-                        pill.paddingLeft = 10;
-                        pill.paddingRight = 10;
-                        pill.paddingTop = 6;
-                        pill.paddingBottom = 6;
+                        pill.fills = [solidPaint(isDark ? { r: 55 / 255, g: 65 / 255, b: 81 / 255 } : { r: 243 / 255, g: 244 / 255, b: 246 / 255 })];
+                        pill.strokes = [solidPaint(themeBorder)];
+                        pill.paddingLeft = 8;
+                        pill.paddingRight = 8;
+                        pill.paddingTop = 4;
+                        pill.paddingBottom = 4;
                         const pVal = mg.createText();
                         pVal.characters = val;
-                        setTextFontSize(pVal, 13);
+                        setTextFontSize(pVal, 11);
                         setTextFontName(pVal, { family: "Inter", style: "Regular" });
-                        pVal.fills = [solidPaint({ r: 55 / 255, g: 65 / 255, b: 81 / 255 })];
+                        pVal.fills = [solidPaint(themeText)];
                         pill.appendChild(pVal);
-                        propRow.appendChild(pill);
+                        valuesRow.appendChild(pill);
                         setHorizontalSizing(pill, 'HUG');
                         setVerticalSizing(pill, 'HUG');
                         setHorizontalSizing(pVal, 'HUG');
@@ -5499,16 +5823,16 @@ mg.ui.onmessage = async (rawMessage) => {
                 usagePanel.name = "Best Practices Panel";
                 usagePanel.fills = [];
                 usagePanel.flexMode = "VERTICAL";
-                usagePanel.itemSpacing = 24;
+                usagePanel.itemSpacing = 10;
                 boardFrame.appendChild(usagePanel);
                 setHorizontalSizing(usagePanel, 'FILL');
                 setVerticalSizing(usagePanel, 'HUG');
                 const usageTitle = mg.createText();
                 usageTitle.name = "Best Practices Title";
                 usageTitle.characters = "Best Practices";
-                setTextFontSize(usageTitle, 24);
+                setTextFontSize(usageTitle, 18);
                 setTextFontName(usageTitle, { family: "Inter", style: "Bold" });
-                usageTitle.fills = [solidPaint({ r: 17 / 255, g: 24 / 255, b: 39 / 255 })];
+                usageTitle.fills = [solidPaint(themeText)];
                 usagePanel.appendChild(usageTitle);
                 setHorizontalSizing(usageTitle, 'FILL');
                 setVerticalSizing(usageTitle, 'HUG');
@@ -5516,7 +5840,7 @@ mg.ui.onmessage = async (rawMessage) => {
                 doDontContainer.name = "Do-Dont Container";
                 doDontContainer.fills = [];
                 doDontContainer.flexMode = "HORIZONTAL";
-                doDontContainer.itemSpacing = 24;
+                doDontContainer.itemSpacing = 12;
                 usagePanel.appendChild(doDontContainer);
                 setHorizontalSizing(doDontContainer, 'FILL');
                 setVerticalSizing(doDontContainer, 'HUG');
@@ -5525,9 +5849,9 @@ mg.ui.onmessage = async (rawMessage) => {
                 doCard.name = "Do Card";
                 doCard.flexMode = "VERTICAL";
                 doCard.itemSpacing = 0;
-                safeCornerRadius(doCard, 16);
-                doCard.fills = [solidPaint({ r: 1, g: 1, b: 1 })];
-                doCard.strokes = [solidPaint({ r: 229 / 255, g: 231 / 255, b: 235 / 255 })];
+                safeCornerRadius(doCard, 12);
+                doCard.fills = [solidPaint(themeSurface)];
+                doCard.strokes = [solidPaint(themeBorder)];
                 doCard.strokeWeight = 1;
                 doDontContainer.appendChild(doCard);
                 setHorizontalSizing(doCard, 'FILL');
@@ -5541,10 +5865,10 @@ mg.ui.onmessage = async (rawMessage) => {
                 const doContent = mg.createFrame();
                 doContent.flexMode = "HORIZONTAL";
                 doContent.itemSpacing = 12;
-                doContent.paddingLeft = 24;
-                doContent.paddingRight = 24;
-                doContent.paddingTop = 20;
-                doContent.paddingBottom = 24;
+                doContent.paddingLeft = 16;
+                doContent.paddingRight = 16;
+                doContent.paddingTop = 14;
+                doContent.paddingBottom = 16;
                 doContent.fills = [];
                 doCard.appendChild(doContent);
                 setHorizontalSizing(doContent, 'FILL');
@@ -5556,10 +5880,12 @@ mg.ui.onmessage = async (rawMessage) => {
                 setHorizontalSizing(doIcon, 'HUG');
                 setVerticalSizing(doIcon, 'HUG');
                 const doText = mg.createText();
-                doText.characters = "Do: 在这里放置组件的正确使用场景、对齐方式以及相关的上下文示例。";
-                setTextFontSize(doText, 15);
+                doText.characters = (aiDesc === null || aiDesc === void 0 ? void 0 : aiDesc.do) || (language === 'zh'
+                    ? `建议：在设计稿中通过 ${properties.slice(0, 2).join('、') || '组件属性'} 切换状态，保持实例与母版同步。`
+                    : `Do: switch states with ${properties.slice(0, 2).join(', ') || 'component properties'} and keep instances linked to the master.`);
+                setTextFontSize(doText, 12);
                 setTextFontName(doText, { family: "Inter", style: "Medium" });
-                doText.fills = [solidPaint({ r: 55 / 255, g: 65 / 255, b: 81 / 255 })];
+                doText.fills = [solidPaint(themeText)];
                 doContent.appendChild(doText);
                 setHorizontalSizing(doText, 'FILL');
                 setVerticalSizing(doText, 'HUG');
@@ -5569,9 +5895,9 @@ mg.ui.onmessage = async (rawMessage) => {
                 dontCard.name = "Don't Card";
                 dontCard.flexMode = "VERTICAL";
                 dontCard.itemSpacing = 0;
-                safeCornerRadius(dontCard, 16);
-                dontCard.fills = [solidPaint({ r: 1, g: 1, b: 1 })];
-                dontCard.strokes = [solidPaint({ r: 229 / 255, g: 231 / 255, b: 235 / 255 })];
+                safeCornerRadius(dontCard, 12);
+                dontCard.fills = [solidPaint(themeSurface)];
+                dontCard.strokes = [solidPaint(themeBorder)];
                 dontCard.strokeWeight = 1;
                 doDontContainer.appendChild(dontCard);
                 setHorizontalSizing(dontCard, 'FILL');
@@ -5585,10 +5911,10 @@ mg.ui.onmessage = async (rawMessage) => {
                 const dontContent = mg.createFrame();
                 dontContent.flexMode = "HORIZONTAL";
                 dontContent.itemSpacing = 12;
-                dontContent.paddingLeft = 24;
-                dontContent.paddingRight = 24;
-                dontContent.paddingTop = 20;
-                dontContent.paddingBottom = 24;
+                dontContent.paddingLeft = 16;
+                dontContent.paddingRight = 16;
+                dontContent.paddingTop = 14;
+                dontContent.paddingBottom = 16;
                 dontContent.fills = [];
                 dontCard.appendChild(dontContent);
                 setHorizontalSizing(dontContent, 'FILL');
@@ -5600,10 +5926,12 @@ mg.ui.onmessage = async (rawMessage) => {
                 setHorizontalSizing(dontIcon, 'HUG');
                 setVerticalSizing(dontIcon, 'HUG');
                 const dontText = mg.createText();
-                dontText.characters = "Don't: 避免在此处放置反面教材，例如错误的缩放比例、不规范的颜色叠加等。";
-                setTextFontSize(dontText, 15);
+                dontText.characters = (aiDesc === null || aiDesc === void 0 ? void 0 : aiDesc.dont) || (language === 'zh'
+                    ? '避免解绑实例后手工复制状态，也不要用重复的属性值表达同一种语义。'
+                    : 'Avoid detaching instances to copy states, and do not use duplicate property values for the same meaning.');
+                setTextFontSize(dontText, 12);
                 setTextFontName(dontText, { family: "Inter", style: "Medium" });
-                dontText.fills = [solidPaint({ r: 55 / 255, g: 65 / 255, b: 81 / 255 })];
+                dontText.fills = [solidPaint(themeText)];
                 dontContent.appendChild(dontText);
                 setHorizontalSizing(dontText, 'FILL');
                 setVerticalSizing(dontText, 'HUG');
@@ -5611,6 +5939,17 @@ mg.ui.onmessage = async (rawMessage) => {
             }
             // ====== 【核心修复】启用高度自适应 HUG (在此之后严禁再调用 resize(..., height)) ======
             setVerticalSizing(boardFrame, 'HUG');
+            // 组件集直接挂在最外层说明书画板下，装饰区保留原尺寸作为布局占位。
+            const componentBounds = componentSet.absoluteBoundingBox;
+            const boardBounds = boardFrame.absoluteBoundingBox;
+            if (componentBounds && boardBounds) {
+                boardFrame.appendChild(componentSet);
+                trySet(componentSet, 'layoutPositioning', 'ABSOLUTE');
+                componentSet.x = componentBounds.x - boardBounds.x;
+                componentSet.y = componentBounds.y - boardBounds.y;
+            }
+            mg.document.currentPage.selection = [boardFrame];
+            mg.viewport.scrollAndZoomIntoView([boardFrame]);
             mg.notify("✅ 说明书生成完毕！");
             mg.commitUndo();
             break;

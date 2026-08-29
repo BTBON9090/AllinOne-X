@@ -1,6 +1,6 @@
 # All in One for MasterGo
 
-这是 AllinoneX 4.0.0 的 MasterGo 实现，与同仓库 `../figma/` 版本同步维护。
+这是 AllinoneX 4.1.0 的 MasterGo 实现，与同仓库 `../figma/` 版本同步维护。
 
 ## 文件说明
 
@@ -67,7 +67,7 @@ MasterGo 的开发版 `manifest.json` 不提供插件图标字段，因此从本
 
 `npm run verify` 会执行 TypeScript 构建、UI 脚本语法检查，并对比 Figma 与 MasterGo 版本的功能入口、消息处理分支和关键 UI 元素，避免迁移时遗漏功能。
 
-当前双平台基线：68 个主线程消息分支、13 个导航功能入口、296 个 UI 元素 ID、306 个国际化键。
+当前双平台基线：70 个主线程消息分支、13 个导航功能入口、310 个 UI 元素 ID、328 个国际化键。
 
 超级选择器现可正确读取“内在 / 子级 / 子孙”范围；智能填充的自定义字段同时提供顺序与随机两种分配方式。
 
@@ -75,7 +75,7 @@ MasterGo 的开发版 `manifest.json` 不提供插件图标字段，因此从本
 
 ## AI 结合方向
 
-面向组件构建器的 AI 产品研究、分阶段路线和安全执行架构见 [`docs/component-builder-ai-roadmap.md`](docs/component-builder-ai-roadmap.md)。推荐优先实现“AI 属性架构师”：AI 只输出可审阅的组件构建计划，由确定性 MasterGo API 执行，避免模型直接进行不可控的画布变更。
+组件构建器已加入 AI 组件规范优化：AI 只输出可审阅的命名、属性值、描述和问题反馈方案，由确定性 MasterGo API 执行。后续 AI 构建与实例迁移方向见 [`docs/component-builder-ai-roadmap.md`](docs/component-builder-ai-roadmap.md)。
 
 ## 官方参考
 
