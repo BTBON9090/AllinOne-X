@@ -1,6 +1,6 @@
 # All in One for MasterGo
 
-这是 AllinoneX 4.1.0 的 MasterGo 实现，与同仓库 `../figma/` 版本同步维护。
+这是 AllinoneX 4.1.1 的 MasterGo 实现，与同仓库 `../figma/` 版本同步维护。
 
 ## 文件说明
 

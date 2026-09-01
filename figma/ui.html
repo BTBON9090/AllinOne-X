@@ -4035,6 +4035,9 @@
         gap: 6px;
         align-items: center;
       }
+      .smart-custom-row { display: block; }
+      .smart-custom-row .smart-label { min-width: 0; margin-bottom: 8px; }
+      .smart-custom-row .row-tags { flex-wrap: wrap; justify-content: flex-start; }
 
       /* 单个标签按钮 */
       .tag-btn {
@@ -4995,7 +4998,7 @@
               <!-- 0. 使用提示 -->
               <div class="selector-card" style="padding:10px 14px;">
                 <div style="font-size:12px; line-height:1.6; color:var(--text-secondary);">
-                  <span data-key="dup_hint">🖱️ 先在画布上选中两个画板，再点击「开始查重」。用于找出两画板中名称相似的重复图层。</span>
+                  <span data-key="dup_hint">🖱️ 先在画布上选中两个画板，再点击「开始查重」。用于找出两画板中名称相似的重复图层。查重适合版本对比、页面迁移、图标重复检查和组件库清理。</span>
                 </div>
               </div>
 
@@ -7486,7 +7489,7 @@
         match_styles: ["💅 匹配本地样式", "重新链接样式库", "扫描选中图层，将裸奔的颜色/字体属性与本地样式库重新绑定。", "已完成样式匹配"],
 
         // --- 跨画板查重 (Duplicate Finder) ---
-        dup_hint: "🖱️ 先在画布上选中两个画板，再点击「开始查重」。用于找出两画板中名称相似的重复图层（如 icon-sun-01 与 frame-sun-32 共含 sun）。",
+        dup_hint: "🖱️ 先在画布上选中两个画板，再点击「开始查重」。用于找出两画板中名称相似的重复图层（如 icon-sun-01 与 frame-sun-32 共含 sun）。查重适合版本对比、页面迁移、图标重复检查和组件库清理。",
         dup_mode_title: "匹配模式",
         dup_mode_seg: "分段匹配",
         dup_mode_sub: "子串匹配",
@@ -8202,7 +8205,7 @@
         match_styles: ["💅 Match Styles", "Relink Styles", "Scan selection and bind raw properties to local styles if values match exactly.", "Styles Matched"],
 
         // --- Duplicate Finder ---
-        dup_hint: "🖱️ Select two frames on canvas first, then click Start Check. Finds layers with similar names across the two frames (e.g. icon-sun-01 & frame-sun-32 share 'sun').",
+        dup_hint: "🖱️ Select two frames on canvas first, then click Start Check. Finds layers with similar names across the two frames (e.g. icon-sun-01 & frame-sun-32 share 'sun'). Useful for version comparison, page migration, icon duplicate checks, and component-library cleanup.",
         dup_mode_title: "Match Mode",
         dup_mode_seg: "Segment",
         dup_mode_sub: "Substring",
@@ -12679,7 +12682,7 @@
 
       customDataLists.forEach((item, index) => {
         const row = document.createElement('div');
-        row.className = 'smart-row';
+        row.className = 'smart-row smart-custom-row';
         row.innerHTML = `
            <div class="smart-label">${item.title}</div>
            <div class="row-tags">
@@ -14517,7 +14520,7 @@
     }
 
     // 通过 code.ts 沙箱执行 fetch (复用现有 do-fetch 机制)
-    function dupFetchAI(requestBody) {
+    function dupFetchAI(requestBody, options = {}) {
         return new Promise((resolve, reject) => {
             const endpoint = getAiEndpoint();
             let targetUrl = endpoint.url.trim().replace(/\/+$/, '');
@@ -14532,7 +14535,7 @@
             if (endpoint.key) {
                 fetchOptions.headers['Authorization'] = `Bearer ${endpoint.key}`;
             }
-            const reqId = 'dup-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+            const reqId = (options.reqPrefix || 'dup') + '-' + Date.now() + '-' + Math.floor(Math.random() * 100000);
             const messageHandler = (event) => {
                 const m = event.data?.pluginMessage || event.data;
                 if (m && m.type === 'api-response' && m.reqId === reqId) {
@@ -14545,7 +14548,7 @@
             setTimeout(() => {
                 window.removeEventListener('message', messageHandler);
                 reject(new Error('AI响应超时'));
-            }, 60000);
+            }, options.timeoutMs || 40000);
             postMsg('do-fetch', { reqId, url: targetUrl, options: fetchOptions });
         });
     }
@@ -15009,6 +15012,9 @@
     }
 
     function extractJsonObject(text) {
+        if (text && typeof text === 'object') return text;
+        if (Array.isArray(text)) text = text.map(part => typeof part === 'string' ? part : (part?.text || '')).join('');
+        text = String(text || '').replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
         if (!text) return null;
         try { return JSON.parse(text); } catch (_) {}
         const start = text.indexOf('{');
@@ -15109,6 +15115,7 @@
 
     async function runComponentAiAnalyze() {
         const t = i18n[curLang] || i18n.zh;
+        if (componentAiBusy) return;
         if (!componentBuilderSelection.canOptimize) {
             showComponentAiFeedback(t.cb_ai_invalid, true);
             return;
@@ -15142,8 +15149,19 @@
             stream: false
         };
         try {
-            const data = await dupFetchAI(requestBody);
-            const content = data?.choices?.[0]?.message?.content || '';
+            let data;
+            let lastError;
+            for (let attempt = 0; attempt < 2; attempt++) {
+                try {
+                    data = await dupFetchAI(requestBody, { reqPrefix: 'component-ai', timeoutMs: 35000 });
+                    break;
+                } catch (error) {
+                    lastError = error;
+                    if (attempt === 0) await new Promise(resolve => setTimeout(resolve, 500));
+                }
+            }
+            if (!data) throw lastError || new Error('AI 请求失败');
+            const content = data?.choices?.[0]?.message?.content ?? data?.choices?.[0]?.text ?? data?.output_text ?? '';
             const rawPlan = extractJsonObject(content);
             if (!rawPlan) throw new Error('AI 返回内容不是有效 JSON');
             componentAiPlan = normalizeComponentAiPlan(rawPlan, context, preferences);

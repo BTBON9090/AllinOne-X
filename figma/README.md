@@ -1,6 +1,6 @@
 # All in One for Figma
 
-这是 AllinoneX 4.1.0 的 Figma 实现，与同仓库 `../mastergo/` 版本同步维护。
+这是 AllinoneX 4.1.1 的 Figma 实现，与同仓库 `../mastergo/` 版本同步维护。
 
 ## 主要能力
 
