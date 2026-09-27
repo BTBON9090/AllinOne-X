@@ -182,6 +182,21 @@ const requestImageSize = (bytes) => new Promise((resolve) => {
 // 图层绑定参数尚未列出文本内容。这里优先尝试原生 characters 绑定，并在
 // API 版本不支持时写入节点插件数据，由下面的轻量同步器保持 Mode 切换能力。
 const I18N_BINDING_DATA_KEY = 'allinone-i18n-binding';
+const normalizeI18nModeName = (value) => {
+    const key = String(value || '').toLowerCase().replace(/[\s_()\-]/g, '');
+    const aliases = { english: 'en', en: 'en', '英语': 'en', '英文': 'en', '简体中文': 'zhcn', '中文': 'zhcn', chinese: 'zhcn', zhcn: 'zhcn', '繁体中文': 'zhtw', '繁體中文': 'zhtw', zhtw: 'zhtw', '日本語': 'ja', japanese: 'ja', ja: 'ja', '한국어': 'ko', korean: 'ko', ko: 'ko', français: 'fr', french: 'fr', fr: 'fr', deutsch: 'de', german: 'de', de: 'de', español: 'es', spanish: 'es', es: 'es', italiano: 'it', português: 'pt', 'русский': 'ru', 'العربية': 'ar' };
+    return aliases[key] || key;
+};
+const isI18nSourceMode = (value) => /^(original|source|原文|源语言)$/i.test(String(value || '').trim());
+const stableI18nVariableName = (text) => {
+    let hash = 2166136261;
+    for (let index = 0; index < text.length; index++) {
+        hash ^= text.charCodeAt(index);
+        hash = Math.imul(hash, 16777619);
+    }
+    const slug = text.slice(0, 24).replace(/[.*{}\/\\\r\n\t,=]/g, '_').replace(/\s+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '') || 'text';
+    return `i18n/${slug}_${(hash >>> 0).toString(36)}`;
+};
 const i18nFallbackNodeIds = new Set();
 const getSimpleVariableValue = (variable, modeId) => {
     var _a;
@@ -2100,6 +2115,29 @@ const commonNamePrefix = (names) => {
     return common.join('/') || names[0] || 'Component';
 };
 const safeVariantValue = (value, index) => String(value || `Variant ${index + 1}`).replace(/[,=]/g, ' ').replace(/\s+/g, ' ').trim();
+const languageVariantValue = (value, index) => {
+    const source = String(value || '').trim();
+    const normalized = source.toLowerCase().replace(/_/g, '-');
+    const aliases = [
+        [/(^|[\/\s.-])(zh-cn|zh-hans|简体中文|简体|中文)(?=$|[\/\s.-])/i, 'zh-CN'],
+        [/(^|[\/\s.-])(zh-tw|zh-hant|繁体中文|繁體中文|繁体)(?=$|[\/\s.-])/i, 'zh-TW'],
+        [/(^|[\/\s.-])(en-us|en|english|英文|英语)(?=$|[\/\s.-])/i, 'en-US'],
+        [/(^|[\/\s.-])(ja-jp|ja|japanese|日本語|日语)(?=$|[\/\s.-])/i, 'ja-JP'],
+        [/(^|[\/\s.-])(ko-kr|ko|korean|한국어|韩语)(?=$|[\/\s.-])/i, 'ko-KR'],
+        [/(^|[\/\s.-])(fr-fr|fr|french|français)(?=$|[\/\s.-])/i, 'fr-FR'],
+        [/(^|[\/\s.-])(de-de|de|german|deutsch)(?=$|[\/\s.-])/i, 'de-DE'],
+        [/(^|[\/\s.-])(es-es|es|spanish|español)(?=$|[\/\s.-])/i, 'es-ES'],
+        [/(^|[\/\s.-])(pt-br|pt|português)(?=$|[\/\s.-])/i, 'pt-BR'],
+        [/(^|[\/\s.-])(it-it|it|italiano)(?=$|[\/\s.-])/i, 'it-IT'],
+        [/(^|[\/\s.-])(ru-ru|ru|русский)(?=$|[\/\s.-])/i, 'ru-RU'],
+        [/(^|[\/\s.-])(ar-sa|ar|العربية)(?=$|[\/\s.-])/i, 'ar-SA']
+    ];
+    const matched = aliases.find(([pattern]) => pattern.test(normalized));
+    if (matched)
+        return matched[1];
+    const fallback = source.split(/[\/@|]/).map(part => part.trim()).filter(Boolean).pop();
+    return safeVariantValue(fallback || `Language ${index + 1}`, index);
+};
 const wrapFramesAsOneComponent = (frames, name) => {
     var _a;
     const parent = (_a = frames[0]) === null || _a === void 0 ? void 0 : _a.parent;
@@ -2448,7 +2486,7 @@ mg.on('selectionchange', () => {
     }
 });
 mg.ui.onmessage = async (rawMessage) => {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c;
     const msg = (rawMessage === null || rawMessage === void 0 ? void 0 : rawMessage.pluginMessage) || rawMessage;
     if (!msg || !msg.type)
         return;
@@ -3305,6 +3343,115 @@ mg.ui.onmessage = async (rawMessage) => {
             searchTargets.forEach(node => uniqueMap.set(node.id, node));
             const finalPool = Array.from(uniqueMap.values());
             console.log(`🔍 待筛选池最终大小: ${finalPool.length}`);
+            const colorToHex = (color) => {
+                if (!color)
+                    return undefined;
+                const part = (value) => Math.round(Math.max(0, Math.min(1, value || 0)) * 255).toString(16).padStart(2, '0');
+                return `#${part(color.r)}${part(color.g)}${part(color.b)}`.toUpperCase();
+            };
+            const firstVisiblePaint = (paints) => Array.isArray(paints)
+                ? paints.find((paint) => { var _a; return paint && ((_a = paint.isVisible) !== null && _a !== void 0 ? _a : paint.visible) !== false; })
+                : undefined;
+            const getAdvancedPropertyValue = (node, key) => {
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+                const fill = firstVisiblePaint(node.fills);
+                const stroke = firstVisiblePaint(node.strokes);
+                const effect = Array.isArray(node.effects) ? node.effects.find((item) => { var _a; return item && ((_a = item.isVisible) !== null && _a !== void 0 ? _a : item.visible) !== false; }) : undefined;
+                const bounds = node.absoluteBoundingBox || node.absoluteRenderBounds;
+                const parentChildren = node.parent && 'children' in node.parent ? node.parent.children : undefined;
+                const siblingIndex = parentChildren ? parentChildren.indexOf(node) : -1;
+                const textFont = node.type === 'TEXT' && node.characters.length > 0 && node.fontName === mg.mixed
+                    ? node.getRangeFontName(0, 1)
+                    : node.fontName;
+                const spacing = node.letterSpacing;
+                const lineHeight = node.lineHeight;
+                const direct = {
+                    name: node.name,
+                    visible: (_a = node.isVisible) !== null && _a !== void 0 ? _a : node.visible,
+                    locked: (_b = node.isLocked) !== null && _b !== void 0 ? _b : node.locked,
+                    opacity: node.opacity,
+                    rotation: node.rotation,
+                    blendMode: node.blendMode,
+                    siblingIndex: siblingIndex >= 0 ? siblingIndex + 1 : undefined,
+                    reverseSiblingIndex: siblingIndex >= 0 && parentChildren ? parentChildren.length - siblingIndex : undefined,
+                    childCount: 'children' in node ? node.children.length : undefined,
+                    expanded: node.expanded,
+                    width: node.width,
+                    height: node.height,
+                    x: node.x,
+                    y: node.y,
+                    absoluteWidth: bounds === null || bounds === void 0 ? void 0 : bounds.width,
+                    absoluteHeight: bounds === null || bounds === void 0 ? void 0 : bounds.height,
+                    absoluteX: bounds === null || bounds === void 0 ? void 0 : bounds.x,
+                    absoluteY: bounds === null || bounds === void 0 ? void 0 : bounds.y,
+                    fillCount: Array.isArray(node.fills) ? node.fills.length : undefined,
+                    fillColor: (fill === null || fill === void 0 ? void 0 : fill.type) === 'SOLID' ? colorToHex(fill.color) : undefined,
+                    fillOpacity: (_c = fill === null || fill === void 0 ? void 0 : fill.opacity) !== null && _c !== void 0 ? _c : (fill ? 1 : undefined),
+                    fillBlendMode: fill === null || fill === void 0 ? void 0 : fill.blendMode,
+                    fillType: fill === null || fill === void 0 ? void 0 : fill.type,
+                    fillVisible: fill ? ((_e = (_d = fill.isVisible) !== null && _d !== void 0 ? _d : fill.visible) !== null && _e !== void 0 ? _e : true) : undefined,
+                    fillStyleId: node.fillStyleId,
+                    cornerRadius: node.cornerRadius,
+                    topLeftRadius: node.topLeftRadius,
+                    topRightRadius: node.topRightRadius,
+                    bottomLeftRadius: node.bottomLeftRadius,
+                    bottomRightRadius: node.bottomRightRadius,
+                    ['corner' + 'Smoothing']: undefined,
+                    strokeCount: Array.isArray(node.strokes) ? node.strokes.length : undefined,
+                    strokeColor: (stroke === null || stroke === void 0 ? void 0 : stroke.type) === 'SOLID' ? colorToHex(stroke.color) : undefined,
+                    strokeWeight: node.strokeWeight,
+                    strokeOpacity: (_f = stroke === null || stroke === void 0 ? void 0 : stroke.opacity) !== null && _f !== void 0 ? _f : (stroke ? 1 : undefined),
+                    strokeBlendMode: stroke === null || stroke === void 0 ? void 0 : stroke.blendMode,
+                    strokeType: stroke === null || stroke === void 0 ? void 0 : stroke.type,
+                    strokeVisible: stroke ? ((_h = (_g = stroke.isVisible) !== null && _g !== void 0 ? _g : stroke.visible) !== null && _h !== void 0 ? _h : true) : undefined,
+                    strokeAlign: node.strokeAlign,
+                    strokeCap: node.strokeCap,
+                    strokeJoin: node.strokeJoin,
+                    strokeMiterLimit: node.strokeMiterLimit,
+                    strokeStyleId: node.strokeStyleId,
+                    effectCount: Array.isArray(node.effects) ? node.effects.length : undefined,
+                    effectType: effect === null || effect === void 0 ? void 0 : effect.type,
+                    effectVisible: effect ? ((_k = (_j = effect.isVisible) !== null && _j !== void 0 ? _j : effect.visible) !== null && _k !== void 0 ? _k : true) : undefined,
+                    effectStyleId: node.effectStyleId,
+                    layoutPositioning: node.layoutPositioning,
+                    ['layout' + 'Mode']: node.flexMode,
+                    ['primaryAxis' + 'AlignItems']: node.mainAxisAlignItems,
+                    ['counterAxis' + 'AlignItems']: node.crossAxisAlignItems,
+                    itemSpacing: node.itemSpacing,
+                    paddingTop: node.paddingTop,
+                    paddingBottom: node.paddingBottom,
+                    paddingLeft: node.paddingLeft,
+                    paddingRight: node.paddingRight,
+                    gridCount: Array.isArray(node.layoutGrids) ? node.layoutGrids.length : undefined,
+                    gridStyleId: node.gridStyleId,
+                    characters: node.characters,
+                    fontFamily: textFont === null || textFont === void 0 ? void 0 : textFont.family,
+                    fontStyle: textFont === null || textFont === void 0 ? void 0 : textFont.style,
+                    fontSize: node.fontSize,
+                    hyperlink: node.type === 'TEXT' && node.characters.length > 0 && typeof node.getRangeHyperlink === 'function' ? Boolean(node.getRangeHyperlink(0, node.characters.length)) : undefined,
+                    textAlignHorizontal: node.textAlignHorizontal,
+                    textAlignVertical: node.textAlignVertical,
+                    textDecoration: node.textDecoration,
+                    letterSpacing: spacing && spacing !== mg.mixed ? spacing.value : undefined,
+                    letterSpacingUnit: spacing && spacing !== mg.mixed ? spacing.unit : undefined,
+                    lineHeight: lineHeight && lineHeight !== mg.mixed && lineHeight.unit !== 'AUTO' ? lineHeight.value : ((lineHeight === null || lineHeight === void 0 ? void 0 : lineHeight.unit) === 'AUTO' ? 'AUTO' : undefined),
+                    lineHeightUnit: lineHeight && lineHeight !== mg.mixed ? lineHeight.unit : undefined,
+                    hasMissingFont: node.hasMissingFont,
+                    paragraphIndent: node.paragraphIndent,
+                    paragraphSpacing: node.paragraphSpacing,
+                    textStyleId: node.textStyleId,
+                    description: node.description,
+                    mainComponentId: (_l = node.mainComponent) === null || _l === void 0 ? void 0 : _l.id,
+                    componentPropertyCount: node.componentProperties ? Object.keys(node.componentProperties).length : undefined,
+                    variantPropertyCount: node.componentPropertyDefinitions ? Object.keys(node.componentPropertyDefinitions).length : undefined,
+                    reactionCount: Array.isArray(node.reactions) ? node.reactions.length : undefined,
+                    overflowDirection: node.overflowDirection,
+                    fixedChildCount: 'children' in node ? node.children.filter((child) => child.layoutPositioning === 'FIXED').length : undefined,
+                    pointCount: node.pointCount
+                };
+                const value = direct[key];
+                return value === mg.mixed ? undefined : value;
+            };
             const results = [];
             // =========================================================
             // C. 遍历筛选 (Filtering)
@@ -3388,17 +3535,7 @@ mg.ui.onmessage = async (rawMessage) => {
                     for (const p of f.props) {
                         let val = undefined;
                         try {
-                            if (p.key === 'name')
-                                val = node.name;
-                            else if (p.key === 'fillCount' && 'fills' in node && node.fills !== mg.mixed)
-                                val = node.fills.length;
-                            else if (p.key === 'strokeCount' && 'strokes' in node && node.strokes !== mg.mixed)
-                                val = node.strokes.length;
-                            else if (p.key in node) {
-                                const v = node[p.key];
-                                if (v !== mg.mixed)
-                                    val = v;
-                            }
+                            val = getAdvancedPropertyValue(node, p.key);
                         }
                         catch (e) { }
                         if (val === undefined) {
@@ -3423,8 +3560,24 @@ mg.ui.onmessage = async (rawMessage) => {
                             if (Number(val) >= Number(tgt))
                                 match = false;
                         }
+                        else if (p.op === '>=') {
+                            if (Number(val) < Number(tgt))
+                                match = false;
+                        }
+                        else if (p.op === '<=') {
+                            if (Number(val) > Number(tgt))
+                                match = false;
+                        }
                         else if (p.op === 'has') {
                             if (!String(val).toLowerCase().includes(String(tgt).toLowerCase()))
+                                match = false;
+                        }
+                        else if (p.op === 'starts') {
+                            if (!String(val).toLowerCase().startsWith(String(tgt).toLowerCase()))
+                                match = false;
+                        }
+                        else if (p.op === 'ends') {
+                            if (!String(val).toLowerCase().endsWith(String(tgt).toLowerCase()))
                                 match = false;
                         }
                     }
@@ -4128,6 +4281,7 @@ mg.ui.onmessage = async (rawMessage) => {
                         node.deleteCharacters(task.index, task.index + task.length);
                         node.insertCharacters(task.index, replaceText);
                         successCount++;
+                        delete highlightCache[`${task.id}_${task.index}`];
                         // 记录前端传来的唯一标识 (uid)，以便前端禁用
                         if (task.uid)
                             processedIds.add(task.uid);
@@ -4171,38 +4325,6 @@ mg.ui.onmessage = async (rawMessage) => {
             mg.notify(`已还原 ${count} 处高亮`);
             // 通知前端清除所有高亮样式
             sendToUI({ type: 'clear-all-highlights-ui' });
-            break;
-        }
-        // 另外：在 text-replace-batch 成功后，也要清理对应的缓存，防止还原时报错
-        // 在 case 'text-replace-batch' 的循环里，successCount++ 后面加一行：
-        // delete highlightCache[`${task.id}_${task.index}`];
-        // -------------------------------------------------------------
-        // 3. 替换功能：支持点对点替换 (修复Bug 1 & 4)
-        // -------------------------------------------------------------
-        case 'text-replace-batch': {
-            const { ids, findText, replaceText } = msg;
-            let count = 0;
-            // 批量处理 ID
-            for (const id of ids) {
-                const node = await mg.getNodeById(id);
-                if (node && node.type === 'TEXT') {
-                    try {
-                        // 加载字体 (必要步骤)
-                        await loadTextFonts(node);
-                        // 执行替换 (全局替换该节点内的所有匹配项)
-                        // 使用正则进行全局替换 (Global, Case Insensitive)
-                        const regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-                        if (regex.test(node.characters)) {
-                            node.characters = node.characters.replace(regex, replaceText);
-                            count++;
-                        }
-                    }
-                    catch (err) {
-                        console.error(`替换文本失败 (ID: ${id}):`, err);
-                    }
-                }
-            }
-            mg.notify(`已替换 ${count} 个文本图层`);
             break;
         }
         // ===========================
@@ -4393,9 +4515,66 @@ mg.ui.onmessage = async (rawMessage) => {
             break;
         }
         // ==================== 语言切换 (i18n) 逻辑 ====================
+        case 'size-assistant-inspect': {
+            const selected = mg.document.currentPage.selection;
+            const valid = selected.filter(node => node.type === 'FRAME' || node.type === 'RECTANGLE');
+            sendToUI({
+                type: 'size-assistant-selection',
+                validCount: valid.length,
+                invalidCount: selected.length - valid.length,
+                width: valid.length === 1 ? valid[0].width : 0,
+                height: valid.length === 1 ? valid[0].height : 0
+            });
+            break;
+        }
+        case 'size-assistant-apply': {
+            const width = Math.min(32768, Math.max(1, Number(msg.width)));
+            const height = Math.min(32768, Math.max(1, Number(msg.height)));
+            const selected = mg.document.currentPage.selection;
+            const valid = selected.filter(node => node.type === 'FRAME' || node.type === 'RECTANGLE');
+            if (!valid.length || !Number.isFinite(width) || !Number.isFinite(height)) {
+                const message = '请先选择一个或多个 Frame / 矩形';
+                mg.notify(message);
+                sendToUI({ type: 'size-assistant-result', ok: false, message });
+                break;
+            }
+            let resized = 0;
+            const warnings = [];
+            for (const node of valid) {
+                try {
+                    const centerX = node.x + node.width / 2;
+                    const centerY = node.y + node.height / 2;
+                    node.resize(width, height);
+                    if (msg.keepCenter === true) {
+                        node.x = centerX - width / 2;
+                        node.y = centerY - height / 2;
+                    }
+                    resized++;
+                }
+                catch (error) {
+                    warnings.push(`${node.name}: ${String((error === null || error === void 0 ? void 0 : error.message) || error)}`);
+                }
+            }
+            const message = `已将 ${resized} 个图层设为 ${width} × ${height}${warnings.length ? `，${warnings.length} 个图层调整失败` : ''}`;
+            mg.notify(message);
+            sendToUI({ type: 'size-assistant-result', ok: resized > 0, message, warnings });
+            break;
+        }
         case 'i18n-check-selection': {
             const hasSelection = mg.document.currentPage.selection.length > 0;
             sendToUI({ type: 'i18n-check-selection-result', hasSelection: hasSelection });
+            break;
+        }
+        case 'i18n-load-config': {
+            const collections = mg.variables.getCollections();
+            sendToUI({
+                type: 'i18n-config-result',
+                data: {
+                    collections: collections
+                        .map(collection => ({ name: collection.name, modes: mg.variables.getModes(collection.id).map(mode => mode.name) }))
+                        .sort((a, b) => Number(!/i18n|dictionary|多语言/i.test(a.name)) - Number(!/i18n|dictionary|多语言/i.test(b.name)))
+                }
+            });
             break;
         }
         case 'i18n-detect': {
@@ -4427,7 +4606,8 @@ mg.ui.onmessage = async (rawMessage) => {
             const existingVarMap = new Map();
             if (i18nCollection) {
                 const collectionModes = mg.variables.getModes(i18nCollection.id);
-                const origModeId = ((_a = collectionModes.find(mode => mode.name === 'Original')) === null || _a === void 0 ? void 0 : _a.id) || ((_b = collectionModes[0]) === null || _b === void 0 ? void 0 : _b.id);
+                const sourceMode = collectionModes.find(mode => isI18nSourceMode(mode.name)) || collectionModes[0];
+                const origModeId = sourceMode === null || sourceMode === void 0 ? void 0 : sourceMode.id;
                 collectionModes.forEach(m => {
                     if (m.id !== origModeId)
                         modes.push(m.name);
@@ -4448,11 +4628,7 @@ mg.ui.onmessage = async (rawMessage) => {
             for (const node of textNodes) {
                 if (node.hasMissingFont)
                     continue;
-                if (!getTextFontName(node) && node.characters.length > 0) {
-                    mixedFonts++;
-                    continue;
-                }
-                const hasContentBinding = Boolean(getNodeI18nBinding(node) || ((_c = node.componentPropertyReferences) === null || _c === void 0 ? void 0 : _c.characters));
+                const hasContentBinding = Boolean(getNodeI18nBinding(node) || ((_a = node.componentPropertyReferences) === null || _a === void 0 ? void 0 : _a.characters));
                 if (extractTarget === 'unbound' && hasContentBinding) {
                     boundCount++;
                     continue;
@@ -4477,6 +4653,8 @@ mg.ui.onmessage = async (rawMessage) => {
                     totalNodes: textNodes.length,
                     boundCount: boundCount,
                     collections: collectionNames,
+                    collectionName: (i18nCollection === null || i18nCollection === void 0 ? void 0 : i18nCollection.name) || targetColName,
+                    allModes: i18nCollection ? mg.variables.getModes(i18nCollection.id).map(mode => mode.name) : [],
                     autoBindList: Array.from(autoBindMap.entries()).map(([orig, d]) => (Object.assign({ original: orig }, d))),
                     newTextList: Array.from(newTextMap.entries()).map(([orig, d]) => (Object.assign({ original: orig }, d))),
                     modes: modes
@@ -4499,7 +4677,8 @@ mg.ui.onmessage = async (rawMessage) => {
                         mg.variables.renameMode(collection.id, initialMode.id, 'Original');
                 }
                 const collectionModes = mg.variables.getModes(collection.id);
-                const origModeId = ((_d = collectionModes.find(mode => mode.name === 'Original')) === null || _d === void 0 ? void 0 : _d.id) || ((_e = collectionModes[0]) === null || _e === void 0 ? void 0 : _e.id);
+                const sourceMode = collectionModes.find(mode => isI18nSourceMode(mode.name)) || collectionModes[0];
+                const origModeId = sourceMode === null || sourceMode === void 0 ? void 0 : sourceMode.id;
                 if (!origModeId)
                     throw new Error('变量合集中没有可用的 Mode');
                 // 2. 收集所有需要处理的语种
@@ -4507,14 +4686,19 @@ mg.ui.onmessage = async (rawMessage) => {
                 newPayload.forEach(item => Object.keys(item.translations).forEach(l => allTargetLangs.add(l)));
                 // 3. 核心修复：创建/获取 Mode ID 映射
                 const modeIdMap = {};
-                collectionModes.forEach(m => modeIdMap[m.name] = m.id);
+                collectionModes.forEach(m => {
+                    modeIdMap[m.name] = m.id;
+                    modeIdMap[normalizeI18nModeName(m.name)] = m.id;
+                });
                 for (const lang of Array.from(allTargetLangs)) {
-                    if (!modeIdMap[lang]) {
+                    const canonicalKey = normalizeI18nModeName(lang);
+                    if (!modeIdMap[canonicalKey]) {
                         try {
                             const newMode = await mg.variables.addMode(collection.id, lang);
                             if (!newMode)
                                 throw new Error('创建 Mode 失败');
                             modeIdMap[lang] = newMode.id;
+                            modeIdMap[canonicalKey] = newMode.id;
                         }
                         catch (e) {
                             sendToUI({
@@ -4552,8 +4736,7 @@ mg.ui.onmessage = async (rawMessage) => {
                     let variable = varMap.get(item.original);
                     // 如果不存在则创建
                     if (!variable) {
-                        let safeName = item.original.slice(0, 15).replace(/[.*{}\/\\\r\n\t]/g, '_').trim() || 'text';
-                        const varName = `i18n/${safeName}_${Math.random().toString(36).substring(2, 6)}`;
+                        const varName = stableI18nVariableName(item.original);
                         variable = await mg.variables.createVariable({
                             name: varName,
                             type: 'STRING',
@@ -4567,7 +4750,7 @@ mg.ui.onmessage = async (rawMessage) => {
                     }
                     // 【核心修复】：为该变量在所有目标 Mode 中设置翻译值
                     for (const [langName, translatedText] of Object.entries(item.translations)) {
-                        const targetModeId = modeIdMap[langName];
+                        const targetModeId = modeIdMap[langName] || modeIdMap[normalizeI18nModeName(langName)];
                         if (targetModeId) {
                             mg.variables.setVariableValue({
                                 id: variable.id,
@@ -4759,17 +4942,17 @@ mg.ui.onmessage = async (rawMessage) => {
                 sendToUI({ type: 'component-builder-result', ok: false, message });
                 break;
             }
-            const mode = ['single', 'multiple', 'set'].includes(msg.mode) ? msg.mode : 'multiple';
+            const mode = ['single', 'multiple', 'set', 'language'].includes(msg.mode) ? msg.mode : 'multiple';
             const exposeText = msg.exposeText === true;
             const exposeInstances = msg.exposeInstances === true;
             const requestedName = String(msg.componentName || '').trim();
             const originalNames = frames.map(frame => frame.name);
             const createdComponents = [];
             const warnings = [];
-            if ((mode === 'single' && frames.length > 1) || mode === 'set') {
+            if ((mode === 'single' && frames.length > 1) || mode === 'set' || mode === 'language') {
                 const sameParent = frames.every(frame => frame.parent === frames[0].parent);
                 if (!sameParent) {
-                    const message = mode === 'set'
+                    const message = mode === 'set' || mode === 'language'
                         ? '创建组件集时，所选 Frame 必须位于同一父级'
                         : '合并为单个组件时，所选 Frame 必须位于同一父级';
                     mg.notify(message, { type: 'warning' });
@@ -4793,19 +4976,21 @@ mg.ui.onmessage = async (rawMessage) => {
                         const frame = frames[index];
                         const component = transferFrameToComponent(frame, frame.name, warnings);
                         createdComponents.push(component);
-                        if (mode !== 'set') {
+                        if (mode !== 'set' && mode !== 'language') {
                             const exposed = exposeBuilderProperties(component, exposeText, exposeInstances);
                             warnings.push(...exposed.warnings);
                         }
                     }
-                    if (mode === 'set') {
-                        const variantProperty = String(msg.variantProperty || 'Variant')
+                    if (mode === 'set' || mode === 'language') {
+                        const variantProperty = String(msg.variantProperty || (mode === 'language' ? 'Language' : 'Variant'))
                             .replace(/[,=]/g, ' ')
                             .replace(/\s+/g, ' ')
-                            .trim() || 'Variant';
+                            .trim() || (mode === 'language' ? 'Language' : 'Variant');
                         const usedVariantValues = new Set();
                         createdComponents.forEach((component, index) => {
-                            const baseValue = safeVariantValue(originalNames[index], index);
+                            const baseValue = mode === 'language'
+                                ? languageVariantValue(originalNames[index], index)
+                                : safeVariantValue(originalNames[index], index);
                             let value = baseValue;
                             let suffix = 2;
                             while (usedVariantValues.has(value.toLocaleLowerCase()))
@@ -4833,7 +5018,7 @@ mg.ui.onmessage = async (rawMessage) => {
                 mg.document.currentPage.selection = targets;
                 mg.viewport.scrollAndZoomIntoView(targets);
                 mg.commitUndo();
-                const typeLabel = mode === 'set' ? '组件集' : (mode === 'single' ? '单个组件' : '多个组件');
+                const typeLabel = mode === 'language' ? '语言组件集' : (mode === 'set' ? '组件集' : (mode === 'single' ? '单个组件' : '多个组件'));
                 const exposedLabel = [
                     exposeText ? '文字属性' : '',
                     exposeInstances ? '实例属性' : ''
@@ -4908,10 +5093,10 @@ mg.ui.onmessage = async (rawMessage) => {
                 }
                 else {
                     // 多选：取所有组件集的公共（交集）属性（供"批量排布"使用）
-                    const firstSample = ((_f = selectedSets[0].children[0]) === null || _f === void 0 ? void 0 : _f.name) || '';
+                    const firstSample = ((_b = selectedSets[0].children[0]) === null || _b === void 0 ? void 0 : _b.name) || '';
                     let common = firstSample.split(',').map(p => p.split('=')[0].trim());
                     for (let i = 1; i < selectedSets.length; i++) {
-                        const sample = ((_g = selectedSets[i].children[0]) === null || _g === void 0 ? void 0 : _g.name) || '';
+                        const sample = ((_c = selectedSets[i].children[0]) === null || _c === void 0 ? void 0 : _c.name) || '';
                         const props = sample.split(',').map(p => p.split('=')[0].trim());
                         common = common.filter(p => props.includes(p));
                     }

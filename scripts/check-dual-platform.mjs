@@ -65,12 +65,25 @@ for (const [platform, ui, main] of [
   check(`${platform} 说明书组件集保持顶层`, main.includes('组件集直接挂在最外层说明书画板下'));
   check(`${platform} 实例逆向紧凑网格`, main.includes('Math.ceil(Math.sqrt(')
     && main.includes('columns * maxWidth + Math.max(0, columns - 1) * 24'));
-  check(`${platform} AI 组件优化选择上限`, main.includes('selection.length <= 10')
-    && main.includes("case 'component-ai-inspect'")
-    && main.includes("case 'component-ai-apply'"));
-  check(`${platform} AI 组件优化审核后应用`, ui.includes('id="componentAiFeedback"')
-    && ui.includes('normalizeComponentAiPlan')
-    && ui.includes("postMsg('component-ai-apply'"));
+  check(`${platform} 文字替换默认选中图层`, ui.includes('class="seg-btn active" data-val="selection" onclick="toggleTxtScope(this)"')
+    && ui.includes("#txtScopeGroup .seg-btn.active")
+    && ui.includes('id="textSelectAll"'));
+  check(`${platform} 超级选择完整高级属性`, ui.includes('value="fillColor"')
+    && ui.includes('value="strokeStyleId"')
+    && ui.includes('value="lineHeightUnit"')
+    && main.includes('getAdvancedPropertyValue'));
+  check(`${platform} 智能填充数列与时间序列`, ui.includes('generateSmartNumberSeries')
+    && ui.includes("type === 'fibonacci'")
+    && ui.includes('generateSmartTimeSeries'));
+  check(`${platform} 尺寸助手批量设定`, ui.includes('id="sizePanel"')
+    && ui.includes('SIZE_ASSISTANT_PRESETS')
+    && main.includes("case 'size-assistant-apply'"));
+  check(`${platform} 语言 Mode 规范化复用`, main.includes('normalizeI18nModeName')
+    && main.includes("case 'i18n-load-config'")
+    && main.includes('stableI18nVariableName'));
+  check(`${platform} 组件构建语言模式`, ui.includes('data-builder-mode="language"')
+    && !ui.includes('id="componentAiFeedback"')
+    && main.includes('languageVariantValue'));
 }
 
 let failed = false;

@@ -74,7 +74,9 @@ const checks = [
   ['组件构建器面板', ui.includes('id="componentBuilderPanel"')],
   ['逆向入口位于简易工具', ui.includes("trackAndRun('component-builder-reverse')") && ui.includes('data-key="reverse_component"')],
   ['组件构建面板不再放逆向按钮', !ui.includes('id="builderReverseBtn"')],
-  ['三种构建模式', ['single', 'multiple', 'set'].every(mode => ui.includes(`data-builder-mode="${mode}"`))]
+  ['四种构建模式', ['single', 'multiple', 'set', 'language'].every(mode => ui.includes(`data-builder-mode="${mode}"`))],
+  ['语言变体自动识别', main.includes('languageVariantValue') && main.includes("mode === 'language'")],
+  ['移除重复 AI 优化入口', !ui.includes('id="componentAiFeedback"')]
 ];
 
 const checkboxTag = id => ui.match(new RegExp(`<input[^>]*id=["']${id}["'][^>]*>`, 'i'))?.[0] || '';

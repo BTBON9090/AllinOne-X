@@ -20,7 +20,9 @@ const checks = [
   ['组件属性恢复', main.includes('restoreBuilderProperties')],
   ['文字属性生成', main.includes("addComponentProperty(name, 'TEXT'")],
   ['实例切换属性生成', main.includes("'INSTANCE_SWAP'") && main.includes('mainComponent: property')],
-  ['三种构建模式', ['single', 'multiple', 'set'].every(mode => ui.includes(`data-builder-mode="${mode}"`))],
+  ['四种构建模式', ['single', 'multiple', 'set', 'language'].every(mode => ui.includes(`data-builder-mode="${mode}"`))],
+  ['语言变体自动识别', main.includes('languageVariantValue') && main.includes("mode === 'language'")],
+  ['移除重复 AI 优化入口', !ui.includes('id="componentAiFeedback"')],
   ['组件构建器导航', ui.includes('data-nav="componentBuilder"')],
   ['实例逆向入口', ui.includes("trackAndRun('component-builder-reverse')")],
   ['属性选项默认不勾选', /id="builderExposeText"(?![^>]*checked)/.test(ui) && /id="builderExposeInstances"(?![^>]*checked)/.test(ui)]

@@ -4577,6 +4577,34 @@
     .badge-new { background: var(--primary-light); color: var(--primary); padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 6px; }
     .bottom-action { padding: 16px; border-top: 1px solid var(--border); background: var(--bg-white); flex-shrink: 0; }
 
+    .size-scroll { flex: 1; overflow-y: auto; padding: 14px; }
+    .size-hero { padding: 14px; border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--border)); border-radius: var(--radius-lg); background: linear-gradient(135deg, var(--primary-light), var(--bg-surface) 58%); }
+    .size-hero-title { display:flex; align-items:center; gap:8px; color:var(--text-primary); font-size:16px; font-weight:800; }
+    .size-hero-desc { margin-top:6px; color:var(--text-secondary); font-size:10px; line-height:1.55; }
+    .size-status { margin-top:10px; padding:7px 9px; border:1px dashed var(--border); border-radius:var(--radius-sm); color:var(--text-secondary); background:var(--bg-muted); font-size:10px; }
+    .size-card { margin-top:10px; padding:12px; border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--bg-surface); }
+    .size-card-title { margin-bottom:8px; color:var(--text-primary); font-size:11px; font-weight:750; }
+    .size-tabs { display:flex; gap:5px; overflow-x:auto; padding-bottom:2px; }
+    .size-tab { flex:0 0 auto; padding:6px 9px; border:1px solid var(--border); border-radius:var(--radius-full); background:var(--bg-muted); color:var(--text-secondary); font:inherit; font-size:10px; cursor:pointer; }
+    .size-tab.active { border-color:var(--primary); background:var(--primary-light); color:var(--primary); font-weight:700; }
+    .size-preset-list { display:grid; grid-template-columns:1fr; gap:6px; margin-top:8px; max-height:230px; overflow-y:auto; }
+    .size-preset { padding:9px 10px; border:1px solid var(--border); border-radius:var(--radius-md); background:var(--bg-muted); cursor:pointer; }
+    .size-preset:hover, .size-preset.active { border-color:var(--primary); background:var(--primary-light); }
+    .size-preset-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .size-preset-name { overflow:hidden; color:var(--text-primary); font-size:11px; font-weight:700; text-overflow:ellipsis; white-space:nowrap; }
+    .size-preset-dim { flex:0 0 auto; color:var(--primary); font-size:10px; font-variant-numeric:tabular-nums; }
+    .size-preset-note { margin-top:4px; color:var(--text-tertiary); font-size:9px; line-height:1.45; }
+    .size-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .size-field label { display:block; margin-bottom:4px; color:var(--text-secondary); font-size:9px; font-weight:650; }
+    .size-field input, .size-field select { width:100%; min-height:32px; padding:6px 8px; border:1px solid var(--border); border-radius:var(--radius-sm); outline:none; background:var(--bg-muted); color:var(--text-primary); font:inherit; font-size:11px; }
+    .size-field input:focus, .size-field select:focus { border-color:var(--primary); box-shadow:0 0 0 2px var(--primary-light); }
+    .size-options { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:9px; }
+    .size-option { display:flex; align-items:center; gap:6px; padding:7px 8px; border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text-secondary); font-size:9px; cursor:pointer; }
+    .size-option input { margin:0; accent-color:var(--primary); }
+    .size-actions { display:grid; grid-template-columns:42px 1fr; gap:7px; margin-top:10px; }
+    .size-swap { border:1px solid var(--border); border-radius:var(--radius-md); background:var(--bg-muted); color:var(--text-primary); font-size:16px; cursor:pointer; }
+    .size-empty { padding:18px 10px; color:var(--text-tertiary); font-size:10px; text-align:center; }
+
     /* Component Builder — 延续现有工具面板的工业化“构件台”语义 */
     .builder-scroll { flex: 1; overflow-y: auto; padding: 14px; }
     .builder-hero {
@@ -4660,7 +4688,7 @@
     }
     .builder-card-title { font-size: 13px; font-weight: 750; color: var(--text-primary); }
     .builder-card-desc { margin: 0 0 12px 36px; color: var(--text-secondary); font-size: 10px; line-height: 1.55; }
-    .builder-modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
+    .builder-modes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
     .builder-mode {
         position: relative;
         min-width: 0;
@@ -4794,6 +4822,9 @@
             </div>
             <div class="nav-item" data-nav="skew" onclick="switchGroup('skew', this)">
                 <span class="nav-icon-slot">🔷</span><span class="nav-text" data-key="nav_skew">等轴形变</span><span class="nav-dot"></span>
+            </div>
+            <div class="nav-item" data-nav="size" onclick="switchGroup('size', this)">
+                <span class="nav-icon-slot"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19.875c0 .621-.512 1.125-1.143 1.125H5.143A1.134 1.134 0 0 1 4 19.875V4a1 1 0 0 1 1-1h5.857C11.488 3 12 3.504 12 4.125zM12 9h-2m2-3H9m3 6H9m3 6H9m3-3h-2M21 3h-4m2 0v18m2 0h-4"/></svg></span><span class="nav-text">尺寸助手</span><span class="nav-dot"></span>
             </div>
             <div class="nav-section-label" data-key="nav_section_lab">实验室</div>
             <div class="nav-item" data-nav="duplicate" onclick="switchGroup('duplicate', this)">
@@ -5123,8 +5154,8 @@
           <div id="textControlsContent" class="text-controls-content">
             <!-- 范围选择 -->
             <div class="segmented-control" id="txtScopeGroup" style="margin-bottom: 12px;">
-              <div class="seg-btn" data-val="selection" onclick="toggleTxtScope(this)">选中图层</div>
-              <div class="seg-btn active" data-val="page" onclick="toggleTxtScope(this)">当前页面</div>
+              <div class="seg-btn active" data-val="selection" onclick="toggleTxtScope(this)">选中图层</div>
+              <div class="seg-btn" data-val="page" onclick="toggleTxtScope(this)">当前页面</div>
             </div>
 
             <!-- 查找输入 -->
@@ -5156,6 +5187,10 @@
             <div class="result-header">
               <span class="result-title">查找结果</span>
               <span id="textCount" class="result-count">共 0 项</span>
+              <label style="margin-left:auto; display:flex; align-items:center; gap:5px; color:var(--text-secondary); font-size:11px; cursor:pointer;">
+                <input type="checkbox" id="textSelectAll" onchange="toggleTextSelectAll(this.checked)" style="accent-color:var(--primary);">
+                <span>全选未替换项</span>
+              </label>
             </div>
             <div id="textResultList" class="text-list-container"></div>
           </div>
@@ -5678,11 +5713,19 @@
                         <span data-key="i18n_target_lang_collection">目标语言与变量合集</span>
                     </label>
 
+                    <div class="settings-item" style="border-radius: var(--radius-md); background: var(--bg-surface); gap: 8px; margin-bottom:8px;">
+                        <div class="settings-item-label" style="font-size: 12px; font-weight: 600; color: var(--text-primary);">源语言</div>
+                        <select id="i18nSourceLanguage" class="search-box" style="flex:1; width:100%;">
+                          <option value="auto">自动识别</option><option value="Chinese">中文</option><option value="English">English</option><option value="Japanese">日本語</option><option value="Korean">한국어</option>
+                        </select>
+                    </div>
+
                     <!-- 目标语言 -->
                     <div class="settings-item" id="i18nTargetLangWrapper" style="border-radius: var(--radius-md); background: var(--bg-surface); gap: 8px;">
                         <div class="settings-item-label" data-key="i18n_target_lang" style="font-size: 12px; font-weight: 600; color: var(--text-primary);">目标语言</div>
                         <select id="i18nTargetMode" class="search-box" style="flex: 1; width: 100%;"></select>
                     </div>
+                    <div id="i18nTargetModeStatus" style="margin-top:6px; color:var(--text-tertiary); font-size:10px; line-height:1.5;">目标 Mode 将按标准语言名称复用或创建。</div>
 
                     <!-- 变量合集（根据模式动态切换） -->
                     <div class="settings-item" id="i18nCollectionWrapper" style="border-radius: var(--radius-md); background: var(--bg-surface); margin-top: 12px; gap: 8px;">
@@ -6105,6 +6148,57 @@
           </div>
         </div>
 
+        <!-- Size Assistant -->
+        <div id="sizePanel" style="display:none; flex-direction:column; height:100%; background:var(--bg-body);">
+          <div class="size-scroll">
+            <section class="size-hero">
+              <div class="size-hero-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19.875c0 .621-.512 1.125-1.143 1.125H5.143A1.134 1.134 0 0 1 4 19.875V4a1 1 0 0 1 1-1h5.857C11.488 3 12 3.504 12 4.125zM12 9h-2m2-3H9m3 6H9m3 6H9m3-3h-2M21 3h-4m2 0v18m2 0h-4"/></svg>
+                <span>尺寸助手</span>
+              </div>
+              <div class="size-hero-desc">为所选 Frame 或矩形批量设定屏幕尺寸。设计视口适合界面设计，原生分辨率适合展示和物理像素对照。设备库更新于 2026-09。</div>
+              <div class="size-status" id="sizeSelectionStatus">请先选择 Frame 或矩形</div>
+            </section>
+
+            <section class="size-card">
+              <div class="size-tabs" id="sizeCategoryTabs">
+                <button class="size-tab active" type="button" data-size-category="mobile" onclick="setSizeCategory('mobile', this)">手机</button>
+                <button class="size-tab" type="button" data-size-category="tablet" onclick="setSizeCategory('tablet', this)">平板 / 折叠</button>
+                <button class="size-tab" type="button" data-size-category="desktop" onclick="setSizeCategory('desktop', this)">桌面屏幕</button>
+                <button class="size-tab" type="button" data-size-category="wearable" onclick="setSizeCategory('wearable', this)">穿戴设备</button>
+                <button class="size-tab" type="button" data-size-category="ratio" onclick="setSizeCategory('ratio', this)">经典比例</button>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 116px; gap:7px; margin-top:8px;">
+                <input id="sizeSearch" class="search-box" type="search" placeholder="搜索品牌、设备或比例" oninput="renderSizePresets()" style="width:100%;">
+                <select id="sizePresetMode" class="search-box" onchange="refreshSelectedSizePreset()" style="width:100%;">
+                  <option value="design">设计视口</option>
+                  <option value="native">原生分辨率</option>
+                </select>
+              </div>
+              <div class="size-preset-list" id="sizePresetList"></div>
+            </section>
+
+            <section class="size-card">
+              <div class="size-card-title">目标尺寸</div>
+              <div class="size-grid">
+                <div class="size-field"><label for="sizeWidth">宽度 W</label><input id="sizeWidth" type="number" min="1" max="32768" value="390" oninput="onSizeDimensionInput('width')"></div>
+                <div class="size-field"><label for="sizeHeight">高度 H</label><input id="sizeHeight" type="number" min="1" max="32768" value="844" oninput="onSizeDimensionInput('height')"></div>
+                <div class="size-field"><label for="sizeRatioBasis">比例计算基准</label><select id="sizeRatioBasis"><option value="width">保持宽度</option><option value="height">保持高度</option></select></div>
+                <div class="size-field"><label for="sizeRounding">取整方式</label><select id="sizeRounding"><option value="round">四舍五入</option><option value="floor">向下取整</option><option value="ceil">向上取整</option><option value="none">保留小数</option></select></div>
+              </div>
+              <div class="size-options">
+                <label class="size-option"><input type="checkbox" id="sizeLockRatio" checked><span>锁定宽高比</span></label>
+                <label class="size-option"><input type="checkbox" id="sizeKeepCenter" checked><span>保持中心位置</span></label>
+              </div>
+              <div id="sizeGuidance" class="size-status">建议：移动端界面优先使用设计视口，同时在多个代表性宽度下检查响应式布局。</div>
+              <div class="size-actions">
+                <button class="size-swap" type="button" onclick="swapSizeOrientation()" title="横竖切换">⇄</button>
+                <button class="primary-btn" id="sizeApplyBtn" type="button" onclick="applySizeAssistant()">批量设定所选尺寸</button>
+              </div>
+            </section>
+          </div>
+        </div>
+
         <!-- Panel 9: Component Builder - 组件构建器 -->
         <div id="componentBuilderPanel" style="display: none; flex-direction: column; height: 100%; background: var(--bg-body);">
           <div class="builder-scroll">
@@ -6142,6 +6236,10 @@
                   <span class="builder-mode-symbol">❖</span>
                   <span class="builder-mode-name" data-key="cb_mode_set">组件集</span>
                 </button>
+                <button class="builder-mode" type="button" data-builder-mode="language" onclick="setComponentBuilderMode('language', this)">
+                  <span class="builder-mode-symbol">文/A</span>
+                  <span class="builder-mode-name">语言切换</span>
+                </button>
               </div>
 
               <div class="builder-field">
@@ -6171,36 +6269,9 @@
             </section>
 
             <section class="builder-card">
-              <div class="builder-card-head">
-                <span class="builder-card-index">02</span>
-                <span class="builder-card-title" data-key="cb_ai_title">AI 组件规范优化</span>
-              </div>
-              <p class="builder-card-desc" data-key="cb_ai_desc">主动分析命名、变体属性和异常项，生成可审核的修改方案，并写入组件描述。</p>
-              <div class="component-ai-limit" data-key="cb_ai_limit">为避免卡顿，每次仅允许选择 1 个组件集，或最多 10 个独立组件。</div>
-              <div class="component-ai-grid">
-                <div class="component-ai-field">
-                  <label for="componentAiLanguage" data-key="cb_ai_language">输出语言</label>
-                  <select id="componentAiLanguage"><option value="zh">中文</option><option value="en">English</option></select>
-                </div>
-                <div class="component-ai-field">
-                  <label for="componentAiCase" data-key="cb_ai_case">命名风格</label>
-                  <select id="componentAiCase">
-                    <option value="camel">camelCase</option><option value="pascal">PascalCase</option>
-                    <option value="upper">UPPER</option><option value="lower">lower</option>
-                  </select>
-                </div>
-                <div class="component-ai-field">
-                  <label for="componentAiSeparator" data-key="cb_ai_separator">分隔符</label>
-                  <select id="componentAiSeparator">
-                    <option value="snake">snake_case</option><option value="kebab">kebab-case</option><option value="space">word space</option>
-                  </select>
-                </div>
-              </div>
-              <div class="component-ai-actions">
-                <button class="builder-action secondary" id="componentAiAnalyzeBtn" type="button" onclick="runComponentAiAnalyze()" disabled><span data-key="cb_ai_analyze">AI 分析</span></button>
-                <button class="builder-action" id="componentAiApplyBtn" type="button" onclick="applyComponentAiPlan()" disabled><span data-key="cb_ai_apply">应用审核方案</span></button>
-              </div>
-              <div class="component-ai-feedback" id="componentAiFeedback" role="status" aria-live="polite"></div>
+              <div class="builder-card-head"><span class="builder-card-index">02</span><span class="builder-card-title">语言组件集</span></div>
+              <p class="builder-card-desc">选择多个不同语言的 Frame，选择「语言切换」后构建，自动生成 Language 变体属性。</p>
+              <div class="component-ai-limit">建议命名为「Button/zh-CN」、「Button/en-US」，也支持中文、English、日本語等常见语言别名。未识别时会保留 Frame 名作为语言值。</div>
             </section>
           </div>
         </div>
@@ -8453,6 +8524,7 @@
         'smartFillPanel',
         'jumpbackPanel',
         'skewPanel',
+        'sizePanel',
         'i18nPanel',
         'componentBuilderPanel',
         'compkitPanel',
@@ -8470,6 +8542,7 @@
         'theory':  ['theoryPanel'],
         'jumpback': ['jumpbackPanel'],
         'skew': ['skewPanel'],
+        'size': ['sizePanel'],
         'i18n': ['i18nPanel'],
         'componentBuilder': ['componentBuilderPanel'],
         'compkit': ['compkitPanel']
@@ -8526,6 +8599,10 @@
           }
         }
         if (group === 'componentBuilder') requestComponentBuilderSelection();
+        if (group === 'size') {
+          initSizeAssistant();
+          postMsg('size-assistant-inspect');
+        }
       }
     }
 
@@ -8533,7 +8610,7 @@
     // 设置面板相关函数
     // =========================================
     function openSettings() {
-        const panels = ['toolPanel', 'selectionPanel', 'selectionFooter', 'smartFillPanel', 'textPanel', 'pptPanel', 'refinerPanel', 'jumpbackPanel', 'skewPanel', 'theoryPanel', 'emptyPanel', 'i18nPanel', 'componentBuilderPanel', 'compkitPanel'];
+        const panels = ['toolPanel', 'selectionPanel', 'selectionFooter', 'smartFillPanel', 'textPanel', 'pptPanel', 'refinerPanel', 'jumpbackPanel', 'skewPanel', 'sizePanel', 'theoryPanel', 'emptyPanel', 'i18nPanel', 'componentBuilderPanel', 'compkitPanel'];
         panels.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = 'none';
@@ -9002,25 +9079,103 @@
             <option value="name">图层名称 (Name)</option>
             <option value="opacity">图层透明度 (Opacity)</option>
             <option value="visible">可见性 (Visible)</option>
+            <option value="locked">是否锁定 (Locked)</option>
             <option value="rotation">旋转 (Rotation)</option>
+            <option value="blendMode">图层叠加模式</option>
+            <option value="siblingIndex">元素在父图层中的顺序</option>
+            <option value="reverseSiblingIndex">元素在父图层中的倒序</option>
+            <option value="childCount">子元素数量</option>
+            <option value="expanded">是否展开</option>
+            <option value="pointCount">多边形边数</option>
           </optgroup>
           <optgroup label="位置与尺寸 Bounds">
             <option value="width">宽度 (Width)</option>
             <option value="height">高度 (Height)</option>
             <option value="x">X 坐标</option>
             <option value="y">Y 坐标</option>
+            <option value="absoluteWidth">绝对宽度</option>
+            <option value="absoluteHeight">绝对高度</option>
+            <option value="absoluteX">绝对 X</option>
+            <option value="absoluteY">绝对 Y</option>
           </optgroup>
           <optgroup label="填充 Fills">
             <option value="fillCount">填充数量</option>
+            <option value="fillColor">填充色</option>
             <option value="fillOpacity">填充透明度</option>
+            <option value="fillBlendMode">填充叠加模式</option>
+            <option value="fillType">填充类型</option>
+            <option value="fillVisible">填充可见</option>
+            <option value="fillStyleId">填充样式 ID</option>
+          </optgroup>
+          <optgroup label="圆角 Radius">
+            <option value="cornerRadius">全部圆角</option>
+            <option value="topLeftRadius">左上圆角</option>
+            <option value="topRightRadius">右上圆角</option>
+            <option value="bottomLeftRadius">左下圆角</option>
+            <option value="bottomRightRadius">右下圆角</option>
+            <option value="cornerSmoothing">转角平滑</option>
+          </optgroup>
+          <optgroup label="描边 Strokes">
+            <option value="strokeCount">描边数量</option>
+            <option value="strokeColor">描边颜色</option>
+            <option value="strokeWeight">描边粗细</option>
+            <option value="strokeOpacity">描边透明度</option>
+            <option value="strokeBlendMode">描边叠加模式</option>
+            <option value="strokeType">描边种类</option>
+            <option value="strokeVisible">描边可见</option>
+            <option value="strokeAlign">描边对齐</option>
+            <option value="strokeCap">描边端点</option>
+            <option value="strokeJoin">描边转角</option>
+            <option value="strokeMiterLimit">描边斜接限制</option>
+            <option value="strokeStyleId">描边样式 ID</option>
+          </optgroup>
+          <optgroup label="效果 Effects">
+            <option value="effectCount">效果数量</option>
+            <option value="effectType">效果类型</option>
+            <option value="effectVisible">效果可见</option>
+            <option value="effectStyleId">效果样式 ID</option>
+          </optgroup>
+          <optgroup label="Auto Layout">
+            <option value="layoutPositioning">图层定位</option>
+            <option value="layoutMode">分布方向</option>
+            <option value="primaryAxisAlignItems">主轴对齐</option>
+            <option value="counterAxisAlignItems">交叉轴对齐</option>
+            <option value="itemSpacing">子元素间距</option>
+            <option value="paddingTop">上边距</option>
+            <option value="paddingBottom">下边距</option>
+            <option value="paddingLeft">左边距</option>
+            <option value="paddingRight">右边距</option>
+            <option value="gridCount">图层网格数量</option>
+            <option value="gridStyleId">网格样式 ID</option>
           </optgroup>
           <optgroup label="文本 Text">
             <option value="characters">文本内容</option>
+            <option value="fontFamily">字体</option>
+            <option value="fontStyle">字重 / 样式</option>
             <option value="fontSize">字号</option>
+            <option value="hyperlink">是否有链接</option>
+            <option value="textAlignHorizontal">水平对齐</option>
+            <option value="textAlignVertical">垂直对齐</option>
+            <option value="textDecoration">字体修饰</option>
+            <option value="letterSpacing">字间距</option>
+            <option value="letterSpacingUnit">字间距单位</option>
+            <option value="lineHeight">行高</option>
+            <option value="lineHeightUnit">行高单位</option>
+            <option value="hasMissingFont">丢失字体</option>
+            <option value="paragraphIndent">段落缩进</option>
+            <option value="paragraphSpacing">段落间距</option>
+            <option value="textStyleId">文字样式 ID</option>
           </optgroup>
-          <optgroup label="AutoLayout">
-            <option value="itemSpacing">子元素间距</option>
-            <option value="paddingLeft">左边距</option>
+          <optgroup label="组件 Component">
+            <option value="description">组件描述</option>
+            <option value="mainComponentId">相同母组件 ID</option>
+            <option value="componentPropertyCount">组件属性数量</option>
+            <option value="variantPropertyCount">变体属性数量</option>
+          </optgroup>
+          <optgroup label="原型 Prototype">
+            <option value="reactionCount">交互动作数量</option>
+            <option value="overflowDirection">滚动溢出方向</option>
+            <option value="fixedChildCount">固定子元素数量</option>
           </optgroup>
         </select>
 
@@ -9030,6 +9185,10 @@
             <option value="<"><</option>
             <option value="!=">≠</option>
             <option value="has">含</option>
+            <option value=">=">≥</option>
+            <option value="<=">≤</option>
+            <option value="starts">开头是</option>
+            <option value="ends">结尾是</option>
         </select>
 
         <input type="text" class="prop-val p-val" placeholder="值">
@@ -10274,6 +10433,7 @@
       // 在 window.onmessage 内部添加：
 
       if (msg.type === 'text-replace-success') {
+          textReplaceBusy = false;
           const uids = msg.processedUids || [];
 
           // 1. 更新数据状态
@@ -10287,6 +10447,7 @@
               // 2. 更新 DOM 样式
               const row = document.getElementById(`row_${uid}`);
               if (row) {
+                  row.classList.remove('selected');
                   row.classList.add('replaced');
                   const cb = row.querySelector('.row-cb');
                   if(cb) {
@@ -10327,6 +10488,26 @@
           });
       }
 
+      if (msg.type === 'size-assistant-selection') {
+          const status = document.getElementById('sizeSelectionStatus');
+          const button = document.getElementById('sizeApplyBtn');
+          if (status) status.textContent = msg.validCount > 0
+              ? `已选 ${msg.validCount} 个可调整图层${msg.invalidCount ? `，${msg.invalidCount} 个非 Frame / 矩形将被忽略` : ''}`
+              : '请先选择一个或多个 Frame / 矩形';
+          if (button) button.disabled = msg.validCount === 0;
+          if (msg.validCount === 1 && msg.width > 0 && msg.height > 0 && !sizeAssistantState.initialized) {
+              document.getElementById('sizeWidth').value = msg.width;
+              document.getElementById('sizeHeight').value = msg.height;
+              sizeAssistantState.ratio = msg.width / msg.height;
+          }
+      }
+      if (msg.type === 'size-assistant-result') {
+          const button = document.getElementById('sizeApplyBtn');
+          if (button) { button.disabled = false; button.textContent = '批量设定所选尺寸'; }
+          const status = document.getElementById('sizeSelectionStatus');
+          if (status) status.textContent = msg.message;
+      }
+
       // Smart Fill 消息处理
       if (msg.type === 'selection-count-res') {
           handleFillGeneration(msg.count);
@@ -10351,7 +10532,15 @@
              }
           }
       }
-      if (msg.key === 'smart_advanced_settings') smartSettings = msg.value || smartSettings;
+      if (msg.key === 'smart_advanced_settings' && msg.value) {
+          smartSettings = {
+              ...smartSettings,
+              ...msg.value,
+              number: { ...smartSettings.number, ...(msg.value.number || {}) },
+              date: { ...smartSettings.date, ...(msg.value.date || {}) },
+              time: { ...smartSettings.time, ...(msg.value.time || {}) }
+          };
+      }
     };
 
     // 处理 PPT 消息的独立函数 (从 onmessage 拆分出来)
@@ -11549,6 +11738,7 @@
     // =============================================================================
 
     let textResultCache = []; // 缓存查找结果
+    let textReplaceBusy = false;
 
     // 文字工具范围选择单选切换
     function toggleTxtScope(el) {
@@ -11636,11 +11826,8 @@
         const parent = document.getElementById('txtScopeGroup');
         if (!parent) return;
 
-        parent.querySelectorAll('.filter-tag').forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.getAttribute('data-val') === scope) {
-                btn.classList.add('active');
-            }
+        parent.querySelectorAll('.seg-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-val') === scope);
         });
     }
 
@@ -11714,8 +11901,8 @@
 
         saveFindHistory(findText);
 
-        const scopeEl = document.querySelector('#txtScopeGroup .filter-tag.active');
-        const scope = scopeEl ? scopeEl.getAttribute('data-val') : 'page';
+        const scopeEl = document.querySelector('#txtScopeGroup .seg-btn.active');
+        const scope = scopeEl ? scopeEl.getAttribute('data-val') : 'selection';
 
         parent.postMessage({
             pluginMessage: {
@@ -11745,6 +11932,13 @@
 
         document.getElementById('txtFindInput').value = '';
         document.getElementById('txtRepInput').value = '';
+        toggleTextScope('selection');
+
+        const selectAll = document.getElementById('textSelectAll');
+        if (selectAll) {
+            selectAll.checked = false;
+            selectAll.indeterminate = false;
+        }
 
         // 恢复初始 UI：展开面板，隐藏结果
         toggleTextHeader(true);
@@ -11778,6 +11972,11 @@
 
         if (textFooter) {
             textFooter.style.display = total === 0 ? 'none' : 'flex';
+        }
+        const selectAll = document.getElementById('textSelectAll');
+        if (selectAll) {
+            selectAll.checked = false;
+            selectAll.indeterminate = false;
         }
 
         if (total === 0) {
@@ -11856,7 +12055,11 @@
         // 2. 同步 DOM Checkbox
         const cbs = document.querySelectorAll('#textResultList .row-cb');
         cbs.forEach(cb => {
-            if (!cb.disabled) cb.checked = checked;
+            if (!cb.disabled) {
+                cb.checked = checked;
+                const row = cb.closest('.text-result-row');
+                if (row) row.classList.toggle('selected', checked);
+            }
         });
 
         updateTextFooterBtn();
@@ -11878,6 +12081,13 @@
         }
 
         updateTextFooterBtn();
+        const available = textResultCache.filter(i => !i._done);
+        const selected = available.filter(i => i._selected);
+        const selectAll = document.getElementById('textSelectAll');
+        if (selectAll) {
+            selectAll.checked = available.length > 0 && selected.length === available.length;
+            selectAll.indeterminate = selected.length > 0 && selected.length < available.length;
+        }
     }
 
     // 更新底部按钮
@@ -11886,17 +12096,21 @@
         const count = textResultCache.filter(i => i._selected && !i._done).length;
         const btn = document.getElementById('btnTextBatchRep');
         if (!btn) return;
-        btn.disabled = count === 0;
+        btn.disabled = textReplaceBusy || count === 0;
         // 动态拼接: "Replace Selected (N)"
-        const text = count > 0 ? `${t.txt_btn_rep_batch} (${count})` : t.txt_btn_rep_batch;
+        const text = textReplaceBusy ? '替换中…' : (count > 0 ? `${t.txt_btn_rep_batch} (${count})` : t.txt_btn_rep_batch);
         btn.textContent = text;
     }
 
     // [核心] 执行替换 (单项或批量)
     // 统一封装，mode = 'single' | 'batch'
     function runTextReplaceCommon(tasks) {
+        if (textReplaceBusy) return;
         const repText = document.getElementById('txtRepInput').value;
         if (tasks.length === 0) return;
+
+        textReplaceBusy = true;
+        updateTextFooterBtn();
 
         // 发送给后端
         parent.postMessage({
@@ -12614,9 +12828,9 @@
     let dateFormat = 'YYYY-MM-DD';
 
     let smartSettings = {
-        number: { min: 1, max: 100, decimals: 0, thousands: false, sort: 'random' },
+        number: { min: 1, max: 100, decimals: 0, thousands: false, sort: 'random', generation: 'random', sequenceType: 'arithmetic', start: 1, step: 1, ratio: 2, second: 1 },
         date: { format: 'YYYY-MM-DD', sort: 'random', start: '2020-01-01', end: '2025-12-31' },
-        time: { format: 'HH:mm:ss', sort: 'random', start: '00:00:00', end: '23:59:59' }
+        time: { format: 'HH:mm:ss', sort: 'random', start: '00:00:00', end: '23:59:59', generation: 'random', stepSeconds: 900 }
     };
 
     let currentSettingKey = '';
@@ -12859,8 +13073,12 @@
       if (task.type === 'basic') {
         const generator = basicDataTypes.find(t => t.key === task.key);
         if (generator) {
-          for(let i=0; i<count; i++) {
-              list.push(generator.gen(task.tags));
+          if (task.key === 'number' && smartSettings.number.generation === 'sequence') {
+              list.push(...generateSmartNumberSeries(count, smartSettings.number));
+          } else if (task.key === 'time' && smartSettings.time.generation === 'sequence') {
+              list.push(...generateSmartTimeSeries(count, smartSettings.time));
+          } else {
+              for(let i=0; i<count; i++) list.push(generator.gen(task.tags));
           }
         }
       } else if (task.type === 'custom') {
@@ -12914,6 +13132,70 @@
       });
 
       window.pendingFillTask = null;
+    }
+
+    function formatSmartNumber(value, settings) {
+      const decimals = Math.max(0, Math.min(8, Number(settings.decimals) || 0));
+      const safeValue = Number.isFinite(Number(value)) ? Number(value) : 0;
+      if (settings.thousands) {
+        return safeValue.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+      }
+      return decimals > 0 ? safeValue.toFixed(decimals) : String(Math.round(safeValue));
+    }
+
+    function generateSmartNumberSeries(count, settings) {
+      const type = settings.sequenceType || 'arithmetic';
+      const start = Number(settings.start) || 0;
+      const step = Number(settings.step) || 1;
+      const ratio = Number(settings.ratio) || 2;
+      let a = Number(settings.start) || 0;
+      let b = Number(settings.second);
+      if (!Number.isFinite(b)) b = a + step;
+      const result = [];
+      const isPrime = (n) => {
+        n = Math.floor(Math.abs(n));
+        if (n < 2) return false;
+        for (let d = 2; d * d <= n; d++) if (n % d === 0) return false;
+        return true;
+      };
+      let prime = Math.max(2, Math.floor(start));
+      for (let i = 0; i < count; i++) {
+        let value;
+        if (type === 'natural') value = start + i;
+        else if (type === 'odd') value = (Math.floor(start) % 2 === 0 ? Math.floor(start) + 1 : Math.floor(start)) + i * 2;
+        else if (type === 'even') value = (Math.floor(start) % 2 === 0 ? Math.floor(start) : Math.floor(start) + 1) + i * 2;
+        else if (type === 'geometric') value = start * Math.pow(ratio, i);
+        else if (type === 'fibonacci') { value = a; const next = a + b; a = b; b = next; }
+        else if (type === 'prime') { while (!isPrime(prime)) prime++; value = prime++; }
+        else if (type === 'square') value = Math.pow(start + i, 2);
+        else if (type === 'triangular') { const n = start + i; value = n * (n + 1) / 2; }
+        else if (type === 'factorial') { const n = Math.min(170, Math.max(0, Math.floor(start + i))); value = 1; for (let j = 2; j <= n; j++) value *= j; }
+        else value = start + step * i;
+        result.push(formatSmartNumber(value, settings));
+      }
+      return result;
+    }
+
+    function generateSmartTimeSeries(count, settings) {
+      const parseTime = (value) => {
+        const parts = String(value || '00:00:00').split(':').map(Number);
+        return (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
+      };
+      const formatTime = (total) => {
+        total = ((Math.round(total) % 86400) + 86400) % 86400;
+        const h = String(Math.floor(total / 3600)).padStart(2, '0');
+        const m = String(Math.floor(total % 3600 / 60)).padStart(2, '0');
+        const s = String(total % 60).padStart(2, '0');
+        const fmt = settings.format || 'HH:mm:ss';
+        if (fmt === 'HH:mm') return `${h}:${m}`;
+        if (fmt === 'mm:ss') return `${m}:${s}`;
+        if (fmt === 'H:m:s') return `${Number(h)}:${Number(m)}:${Number(s)}`;
+        if (fmt === 'cn_long') return `${h}时${m}分${s}秒`;
+        return `${h}:${m}:${s}`;
+      };
+      const start = parseTime(settings.start);
+      const step = Math.max(1, Number(settings.stepSeconds) || 900);
+      return Array.from({ length: count }, (_, index) => formatTime(start + index * step));
     }
 
     // --- 数据生成器 (Mock Generators) ---
@@ -13007,12 +13289,40 @@
           const s = smartSettings.number;
           container.innerHTML = `
             <div class="config-group">
+                <label class="config-label">生成方式</label>
+                ${renderRadioTags('numGeneration', [
+                    {l:'随机生成', v:'random'}, {l:'按序填写', v:'sequence'}
+                ], s.generation || 'random')}
+            </div>
+            <div class="config-group">
                 <label class="config-label">${i18n[curLang].sf_cfg_range}</label>
                 <div style="display:flex; gap:8px; align-items:center;">
                     <input type="number" id="numMin" class="search-box" value="${s.min}" style="flex:1">
                     <span style="color:#999">-</span>
                     <input type="number" id="numMax" class="search-box" value="${s.max}" style="flex:1">
                 </div>
+            </div>
+            <div class="config-group">
+                <label class="config-label">数列类型</label>
+                <select id="numSequenceType" class="search-box" style="width:100%;">
+                    <option value="arithmetic" ${s.sequenceType==='arithmetic'?'selected':''}>等差数列</option>
+                    <option value="geometric" ${s.sequenceType==='geometric'?'selected':''}>等比数列</option>
+                    <option value="fibonacci" ${s.sequenceType==='fibonacci'?'selected':''}>斐波那契数列</option>
+                    <option value="natural" ${s.sequenceType==='natural'?'selected':''}>自然数</option>
+                    <option value="odd" ${s.sequenceType==='odd'?'selected':''}>奇数数列</option>
+                    <option value="even" ${s.sequenceType==='even'?'selected':''}>偶数数列</option>
+                    <option value="prime" ${s.sequenceType==='prime'?'selected':''}>质数数列</option>
+                    <option value="square" ${s.sequenceType==='square'?'selected':''}>平方数列</option>
+                    <option value="triangular" ${s.sequenceType==='triangular'?'selected':''}>三角数列</option>
+                    <option value="factorial" ${s.sequenceType==='factorial'?'selected':''}>阶乘数列</option>
+                </select>
+                <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:8px;">
+                    <input type="number" id="numSeqStart" class="search-box" value="${s.start ?? 1}" placeholder="起始值">
+                    <input type="number" id="numSeqSecond" class="search-box" value="${s.second ?? 1}" placeholder="第二项">
+                    <input type="number" id="numSeqStep" class="search-box" value="${s.step ?? 1}" placeholder="公差">
+                    <input type="number" id="numSeqRatio" class="search-box" value="${s.ratio ?? 2}" placeholder="公比" step="0.1">
+                </div>
+                <div style="font-size:10px; color:var(--text-tertiary); margin-top:6px;">斐波那契使用起始值和第二项；等差使用公差；等比使用公比。</div>
             </div>
             <div class="config-group">
                 <label class="config-label">${i18n[curLang].sf_cfg_decimal}</label>
@@ -13083,6 +13393,12 @@
 
           container.innerHTML = `
             <div class="config-group">
+                <label class="config-label">生成方式</label>
+                ${renderRadioTags('timeGeneration', [
+                    {l:'随机生成', v:'random'}, {l:'按序填写', v:'sequence'}
+                ], s.generation || 'random')}
+            </div>
+            <div class="config-group">
                 <label class="config-label">${i18n[curLang].sf_cfg_time_range}</label>
                 <div style="display:flex; gap:8px; align-items:center;">
                     <div style="flex:1">
@@ -13094,6 +13410,11 @@
                     </div>
                 </div>
                 <div style="font-size:11px; color:#999; margin-top:4px;">${i18n[curLang].sf_cfg_time_help}</div>
+            </div>
+            <div class="config-group">
+                <label class="config-label">递增步长（秒）</label>
+                <input type="number" id="timeStepSeconds" class="search-box" value="${s.stepSeconds || 900}" min="1" max="86400" style="width:100%;">
+                <div style="font-size:10px; color:var(--text-tertiary); margin-top:5px;">例如 900 秒表示每个图层递增 15 分钟，超过 24 小时后循环。</div>
             </div>
 
             <div class="config-group" ">
@@ -13134,7 +13455,13 @@
                 max: Number(document.getElementById('numMax').value),
                 decimals: Number(document.getElementById('numDec').value),
                 thousands: document.getElementById('numThous').checked,
-                sort: getRadioValue('numSort')
+                sort: getRadioValue('numSort'),
+                generation: getRadioValue('numGeneration'),
+                sequenceType: document.getElementById('numSequenceType').value,
+                start: Number(document.getElementById('numSeqStart').value),
+                second: Number(document.getElementById('numSeqSecond').value),
+                step: Number(document.getElementById('numSeqStep').value),
+                ratio: Number(document.getElementById('numSeqRatio').value)
             };
         }
         else if (key === 'date') {
@@ -13157,7 +13484,9 @@
                 format: getRadioValue('timeFormat'),
                 sort: getRadioValue('timeSort'),
                 start: sStart,
-                end: sEnd
+                end: sEnd,
+                generation: getRadioValue('timeGeneration'),
+                stepSeconds: Math.max(1, Number(document.getElementById('timeStepSeconds').value) || 900)
             };
         }
 
@@ -14158,6 +14487,14 @@
           else alert('未选中任何画板或节点，请先在画布上框选目标');
       }
 
+      if (msg.type === 'i18n-config-result') {
+          const collections = msg.data?.collections || [];
+          i18nState.collections = collections.map(item => item.name);
+          i18nState.collectionModesByName = Object.fromEntries(collections.map(item => [item.name, item.modes || []]));
+          i18nRenderCollectionControl(i18nState.action);
+          i18nSyncModesForCollection();
+      }
+
       if (msg.type === 'i18n-detect-result') {
           i18nState.isDetecting = false;
           i18nState.hasDetected = true;
@@ -14165,8 +14502,9 @@
           const detectBtn = document.querySelector('[data-key="i18n_detect_btn"]');
           if (detectBtn) detectBtn.innerText = '✅ 重新扫描';
 
-          i18nState.collections = msg.data.collections || [];
+          i18nState.collections = msg.data.collections || i18nState.collections;
           i18nState.existingModes = msg.data.modes || [];
+          if (msg.data.collectionName) i18nState.collectionModesByName[msg.data.collectionName] = msg.data.allModes || msg.data.modes || [];
           i18nState.autoBindList = msg.data.autoBindList || [];
           i18nState.newTextList = msg.data.newTextList || [];
 
@@ -14201,6 +14539,145 @@
 
     parent.postMessage({ pluginMessage: { type: 'req-skew-presets' } }, '*');
 
+    // ==================== 尺寸助手 ====================
+    const SIZE_ASSISTANT_PRESETS = [
+      { id:'iphone17pro', category:'mobile', brand:'Apple', name:'iPhone 17 Pro', design:[402,874], native:[1206,2622], note:'6.3 英寸。460 ppi，三倍像素密度设计视口。' },
+      { id:'galaxys26ultra', category:'mobile', brand:'Samsung', name:'Galaxy S26 Ultra', design:[480,1040], native:[1440,3120], note:'6.9 英寸 QHD+，适合大屏 Android 界面检查。' },
+      { id:'pixel10pro', category:'mobile', brand:'Google', name:'Pixel 10 Pro', design:[427,952], native:[1280,2856], note:'6.3 英寸，20:9，使用 Material 布局时可同时验证 360dp。' },
+      { id:'xiaomi17ultra', category:'mobile', brand:'Xiaomi', name:'Xiaomi 17 Ultra', design:[400,869], native:[1200,2608], note:'6.9 英寸，接近 20:9，适合安卓旗舰大屏。' },
+      { id:'matex7cover', category:'mobile', brand:'HUAWEI', name:'Mate X7 外屏', design:[360,815], native:[1080,2444], note:'6.49 英寸外屏，建议关注窄宽下的文字换行。' },
+      { id:'androidcompact', category:'mobile', brand:'Android', name:'紧凑视口', design:[360,800], native:[1080,2400], note:'通用 360dp 基准，用于发现窄屏布局问题。' },
+      { id:'androidmedium', category:'mobile', brand:'Android', name:'主流视口', design:[390,844], native:[1170,2532], note:'跨 iOS 与 Android 的常用原型尺寸。' },
+      { id:'ipadprom5', category:'tablet', brand:'Apple', name:'iPad Pro 13 (M5)', design:[1032,1376], native:[2064,2752], note:'13 英寸，4:3。分栏布局和横竖屏都应检查。' },
+      { id:'surfacepro12', category:'tablet', brand:'Microsoft', name:'Surface Pro 12', design:[732,1098], native:[1464,2196], note:'3:2 触控屏，适合生产力界面和纵向阅读。' },
+      { id:'surfacepro13', category:'tablet', brand:'Microsoft', name:'Surface Pro 13', design:[1440,960], native:[2880,1920], note:'3:2，横屏工作台可优先检查 1440 设计宽度。' },
+      { id:'matex7inner', category:'tablet', brand:'HUAWEI', name:'Mate X7 内屏', design:[1105,1208], native:[2210,2416], note:'8 英寸近方形折叠屏，需避免只沿用手机单栏。' },
+      { id:'tabletcommon', category:'tablet', brand:'Web', name:'通用平板视口', design:[768,1024], native:[1536,2048], note:'经典 3:4 平板基准，适合响应式断点验证。' },
+      { id:'desktop1440', category:'desktop', brand:'Web', name:'桌面设计基准', design:[1440,900], native:[2880,1800], note:'常用网页设计宽度，建议主内容再设置最大宽度。' },
+      { id:'fullhd', category:'desktop', brand:'Display', name:'Full HD', design:[1920,1080], native:[1920,1080], note:'16:9 主流显示器与视频画布。' },
+      { id:'qhd', category:'desktop', brand:'Display', name:'QHD', design:[2560,1440], native:[2560,1440], note:'16:9 高分辨率桌面，注意内容不应无限拉宽。' },
+      { id:'uhd4k', category:'desktop', brand:'Display', name:'4K UHD', design:[3840,2160], native:[3840,2160], note:'16:9，适合大屏展示和高清导出校验。' },
+      { id:'ultrawide', category:'desktop', brand:'Display', name:'UltraWide QHD', design:[3440,1440], native:[3440,1440], note:'21:9 超宽屏，适合时间线、仪表盘和多窗口工作台。' },
+      { id:'watch46', category:'wearable', brand:'Apple', name:'Apple Watch 46mm', design:[208,248], native:[416,496], note:'信息应在短时间内完成读取，避免长文本和密集操作。' },
+      { id:'watch44', category:'wearable', brand:'Wear OS', name:'圆形手表 44mm', design:[227,227], native:[454,454], note:'1:1 画布仅代表外接矩形，关键内容需留在中心安全区。' },
+      { id:'r1x1', category:'ratio', name:'1:1 正方形', ratio:1, note:'头像、图标、商品缩略图与方形社交内容。' },
+      { id:'r4x3', category:'ratio', name:'4:3 经典画幅', ratio:4/3, note:'平板、演示和传统摄影常用比例。' },
+      { id:'r3x2', category:'ratio', name:'3:2 摄影 / 生产力', ratio:3/2, note:'相机画幅与 Surface 类生产力屏幕。' },
+      { id:'r16x10', category:'ratio', name:'16:10 效率屏', ratio:16/10, note:'笔记本与创作工作台，比 16:9 提供更多垂直空间。' },
+      { id:'r16x9', category:'ratio', name:'16:9 宽屏', ratio:16/9, note:'视频、演示、电视与主流显示器。' },
+      { id:'r2x1', category:'ratio', name:'2:1 超宽', ratio:2, note:'现代手机、横幅 Banner 与全景构图。' },
+      { id:'r21x9', category:'ratio', name:'21:9 电影宽屏', ratio:21/9, note:'电影感视频、超宽屏与沉浸式展示。' },
+      { id:'rsqrt2', category:'ratio', name:'√2 纸张比例', ratio:Math.SQRT2, note:'A 系列纸张比例，对半裁切后仍保持相同比例。' },
+      { id:'rsqrt3', category:'ratio', name:'√3 几何比例', ratio:Math.sqrt(3), note:'适合三角网格、展示画幅与几何构图实验。' },
+      { id:'rgolden', category:'ratio', name:'φ 黄金比例', ratio:(1+Math.sqrt(5))/2, note:'约 1:1.618，可用于构图分区，不应取代实际内容验证。' },
+      { id:'rsilver', category:'ratio', name:'1+√2 白银比例', ratio:1+Math.SQRT2, note:'约 1:2.414，适合细长编排、建筑感版面与展示实验。' }
+    ];
+
+    let sizeAssistantState = { category:'mobile', selectedId:'iphone17pro', ratio:402/874, initialized:false };
+
+    function initSizeAssistant() {
+      if (!sizeAssistantState.initialized) {
+        sizeAssistantState.initialized = true;
+        renderSizePresets();
+        refreshSelectedSizePreset();
+      }
+    }
+
+    function setSizeCategory(category, button) {
+      sizeAssistantState.category = category;
+      document.querySelectorAll('#sizeCategoryTabs .size-tab').forEach(item => item.classList.remove('active'));
+      if (button) button.classList.add('active');
+      const first = SIZE_ASSISTANT_PRESETS.find(item => item.category === category);
+      if (first) sizeAssistantState.selectedId = first.id;
+      renderSizePresets();
+      refreshSelectedSizePreset();
+    }
+
+    function renderSizePresets() {
+      const list = document.getElementById('sizePresetList');
+      if (!list) return;
+      const query = String(document.getElementById('sizeSearch')?.value || '').trim().toLowerCase();
+      const items = SIZE_ASSISTANT_PRESETS.filter(item => item.category === sizeAssistantState.category && (!query || `${item.brand || ''} ${item.name} ${item.note}`.toLowerCase().includes(query)));
+      if (!items.length) {
+        list.innerHTML = '<div class="size-empty">没有匹配的尺寸预设</div>';
+        return;
+      }
+      const mode = document.getElementById('sizePresetMode')?.value || 'design';
+      list.innerHTML = items.map(item => {
+        const dimensions = item.ratio ? `${item.ratio.toFixed(3)}:1` : `${item[mode][0]} × ${item[mode][1]}`;
+        return `<div class="size-preset ${item.id === sizeAssistantState.selectedId ? 'active' : ''}" onclick="selectSizePreset('${item.id}')">
+          <div class="size-preset-row"><span class="size-preset-name">${item.brand ? `${item.brand} · ` : ''}${item.name}</span><span class="size-preset-dim">${dimensions}</span></div>
+          <div class="size-preset-note">${item.note}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function selectSizePreset(id) {
+      sizeAssistantState.selectedId = id;
+      refreshSelectedSizePreset();
+      renderSizePresets();
+    }
+
+    function refreshSelectedSizePreset() {
+      const item = SIZE_ASSISTANT_PRESETS.find(preset => preset.id === sizeAssistantState.selectedId);
+      if (!item) return;
+      const width = document.getElementById('sizeWidth');
+      const height = document.getElementById('sizeHeight');
+      const mode = document.getElementById('sizePresetMode')?.value || 'design';
+      if (item.ratio) {
+        const basis = document.getElementById('sizeRatioBasis')?.value || 'width';
+        const currentW = Math.max(1, Number(width.value) || 1600);
+        const currentH = Math.max(1, Number(height.value) || 900);
+        if (basis === 'height') width.value = roundSizeValue(currentH * item.ratio);
+        else height.value = roundSizeValue(currentW / item.ratio);
+        sizeAssistantState.ratio = item.ratio;
+      } else {
+        width.value = item[mode][0];
+        height.value = item[mode][1];
+        sizeAssistantState.ratio = item[mode][0] / item[mode][1];
+      }
+      const guidance = document.getElementById('sizeGuidance');
+      if (guidance) guidance.textContent = item.note;
+      renderSizePresets();
+    }
+
+    function roundSizeValue(value) {
+      const mode = document.getElementById('sizeRounding')?.value || 'round';
+      if (mode === 'none') return Math.round(value * 100) / 100;
+      return Math[mode](value);
+    }
+
+    function onSizeDimensionInput(changed) {
+      if (!document.getElementById('sizeLockRatio')?.checked) return;
+      const width = document.getElementById('sizeWidth');
+      const height = document.getElementById('sizeHeight');
+      const ratio = Number(sizeAssistantState.ratio) || 1;
+      if (changed === 'width') height.value = roundSizeValue((Number(width.value) || 1) / ratio);
+      else width.value = roundSizeValue((Number(height.value) || 1) * ratio);
+    }
+
+    function swapSizeOrientation() {
+      const width = document.getElementById('sizeWidth');
+      const height = document.getElementById('sizeHeight');
+      const previous = width.value;
+      width.value = height.value;
+      height.value = previous;
+      sizeAssistantState.ratio = 1 / (Number(sizeAssistantState.ratio) || 1);
+    }
+
+    function applySizeAssistant() {
+      const width = Number(document.getElementById('sizeWidth')?.value);
+      const height = Number(document.getElementById('sizeHeight')?.value);
+      if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return alert('请输入有效的宽度和高度');
+      const button = document.getElementById('sizeApplyBtn');
+      if (button) { button.disabled = true; button.textContent = '正在设定...'; }
+      postMsg('size-assistant-apply', {
+        width: Math.min(32768, width),
+        height: Math.min(32768, height),
+        keepCenter: document.getElementById('sizeKeepCenter')?.checked === true
+      });
+    }
+
     // ==================== 语言切换 (i18n) 逻辑 ====================
 
     let i18nState = {
@@ -14208,6 +14685,7 @@
         extractTarget: 'unbound',
         action: 'replace',
         collections: [],
+        collectionModesByName: {},
         existingModes: [],
         autoBindList: [],
         newTextList: [],
@@ -14935,7 +15413,12 @@
             item.setAttribute('aria-checked', item === button ? 'true' : 'false');
         });
         const variantField = document.getElementById('builderVariantField');
-        if (variantField) variantField.style.display = mode === 'set' ? 'block' : 'none';
+        const variantInput = document.getElementById('builderVariantProperty');
+        if (variantField) variantField.style.display = (mode === 'set' || mode === 'language') ? 'block' : 'none';
+        if (variantInput) {
+            if (mode === 'language') variantInput.value = 'Language';
+            else if (mode === 'set' && (!variantInput.value || variantInput.value === 'Language')) variantInput.value = 'Variant';
+        }
         updateComponentBuilderControls();
     }
 
@@ -14944,18 +15427,16 @@
         const label = document.getElementById('builderSelectionLabel');
         const names = document.getElementById('builderSelectionNames');
         const createButton = document.getElementById('builderCreateBtn');
-        const aiAnalyzeButton = document.getElementById('componentAiAnalyzeBtn');
         const t = i18n[curLang] || i18n.zh;
         const selection = componentBuilderSelection;
 
         if (state) state.classList.toggle('ready', selection.canBuild || selection.canOptimize);
 
         let canCreate = selection.canBuild;
-        if ((componentBuilderMode === 'single' && selection.frames > 1) || componentBuilderMode === 'set') {
+        if ((componentBuilderMode === 'single' && selection.frames > 1) || componentBuilderMode === 'set' || componentBuilderMode === 'language') {
             canCreate = canCreate && selection.sameParent;
         }
         if (createButton) createButton.disabled = !canCreate;
-        if (aiAnalyzeButton) aiAnalyzeButton.disabled = !selection.canOptimize || componentAiBusy;
 
         if (!selection.total) {
             if (label) label.textContent = t.cb_selection_empty;
@@ -15018,7 +15499,7 @@
         postMsg('component-builder-create', {
             mode: componentBuilderMode,
             componentName: document.getElementById('builderComponentName').value.trim(),
-            variantProperty: document.getElementById('builderVariantProperty').value.trim() || 'Variant',
+            variantProperty: document.getElementById('builderVariantProperty').value.trim() || (componentBuilderMode === 'language' ? 'Language' : 'Variant'),
             exposeText: document.getElementById('builderExposeText').checked,
             exposeInstances: document.getElementById('builderExposeInstances').checked
         });
@@ -16003,6 +16484,7 @@ Please output JSON:`;
         i18nToggleAction();
         i18nUpdateModeDesc();
         i18nUpdateStartBtnState();
+        postMsg('i18n-load-config');
     }
 
     function i18nUpdateStartBtnState() {
@@ -16040,6 +16522,7 @@ Please output JSON:`;
 
     function i18nSetAction(action, el) {
         i18nState.action = action;
+        i18nInvalidateDetectedState();
         el.parentElement.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
         el.classList.add('active');
         i18nToggleAction();
@@ -16065,9 +16548,9 @@ Please output JSON:`;
         const select = document.getElementById('i18nTargetMode');
 
         if (select && select.options.length === 0) {
-            // 确保包含简体中文
-            const langs = ['English', '简体中文', '繁体中文', '日本語', '한국어', 'Français', 'Deutsch', 'Español'];
+            const langs = ['English', '简体中文', '繁体中文', '日本語', '한국어', 'Français', 'Deutsch', 'Español', 'Italiano', 'Português', 'Русский', 'العربية'];
             langs.forEach(l => { select.innerHTML += `<option value="${l}">${l}</option>`; });
+            select.onchange = () => i18nUpdateTargetModeStatus();
         }
 
         if (action === 'replace') {
@@ -16094,6 +16577,7 @@ Please output JSON:`;
             if (extractSection) extractSection.style.display = 'block';
             i18nRenderCollectionControl('update');
         }
+        i18nUpdateTargetModeStatus();
     }
 
     // 修改 2: 优化合集渲染逻辑
@@ -16116,7 +16600,7 @@ Please output JSON:`;
             let options = i18nState.collections.length === 0
                 ? `<option value="">${i18n[curLang].i18n_no_collection}</option>`
                 : existingOptions;
-            container.innerHTML = `<select id="i18nCollectionSelect" class="search-box" style="flex: 1;">${options}</select>`;
+            container.innerHTML = `<select id="i18nCollectionSelect" class="search-box" style="flex: 1;" onchange="i18nHandleCollectionChange(false)">${options}</select>`;
 
             // 恢复之前的值
             const newSelect = document.getElementById('i18nCollectionSelect');
@@ -16129,10 +16613,10 @@ Please output JSON:`;
             options += `<option value="__new__">✨ ${i18n[curLang].i18n_create_new_collection}</option>`;
 
             container.innerHTML = `
-                <select id="i18nCollectionSelect" class="search-box" style="flex: 1; margin-bottom: 8px;" onchange="i18nToggleNewCollection()">
+                <select id="i18nCollectionSelect" class="search-box" style="flex: 1; margin-bottom: 8px;" onchange="i18nHandleCollectionChange(true)">
                     ${options}
                 </select>
-                <input type="text" id="i18nNewCollectionName" class="search-box" style="flex: 1; display: none;" placeholder="${i18n[curLang].i18n_new_collection_placeholder}">
+                <input type="text" id="i18nNewCollectionName" class="search-box" style="flex: 1; display: none;" oninput="i18nInvalidateDetectedState()" placeholder="${i18n[curLang].i18n_new_collection_placeholder}">
             `;
 
             // 恢复之前的值
@@ -16159,6 +16643,43 @@ Please output JSON:`;
 
             i18nToggleNewCollection();
         }
+        i18nSyncModesForCollection();
+    }
+
+    function i18nSyncModesForCollection() {
+        const select = document.getElementById('i18nCollectionSelect');
+        const name = select && select.value !== '__new__' ? select.value : '';
+        const allModes = name ? (i18nState.collectionModesByName[name] || []) : [];
+        i18nState.existingModes = allModes.filter(mode => !/^(original|source|原文|源语言)$/i.test(String(mode).trim()));
+        i18nUpdateTargetModeStatus();
+    }
+
+    function i18nInvalidateDetectedState() {
+        i18nState.hasDetected = false;
+        i18nUpdateStartBtnState();
+    }
+
+    function i18nHandleCollectionChange(allowNewCollection) {
+        if (allowNewCollection) i18nToggleNewCollection();
+        i18nSyncModesForCollection();
+        i18nInvalidateDetectedState();
+    }
+
+    function i18nNormalizeMode(value) {
+        const key = String(value || '').toLowerCase().replace(/[\s_()\-]/g, '');
+        const aliases = { english:'en', en:'en', '英语':'en', '英文':'en', '简体中文':'zhcn', '中文':'zhcn', chinese:'zhcn', zhcn:'zhcn', '繁体中文':'zhtw', '繁體中文':'zhtw', zhtw:'zhtw', '日本語':'ja', japanese:'ja', ja:'ja', '한국어':'ko', korean:'ko', ko:'ko', français:'fr', french:'fr', fr:'fr', deutsch:'de', german:'de', de:'de', español:'es', spanish:'es', es:'es', italiano:'it', português:'pt', 'русский':'ru', 'العربية':'ar' };
+        return aliases[key] || key;
+    }
+
+    function i18nUpdateTargetModeStatus() {
+        const status = document.getElementById('i18nTargetModeStatus');
+        const target = document.getElementById('i18nTargetMode')?.value || 'English';
+        if (!status) return;
+        if (i18nState.action === 'replace') { status.textContent = '直接替换不会创建变量或 Mode。'; return; }
+        const collection = i18nGetCollectionName();
+        const modes = i18nState.collectionModesByName[collection] || [];
+        const existing = modes.find(mode => i18nNormalizeMode(mode) === i18nNormalizeMode(target));
+        status.textContent = existing ? `将复用已有 Mode「${existing}」，不会重复创建。` : `将在「${collection}」中创建 Mode「${target}」。`;
     }
 
     function i18nToggleNewCollection() {
@@ -16238,7 +16759,9 @@ Please output JSON:`;
         let aiUrl = endpoint.url.trim().replace(/\/+$/, '');
         if (!aiUrl.includes('/chat/completions')) aiUrl += '/chat/completions';
 
-        const prompt = `Translate these UI texts to ${targetLang}. Return ONLY a JSON array with objects containing 'original' and 'translated' keys. Do not add markdown backticks. Texts: ${JSON.stringify(textsToTranslate)}`;
+        const sourceLang = document.getElementById('i18nSourceLanguage')?.value || 'auto';
+        const sourceHint = sourceLang === 'auto' ? 'Detect the source language for each string.' : `The source language is ${sourceLang}.`;
+        const prompt = `${sourceHint} Translate these UI texts to ${targetLang}. Preserve placeholders, variables, numbers, punctuation, product names and line breaks. Return ONLY a JSON array with objects containing 'original' and 'translated' keys. Do not add markdown backticks. Texts: ${JSON.stringify(textsToTranslate)}`;
         const reqId = "i18n_" + Date.now().toString() + "_" + reqIdSuffix;
 
         const fetchOptions = {
