@@ -4788,6 +4788,7 @@
 
 
 
+
 <!-- shared-shell-style:start -->
 <style>
 /* Compact tool shell. Each panel owns its scrolling; navigation stays in place. */
@@ -6423,7 +6424,7 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
             <!-- 功能说明卡片 -->
             <div class="selector-card" style="margin-bottom: 16px;">
               <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                <div style="width: 48px; height: 48px; background: var(--card-purple-bg); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 24px;">🎨</div>
+                <div class="compkit-empty-icon" style="width: 32px; height: 32px; background: var(--card-purple-bg); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;">🎨</div>
                 <div>
                   <div style="font-size: 14px; font-weight: 700; color: var(--text-primary);" data-key="ck_matrix_title">变体矩阵排列</div>
                   <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;" data-key="ck_matrix_desc">自动将 Component Set 按矩阵排列</div>
@@ -17153,6 +17154,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
 
 
+
 <!-- shared-shell-script:start -->
 <script>
 /* Tabler Icons (MIT), embedded offline by scripts/sync-ui-shell.mjs. */
@@ -17185,7 +17187,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     element.innerHTML = svg(name);
     element.dataset.shellIcon = name;
   };
-  const controls = '.nav-icon-slot,.tc-icon,.btn-icon,.es-icon,.success-icon,.success-emoji,.section-title,.settings-section-title,.settings-item-label-icon,.builder-mode-symbol,.smart-setting-btn,.jumpback-hero-icon,.btn-clear-input,.btn-back-sub,.sub-header,.card-icon,.theory-icon,.theory-capsule-icon,.size-hero-title,[data-key],button,#dashGreeting,#testConnectionIcon,#errorToast';
+  const controls = '.ppt-icon,.compkit-empty-icon,.nav-icon-slot,.tc-icon,.btn-icon,.es-icon,.success-icon,.success-emoji,.section-title,.settings-section-title,.settings-item-label-icon,.builder-mode-symbol,.smart-setting-btn,.jumpback-hero-icon,.btn-clear-input,.btn-back-sub,.sub-header,.card-icon,.theory-icon,.theory-capsule-icon,.size-hero-title,[data-key],button,#dashGreeting,#testConnectionIcon,#errorToast';
   const protectedContent = 'script,style,svg,textarea,input,select,option,pre,code,[contenteditable],#aiResultArea,#i18nTransList,.text-preview-main,.smart-label,.tc-tooltip,.toast-message';
   function decorate(element) {
     if (!(element instanceof Element) || element.closest(protectedContent)) return;
