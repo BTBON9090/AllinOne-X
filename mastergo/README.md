@@ -1,6 +1,8 @@
 # All in One for MasterGo
 
-这是 AllinoneX 4.2.0 的 MasterGo 实现，与同仓库 `../figma/` 版本同步维护。
+这是 AllinoneX 4.2.1 的 MasterGo 实现，与同仓库 `../figma/` 版本同步维护。
+
+4.2.1 强化智能填充的字体加载、选区一致性与失败反馈，统一 Tabler 线性图标与紧凑样式，隔离侧栏和内容区滚动。精简模式会将窗口缩小到 360 × 520。图标已离线嵌入 HTML，许可见 `assets/TABLER-LICENSE.md`。
 
 ## 文件说明
 

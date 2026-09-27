@@ -1,6 +1,8 @@
 # All in One for Figma
 
-这是 AllinoneX 4.2.0 的 Figma 实现，与同仓库 `../mastergo/` 版本同步维护。
+这是 AllinoneX 4.2.1 的 Figma 实现，与同仓库 `../mastergo/` 版本同步维护。
+
+4.2.1 修复智能填充的混合字体加载和选区一致性，统一 Tabler 线性图标与紧凑样式，隔离侧栏和内容区滚动。精简模式会将窗口缩小到 360 × 520。
 
 ## 主要能力
 

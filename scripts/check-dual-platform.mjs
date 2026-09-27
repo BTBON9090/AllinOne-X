@@ -45,7 +45,7 @@ for (const [platform, ui, main] of [
     && main.includes('searchTargets.push(...children)'));
   check(`${platform} 自定义字段随机入口`, ui.includes("runCustomFill(${index}, 'random', event)"));
   check(`${platform} 自定义随机模式传递`, ui.includes("task.type === 'custom' ? (task.distribution || 'order') : 'order'"));
-  check(`${platform} 后端随机取值`, main.includes("if (distribution === 'random')")
+  check(`${platform} 后端随机取值`, main.includes("distribution === 'random'")
     && main.includes('Math.floor(Math.random() * dataList.length)'));
   check(`${platform} 空列表保护`, main.includes('!Array.isArray(dataList) || dataList.length === 0'));
   check(`${platform} 查重整行同时定位`, ui.includes("postMsg('focus-layers', { ids: [pair.aId, pair.bId] })"));

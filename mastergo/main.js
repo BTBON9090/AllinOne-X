@@ -62,7 +62,51 @@ const convertNameAdvanced = (str, format, sepMode, casing, keepEmoji, removeId, 
     }
     return { changed: newVal !== str, val: newVal };
 };
-mg.showUI(__html__, { width: 460, height: 640 });
+mg.showUI(__html__, { width: 440, height: 600 });
+// Smart Fill: one deduplicated, visible selection for both count and write.
+const collectSmartFillTextNodes = (roots) => {
+    const nodes = [];
+    const seen = new Set();
+    const visit = (node) => {
+        if (!node || node.removed || node.isVisible === false || seen.has(node.id))
+            return;
+        seen.add(node.id);
+        if (node.type === 'TEXT')
+            nodes.push(node);
+        else if ('children' in node)
+            node.children.forEach(visit);
+    };
+    roots.forEach(visit);
+    return nodes.sort((a, b) => {
+        const aa = a.absoluteBoundingBox || { x: a.x, y: a.y };
+        const bb = b.absoluteBoundingBox || { x: b.x, y: b.y };
+        return Math.abs(aa.y - bb.y) > 10 ? aa.y - bb.y : aa.x - bb.x;
+    });
+};
+const loadSmartFillFonts = async (node, loaded) => {
+    const fonts = (node.textStyles || []).map(segment => { var _a; return (_a = segment.textStyle) === null || _a === void 0 ? void 0 : _a.fontName; }).filter(Boolean);
+    if (!fonts.length && node.fontName && typeof node.fontName === 'object')
+        fonts.push(node.fontName);
+    if (!fonts.length)
+        throw new Error('无法读取字体，请先为文本设置可用字体');
+    for (const font of fonts) {
+        if (!font || typeof font.family !== 'string' || typeof font.style !== 'string') {
+            throw new Error('字体信息不完整，请先为文本设置可用字体');
+        }
+        const key = JSON.stringify(font);
+        if (!loaded.has(key))
+            loaded.set(key, mg.loadFontAsync(font).then(result => {
+                if (result === false)
+                    throw new Error(`字体不可用：${font.family} ${font.style}`);
+            }));
+        try {
+            await loaded.get(key);
+        }
+        catch (_) {
+            throw new Error(`字体不可用：${font.family} ${font.style}，请安装或替换该字体`);
+        }
+    }
+};
 // MasterGo 与原插件的 UI 消息封装不同。保持既有 pluginMessage 协议，
 // 这样前端功能和事件监听可以逐项等价复用。
 const sendToUI = (message) => mg.ui.postMessage({ pluginMessage: message });
@@ -2486,7 +2530,7 @@ mg.on('selectionchange', () => {
     }
 });
 mg.ui.onmessage = async (rawMessage) => {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
     const msg = (rawMessage === null || rawMessage === void 0 ? void 0 : rawMessage.pluginMessage) || rawMessage;
     if (!msg || !msg.type)
         return;
@@ -2507,88 +2551,60 @@ mg.ui.onmessage = async (rawMessage) => {
         // ===========================
         // 1. 获取选中图层数量 (用于前端生成对应数量的数据)
         case 'get-selection-count': {
-            const textNodes = [];
-            const traverse = (n) => {
-                if (n.type === 'TEXT' && !n.removed && n.isVisible)
-                    textNodes.push(n);
-                if ('children' in n)
-                    n.children.forEach(traverse);
-            };
-            const scope = mg.document.currentPage.selection.length > 0 ? mg.document.currentPage.selection : [mg.document.currentPage];
-            scope.forEach(traverse);
-            sendToUI({ type: 'selection-count-res', count: textNodes.length });
+            const nodes = collectSmartFillTextNodes(mg.document.currentPage.selection);
+            sendToUI({ type: 'selection-count-res', count: nodes.length, nodeIds: nodes.map(node => node.id) });
             break;
         }
-        // 2. 执行填充
         case 'smart-fill-exec': {
             const { dataList, mode, distribution } = msg;
-            // dataList: string[] - 待填充的内容数组
-            // mode: 'replace' | 'prefix' | 'suffix'
-            // distribution: 'order' (顺序) | 'random' (随机)
-            if (!Array.isArray(dataList) || dataList.length === 0) {
-                mg.notify("填充列表为空");
-                return;
-            }
-            const textNodes = [];
-            const traverse = (n) => {
-                if (n.type === 'TEXT' && !n.removed && n.isVisible)
-                    textNodes.push(n);
-                if ('children' in n)
-                    n.children.forEach(traverse);
+            const report = (count, errors = [], message = '') => {
+                const summary = message || `已填充 ${count} 个文本${errors.length ? `，${errors.length} 项失败：${errors[0]}` : ''}`;
+                mg.notify(summary);
+                sendToUI({ type: 'smart-fill-result', count, errors, message: summary });
             };
-            // 优先处理选中项，没选中则不处理（防止误操作全页）
-            if (mg.document.currentPage.selection.length > 0) {
-                mg.document.currentPage.selection.forEach(traverse);
+            if (!Array.isArray(dataList) || dataList.length === 0) {
+                report(0, [], '填充列表为空');
+                break;
             }
-            else {
-                mg.notify("请先选择包含文本的图层");
-                return;
+            // Use the same selection snapshot for counting and writing.
+            const roots = Array.isArray(msg.nodeIds)
+                ? (await Promise.all(msg.nodeIds.map(id => mg.getNodeById(id)))).filter(Boolean)
+                : mg.document.currentPage.selection;
+            const textNodes = collectSmartFillTextNodes(roots);
+            if (!textNodes.length) {
+                report(0, [], '请先选择可见的文本图层或包含文本的画板');
+                break;
             }
-            if (textNodes.length === 0) {
-                mg.notify("未找到文本图层");
-                return;
-            }
-            // 视觉排序 (从左到右，从上到下)
-            textNodes.sort((a, b) => {
-                const aAbs = a.absoluteBoundingBox || { x: a.x, y: a.y };
-                const bAbs = b.absoluteBoundingBox || { x: b.x, y: b.y };
-                if (Math.abs(aAbs.y - bAbs.y) > 10)
-                    return aAbs.y - bAbs.y;
-                return aAbs.x - bAbs.x;
-            });
+            const errors = [];
             let changeCount = 0;
+            const fontLoads = new Map();
             for (let i = 0; i < textNodes.length; i++) {
                 const node = textNodes[i];
                 try {
-                    // 加载字体
-                    await loadTextFonts(node);
-                    // 获取填充内容
-                    let textToFill = "";
-                    if (distribution === 'random') {
-                        textToFill = dataList[Math.floor(Math.random() * dataList.length)];
-                    }
-                    else {
-                        // 顺序循环
-                        textToFill = dataList[i % dataList.length];
-                    }
-                    // 根据模式应用
+                    await loadSmartFillFonts(node, fontLoads);
+                    const value = String((_a = dataList[distribution === 'random'
+                        ? Math.floor(Math.random() * dataList.length) : i % dataList.length]) !== null && _a !== void 0 ? _a : '');
+                    // Inserting at the edges retains mixed text styles in prefix/suffix mode.
                     if (mode === 'prefix') {
-                        node.characters = textToFill + node.characters;
+                        if (value)
+                            node.insertCharacters(0, value);
                     }
                     else if (mode === 'suffix') {
-                        node.characters = node.characters + textToFill;
+                        if (value)
+                            node.insertCharacters(node.characters.length, value);
                     }
                     else {
-                        // replace
-                        node.characters = textToFill;
+                        node.characters = value;
                     }
                     changeCount++;
                 }
-                catch (e) {
-                    console.error("Fill error", e);
+                catch (error) {
+                    const detail = `${node.name}: ${String((error === null || error === void 0 ? void 0 : error.message) || error)}`;
+                    errors.push(detail);
+                    console.error('Smart fill failed:', detail);
                 }
             }
-            mg.notify(`已填充 ${changeCount} 个文本`);
+            report(changeCount, errors);
             break;
         }
         // 3. 存储/读取配置 (ClientStorage)
@@ -4628,7 +4644,7 @@ mg.ui.onmessage = async (rawMessage) => {
             for (const node of textNodes) {
                 if (node.hasMissingFont)
                     continue;
-                const hasContentBinding = Boolean(getNodeI18nBinding(node) || ((_a = node.componentPropertyReferences) === null || _a === void 0 ? void 0 : _a.characters));
+                const hasContentBinding = Boolean(getNodeI18nBinding(node) || ((_b = node.componentPropertyReferences) === null || _b === void 0 ? void 0 : _b.characters));
                 if (extractTarget === 'unbound' && hasContentBinding) {
                     boundCount++;
                     continue;
@@ -5093,10 +5109,10 @@ mg.ui.onmessage = async (rawMessage) => {
                 }
                 else {
                     // 多选：取所有组件集的公共（交集）属性（供"批量排布"使用）
-                    const firstSample = ((_b = selectedSets[0].children[0]) === null || _b === void 0 ? void 0 : _b.name) || '';
+                    const firstSample = ((_c = selectedSets[0].children[0]) === null || _c === void 0 ? void 0 : _c.name) || '';
                     let common = firstSample.split(',').map(p => p.split('=')[0].trim());
                     for (let i = 1; i < selectedSets.length; i++) {
-                        const sample = ((_c = selectedSets[i].children[0]) === null || _c === void 0 ? void 0 : _c.name) || '';
+                        const sample = ((_d = selectedSets[i].children[0]) === null || _d === void 0 ? void 0 : _d.name) || '';
                         const props = sample.split(',').map(p => p.split('=')[0].trim());
                         common = common.filter(p => props.includes(p));
                     }

@@ -66,7 +66,44 @@ const convertNameAdvanced = (str: string, format: string, sepMode: string, casin
 
     return { changed: newVal !== str, val: newVal };
 };
-figma.showUI(__html__, { width: 460, height: 640, themeColors: true });
+figma.showUI(__html__, { width: 440, height: 600, themeColors: true });
+
+// Smart Fill: one deduplicated, visible selection for both count and write.
+const collectSmartFillTextNodes = (roots: readonly any[]): TextNode[] => {
+  const nodes: TextNode[] = [];
+  const seen = new Set<string>();
+  const visit = (node: any) => {
+    if (!node || node.removed || node.visible === false || seen.has(node.id)) return;
+    seen.add(node.id);
+    if (node.type === 'TEXT') nodes.push(node);
+    else if ('children' in node) node.children.forEach(visit);
+  };
+  roots.forEach(visit);
+  return nodes.sort((a, b) => {
+    const aa = a.absoluteBoundingBox || { x: a.x, y: a.y };
+    const bb = b.absoluteBoundingBox || { x: b.x, y: b.y };
+    return Math.abs(aa.y - bb.y) > 10 ? aa.y - bb.y : aa.x - bb.x;
+  });
+};
+
+const loadSmartFillFonts = async (node: any, loaded: Map<string, Promise<any>>) => {
+  const fonts = node.fontName === figma.mixed
+    ? node.getRangeAllFontNames(0, node.characters.length)
+    : [node.fontName];
+  if (!fonts.length) throw new Error('无法读取字体，请先为文本设置可用字体');
+  for (const font of fonts) {
+    if (!font || typeof font.family !== 'string' || typeof font.style !== 'string') {
+      throw new Error('字体信息不完整，请先为文本设置可用字体');
+    }
+    const key = JSON.stringify(font);
+    if (!loaded.has(key)) loaded.set(key, figma.loadFontAsync(font).then(result => {
+      if (result === false) throw new Error(`字体不可用：${font.family} ${font.style}`);
+    }));
+    try { await loaded.get(key); }
+    catch (_) { throw new Error(`字体不可用：${font.family} ${font.style}，请安装或替换该字体`); }
+  }
+};
+
 
 // 用于存储高亮前的原始样式： Key = "NodeID_Index", Value = OriginalFills
 let highlightCache = {};
@@ -1098,89 +1135,56 @@ figma.ui.onmessage = async (msg) => {
 
     // 1. 获取选中图层数量 (用于前端生成对应数量的数据)
     case 'get-selection-count': {
-      const textNodes = [];
-      const traverse = (n: any) => {
-        if (n.type === 'TEXT' && !n.removed && n.visible) textNodes.push(n);
-        if ('children' in n) n.children.forEach(traverse);
-      };
-      const scope = figma.currentPage.selection.length > 0 ? figma.currentPage.selection : [figma.currentPage];
-      scope.forEach(traverse);
-
-      figma.ui.postMessage({ type: 'selection-count-res', count: textNodes.length });
+      const nodes = collectSmartFillTextNodes(figma.currentPage.selection);
+      figma.ui.postMessage({ type: 'selection-count-res', count: nodes.length, nodeIds: nodes.map(node => node.id) });
       break;
     }
 
-    // 2. 执行填充
     case 'smart-fill-exec': {
       const { dataList, mode, distribution } = msg;
-      // dataList: string[] - 待填充的内容数组
-      // mode: 'replace' | 'prefix' | 'suffix'
-      // distribution: 'order' (顺序) | 'random' (随机)
-
-      if (!Array.isArray(dataList) || dataList.length === 0) {
-        figma.notify("填充列表为空");
-        return;
-      }
-
-      const textNodes: TextNode[] = [];
-      const traverse = (n: any) => {
-        if (n.type === 'TEXT' && !n.removed && n.visible) textNodes.push(n);
-        if ('children' in n) n.children.forEach(traverse);
+      const report = (count: number, errors: string[] = [], message = '') => {
+        const summary = message || `已填充 ${count} 个文本${errors.length ? `，${errors.length} 项失败：${errors[0]}` : ''}`;
+        figma.notify(summary);
+        figma.ui.postMessage({ type: 'smart-fill-result', count, errors, message: summary });
       };
-      // 优先处理选中项，没选中则不处理（防止误操作全页）
-      if (figma.currentPage.selection.length > 0) {
-        figma.currentPage.selection.forEach(traverse);
-      } else {
-        figma.notify("请先选择包含文本的图层");
-        return;
+      if (!Array.isArray(dataList) || dataList.length === 0) {
+        report(0, [], '填充列表为空');
+        break;
       }
-
-      if (textNodes.length === 0) {
-        figma.notify("未找到文本图层");
-        return;
+      // Use the same selection snapshot for counting and writing.
+      const roots = Array.isArray(msg.nodeIds)
+        ? (await Promise.all(msg.nodeIds.map(id => figma.getNodeByIdAsync(id)))).filter(Boolean)
+        : figma.currentPage.selection;
+      const textNodes = collectSmartFillTextNodes(roots);
+      if (!textNodes.length) {
+        report(0, [], '请先选择可见的文本图层或包含文本的画板');
+        break;
       }
-
-      // 视觉排序 (从左到右，从上到下)
-      textNodes.sort((a, b) => {
-         const aAbs = a.absoluteBoundingBox || { x: a.x, y: a.y };
-         const bAbs = b.absoluteBoundingBox || { x: b.x, y: b.y };
-         if (Math.abs(aAbs.y - bAbs.y) > 10) return aAbs.y - bAbs.y;
-         return aAbs.x - bAbs.x;
-      });
-
+      const errors: string[] = [];
       let changeCount = 0;
-
+      const fontLoads = new Map<string, Promise<any>>();
       for (let i = 0; i < textNodes.length; i++) {
         const node = textNodes[i];
         try {
-          // 加载字体
-          await figma.loadFontAsync(node.fontName as FontName); // 简单处理，假设非混合字体
-
-          // 获取填充内容
-          let textToFill = "";
-          if (distribution === 'random') {
-            textToFill = dataList[Math.floor(Math.random() * dataList.length)];
-          } else {
-            // 顺序循环
-            textToFill = dataList[i % dataList.length];
-          }
-
-          // 根据模式应用
+          await loadSmartFillFonts(node, fontLoads);
+          const value = String(dataList[distribution === 'random'
+            ? Math.floor(Math.random() * dataList.length) : i % dataList.length] ?? '');
+          // Inserting at the edges retains mixed text styles in prefix/suffix mode.
           if (mode === 'prefix') {
-            node.characters = textToFill + node.characters;
+            if (value) node.insertCharacters(0, value);
           } else if (mode === 'suffix') {
-            node.characters = node.characters + textToFill;
+            if (value) node.insertCharacters(node.characters.length, value);
           } else {
-            // replace
-            node.characters = textToFill;
+            node.characters = value;
           }
           changeCount++;
-        } catch (e) {
-          console.error("Fill error", e);
+        } catch (error) {
+          const detail = `${node.name}: ${String((error as any)?.message || error)}`;
+          errors.push(detail);
+          console.error('Smart fill failed:', detail);
         }
       }
-
-      figma.notify(`已填充 ${changeCount} 个文本`);
+      report(changeCount, errors);
       break;
     }
 

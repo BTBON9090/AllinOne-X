@@ -1,10 +1,10 @@
 {
   "name": "allinone-plugin",
-  "version": "4.2.0",
+  "version": "4.2.1",
   "description": "Figma All in One Plugin",
   "main": "code.js",
   "scripts": {
-    "build": "tsc code.ts --outFile code.js && node -e \"const fs=require('fs');const html=fs.readFileSync('ui.html','utf8');const js=fs.readFileSync('code.js','utf8');fs.writeFileSync('code.js',js.replace(/__html__/g,JSON.stringify(html)));\"",
+    "build": "tsc code.ts --outFile code.js && node scripts/embed-ui.mjs",
     "watch": "tsc code.ts --outFile code.js --watch",
     "check:ui": "node scripts/check-ui-syntax.mjs",
     "check:component-builder": "node scripts/check-component-builder.mjs",
