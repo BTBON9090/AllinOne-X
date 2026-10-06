@@ -72,18 +72,30 @@ figma.showUI(__html__, { width: 440, height: 600, themeColors: true });
 const collectSmartFillTextNodes = (roots: readonly any[]): TextNode[] => {
   const nodes: TextNode[] = [];
   const seen = new Set<string>();
-  const visit = (node: any) => {
-    if (!node || node.removed || node.visible === false || seen.has(node.id)) return;
+  const stack = [...roots].reverse().filter(root => {
+    for (let parent = root?.parent; parent && parent.type !== 'PAGE'; parent = parent.parent) if (parent.visible === false) return false;
+    return true;
+  });
+  while (stack.length) {
+    const node = stack.pop();
+    if (!node || node.removed || node.visible === false || seen.has(node.id)) continue;
     seen.add(node.id);
     if (node.type === 'TEXT') nodes.push(node);
-    else if ('children' in node) node.children.forEach(visit);
-  };
-  roots.forEach(visit);
-  return nodes.sort((a, b) => {
-    const aa = a.absoluteBoundingBox || { x: a.x, y: a.y };
-    const bb = b.absoluteBoundingBox || { x: b.x, y: b.y };
-    return Math.abs(aa.y - bb.y) > 10 ? aa.y - bb.y : aa.x - bb.x;
-  });
+    else if ('children' in node) for (let i = node.children.length - 1; i >= 0; i--) stack.push(node.children[i]);
+  }
+  // Sort geometry once, then group rows against a fixed anchor. A pairwise
+  // "within 10px" comparator is non-transitive and changes with selection order.
+  const positioned = nodes.map(node => ({ node, box: node.absoluteBoundingBox || { x:node.x || 0, y:node.y || 0 } }))
+    .sort((a, b) => a.box.y - b.box.y || a.box.x - b.box.x || a.node.id.localeCompare(b.node.id));
+  const ordered: TextNode[] = [];
+  for (let start = 0; start < positioned.length;) {
+    let end = start + 1;
+    while (end < positioned.length && positioned[end].box.y - positioned[start].box.y <= 10) end++;
+    const row = positioned.slice(start, end).sort((a, b) => a.box.x - b.box.x || a.box.y - b.box.y || a.node.id.localeCompare(b.node.id));
+    row.forEach(item => ordered.push(item.node));
+    start = end;
+  }
+  return ordered;
 };
 
 const loadSmartFillFonts = async (node: any, loaded: Map<string, Promise<any>>) => {
@@ -1152,15 +1164,25 @@ figma.ui.onmessage = async (msg) => {
         break;
       }
       // Use the same selection snapshot for counting and writing.
-      const roots = Array.isArray(msg.nodeIds)
-        ? (await Promise.all(msg.nodeIds.map(id => figma.getNodeByIdAsync(id)))).filter(Boolean)
+      const errors: string[] = [];
+      const snapshot = Array.isArray(msg.nodeIds) ? Array.from(new Set<string>(msg.nodeIds)) : null;
+      const snapshotOrder = new Map(snapshot?.map((id, index) => [id, index]) || []);
+      const roots = snapshot
+        ? (await Promise.all(snapshot.map(async id => {
+            try {
+              const node = await figma.getNodeByIdAsync(id);
+              if (!node || node.removed) { errors.push(`图层 ${id} 已删除或不可用`); return null; }
+              return node;
+            } catch (_) { errors.push(`无法读取图层 ${id}，已跳过`); return null; }
+          }))).filter(Boolean)
         : figma.currentPage.selection;
       const textNodes = collectSmartFillTextNodes(roots);
+      if (snapshot) textNodes.sort((a, b) => snapshotOrder.get(a.id) - snapshotOrder.get(b.id));
       if (!textNodes.length) {
-        report(0, [], '请先选择可见的文本图层或包含文本的画板');
+        report(0, errors, errors.length ? `未能填充：${errors[0]}` : '请先选择可见的文本图层或包含文本的画板');
         break;
       }
-      const errors: string[] = [];
+      if (textNodes.length > 10000) { report(0, [], '单次最多填充 10,000 个文本，请分批处理'); break; }
       let changeCount = 0;
       const fontLoads = new Map<string, Promise<any>>();
       for (let i = 0; i < textNodes.length; i++) {
@@ -1168,7 +1190,7 @@ figma.ui.onmessage = async (msg) => {
         try {
           await loadSmartFillFonts(node, fontLoads);
           const value = String(dataList[distribution === 'random'
-            ? Math.floor(Math.random() * dataList.length) : i % dataList.length] ?? '');
+            ? Math.floor(Math.random() * dataList.length) : (snapshotOrder.get(node.id) ?? i) % dataList.length] ?? '');
           // Inserting at the edges retains mixed text styles in prefix/suffix mode.
           if (mode === 'prefix') {
             if (value) node.insertCharacters(0, value);

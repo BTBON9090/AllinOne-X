@@ -23,7 +23,7 @@ check('统一版本号', [json('figma/package.json').version, json('mastergo/pac
 
 for (const [label, regex] of [
   ['主线程消息分支', /case\s+['"]([^'"]+)['"]\s*:/g],
-  ['导航功能入口', /data-nav=["']([^"']+)["']/g],
+  ['导航功能入口', /data-nav=["']([a-zA-Z][\w-]*)["']/g],
   ['UI 元素 ID', /\sid=["']([^"']+)["']/g],
   ['国际化键', /data-key=["']([^"']+)["']/g]
 ]) {

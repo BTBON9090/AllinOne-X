@@ -28,6 +28,7 @@
     element.innerHTML = svg(name);
     element.dataset.shellIcon = name;
   };
+  window.PluginIcons = Object.freeze({ put: putIcon });
   const controls = '.ppt-icon,.compkit-empty-icon,.nav-icon-slot,.tc-icon,.btn-icon,.es-icon,.success-icon,.success-emoji,.section-title,.settings-section-title,.settings-item-label-icon,.builder-mode-symbol,.smart-setting-btn,.jumpback-hero-icon,.btn-clear-input,.btn-back-sub,.sub-header,.card-icon,.theory-icon,.theory-capsule-icon,.size-hero-title,[data-key],button,#dashGreeting,#testConnectionIcon,#errorToast';
   const protectedContent = 'script,style,svg,textarea,input,select,option,pre,code,[contenteditable],#aiResultArea,#i18nTransList,.text-preview-main,.smart-label,.tc-tooltip,.toast-message';
   function decorate(element) {
@@ -122,13 +123,10 @@
   }
   putIcon(document.querySelector('.size-swap'), 'arrows-exchange');
   document.querySelectorAll('.size-swap').forEach(button => button.setAttribute('aria-label', '横竖切换'));
-  document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item').forEach(nav => nav.setAttribute('aria-current', nav === item ? 'page' : 'false'));
-  }));
   document.addEventListener('keydown', event => {
     const target = event.target;
     if (!(target instanceof Element) || target.matches('input,textarea,select,button,a,[contenteditable]')) return;
-    if ((event.key === 'Enter' || event.key === ' ') && target.hasAttribute('onclick')) {
+    if ((event.key === 'Enter' || event.key === ' ') && target.hasAttribute('onclick') && !event.isComposing) {
       event.preventDefault();
       target.click();
     }

@@ -29,7 +29,8 @@ for (const platform of ['figma', 'mastergo']) {
       if (font.family === 'Missing') throw new Error('Font not found');
       loaded.add(JSON.stringify(font));
     },
-    getNodeById: async id => nodes.get(id), getNodeByIdAsync: async id => nodes.get(id),
+    getNodeById: async id => { if (id === 'unreadable') throw new Error('gone'); return nodes.get(id); },
+    getNodeByIdAsync: async id => { if (id === 'unreadable') throw new Error('gone'); return nodes.get(id); },
     notify: () => {}, ui: { postMessage: message => messages.push(message) }
   };
   const context = vm.createContext({ figma: host, mg: host, sendToUI: m => messages.push(m), console: { error: () => {} } });
@@ -75,7 +76,36 @@ for (const platform of ['figma', 'mastergo']) {
   page.selection = [];
   await context.handle({ type:'get-selection-count' });
   assert.equal(messages.at(-1).count, 0);
+  // An unreadable layer must not abort the batch or shift the sequence values.
+  await context.handle({ type:'smart-fill-exec', nodeIds:['unreadable','b'], dataList:['skip','second'] });
+  assert.equal(b.characters, 'second');
+  assert.equal(messages.at(-1).errors.length, 1);
+  // Stable row grouping must not depend on the order in which layers were selected.
+  const top = text('row-top', [fontA], '', 100); top.y = 0;
+  const middle = text('row-middle', [fontA], '', 0); middle.y = 9;
+  const bottom = text('row-bottom', [fontA], '', 50); bottom.y = 18;
+  const expected = ['row-middle','row-top','row-bottom'];
+  for (const selection of [[top,middle,bottom], [bottom,top,middle], [middle,bottom,top]]) {
+    page.selection = selection;
+    await context.handle({ type:'get-selection-count' });
+    assert.deepEqual(Array.from(messages.at(-1).nodeIds), expected);
+  }
+  // Preserve the captured order even if canvas positions change before writing.
+  top.y = 100;
+  await context.handle({ type:'smart-fill-exec', nodeIds:expected, dataList:['A','B','C'] });
+  assert.equal(middle.characters, 'A'); assert.equal(top.characters, 'B'); assert.equal(bottom.characters, 'C');
+  // Explicitly selecting text in a hidden ancestor must not bypass visibility.
+  hidden.parent = { visible:false, isVisible:false };
+  page.selection = [hidden];
+  await context.handle({ type:'get-selection-count' });
+  assert.equal(messages.at(-1).count, 0);
+  // Deep nesting should not overflow the JavaScript call stack.
+  let nested = b;
+  for (let index = 0; index < 12000; index++) nested = { id:'nest-' + index, children:[nested] };
+  page.selection = [nested];
+  await context.handle({ type:'get-selection-count' });
+  assert.equal(messages.at(-1).count, 1);
   await context.handle({ type:'smart-fill-exec', dataList:[] });
   assert.equal(messages.at(-1).count, 0);
-  console.log(platform + ': mixed fonts, empty text, numeric input, deduplication, selection snapshot, prefix/suffix, partial failure and empty selection passed.');
+  console.log(platform + ': font loading, stable rows, snapshot order, hidden ancestors, 12,000-level nesting, unreadable nodes, partial failure, deduplication and fill modes passed.');
 }

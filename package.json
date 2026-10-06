@@ -1,6 +1,6 @@
 {
   "name": "allinonex",
-  "version": "4.2.1",
+  "version": "4.3.0",
   "private": true,
   "description": "All in One dual-platform plugin monorepo for Figma and MasterGo",
   "scripts": {
@@ -11,6 +11,8 @@
     "verify:mastergo": "npm --prefix mastergo run verify",
     "check:parity": "node scripts/check-dual-platform.mjs",
     "check:smart-fill": "node scripts/check-smart-fill.mjs",
-    "verify": "npm run sync:ui && npm run verify:figma && npm run verify:mastergo && npm run check:parity && npm run check:smart-fill"
+    "check:fill-generators": "node scripts/check-fill-generators.mjs",
+    "check:workspace-ui": "node scripts/check-workspace-ui.cjs",
+    "verify": "npm run sync:ui && npm run verify:figma && npm run verify:mastergo && npm run check:parity && npm run check:smart-fill && npm run check:fill-generators"
   }
 }

@@ -26,7 +26,7 @@ const diff = (expected, actual) => [...expected].filter((item) => !actual.has(it
 
 const checks = [
   ['主线程消息分支', collect(figmaMain, /case\s+['"]([^'"]+)['"]\s*:/g), collect(mastergoMain, /case\s+['"]([^'"]+)['"]\s*:/g)],
-  ['导航功能入口', collect(figmaUi, /data-nav=["']([^"']+)["']/g), collect(mastergoUi, /data-nav=["']([^"']+)["']/g)],
+  ['导航功能入口', collect(figmaUi, /data-nav=["']([a-zA-Z][\w-]*)["']/g), collect(mastergoUi, /data-nav=["']([a-zA-Z][\w-]*)["']/g)],
   ['UI 元素 ID', collect(figmaUi, /\sid=["']([^"']+)["']/g), collect(mastergoUi, /\sid=["']([^"']+)["']/g)],
   ['国际化键', collect(figmaUi, /data-key=["']([^"']+)["']/g), collect(mastergoUi, /data-key=["']([^"']+)["']/g)]
 ];

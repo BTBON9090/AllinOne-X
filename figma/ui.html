@@ -4789,32 +4789,57 @@
 
 
 
+
+
+
+
+
+
+
+
 <!-- shared-shell-style:start -->
 <style>
-/* Compact tool shell. Each panel owns its scrolling; navigation stays in place. */
+/* All in One workspace: semantic tokens shared by both host applications.
+   Navigation → task header → one panel scroll region → persistent actions. */
 :root {
-  --sidebar-w: 128px;
+  --sidebar-w: 124px;
   --sidebar-w-mini: 44px;
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 10px;
   --radius-xl: 12px;
   --radius-2xl: 14px;
-  --bg-body: #f7f7fa;
+  --bg-body: #f7f7f9;
+  --bg-surface: #ffffff;
+  --bg-muted: #f1f1f5;
+  --bg-hover: #f1eff8;
+  --text-primary: #262331;
+  --text-secondary: #625e70;
   --bg-white: var(--bg-surface);
-  --text-tertiary: #727987;
+  --text-tertiary: #726e7e;
+  --border: #e4e2e9;
+  --border-control: #bcb8c8;
+  --primary: #7135db;
+  --primary-light: #eee7fb;
+  --primary-active: #5f24c6;
+  --danger: #c42d40;
   --primary-hover: #6d28d9;
   --shadow-glow: none;
 }
-[data-theme="dark"] { --bg-body: #14161c; --bg-white: var(--bg-surface); --text-tertiary: #929aab; }
+[data-theme="dark"] {
+  --bg-body: #1a1920; --bg-surface: #222128; --bg-muted: #2c2a34; --bg-hover: #33303e;
+  --bg-white: var(--bg-surface); --text-primary: #f3f0fa; --text-secondary: #c1bccf;
+  --text-tertiary: #a39cae; --border: #3a3645; --border-control: #686174;
+  --primary: #b997ff; --primary-hover: #c9aeff; --primary-light: #36294c; --primary-active: #c9aeff; --danger: #ff98a6;
+}
 html, body { width: 100%; height: 100%; overflow: hidden; overscroll-behavior: none; }
 .app-container { position: fixed; inset: 0; overflow: hidden; min-height: 0; }
 .sidebar, .main-content { min-height: 0; overflow: hidden; }
 .sidebar { position: relative; flex: 0 0 var(--sidebar-w); box-shadow: none; }
 .nav-scroll { min-height: 0; padding: 8px 6px; gap: 2px; overflow-x: hidden; overscroll-behavior: contain; }
-.nav-item { flex: 0 0 auto; min-height: 32px; padding: 5px 8px; gap: 7px; border-radius: 6px; }
+.nav-item { flex: 0 0 auto; min-height: 30px; padding: 5px 7px; gap: 7px; border-radius: 6px; }
 .nav-item:hover, .nav-item.active, .tool-card:hover, .smart-row:hover, .builder-mode:hover { transform: none; }
-.nav-text { font-size: 11px; }
+.nav-text { font-size: 11px; white-space: normal; line-height: 1.4; }
 .nav-icon-slot { width: 18px; height: 18px; background: transparent !important; }
 .nav-dot { display: none; }
 .nav-section-label { padding: 10px 8px 4px; font-size: 10px; letter-spacing: .3px; }
@@ -4882,7 +4907,6 @@ body.mini-mode .footer-btn { padding: 4px 0; min-height: 27px; }
 .tool-card .tc-icon { background: var(--primary-light); color: var(--primary); width: 25px; height: 25px; border-radius: 6px; }
 .tool-card:hover .tc-icon { transform: none; }
 .tool-card .tc-desc { font-size: 10px; }
-#toolPanel > div:first-child { padding: 12px 12px 4px !important; }
 .dash-greeting { font-size: 13px; line-height: 1.5; }
 .result-header { flex-wrap: wrap; gap: 6px; padding: 8px 10px; flex-shrink: 0; }
 .text-result-row { min-height: 40px; }
@@ -4910,6 +4934,164 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
 .nav-item, .footer-btn, .size-swap { -webkit-tap-highlight-color: transparent; }
 .resize-handle { width: 16px; height: 16px; }
 .resize-handle::after { width: 8px; height: 8px; border-width: 1.5px; }
+
+/* Workspace frame */
+[hidden] { display: none !important; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 12px; line-height: 1.5; }
+.main-content { flex: 1; min-width: 0; background: var(--bg-body); }
+.sidebar { background: var(--bg-surface); transition: width 140ms ease, flex-basis 140ms ease; }
+.workspace-brand { display:flex; align-items:center; gap:8px; padding:0 12px; min-height:58px; flex-shrink:0; border-bottom:1px solid var(--border); }
+.workspace-brand-name { font-size:12px; font-weight:700; white-space:nowrap; letter-spacing:-.3px; }
+.workspace-brand-mark { width:21px; height:21px; display:grid; grid-template-columns:1fr 1fr; gap:2px; flex-shrink:0; }
+.workspace-brand-mark i { background:#7c3aed; border-radius:2px; }
+.workspace-brand-mark i:nth-child(2), .workspace-brand-mark i:nth-child(3) { background:#b294ed; }
+.nav-scroll { padding:5px 6px 8px; }
+.nav-section-label { font-weight:500; padding:10px 7px 4px; letter-spacing:0; text-transform:none; }
+.nav-item { transition: background-color 120ms ease, color 120ms ease; }
+.nav-item.active { box-shadow:none; font-weight:600; }
+.nav-item.active::before { content:""; position:absolute; left:-6px; width:3px; height:14px; background:var(--primary); border-radius:0 3px 3px 0; }
+.sidebar-footer { border-top:1px solid var(--border); flex-shrink:0; }
+.footer-btn { border:0; justify-content:flex-start; padding-inline:8px; background:transparent; }
+.footer-btn.active { background:var(--primary-light); color:var(--primary); }
+.workspace-header { min-height:58px; display:flex; align-items:center; gap:4px; padding:8px 12px; border-bottom:1px solid var(--border); background:var(--bg-surface); flex-shrink:0; }
+.workspace-heading { min-width:0; flex:1; }
+.workspace-category { font-size:10px; line-height:14px; color:var(--text-secondary); margin-bottom:1px; }
+.workspace-header h1 { font-size:15px; line-height:21px; letter-spacing:-.2px; margin:0; color:var(--text-primary); font-weight:650; }
+.workspace-icon-button { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; flex-shrink:0; padding:4px; border:0; border-radius:6px; color:var(--text-secondary); background:transparent; cursor:pointer; }
+.workspace-icon-button:hover, .workspace-icon-button[aria-expanded="true"] { color:var(--primary); background:var(--primary-light); }
+.workspace-icon-button > span { display:contents; }
+.workspace-hint { padding:9px 12px; font-size:11px; color:var(--text-secondary); border-bottom:1px solid var(--border); background:var(--bg-surface); flex-shrink:0; max-height:25vh; overflow:auto; }
+body.mini-mode .workspace-brand { padding:0; justify-content:center; min-height:50px; }
+body.mini-mode .workspace-brand-name { display:none; }
+body.mini-mode .workspace-header { min-height:50px; padding:6px 10px; }
+body.mini-mode .nav-section-label { display:block; font-size:0; padding:0; margin:5px 7px; border-top:1px solid var(--border); }
+body.mini-mode .nav-section-label:first-child { display:none; }
+body.mini-mode .nav-item.active::before { left:-4px; }
+
+/* Search + categories are stable; only the tool collection scrolls. */
+.tool-toolbar { flex-shrink:0; padding:12px 12px 4px; }
+.workspace-search { display:flex; align-items:center; gap:7px; padding:0 9px; min-height:32px; background:var(--bg-surface); border:1px solid var(--border-control); border-radius:6px; color:var(--text-secondary); }
+.workspace-search:focus-within { border-color:var(--primary); outline:2px solid var(--primary-light); }
+.workspace-search > span { display:flex; }
+.workspace-search input { width:100%; flex:1; border:0 !important; outline:none !important; box-shadow:none !important; background:transparent !important; padding:6px 0 !important; border-radius:0; font-size:12px; color:var(--text-primary); }
+.workspace-search input::placeholder { color:var(--text-tertiary); }
+.tool-filters { display:flex; flex-wrap:wrap; gap:4px; margin:9px 0; }
+.tool-filter { border:1px solid transparent; background:transparent; color:var(--text-secondary); font-size:11px; line-height:16px; padding:3px 6px; border-radius:5px; cursor:pointer; }
+.tool-filter:hover { background:var(--bg-muted); }
+.tool-filter[aria-pressed="true"] { background:var(--primary-light); color:var(--primary); border-color:var(--primary-light); font-weight:600; }
+.tool-list-heading { display:flex; align-items:center; justify-content:space-between; color:var(--text-secondary); font-size:10px; padding:0 1px 4px; }
+.tool-list-heading span:last-child { font-variant-numeric:tabular-nums; }
+.tool-grid { padding:4px 12px 12px; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; align-content:start; }
+.tool-card { display:grid; grid-template-columns:20px minmax(0,1fr); grid-template-rows:auto 1fr; column-gap:7px; row-gap:4px; text-align:left; min-height:74px; padding:10px 8px; background:var(--bg-surface); border:1px solid var(--border); transition:border-color 120ms ease, background-color 120ms ease; }
+.tool-card:hover, .tool-card:focus-visible { border-color:var(--primary); background:var(--primary-lighter); }
+.tool-card .tc-icon { grid-column:1; grid-row:1; width:20px; height:20px; background:transparent; border-radius:0; align-self:center; }
+.tool-card .tc-title { grid-column:2; grid-row:1; font-size:11px; line-height:16px; white-space:normal; overflow:visible; text-overflow:clip; align-self:center; color:var(--text-primary); }
+.tool-card .tc-desc { grid-column:1/-1; grid-row:2; font-size:10px; line-height:15px; white-space:normal; color:var(--text-secondary); overflow-wrap:anywhere; }
+.tool-card .tc-tooltip { display:none !important; }
+.workspace-empty { text-align:center; padding:24px 14px; color:var(--text-secondary); font-size:12px; }
+.workspace-empty p { margin:0 0 10px; }
+.workspace-reset { color:var(--primary); border:1px solid var(--border-control); border-radius:6px; background:var(--bg-surface); padding:6px 10px; cursor:pointer; }
+
+/* A single type and surface hierarchy across all existing functional panels. */
+.size-hero-title, .size-hero-desc, .builder-hero, .jumpback-hero, #settingsPanel > .sub-header { display:none; }
+.size-hero { padding:0; margin:0; }
+.size-status { background:var(--bg-muted); border:0; border-radius:5px; font-size:11px; color:var(--text-secondary); padding:8px; margin:0; }
+.size-scroll, .builder-scroll, .selection-scroll-area, .smart-list-container, .skew-content, .ppt-content-area { padding:12px; }
+.size-scroll { gap:10px; }
+.size-card, .builder-card, .selector-card { border:1px solid var(--border); padding:10px; background:var(--bg-surface); border-radius:7px; }
+.size-card-title, .builder-card-title, .section-title, .config-label { font-size:12px; font-weight:600; color:var(--text-primary); }
+.size-grid { gap:8px; }
+.size-field label, .size-option { color:var(--text-secondary); font-size:11px; }
+.size-field input, .size-field select { font-size:12px; padding:6px 8px; min-height:32px; border-radius:5px; border:1px solid var(--border-control); background:var(--bg-surface); }
+.size-field input { font-variant-numeric:tabular-nums; }
+.size-options { margin:10px 0; gap:8px; }
+.size-tabs { gap:3px; }
+.size-tab { background:transparent; color:var(--text-secondary); border:1px solid transparent; border-radius:5px; }
+.size-tab.active { background:var(--primary-light); color:var(--primary); border-color:transparent; }
+.size-preset { background:var(--bg-surface); border:1px solid var(--border); }
+.size-preset:hover { background:var(--bg-hover); }
+.size-preset.active { background:var(--primary-light); border-color:var(--primary); }
+.size-preset-note { color:var(--text-secondary); }
+.size-panel-actions { display:grid; grid-template-columns:32px minmax(0,1fr); gap:6px; padding:8px 12px; }
+.size-target-summary { grid-column:1/-1; font-size:11px; color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+.size-swap { border-radius:6px; background:var(--bg-surface); border:1px solid var(--border-control); }
+.primary-btn, .builder-action, .btn-auto-run, .btn-jumpback-save { background:#7135db; color:#fff; font-weight:600; box-shadow:none; }
+.primary-btn:hover, .builder-action:hover { background:#6125c6; }
+.segmented-control { padding:3px; border:1px solid var(--border); background:var(--bg-muted); }
+.seg-btn { color:var(--text-secondary); line-height:16px; white-space:normal; }
+.seg-btn.active { background:var(--bg-surface); color:var(--primary); box-shadow:0 1px 2px #0000000d; }
+.selector-card { margin-bottom:10px; }
+.filter-tag { border-radius:5px; }
+.text-panel-header { padding:8px 12px; background:var(--bg-surface); }
+.config-group { padding:10px; border-radius:7px; margin-bottom:10px; box-shadow:none; }
+.config-group:hover { border-color:var(--border); box-shadow:none; }
+.config-label { margin-bottom:8px; letter-spacing:0; text-transform:none; }
+.config-label::before { display:none; }
+.text-controls-content { padding:10px 12px; overflow:auto; max-height:56vh; flex-shrink:0; }
+.text-input-group { margin-bottom:8px; }
+.text-input-group .input-label { margin-bottom:4px; font-size:11px; }
+.text-input-group input { min-height:32px; }
+.search-box { border-color:var(--border-control); font-size:12px; border-radius:6px; }
+.smart-tabs, .refiner-tabs { padding:8px 12px; gap:4px; background:var(--bg-surface); }
+.refiner-tab-item { padding:6px 8px; min-height:30px; font-size:11px; border:0; border-radius:5px; line-height:18px; }
+.refiner-tab-item.active { background:var(--primary-light); color:var(--primary); }
+.refiner-tab-item::before { display:none; }
+.smart-tab-item { color:var(--text-secondary); }
+.smart-tab-item.active { background:var(--primary-light); color:var(--primary); box-shadow:none; }
+.smart-row { display:flex; flex-direction:column; align-items:stretch; padding:8px; border:1px solid var(--border); background:var(--bg-surface); gap:6px; cursor:default; }
+.smart-fill-trigger { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:28px; padding:3px 5px; background:transparent; border:0; color:var(--text-primary); font-size:12px; text-align:left; cursor:pointer; border-radius:4px; }
+.smart-fill-trigger:hover { background:var(--primary-light); color:var(--primary); }
+.smart-fill-trigger::after { content:"填充"; color:var(--primary); font-size:10px; font-weight:500; }
+html[lang="en"] .smart-fill-trigger::after { content:"Fill"; }
+.smart-row .row-tags { padding:0 5px; justify-content:flex-start; }
+.smart-fill-trigger .smart-label { color:inherit; font-weight:600; }
+.smart-custom-count { font-size:10px; color:var(--text-secondary); }
+.tag-btn { border-radius:4px; line-height:16px; }
+.smart-footer { background:var(--bg-surface); border-top:1px solid var(--border); }
+.smart-fill-status { color:var(--text-secondary); background:var(--bg-muted); }
+.sequence-field { display:flex; flex-direction:column; gap:4px; color:var(--text-secondary); font-size:11px; min-width:0; }
+.sequence-preview { display:block; margin-top:10px; padding:8px; background:var(--bg-muted); color:var(--text-secondary); border-radius:5px; font-size:11px; overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+.sequence-preview.has-error { color:var(--danger); }
+.radio-tag { position:relative; border-radius:5px; padding:5px 9px; font-size:11px; line-height:18px; transition:background-color 120ms ease, color 120ms ease; }
+.radio-tag.active { background:var(--primary-light); color:var(--primary); border-color:var(--primary); }
+.radio-tag input[type="radio"] { display:block; position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; cursor:pointer; }
+.radio-tag:has(input:focus-visible) { outline:2px solid var(--primary); outline-offset:2px; }
+.jumpback-header { padding:12px; }
+.btn-jumpback-save { min-height:34px; border-radius:6px; }
+.jumpback-tip { color:var(--text-secondary); font-size:10px; margin-top:8px; }
+.skew-preview { height:100px; flex-shrink:0; }
+.ppt-dashboard { padding:12px; flex-shrink:0; }
+.ppt-tips { padding:8px 10px; font-size:11px; border-radius:6px; background:var(--bg-muted); color:var(--text-secondary); }
+.settings-section { background:var(--bg-surface); border:1px solid var(--border); box-shadow:none; }
+.settings-section-title { padding:10px 12px; font-size:12px; }
+.settings-item { padding:10px 12px; }
+.lint-footer-fixed { padding:8px 12px; }
+.btn-start-lint { padding:8px 10px; min-height:34px; font-size:12px; border-radius:6px; background:#7135db; color:#fff; box-shadow:none; }
+.btn-start-lint:hover { background:#6125c6; box-shadow:none; transform:none; }
+.sub-header { min-height:42px; padding:8px 12px; font-size:13px; }
+.btn-back-sub { display:inline-flex; align-items:center; justify-content:center; min-width:28px; min-height:28px; border-radius:5px; }
+.btn-back-sub:hover { background:var(--bg-muted); }
+
+/* Native modal supplies focus containment and Escape behavior. */
+.command-dialog { width:calc(100% - 24px); max-width:420px; max-height:calc(100% - 40px); padding:0; border:1px solid var(--border); border-radius:10px; color:var(--text-primary); background:var(--bg-surface); box-shadow:0 12px 40px #0003; overflow:hidden; }
+.command-dialog[open] { display:flex; flex-direction:column; }
+.command-dialog::backdrop { background:#19142366; }
+.command-heading { display:flex; align-items:center; justify-content:space-between; padding:10px 12px 4px; flex-shrink:0; }
+.command-heading h2 { margin:0; font-size:13px; font-weight:600; }
+.command-search { margin:6px 12px 8px; flex-shrink:0; }
+.command-results { overflow-y:auto; min-height:0; padding:0 6px 6px; overscroll-behavior:contain; }
+.command-result { display:flex; flex-direction:column; width:100%; gap:2px; border:0; padding:9px 10px; background:transparent; color:var(--text-primary); border-radius:5px; text-align:left; cursor:pointer; }
+.command-result:hover, .command-result:focus-visible { background:var(--primary-light); }
+.command-result span { font-size:12px; font-weight:600; }
+.command-result small { font-size:10px; color:var(--text-secondary); }
+.command-footer { padding:8px 12px; font-size:10px; color:var(--text-secondary); border-top:1px solid var(--border); flex-shrink:0; }
+#contentScroll > [id$="Panel"], .refiner-tab-content, .refiner-config, .i18n-view, .smart-content, .sub-page, .selection-scroll-area { animation:none; }
+@media (max-width:380px) {
+  .workspace-header { padding-inline:10px; }
+  .tool-toolbar { padding:10px 10px 4px; }
+  .tool-grid { padding:4px 10px 10px; }
+  .workspace-header h1 { font-size:14px; }
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
@@ -4989,13 +5171,35 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
         主内容区 (Main Content)
         ========================================= -->
     <div class="main-content">
+      <!-- workspace-header:start -->
+<header class="workspace-header">
+  <button class="workspace-icon-button" id="workspaceBack" type="button" hidden aria-label="返回工具"><span data-ui-icon="chevron-left"></span></button>
+  <div class="workspace-heading">
+    <div class="workspace-category" id="workspaceCategory">效率工具</div>
+    <h1 id="workspaceTitle">简易工具</h1>
+  </div>
+  <button class="workspace-icon-button" id="workspaceHelp" type="button" aria-label="使用提示" aria-expanded="false" aria-controls="workspaceHint"><span data-ui-icon="info-circle"></span></button>
+  <button class="workspace-icon-button" id="workspaceSearchButton" type="button" aria-label="查找工具" title="查找工具 · ⌘/Ctrl K"><span data-ui-icon="search"></span></button>
+</header>
+<div class="workspace-hint" id="workspaceHint" hidden></div>
+<dialog class="command-dialog" id="workspaceCommands" aria-labelledby="commandTitle">
+  <div class="command-heading"><h2 id="commandTitle">查找工具</h2><button class="workspace-icon-button" id="commandClose" type="button" aria-label="关闭"><span data-ui-icon="x"></span></button></div>
+  <label class="workspace-search command-search"><span data-ui-icon="search"></span><input id="commandQuery" type="search" autocomplete="off" placeholder="搜索功能、中英文名称…" aria-label="搜索功能"></label>
+  <div class="command-results" id="commandResults" aria-label="搜索结果"></div>
+  <div class="command-footer" id="commandHelp">仅定位工具，不会直接修改画布 · Esc 关闭</div>
+</dialog>
+<!-- workspace-header:end -->
       <div class="content-scroll" id="contentScroll">
 
         <!-- ===== 工具主页（合并欢迎+工具网格） ===== -->
         <div id="toolPanel" style="display:flex; flex-direction:column; height:100%;">
-            <div style="padding: 24px 16px 16px 16px; flex-shrink: 0;">
-                <div class="dash-greeting" id="dashGreeting" onclick="refreshGreeting()" title="点击换一句">👋 下午好啊，大设计师</div>
-            </div>
+            <!-- workspace-home:start -->
+<div class="tool-toolbar">
+  <label class="workspace-search"><span data-ui-icon="search"></span><input id="toolSearch" type="search" autocomplete="off" placeholder="搜索工具…" aria-label="搜索简易工具"></label>
+  <div class="tool-filters" id="toolFilters" role="group" aria-label="工具分类"></div>
+  <div class="tool-list-heading"><span id="toolResultLabel">全部工具</span><span id="toolResultCount" aria-live="polite"></span></div>
+</div>
+<!-- workspace-home:end -->
             <!-- 工具网格 -->
             <div style="flex:1; overflow-y:auto;">
                 <div class="tool-grid" id="toolGrid">
@@ -8589,131 +8793,14 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
     }
 
     // 切换功能组
-    function switchGroup(group, el) {
-      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-      el.classList.add('active');
-
-      const ids = [
-        'toolPanel',
-        'selectionPanel',
-        'selectionFooter',
-        'emptyPanel',
-        'textPanel',
-        'pptPanel',
-        'refinerPanel',
-        'theoryPanel',
-        'smartFillPanel',
-        'jumpbackPanel',
-        'skewPanel',
-        'sizePanel',
-        'i18nPanel',
-        'componentBuilderPanel',
-        'compkitPanel',
-        'duplicatePanel',
-        'settingsPanel'
-      ];
-      const map = {
-        'simple': ['toolPanel'],
-        'select': ['selectionPanel', 'selectionFooter'],
-        'duplicate': ['duplicatePanel'],
-        'text':   ['textPanel'],
-        'ppt':    ['pptPanel'],
-        'smartFill': ['smartFillPanel'],
-        'refiner': ['refinerPanel'],
-        'theory':  ['theoryPanel'],
-        'jumpback': ['jumpbackPanel'],
-        'skew': ['skewPanel'],
-        'size': ['sizePanel'],
-        'i18n': ['i18nPanel'],
-        'componentBuilder': ['componentBuilderPanel'],
-        'compkit': ['compkitPanel']
-      };
-
-      // 1. 隐藏所有
-      ids.forEach(id => {
-        const div = document.getElementById(id);
-        if(div) div.style.display = 'none';
-      });
-
-      // 关闭所有子页面，防止穿透，同时强制 display: none
-      document.querySelectorAll('.sub-page').forEach(page => {
-        page.classList.remove('open');
-        page.style.display = 'none';
-      });
-
-      const searchBox = document.getElementById('searchInput');
-      const mainHeader = document.getElementById('mainHeader');
-
-      // 2. 显示目标
-      if (map[group]) {
-        map[group].forEach(id => {
-          const div = document.getElementById(id);
-          if(div){
-            console.log('【switchGroup】显示面板:', id);
-            if(id === 'refinerPanel' || id === 'theoryPanel' || id === 'smartFillPanel' || id === 'textPanel') {
-              div.style.display = 'flex';
-            } else {
-              div.style.display = 'flex';
-            }
-          }
-        });
-
-        // 头部搜索框仅在 Grid 类型的面板显示，选择和文字工具不需要
-        // 允许 Theory 面板使用搜索框
-        if (searchBox && mainHeader) {
-          if (group === 'simple' || group === 'style' || group === 'layout' || group === 'theory') {
-            searchBox.disabled = false;
-            mainHeader.style.display = 'block';
-            searchBox.value = ''; // 切换时清空搜索
-            // 如果是切到理论，初始化列表
-            if (group === 'theory') {
-               console.log('【switchGroup】切换到理论面板，准备调用 renderTheoryList');
-               renderTheoryList('all'); // 默认显示全部
-               console.log('【switchGroup】renderTheoryList 调用完成');
-               searchBox.placeholder = "搜索设计理论 (如: 尼尔森)...";
-            } else {
-               searchBox.placeholder = i18n[curLang].search_ph || "搜索功能...";
-            }
-          } else {
-            searchBox.disabled = true;
-            mainHeader.style.display = 'none';
-          }
-        }
-        if (group === 'componentBuilder') requestComponentBuilderSelection();
-        if (group === 'size') {
-          initSizeAssistant();
-          postMsg('size-assistant-inspect');
-        }
-      }
-    }
+    function switchGroup(group, el) { window.PluginWorkspace.navigate(group); }
 
     // =========================================
     // 设置面板相关函数
     // =========================================
-    function openSettings() {
-        const panels = ['toolPanel', 'selectionPanel', 'selectionFooter', 'smartFillPanel', 'textPanel', 'pptPanel', 'refinerPanel', 'jumpbackPanel', 'skewPanel', 'sizePanel', 'theoryPanel', 'emptyPanel', 'i18nPanel', 'componentBuilderPanel', 'compkitPanel', 'duplicatePanel'];
-        panels.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.style.display = 'none';
-        });
+    function openSettings() { window.PluginWorkspace.openSettings(); }
 
-        const settingsPanel = document.getElementById('settingsPanel');
-        if (settingsPanel) {
-            settingsPanel.style.display = 'flex';
-        }
-
-        initSettingsPanel();
-    }
-
-    function closeSettings() {
-        const settingsPanel = document.getElementById('settingsPanel');
-        if (settingsPanel) {
-            settingsPanel.style.display = 'none';
-        }
-
-        const firstNav = document.querySelector('.nav-item.active') || document.querySelector('.nav-item');
-        if (firstNav) firstNav.click();
-    }
+    function closeSettings() { window.PluginWorkspace.closeSettings(); }
 
     function initSettingsPanel() {
         const savedLang = PersistentCache.get('user_lang') || 'zh';
@@ -8732,6 +8819,8 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
         curLang = lang;
         PersistentCache.set('user_lang', lang);
         updateLanguage();
+        document.documentElement.lang = lang;
+        window.PluginWorkspace?.refresh();
         if (typeof renderBasicList === 'function') renderBasicList();
         if (typeof renderCustomList === 'function') renderCustomList();
     }
@@ -11140,8 +11229,8 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
         currentTab = tab;
 
         // CSS 类切换
-        document.querySelectorAll('.refiner-tab-item').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.refiner-tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('#refinerPanel .refiner-tab-item').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('#refinerPanel .refiner-tab-content').forEach(el => el.classList.remove('active'));
 
         if (tab === 'lint') {
             document.querySelector('[data-key="ref_tab_lint"]').classList.add('active');
@@ -13006,7 +13095,7 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
         }
 
         row.innerHTML = `
-           <div class="smart-label">${displayLabel}</div>
+           <button class="smart-fill-trigger" type="button" onclick="runBasicFill('${item.key}')"><span class="smart-label">${displayLabel}</span></button>
            <div class="row-tags">
               ${tagsHtml}
               ${aiBtnHtml}
@@ -13014,13 +13103,7 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
            </div>
         `;
 
-        // 点击行本身触发填充
-        row.onclick = (e) => {
-           // 只有点击空白处或文字才触发，点击按钮不触发
-           if(e.target.closest('.tag-btn, .btn-to-ai, .smart-setting-btn')) return;
-
-           runBasicFill(item.key);
-        };
+        // Explicit fill action; changing tags/settings never mutates the canvas.
         container.appendChild(row);
       });
     }
@@ -13048,19 +13131,16 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
         const row = document.createElement('div');
         row.className = 'smart-row smart-custom-row';
         row.innerHTML = `
-           <div class="smart-label">${item.title}</div>
+           <button class="smart-fill-trigger" type="button" onclick="runCustomFill(${index}, 'order', event)"><span class="smart-label">${escapeHtml(String(item.title))}</span></button>
            <div class="row-tags">
-              <span class="tag-btn" style="background:#fffbe6; color:#d48806;">${item.list.length}条</span>
+              <span class="smart-custom-count">${item.list.length}${curLang === 'en' ? ' items' : ' 条'}</span>
               <span class="tag-btn" onclick="runCustomFill(${index}, 'order', event)">${tDict.sf_custom_order}</span>
               <span class="tag-btn" onclick="runCustomFill(${index}, 'random', event)">${tDict.sf_custom_random}</span>
               <div class="smart-setting-btn" onclick="editCustomList(${index}, event)">✏️</div>
               <div class="smart-setting-btn" onclick="deleteCustomList(${index}, event)">🗑️</div>
            </div>
         `;
-        row.onclick = (e) => {
-           if(e.target.closest('.tag-btn, .smart-setting-btn')) return;
-           runCustomFill(index, 'order');
-        };
+        // The field name is the primary fill action; row whitespace is inert.
         container.appendChild(row);
       });
     }
@@ -13127,7 +13207,7 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
         type: 'basic',
         key: key,
         // 🔥 将当前选中的标签传递给后端/生成器
-        tags: activeTagsMap[key] || []
+        tags: [...(activeTagsMap[key] || [])]
       };
       postMsg('get-selection-count');
     }
@@ -13175,6 +13255,7 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
           return;
       }
 
+      validateSmartSeriesCount(count);
       const list = [];
 
       // 获取当前模式
@@ -13215,7 +13296,8 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
           else if (task.key === 'time') sortMode = smartSettings.time.sort;
 
           // 执行排序
-          if (sortMode && sortMode !== 'random') { // 加上非空检查更安全
+          const isSequence = ['number', 'time'].includes(task.key) && smartSettings[task.key].generation === 'sequence';
+          if (!isSequence && sortMode && sortMode !== 'random') { // 加上非空检查更安全
               list.sort((a, b) => {
                   let valA = a, valB = b;
 
@@ -13253,75 +13335,12 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
     function setSmartFillBusy(busy) {
       window.smartFillBusy = busy;
       document.getElementById('smartFillPanel')?.setAttribute('aria-busy', String(busy));
+      document.querySelectorAll('.smart-fill-trigger, [onclick="saveAndFill()"]').forEach(button => { button.disabled = busy; });
       const status = document.getElementById('smartFillStatus');
       if (status && busy) {
         status.textContent = '正在填充…';
         status.classList.remove('has-error');
       }
-    }
-
-    function formatSmartNumber(value, settings) {
-      const decimals = Math.max(0, Math.min(8, Number(settings.decimals) || 0));
-      const safeValue = Number.isFinite(Number(value)) ? Number(value) : 0;
-      if (settings.thousands) {
-        return safeValue.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-      }
-      return decimals > 0 ? safeValue.toFixed(decimals) : String(Math.round(safeValue));
-    }
-
-    function generateSmartNumberSeries(count, settings) {
-      const type = settings.sequenceType || 'arithmetic';
-      const start = Number(settings.start) || 0;
-      const step = Number(settings.step) || 1;
-      const ratio = Number(settings.ratio) || 2;
-      let a = Number(settings.start) || 0;
-      let b = Number(settings.second);
-      if (!Number.isFinite(b)) b = a + step;
-      const result = [];
-      const isPrime = (n) => {
-        n = Math.floor(Math.abs(n));
-        if (n < 2) return false;
-        for (let d = 2; d * d <= n; d++) if (n % d === 0) return false;
-        return true;
-      };
-      let prime = Math.max(2, Math.floor(start));
-      for (let i = 0; i < count; i++) {
-        let value;
-        if (type === 'natural') value = start + i;
-        else if (type === 'odd') value = (Math.floor(start) % 2 === 0 ? Math.floor(start) + 1 : Math.floor(start)) + i * 2;
-        else if (type === 'even') value = (Math.floor(start) % 2 === 0 ? Math.floor(start) : Math.floor(start) + 1) + i * 2;
-        else if (type === 'geometric') value = start * Math.pow(ratio, i);
-        else if (type === 'fibonacci') { value = a; const next = a + b; a = b; b = next; }
-        else if (type === 'prime') { while (!isPrime(prime)) prime++; value = prime++; }
-        else if (type === 'square') value = Math.pow(start + i, 2);
-        else if (type === 'triangular') { const n = start + i; value = n * (n + 1) / 2; }
-        else if (type === 'factorial') { const n = Math.min(170, Math.max(0, Math.floor(start + i))); value = 1; for (let j = 2; j <= n; j++) value *= j; }
-        else value = start + step * i;
-        result.push(formatSmartNumber(value, settings));
-      }
-      return result;
-    }
-
-    function generateSmartTimeSeries(count, settings) {
-      const parseTime = (value) => {
-        const parts = String(value || '00:00:00').split(':').map(Number);
-        return (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
-      };
-      const formatTime = (total) => {
-        total = ((Math.round(total) % 86400) + 86400) % 86400;
-        const h = String(Math.floor(total / 3600)).padStart(2, '0');
-        const m = String(Math.floor(total % 3600 / 60)).padStart(2, '0');
-        const s = String(total % 60).padStart(2, '0');
-        const fmt = settings.format || 'HH:mm:ss';
-        if (fmt === 'HH:mm') return `${h}:${m}`;
-        if (fmt === 'mm:ss') return `${m}:${s}`;
-        if (fmt === 'H:m:s') return `${Number(h)}:${Number(m)}:${Number(s)}`;
-        if (fmt === 'cn_long') return `${h}时${m}分${s}秒`;
-        return `${h}:${m}:${s}`;
-      };
-      const start = parseTime(settings.start);
-      const step = Math.max(1, Number(settings.stepSeconds) || 900);
-      return Array.from({ length: count }, (_, index) => formatTime(start + index * step));
     }
 
     // --- 数据生成器 (Mock Generators) ---
@@ -13539,7 +13558,7 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
             </div>
             <div class="config-group">
                 <label class="config-label">递增步长（秒）</label>
-                <input type="number" id="timeStepSeconds" class="search-box" value="${s.stepSeconds || 900}" min="1" max="86400" style="width:100%;">
+                <input type="number" id="timeStepSeconds" class="search-box" value="${s.stepSeconds ?? 900}" min="-86400" max="86400" step="1" style="width:100%;">
                 <div style="font-size:10px; color:var(--text-tertiary); margin-top:5px;">例如 900 秒表示每个图层递增 15 分钟，超过 24 小时后循环。</div>
             </div>
 
@@ -13563,6 +13582,7 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
           `;
       }
 
+      window.PluginWorkspace.prepareFillSettings();
       openSubPage('pageBasicSetting');
     }
 
@@ -13612,7 +13632,7 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
                 start: sStart,
                 end: sEnd,
                 generation: getRadioValue('timeGeneration'),
-                stepSeconds: Math.max(1, Number(document.getElementById('timeStepSeconds').value) || 900)
+                stepSeconds: smartSeriesNumber(document.getElementById('timeStepSeconds').value, 900)
             };
         }
 
@@ -13662,11 +13682,8 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
         // 1. 保存配置，但不关闭页面
         saveCurrentSettings(false);
 
-        // 2. 执行填充 (使用当前设置的 key)
-        // 稍微延迟一下，确保状态更新（虽然同步的，但稳妥起见）
-        setTimeout(() => {
-            runBasicFill(currentSettingKey);
-        }, 50);
+        // Settings are synchronous: capture the current field without a delayed race.
+        runBasicFill(currentSettingKey);
     }
 
     let currentEditingIndex = -1; // 记录当前编辑的索引，-1 表示新增
@@ -14720,10 +14737,8 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
       sizeAssistantState.category = category;
       document.querySelectorAll('#sizeCategoryTabs .size-tab').forEach(item => item.classList.remove('active'));
       if (button) button.classList.add('active');
-      const first = SIZE_ASSISTANT_PRESETS.find(item => item.category === category);
-      if (first) sizeAssistantState.selectedId = first.id;
       renderSizePresets();
-      refreshSelectedSizePreset();
+      // Browsing a category must not overwrite the user's target dimensions.
     }
 
     function renderSizePresets() {
@@ -14753,7 +14768,7 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
 
     function refreshSelectedSizePreset() {
       const item = SIZE_ASSISTANT_PRESETS.find(preset => preset.id === sizeAssistantState.selectedId);
-      if (!item) return;
+      if (!item) { renderSizePresets(); return; }
       const width = document.getElementById('sizeWidth');
       const height = document.getElementById('sizeHeight');
       const mode = document.getElementById('sizePresetMode')?.value || 'design';
@@ -14781,6 +14796,7 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
     }
 
     function onSizeDimensionInput(changed) {
+      markCustomSize();
       if (!document.getElementById('sizeLockRatio')?.checked) return;
       const width = document.getElementById('sizeWidth');
       const height = document.getElementById('sizeHeight');
@@ -14790,6 +14806,7 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
     }
 
     function swapSizeOrientation() {
+      markCustomSize();
       const width = document.getElementById('sizeWidth');
       const height = document.getElementById('sizeHeight');
       const previous = width.value;
@@ -14798,10 +14815,16 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
       sizeAssistantState.ratio = Number(width.value) / Math.max(1, Number(height.value));
     }
 
+    function markCustomSize() {
+      sizeAssistantState.selectedId = null;
+      renderSizePresets();
+      document.getElementById('sizeGuidance').textContent = curLang === 'en' ? 'Custom dimensions. Lock the aspect ratio to resize proportionally.' : '自定义尺寸；勾选锁定宽高比可联动调整。';
+    }
+
     function applySizeAssistant() {
       const width = Number(document.getElementById('sizeWidth')?.value);
       const height = Number(document.getElementById('sizeHeight')?.value);
-      if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return alert('请输入有效的宽度和高度');
+      if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0 || width > 32768 || height > 32768) return alert(curLang === 'en' ? 'Dimensions must be greater than 0 and no more than 32,768 px.' : '宽高须大于 0 且不超过 32,768 px');
       const button = document.getElementById('sizeApplyBtn');
       if (button) { button.disabled = true; button.textContent = '正在设定...'; }
       postMsg('size-assistant-apply', {
@@ -17155,6 +17178,14 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
 
 
+
+
+
+
+
+
+
+
 <!-- shared-shell-script:start -->
 <script>
 /* Tabler Icons (MIT), embedded offline by scripts/sync-ui-shell.mjs. */
@@ -17187,6 +17218,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     element.innerHTML = svg(name);
     element.dataset.shellIcon = name;
   };
+  window.PluginIcons = Object.freeze({ put: putIcon });
   const controls = '.ppt-icon,.compkit-empty-icon,.nav-icon-slot,.tc-icon,.btn-icon,.es-icon,.success-icon,.success-emoji,.section-title,.settings-section-title,.settings-item-label-icon,.builder-mode-symbol,.smart-setting-btn,.jumpback-hero-icon,.btn-clear-input,.btn-back-sub,.sub-header,.card-icon,.theory-icon,.theory-capsule-icon,.size-hero-title,[data-key],button,#dashGreeting,#testConnectionIcon,#errorToast';
   const protectedContent = 'script,style,svg,textarea,input,select,option,pre,code,[contenteditable],#aiResultArea,#i18nTransList,.text-preview-main,.smart-label,.tc-tooltip,.toast-message';
   function decorate(element) {
@@ -17281,13 +17313,10 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   }
   putIcon(document.querySelector('.size-swap'), 'arrows-exchange');
   document.querySelectorAll('.size-swap').forEach(button => button.setAttribute('aria-label', '横竖切换'));
-  document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item').forEach(nav => nav.setAttribute('aria-current', nav === item ? 'page' : 'false'));
-  }));
   document.addEventListener('keydown', event => {
     const target = event.target;
     if (!(target instanceof Element) || target.matches('input,textarea,select,button,a,[contenteditable]')) return;
-    if ((event.key === 'Enter' || event.key === ' ') && target.hasAttribute('onclick')) {
+    if ((event.key === 'Enter' || event.key === ' ') && target.hasAttribute('onclick') && !event.isComposing) {
       event.preventDefault();
       target.click();
     }
@@ -17317,6 +17346,385 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     }
   }).observe(document.body, { childList: true, subtree: true, characterData: true });
   if (PersistentCache.get('compact_mode') === true) setCompactMode(true);
+})();
+
+/* Pure, bounded sequence generation shared by Figma and MasterGo. */
+function smartSeriesError(zh, en) {
+  return new Error(typeof curLang !== 'undefined' && curLang === 'en' ? en : zh);
+}
+
+function smartSeriesNumber(value, fallback) {
+  const result = value === undefined || value === null || value === '' ? fallback : Number(value);
+  if (!Number.isFinite(result)) throw smartSeriesError('请填写有效的数字参数', 'Enter valid numeric parameters.');
+  return result;
+}
+
+function validateSmartSeriesCount(count) {
+  if (!Number.isSafeInteger(count) || count < 0 || count > 10000) {
+    throw smartSeriesError('单次最多填充 10,000 个文本，请分批处理', 'Fill up to 10,000 text layers at a time. Split larger selections into batches.');
+  }
+}
+
+function formatSmartNumber(value, settings) {
+  const number = Number(value);
+  if (!Number.isFinite(number) || Math.abs(number) > Number.MAX_SAFE_INTEGER) {
+    throw smartSeriesError('数列超出安全数值范围，请减小起始值、公比或填充数量', 'The series exceeds the safe numeric range. Reduce the starting value, ratio or count.');
+  }
+  const decimals = Math.max(0, Math.min(8, Math.floor(smartSeriesNumber(settings.decimals, 0))));
+  if (settings.thousands) return number.toLocaleString('en-US', { minimumFractionDigits:decimals, maximumFractionDigits:decimals });
+  return decimals > 0 ? number.toFixed(decimals) : String(Math.round(number));
+}
+
+function generateSmartNumberSeries(count, settings) {
+  validateSmartSeriesCount(count);
+  const type = settings.sequenceType || 'arithmetic';
+  const start = smartSeriesNumber(settings.start, 0);
+  const step = smartSeriesNumber(settings.step, 1);
+  const ratio = smartSeriesNumber(settings.ratio, 2);
+  let a = start;
+  let b = smartSeriesNumber(settings.second, start + step);
+  const result = [];
+  // 6k ± 1 candidates halve trial divisions without allocating a huge sieve.
+  const isPrime = n => {
+    if (n < 2) return false;
+    if (n % 2 === 0) return n === 2;
+    if (n % 3 === 0) return n === 3;
+    for (let d = 5; d * d <= n; d += 6) if (n % d === 0 || n % (d + 2) === 0) return false;
+    return true;
+  };
+  let prime = Math.max(2, Math.ceil(start));
+  let factorial = 1;
+  let factorialN = 0;
+  for (let index = 0; index < count; index++) {
+    let value;
+    if (type === 'natural') value = start + index;
+    else if (type === 'odd') value = (Math.floor(start) % 2 === 0 ? Math.floor(start) + 1 : Math.floor(start)) + index * 2;
+    else if (type === 'even') value = (Math.floor(start) % 2 === 0 ? Math.floor(start) : Math.floor(start) + 1) + index * 2;
+    else if (type === 'geometric') value = start * Math.pow(ratio, index);
+    else if (type === 'fibonacci') { value = a; const next = a + b; a = b; b = next; }
+    else if (type === 'prime') {
+      if (prime > 10000000) throw smartSeriesError('质数序列上限为 10,000,000，请减小起始值或数量', 'Prime sequences are limited to 10,000,000. Reduce the start or count.');
+      while (!isPrime(prime)) {
+        prime += prime > 2 && prime % 2 ? 2 : 1;
+        if (prime > 10000000) throw smartSeriesError('质数序列超出计算上限', 'Prime sequence exceeds the computation limit.');
+      }
+      value = prime++;
+    } else if (type === 'square') value = Math.pow(start + index, 2);
+    else if (type === 'triangular') { const n = start + index; value = n * (n + 1) / 2; }
+    else if (type === 'factorial') {
+      const n = start + index;
+      if (!Number.isInteger(n) || n < 0 || n > 18) throw smartSeriesError('精确阶乘支持 0–18 的整数，请调整起始值或数量', 'Exact factorials support integers 0–18. Adjust the start or count.');
+      while (factorialN < n) factorial *= ++factorialN;
+      value = factorial;
+    } else value = start + step * index;
+    result.push(formatSmartNumber(value, settings));
+  }
+  return result;
+}
+
+function generateSmartTimeSeries(count, settings) {
+  validateSmartSeriesCount(count);
+  const match = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(String(settings.start || '00:00:00'));
+  if (!match || +match[1] > 23 || +match[2] > 59 || +(match[3] || 0) > 59) throw smartSeriesError('起始时间请填写 00:00:00–23:59:59', 'Enter a start time from 00:00:00 to 23:59:59.');
+  const start = +match[1] * 3600 + +match[2] * 60 + +(match[3] || 0);
+  const step = smartSeriesNumber(settings.stepSeconds, 900);
+  if (!Number.isSafeInteger(step)) throw smartSeriesError('时间步长须为整数秒', 'The time interval must be a whole number of seconds.');
+  // Normalize the interval before multiplication to avoid overflow on large steps.
+  return Array.from({ length:count }, (_, index) => {
+    const total = ((start + index * (step % 86400)) % 86400 + 86400) % 86400;
+    const h = String(Math.floor(total / 3600)).padStart(2, '0');
+    const m = String(Math.floor(total % 3600 / 60)).padStart(2, '0');
+    const s = String(total % 60).padStart(2, '0');
+    const format = settings.format || 'HH:mm:ss';
+    if (format === 'HH:mm') return `${h}:${m}`;
+    if (format === 'mm:ss') return `${m}:${s}`;
+    if (format === 'H:m:s') return `${Number(h)}:${Number(m)}:${Number(s)}`;
+    if (format === 'cn_long') return `${h}时${m}分${s}秒`;
+    return `${h}:${m}:${s}`;
+  });
+}
+
+/* Shared workspace navigation and search. No host mutations are issued by search. */
+(() => {
+  const $ = id => document.getElementById(id);
+  const routes = {
+    simple: ['toolPanel', 'efficiency', '选中画布图层，再选择要执行的工具。', 'Select canvas layers, then choose a tool.'],
+    select: ['selectionPanel', 'efficiency', '先确定查找范围，再组合类型、名称和高级属性筛选。', 'Choose a scope, then combine type, name and property filters.'],
+    text: ['textPanel', 'efficiency', '查找后勾选结果再替换。默认仅处理选中图层；替换前可在画布定位。', 'Find text, select matches, then replace. The default scope is the selection.'],
+    smartFill: ['smartFillPanel', 'efficiency', '先选择文本或画板，点击字段名称填充。标签和设置只调整规则。', 'Select text or frames, then click a field name to fill. Tags and settings only change the rules.'],
+    size: ['sizePanel', 'efficiency', '编辑目标尺寸或选择预设，再应用到选中画板或矩形。设计视口用于界面，原生分辨率用于像素对照。', 'Edit dimensions or pick a preset, then apply to selected frames or rectangles. Design viewport and native resolution serve different purposes.'],
+    refiner: ['refinerPanel', 'components', '扫描组件问题，再按需清洗或生成组件说明书。', 'Scan component issues, then clean them or generate a component showcase.'],
+    componentBuilder: ['componentBuilderPanel', 'components', '选择 Frame，再选择组件、组件集或语言变体的构建方式。', 'Select frames, then create components, component sets or language variants.'],
+    duplicate: ['duplicatePanel', 'components', '选择两个画板，对比重复元素并定位结果。', 'Select two frames to compare repeated elements and locate matches.'],
+    compkit: ['compkitPanel', 'components', '读取本地组件库并按需生成预览和布局。', 'Read local components and generate previews and layouts.'],
+    i18n: ['i18nPanel', 'extensions', '先确认范围和源语言。直接替换会修改文本；Mode 用于保存可切换的语言版本。', 'Confirm scope and source language. Replace changes text; modes preserve switchable language versions.'],
+    skew: ['skewPanel', 'extensions', '预览倾斜与等轴效果，再应用到选中图层。', 'Preview skew and isometric transforms, then apply to selected layers.'],
+    ppt: ['pptPanel', 'extensions', '建议先复制页面；按步骤预处理后导出。首次使用请查看面板内的导出说明。', 'Duplicate the page first. Follow the preparation steps and review the export notes.'],
+    jumpback: ['jumpbackPanel', 'extensions', '保存当前视角后可一键返回。每个文件最多保存 5 个位置。', 'Save the current viewport to return later. Up to five locations per file.'],
+    theory: ['theoryPanel', 'extensions', '按主题浏览设计理论，也可输入具体的设计问题。', 'Browse design principles by topic, or ask a specific design question.']
+  };
+  const groups = { efficiency: ['效率工具', 'Essentials'], components: ['组件与规范', 'Components'], extensions: ['更多能力', 'More tools'] };
+  const categories = { all: ['全部', 'All'], layer: ['图层', 'Layers'], layout: ['布局', 'Layout'], text: ['文字', 'Text'], style: ['样式', 'Styles'], component: ['组件', 'Components'], shape: ['形状', 'Shapes'] };
+  const english = () => curLang === 'en';
+  const l = (zh, en) => english() ? en : zh;
+  const nav = key => document.querySelector(`.nav-item[data-nav="${key}"]`);
+  const label = key => key === 'settings' ? l('设置', 'Settings') : key === 'size' ? l('尺寸助手', 'Size assistant') : nav(key).querySelector('.nav-text').textContent.trim();
+  const panelIds = [...Object.values(routes).map(route => route[0]), 'selectionFooter', 'settingsPanel', 'emptyPanel'];
+  const cards = [...document.querySelectorAll('#toolGrid .tool-card')];
+  const toolNames = {
+    reverse_component:['实例逆向','Restore source'], to_frame:['矩形转画板','Rectangle to frame'], to_rect:['画板转矩形','Frame to rectangle'],
+    split_text:['拆分文本','Split text'], join_text:['合并文本','Join text'], remove_al:['移除自动布局','Remove auto layout'], add_al_wrapper:['包裹自动布局','Wrap in auto layout'],
+    up_one:['上移一层','Move up a level'], up_all:['移至顶层','Move to top level'], ungroup_all:['解散所有编组','Ungroup all'], unlock_all:['解锁所有图层','Unlock layers'],
+    swap_fs:['互换填充描边','Swap fill / stroke'], reset_image:['还原图片比例','Reset image ratio'], sort_layers:['可见度排序','Sort by visibility'], sort_by_name:['名称排序','Sort by name'],
+    rename_content:['按文本命名','Name from text'], detach_all:['分离组件实例','Detach instances'], remove_hidden:['删除隐藏图层','Delete hidden layers'], pixel_perfect:['像素对齐','Align to pixels'],
+    swap_positions:['交换图层位置','Swap positions'], create_styles:['创建本地样式','Create local styles'], match_styles:['重新关联样式','Match local styles']
+  };
+  let current = 'simple';
+  let previous = 'simple';
+  let category = 'all';
+  const scrollPositions = new Map();
+  const currentPanel = () => $(current === 'settings' ? 'settingsPanel' : routes[current][0]);
+  const rememberScroll = () => {
+    const panel = currentPanel();
+    scrollPositions.set(current, [panel, ...panel.querySelectorAll('*')].filter(el => el.scrollHeight > el.clientHeight && el.clientHeight > 0).map(el => [el, el.scrollTop]));
+  };
+
+  function refreshHeader() {
+    $('workspaceTitle').textContent = label(current);
+    $('workspaceCategory').textContent = current === 'settings' ? 'All in One' : groups[routes[current][1]][english() ? 1 : 0];
+    $('workspaceBack').hidden = current !== 'settings';
+    $('workspaceHint').textContent = current === 'settings' ? l('外观与语言仅影响插件界面。AI 配置用于翻译和生成。', 'Appearance and language affect the plugin UI. AI settings are used for translation and generation.') : routes[current][english() ? 3 : 2];
+    $('workspaceBack').ariaLabel = l('返回工具', 'Back to tools');
+    $('workspaceHelp').ariaLabel = l('使用提示', 'Usage tips');
+    $('workspaceHelp').title = l('使用提示', 'Usage tips');
+    $('workspaceSearchButton').ariaLabel = l('查找工具', 'Find a tool');
+    $('workspaceSearchButton').title = l('查找工具 · ⌘/Ctrl K', 'Find a tool · ⌘/Ctrl K');
+  }
+
+  function navigate(key) {
+    if (key !== 'settings' && !routes[key]) return;
+    rememberScroll();
+    if (key === 'settings' && current !== 'settings') previous = current;
+    current = key;
+    panelIds.forEach(id => { const el = $(id); if (el) el.style.display = 'none'; });
+    document.querySelectorAll('.sub-page').forEach(el => { el.classList.remove('open'); el.style.display = 'none'; });
+    currentPanel().style.display = 'flex';
+    if (key === 'select' && $('selectionFooter')) $('selectionFooter').style.display = 'flex';
+    document.querySelectorAll('.nav-item').forEach(el => {
+      const active = el.dataset.nav === key;
+      el.classList.toggle('active', active);
+      el.setAttribute('aria-current', active ? 'page' : 'false');
+    });
+    if (key !== 'settings') nav(key).scrollIntoView({ block:'nearest' });
+    document.querySelector('.sidebar-footer button').classList.toggle('active', key === 'settings');
+    $('workspaceHint').hidden = true;
+    $('workspaceHelp').setAttribute('aria-expanded', 'false');
+    refreshHeader();
+    if (key === 'settings') initSettingsPanel();
+    if (key === 'componentBuilder') requestComponentBuilderSelection();
+    if (key === 'size') { initSizeAssistant(); updateSizeSummary(); postMsg('size-assistant-inspect'); }
+    for (const [el, top] of scrollPositions.get(key) || []) if (el.isConnected) el.scrollTop = top;
+  }
+
+  // Build groups from the existing navigation elements: handlers and translations stay intact.
+  const navScroll = document.querySelector('.nav-scroll');
+  navScroll.setAttribute('role', 'navigation');
+  navScroll.setAttribute('aria-label', 'All in One');
+  navScroll.querySelectorAll('.nav-section-label').forEach(el => el.remove());
+  for (const group of Object.keys(groups)) {
+    const heading = document.createElement('div');
+    heading.className = 'nav-section-label';
+    heading.dataset.workspaceGroup = group;
+    navScroll.append(heading);
+    Object.entries(routes).filter(([, route]) => route[1] === group).forEach(([key]) => navScroll.append(nav(key)));
+  }
+  const brand = document.createElement('div');
+  brand.className = 'workspace-brand';
+  brand.innerHTML = '<span class="workspace-brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="workspace-brand-name">All in One</span>';
+  document.querySelector('.sidebar').prepend(brand);
+
+  function toolText(card, lang) {
+    const translation = i18n[lang]?.[card.dataset.key];
+    return Array.isArray(translation) ? translation.join(' ') : [card.querySelector('.tc-title').textContent, card.querySelector('.tc-desc').textContent].join(' ');
+  }
+  const normalize = text => String(text).normalize('NFKC').toLocaleLowerCase().trim();
+  function matches(text, query) { return normalize(query).split(/\s+/).every(word => normalize(text).includes(word)); }
+  function filterTools() {
+    const query = $('toolSearch').value;
+    let count = 0;
+    for (const card of cards) {
+      const show = (category === 'all' || card.dataset.category === category) && matches(toolText(card, 'zh') + ' ' + toolText(card, 'en') + ' ' + toolNames[card.dataset.key]?.join(' '), query);
+      card.hidden = !show;
+      if (show) count++;
+    }
+    $('toolResultCount').textContent = l(`${count} 项`, `${count} tools`);
+    $('toolResultLabel').textContent = query.trim() ? l('搜索结果', 'Search results') : categories[category][english() ? 1 : 0];
+    $('toolEmptyState').hidden = count !== 0;
+  }
+  function renderFilters() {
+    $('toolFilters').replaceChildren();
+    for (const [key, names] of Object.entries(categories)) {
+      const button = document.createElement('button');
+      button.type = 'button'; button.className = 'tool-filter';
+      button.textContent = names[english() ? 1 : 0];
+      button.setAttribute('aria-pressed', String(key === category));
+      button.onclick = () => { category = key; renderFilters(); filterTools(); };
+      $('toolFilters').append(button);
+    }
+  }
+  const empty = document.createElement('div');
+  empty.id = 'toolEmptyState'; empty.className = 'workspace-empty'; empty.hidden = true;
+  const emptyText = document.createElement('p'); emptyText.id = 'toolEmptyText';
+  const reset = document.createElement('button'); reset.type = 'button'; reset.className = 'workspace-reset';
+  reset.onclick = () => { $('toolSearch').value = ''; category = 'all'; renderFilters(); filterTools(); $('toolSearch').focus(); };
+  empty.append(emptyText, reset); $('toolGrid').after(empty);
+  $('toolSearch').addEventListener('input', filterTools);
+  $('toolSearch').addEventListener('keydown', event => {
+    if (event.key === 'Escape') { event.preventDefault(); $('toolSearch').value = ''; filterTools(); }
+  });
+
+  const dialog = $('workspaceCommands');
+  function renderCommands() {
+    const query = $('commandQuery').value;
+    const entries = Object.keys(routes).map(key => {
+      const translationKey = nav(key).querySelector('[data-key]')?.dataset.key;
+      return { title: label(key), detail: groups[routes[key][1]][english() ? 1 : 0], search: [label(key), i18n.zh[translationKey], i18n.en[translationKey], routes[key][2], routes[key][3], key === 'size' ? '尺寸 屏幕 size screen ratio' : ''].join(' '), run: () => { navigate(key); nav(key).focus(); } };
+    });
+    for (const card of cards) entries.push({ title: card.querySelector('.tc-title').textContent, detail: card.querySelector('.tc-desc').textContent, search: toolText(card, 'zh') + ' ' + toolText(card, 'en') + ' ' + toolNames[card.dataset.key]?.join(' '), run: () => { navigate('simple'); category = card.dataset.category; $('toolSearch').value = ''; renderFilters(); filterTools(); card.focus(); card.scrollIntoView({ block:'nearest' }); } });
+    const results = entries.filter(entry => matches(entry.search, query));
+    // Prefix matches first; stable ordering within each relevance bucket.
+    if (query.trim()) results.sort((a, b) => Number(normalize(b.title).startsWith(normalize(query))) - Number(normalize(a.title).startsWith(normalize(query))));
+    $('commandResults').replaceChildren();
+    for (const entry of results) {
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'command-result';
+      const title = document.createElement('span'); title.textContent = entry.title;
+      const detail = document.createElement('small'); detail.textContent = entry.detail;
+      button.append(title, detail);
+      button.onclick = () => { dialog.close(); entry.run(); };
+      $('commandResults').append(button);
+    }
+    if (!results.length) {
+      const message = document.createElement('p'); message.className = 'workspace-empty';
+      message.textContent = l('未找到相关工具，试试更短的关键词。', 'No tools found. Try a shorter keyword.');
+      $('commandResults').append(message);
+    }
+  }
+  function openCommands() { if (dialog.open) return; $('commandQuery').value = ''; renderCommands(); dialog.showModal(); $('commandQuery').focus(); }
+  $('workspaceSearchButton').onclick = openCommands;
+  $('commandClose').onclick = () => dialog.close();
+  $('commandQuery').oninput = renderCommands;
+  dialog.addEventListener('click', event => { if (event.target === dialog) { const box = dialog.getBoundingClientRect(); if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) dialog.close(); } });
+  dialog.addEventListener('keydown', event => {
+    if (event.isComposing) return;
+    const buttons = [...$('commandResults').querySelectorAll('button')];
+    const index = buttons.indexOf(document.activeElement);
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const next = event.key === 'ArrowDown' ? Math.min(index + 1, buttons.length - 1) : index - 1;
+      (next < 0 ? $('commandQuery') : buttons[next])?.focus();
+    } else if (event.key === 'Enter' && event.target === $('commandQuery')) { event.preventDefault(); buttons[0]?.click(); }
+  });
+  document.addEventListener('keydown', event => { if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k' && !event.isComposing) { event.preventDefault(); openCommands(); } });
+  $('workspaceHelp').onclick = () => { $('workspaceHint').hidden = !$('workspaceHint').hidden; $('workspaceHelp').setAttribute('aria-expanded', String(!$('workspaceHint').hidden)); };
+  $('workspaceBack').onclick = () => navigate(previous);
+
+  // Target dimensions precede the potentially long preset catalogue.
+  const sizeCards = document.querySelectorAll('#sizePanel .size-card');
+  sizeCards[0]?.before(sizeCards[1]);
+  let step = 0;
+  document.querySelectorAll('#i18nViewConfig .config-label > span:first-child').forEach(el => {
+    if (/^\d+$/.test(el.textContent.trim())) el.textContent = String(++step);
+  });
+  const summary = document.createElement('div'); summary.className = 'size-target-summary'; summary.id = 'sizeTargetSummary'; summary.setAttribute('aria-live', 'polite');
+  document.querySelector('.size-panel-actions').prepend(summary);
+  const updateSizeSummary = () => { summary.textContent = `${$('sizeWidth').value || '—'} × ${$('sizeHeight').value || '—'} px`; };
+  $('sizePanel').addEventListener('input', updateSizeSummary);
+  $('sizePanel').addEventListener('change', updateSizeSummary);
+  $('sizePanel').addEventListener('click', () => queueMicrotask(updateSizeSummary));
+  updateSizeSummary();
+  window.addEventListener('message', event => {
+    if (event.data.pluginMessage?.type === 'size-assistant-selection') queueMicrotask(updateSizeSummary);
+  });
+
+  function prepareFillSettings() {
+    const container = $('settingFormContainer');
+    container.oninput = null;
+    container.onchange = null;
+    const isNumber = Boolean($('numSequenceType'));
+    if (!isNumber && !$('timeStepSeconds')) return;
+    // Persistent field labels remain visible after typing; irrelevant parameters
+    // are disclosed only for the chosen algorithm, not deleted or reset.
+    const names = isNumber ? {
+      numSeqStart:l('起始值','Start'), numSeqSecond:l('第二项','Second value'), numSeqStep:l('公差','Step'), numSeqRatio:l('公比','Ratio')
+    } : {};
+    for (const [id, name] of Object.entries(names)) {
+      const input = $(id), label = document.createElement('label');
+      label.className = 'sequence-field'; label.htmlFor = id;
+      const caption = document.createElement('span'); caption.textContent = name;
+      input.before(label); label.append(caption, input);
+    }
+    const preview = document.createElement('output'); preview.className = 'sequence-preview'; preview.id = 'smartSequencePreview'; preview.setAttribute('aria-live','polite');
+    const sequenceGroup = (isNumber ? $('numSequenceType') : $('timeStepSeconds')).closest('.config-group');
+    sequenceGroup.append(preview);
+    const update = () => {
+      const name = isNumber ? 'numGeneration' : 'timeGeneration';
+      const sequence = container.querySelector(`input[name="${name}"]:checked`)?.value === 'sequence';
+      sequenceGroup.hidden = !sequence;
+      const sortGroup = container.querySelector(`input[name="${isNumber ? 'numSort' : 'timeSort'}"]`)?.closest('.config-group');
+      if (sortGroup) sortGroup.hidden = sequence;
+      if (isNumber) {
+        $('numMin').closest('.config-group').hidden = sequence;
+        const type = $('numSequenceType').value;
+        $('numSeqSecond').parentElement.hidden = type !== 'fibonacci';
+        $('numSeqStep').parentElement.hidden = type !== 'arithmetic';
+        $('numSeqRatio').parentElement.hidden = type !== 'geometric';
+      }
+      if (!sequence) return;
+      try {
+        const samples = isNumber ? generateSmartNumberSeries(5, {
+          sequenceType:$('numSequenceType').value, start:$('numSeqStart').value, second:$('numSeqSecond').value,
+          step:$('numSeqStep').value, ratio:$('numSeqRatio').value, decimals:$('numDec').value, thousands:$('numThous').checked
+        }) : generateSmartTimeSeries(5, { start:$('timeStart').value, stepSeconds:$('timeStepSeconds').value, format:container.querySelector('input[name="timeFormat"]:checked')?.value });
+        preview.textContent = l('前 5 项：','First 5: ') + samples.join(' · ');
+        preview.classList.remove('has-error');
+      } catch (error) { preview.textContent = error.message; preview.classList.add('has-error'); }
+    };
+    container.oninput = update;
+    container.onchange = update;
+    update();
+  }
+
+  function refresh() {
+    document.documentElement.lang = english() ? 'en' : 'zh-CN';
+    nav('size').querySelector('.nav-text').textContent = l('尺寸助手', 'Size assistant');
+    document.querySelectorAll('[data-workspace-group]').forEach(el => { el.textContent = groups[el.dataset.workspaceGroup][english() ? 1 : 0]; });
+    $('toolSearch').placeholder = l('搜索工具…', 'Search tools…');
+    $('toolSearch').ariaLabel = l('搜索简易工具', 'Search quick tools');
+    $('toolFilters').ariaLabel = l('工具分类', 'Tool category');
+    $('toolEmptyText').textContent = l('没有匹配的工具', 'No matching tools');
+    reset.textContent = l('清除搜索与筛选', 'Clear search and filters');
+    $('commandTitle').textContent = l('查找工具', 'Find a tool');
+    $('commandQuery').placeholder = l('搜索功能、中英文名称…', 'Search tools by name…');
+    $('commandQuery').ariaLabel = l('搜索功能', 'Search all tools');
+    $('commandClose').ariaLabel = l('关闭', 'Close');
+    $('commandHelp').textContent = l('仅定位工具，不会直接修改画布 · Esc 关闭', 'Locate tools without changing the canvas · Esc to close');
+    cards.forEach(card => {
+      if (toolNames[card.dataset.key]) card.querySelector('.tc-title').textContent = toolNames[card.dataset.key][english() ? 1 : 0];
+      const tip = card.querySelector('.tc-tooltip');
+      card.title = tip?.textContent || '';
+      if (tip) { tip.id = 'tool-help-' + card.dataset.key; card.setAttribute('aria-describedby', tip.id); }
+    });
+    renderFilters(); filterTools(); refreshHeader();
+    if (dialog.open) renderCommands();
+  }
+  const scheme = window.matchMedia('(prefers-color-scheme: dark)');
+  const followSystemTheme = () => { if (PersistentCache.get('user_theme') === 'system') document.documentElement.dataset.theme = scheme.matches ? 'dark' : 'light'; };
+  scheme.addEventListener('change', followSystemTheme);
+  followSystemTheme();
+  window.PluginWorkspace = { navigate, openSettings: () => navigate('settings'), closeSettings: () => navigate(previous), refresh, prepareFillSettings };
+  document.querySelectorAll('[data-ui-icon]').forEach(el => window.PluginIcons.put(el, el.dataset.uiIcon));
+  refresh();
+  navigate('simple');
 })();
 
 </script>

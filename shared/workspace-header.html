@@ -1,0 +1,16 @@
+<header class="workspace-header">
+  <button class="workspace-icon-button" id="workspaceBack" type="button" hidden aria-label="返回工具"><span data-ui-icon="chevron-left"></span></button>
+  <div class="workspace-heading">
+    <div class="workspace-category" id="workspaceCategory">效率工具</div>
+    <h1 id="workspaceTitle">简易工具</h1>
+  </div>
+  <button class="workspace-icon-button" id="workspaceHelp" type="button" aria-label="使用提示" aria-expanded="false" aria-controls="workspaceHint"><span data-ui-icon="info-circle"></span></button>
+  <button class="workspace-icon-button" id="workspaceSearchButton" type="button" aria-label="查找工具" title="查找工具 · ⌘/Ctrl K"><span data-ui-icon="search"></span></button>
+</header>
+<div class="workspace-hint" id="workspaceHint" hidden></div>
+<dialog class="command-dialog" id="workspaceCommands" aria-labelledby="commandTitle">
+  <div class="command-heading"><h2 id="commandTitle">查找工具</h2><button class="workspace-icon-button" id="commandClose" type="button" aria-label="关闭"><span data-ui-icon="x"></span></button></div>
+  <label class="workspace-search command-search"><span data-ui-icon="search"></span><input id="commandQuery" type="search" autocomplete="off" placeholder="搜索功能、中英文名称…" aria-label="搜索功能"></label>
+  <div class="command-results" id="commandResults" aria-label="搜索结果"></div>
+  <div class="command-footer" id="commandHelp">仅定位工具，不会直接修改画布 · Esc 关闭</div>
+</dialog>
