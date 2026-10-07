@@ -64,6 +64,9 @@ for (const platform of ['figma', 'mastergo']) {
   await context.handle({ type:'smart-fill-exec', nodeIds:['a'], dataList:['P'], mode:'prefix' });
   await context.handle({ type:'smart-fill-exec', nodeIds:['a'], dataList:['S'], mode:'suffix' });
   assert.equal(a.characters, 'P0S');
+  await context.handle({ type:'smart-fill-exec', nodeIds:['a'], dataList:['， '], mode:'prefix' });
+  await context.handle({ type:'smart-fill-exec', nodeIds:['a'], dataList:['。'], mode:'suffix' });
+  assert.equal(a.characters, '， P0S。', 'Custom punctuation and intentional spaces survive both affix paths');
   // Force a deterministic random draw to verify the random path actually selects that item.
   vm.runInContext('Math.random = () => 0.99', context);
   await context.handle({ type:'smart-fill-exec', nodeIds:['b'], dataList:['first','last'], distribution:'random' });

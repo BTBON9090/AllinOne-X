@@ -147,6 +147,13 @@
   function refresh() {
     document.documentElement.lang = english() ? 'en' : 'zh-CN';
     i18nUpdateModeDesc();
+    document.querySelector('#sfPrefix + span').textContent = l('前缀', 'Prefix');
+    document.querySelector('#sfSuffix + span').textContent = l('后缀', 'Suffix');
+    $('sfAffixText').placeholder = l('自定义字符', 'Characters');
+    $('sfAffixText').setAttribute('aria-label', l('自定义前后缀字符，支持空格', 'Custom affix characters, including spaces'));
+    $('sfAffixApply').title = l('将字符添加到现有文字的前面或后面', 'Add these characters before or after existing text');
+    $('sfAffixApply').setAttribute('aria-label', l('添加自定义字符', 'Add custom characters'));
+    updateGreeting();
     nav('size').querySelector('.nav-text').textContent = l('尺寸助手', 'Size assistant');
     cards.forEach(card => {
       if (toolNames[card.dataset.key]) card.querySelector('.tc-title').textContent = toolNames[card.dataset.key][english() ? 1 : 0];

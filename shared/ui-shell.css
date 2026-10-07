@@ -75,8 +75,6 @@ body.mini-mode .footer-btn { padding:4px 0; min-height:27px; }
 .tag-btn, .btn-to-ai { font-size:10px; padding:4px 6px; min-height:24px; display:inline-flex; align-items:center; }
 .btn-to-ai { background:var(--primary-light); color:var(--primary); }
 .smart-fill-trigger:hover { background:var(--primary-light); color:var(--primary); }
-.smart-fill-trigger::after { content:"填充"; color:var(--primary); font-size:10px; font-weight:500; }
-html[lang="en"] .smart-fill-trigger::after { content:"Fill"; }
 .smart-fill-status { padding:7px 10px; font-size:11px; line-height:16px; color:var(--text-secondary); background:var(--bg-muted); flex:0 0 auto; overflow-wrap:anywhere; }
 .smart-fill-status.has-error, .sequence-preview.has-error { color:var(--danger); }
 [aria-busy="true"] .smart-row { cursor:progress; opacity:.65; }
@@ -122,7 +120,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Mi
 
 /* Direct-access collection: three columns, no toolbar or decorative card shell. */
 .tool-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); padding:8px; gap:2px; align-content:start; }
-.tool-card { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-height:58px; padding:7px 3px; text-align:center; border:0; border-radius:4px; background:transparent; box-shadow:none; transition:background-color 120ms ease; }
+.tool-card { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; min-height:54px; padding:6px 3px; text-align:center; border:0; border-radius:4px; background:transparent; box-shadow:none; transition:background-color 120ms ease; }
 .tool-card:hover, .tool-card:focus-visible { background:var(--primary-light); box-shadow:none; }
 .tool-card .tc-icon { display:flex; align-items:center; justify-content:center; width:20px; height:20px; margin:0; background:transparent; color:var(--primary); border-radius:0; }
 .tool-card:hover .tc-icon { transform:none; background:transparent; }
@@ -176,7 +174,6 @@ textarea { user-select:text; background:var(--bg-muted); border:1px solid transp
 .smart-fill-trigger .smart-label { color:inherit; font-size:12px; line-height:18px; font-weight:600; }
 .smart-row .row-tags { padding:0; flex-wrap:wrap; gap:4px; min-width:0; justify-content:flex-start; }
 .smart-setting-btn { width:26px; height:26px; flex-shrink:0; border:0; }
-.smart-custom-count { font-size:10px; line-height:14px; color:var(--text-secondary); }
 .smart-footer, .sub-footer, .bottom-action, .selection-footer, .lint-footer-fixed { padding:8px 10px; background:var(--bg-surface); border-top:1px solid var(--border); }
 .sub-header { min-height:40px; padding:6px 10px; font-size:13px; line-height:20px; font-weight:600; }
 .settings-content { padding:10px; }
@@ -209,3 +206,31 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
   border-color:transparent !important; background-color:var(--bg-muted) !important;
   padding-block:5px !important;
 }
+
+/* Basic fields are compact two-column actions; custom fields are single-line rows. */
+#smartBasicList { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-content:start; gap:4px 8px; }
+.smart-basic-tile { padding:2px; margin:0; gap:0; min-height:32px; }
+.smart-basic-heading { display:flex; align-items:center; gap:2px; min-width:0; }
+.smart-basic-heading .smart-fill-trigger { flex:1; min-width:0; padding:6px 4px; min-height:28px; font-size:12px; font-weight:500; }
+.smart-basic-heading .smart-setting-btn { width:24px; height:24px; padding:4px; background:transparent; }
+.smart-basic-tile .row-tags { gap:2px; padding:0 4px 3px; }
+.smart-basic-tile .tag-btn { min-height:22px; padding:3px 5px; font-size:10px; background:var(--bg-muted); }
+.smart-basic-tile .tag-btn.active { color:var(--primary); background:var(--primary-light); }
+.smart-custom-row { flex-direction:row; align-items:center; gap:8px; min-height:36px; padding:3px 0; margin:0 0 3px; }
+.smart-custom-row > .smart-label { display:block; flex:1; min-width:0; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; line-height:18px; font-weight:500; }
+.smart-custom-actions { display:flex; align-items:center; flex-shrink:0; gap:2px; }
+.smart-custom-fill { min-height:26px; padding:5px 6px; border:0; background:var(--bg-muted); color:var(--text-secondary); font-size:11px; }
+.smart-custom-actions .smart-setting-btn { width:24px; height:26px; padding:4px; background:transparent; }
+.smart-custom-fill:hover, .smart-setting-btn:hover { background:var(--primary-light); color:var(--primary); }
+.smart-affix-bar { display:flex; align-items:center; gap:6px; padding:8px 10px; }
+.smart-affix-bar .check-item { flex-shrink:0; gap:3px; font-size:11px; line-height:16px; white-space:nowrap; }
+.smart-affix-bar input[type="checkbox"] { margin:0; width:13px; height:13px; }
+#sfAffixText { flex:1; width:0; min-width:36px; height:28px; min-height:28px; padding-inline:6px; font-size:11px !important; line-height:16px !important; }
+#sfAffixApply { width:26px; height:28px; background:var(--primary-light); color:var(--primary); padding:5px; }
+[data-fill-action]:disabled { opacity:.5; cursor:progress; }
+.tool-greeting { display:flex; align-items:center; gap:6px; padding:6px 12px 0; flex-shrink:0; color:var(--primary); }
+.tool-greeting > span { display:flex; flex-shrink:0; }
+.tool-greeting .ui-icon { width:14px; height:14px; }
+.tool-greeting .dash-greeting { display:block; min-width:0; min-height:28px; margin:0; padding:4px 0; border:0; background:transparent; color:var(--text-secondary); font-size:11px; line-height:16px; font-weight:400; letter-spacing:0; text-align:left; white-space:normal; }
+.tool-greeting .dash-greeting:hover { color:var(--primary); }
+.tool-greeting .dash-greeting:active { transform:none; }

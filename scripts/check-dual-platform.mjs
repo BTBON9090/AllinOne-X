@@ -43,8 +43,9 @@ for (const [platform, ui, main] of [
     && !ui.includes("#scopeGroup .filter-tag.active"));
   check(`${platform} 子孙范围递归`, main.includes("if ('findAll' in node)")
     && main.includes('searchTargets.push(...children)'));
-  check(`${platform} 自定义字段随机入口`, ui.includes("runCustomFill(${index}, 'random', event)"));
-  check(`${platform} 自定义随机模式传递`, ui.includes("task.type === 'custom' ? (task.distribution || 'order') : 'order'"));
+  check(`${platform} 自定义字段随机入口`, ui.includes("runCustomFill(index, 'random', event)"));
+  check(`${platform} 自定义随机模式传递`, ui.includes("beginSmartFill({ type: 'custom', dataList: [...item.list], distribution })")
+    && ui.includes("distribution: task.distribution || 'order'"));
   check(`${platform} 后端随机取值`, main.includes("distribution === 'random'")
     && main.includes('Math.floor(Math.random() * dataList.length)'));
   check(`${platform} 空列表保护`, main.includes('!Array.isArray(dataList) || dataList.length === 0'));

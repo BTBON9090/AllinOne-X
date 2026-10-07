@@ -4803,6 +4803,13 @@
 
 
 
+
+
+
+
+
+
+
 <!-- shared-shell-style:start -->
 <style>
 :root {
@@ -4882,8 +4889,6 @@ body.mini-mode .footer-btn { padding:4px 0; min-height:27px; }
 .tag-btn, .btn-to-ai { font-size:10px; padding:4px 6px; min-height:24px; display:inline-flex; align-items:center; }
 .btn-to-ai { background:var(--primary-light); color:var(--primary); }
 .smart-fill-trigger:hover { background:var(--primary-light); color:var(--primary); }
-.smart-fill-trigger::after { content:"填充"; color:var(--primary); font-size:10px; font-weight:500; }
-html[lang="en"] .smart-fill-trigger::after { content:"Fill"; }
 .smart-fill-status { padding:7px 10px; font-size:11px; line-height:16px; color:var(--text-secondary); background:var(--bg-muted); flex:0 0 auto; overflow-wrap:anywhere; }
 .smart-fill-status.has-error, .sequence-preview.has-error { color:var(--danger); }
 [aria-busy="true"] .smart-row { cursor:progress; opacity:.65; }
@@ -4929,7 +4934,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Mi
 
 /* Direct-access collection: three columns, no toolbar or decorative card shell. */
 .tool-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); padding:8px; gap:2px; align-content:start; }
-.tool-card { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-height:58px; padding:7px 3px; text-align:center; border:0; border-radius:4px; background:transparent; box-shadow:none; transition:background-color 120ms ease; }
+.tool-card { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; min-height:54px; padding:6px 3px; text-align:center; border:0; border-radius:4px; background:transparent; box-shadow:none; transition:background-color 120ms ease; }
 .tool-card:hover, .tool-card:focus-visible { background:var(--primary-light); box-shadow:none; }
 .tool-card .tc-icon { display:flex; align-items:center; justify-content:center; width:20px; height:20px; margin:0; background:transparent; color:var(--primary); border-radius:0; }
 .tool-card:hover .tc-icon { transform:none; background:transparent; }
@@ -4983,7 +4988,6 @@ textarea { user-select:text; background:var(--bg-muted); border:1px solid transp
 .smart-fill-trigger .smart-label { color:inherit; font-size:12px; line-height:18px; font-weight:600; }
 .smart-row .row-tags { padding:0; flex-wrap:wrap; gap:4px; min-width:0; justify-content:flex-start; }
 .smart-setting-btn { width:26px; height:26px; flex-shrink:0; border:0; }
-.smart-custom-count { font-size:10px; line-height:14px; color:var(--text-secondary); }
 .smart-footer, .sub-footer, .bottom-action, .selection-footer, .lint-footer-fixed { padding:8px 10px; background:var(--bg-surface); border-top:1px solid var(--border); }
 .sub-header { min-height:40px; padding:6px 10px; font-size:13px; line-height:20px; font-weight:600; }
 .settings-content { padding:10px; }
@@ -5016,6 +5020,34 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
   border-color:transparent !important; background-color:var(--bg-muted) !important;
   padding-block:5px !important;
 }
+
+/* Basic fields are compact two-column actions; custom fields are single-line rows. */
+#smartBasicList { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-content:start; gap:4px 8px; }
+.smart-basic-tile { padding:2px; margin:0; gap:0; min-height:32px; }
+.smart-basic-heading { display:flex; align-items:center; gap:2px; min-width:0; }
+.smart-basic-heading .smart-fill-trigger { flex:1; min-width:0; padding:6px 4px; min-height:28px; font-size:12px; font-weight:500; }
+.smart-basic-heading .smart-setting-btn { width:24px; height:24px; padding:4px; background:transparent; }
+.smart-basic-tile .row-tags { gap:2px; padding:0 4px 3px; }
+.smart-basic-tile .tag-btn { min-height:22px; padding:3px 5px; font-size:10px; background:var(--bg-muted); }
+.smart-basic-tile .tag-btn.active { color:var(--primary); background:var(--primary-light); }
+.smart-custom-row { flex-direction:row; align-items:center; gap:8px; min-height:36px; padding:3px 0; margin:0 0 3px; }
+.smart-custom-row > .smart-label { display:block; flex:1; min-width:0; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; line-height:18px; font-weight:500; }
+.smart-custom-actions { display:flex; align-items:center; flex-shrink:0; gap:2px; }
+.smart-custom-fill { min-height:26px; padding:5px 6px; border:0; background:var(--bg-muted); color:var(--text-secondary); font-size:11px; }
+.smart-custom-actions .smart-setting-btn { width:24px; height:26px; padding:4px; background:transparent; }
+.smart-custom-fill:hover, .smart-setting-btn:hover { background:var(--primary-light); color:var(--primary); }
+.smart-affix-bar { display:flex; align-items:center; gap:6px; padding:8px 10px; }
+.smart-affix-bar .check-item { flex-shrink:0; gap:3px; font-size:11px; line-height:16px; white-space:nowrap; }
+.smart-affix-bar input[type="checkbox"] { margin:0; width:13px; height:13px; }
+#sfAffixText { flex:1; width:0; min-width:36px; height:28px; min-height:28px; padding-inline:6px; font-size:11px !important; line-height:16px !important; }
+#sfAffixApply { width:26px; height:28px; background:var(--primary-light); color:var(--primary); padding:5px; }
+[data-fill-action]:disabled { opacity:.5; cursor:progress; }
+.tool-greeting { display:flex; align-items:center; gap:6px; padding:6px 12px 0; flex-shrink:0; color:var(--primary); }
+.tool-greeting > span { display:flex; flex-shrink:0; }
+.tool-greeting .ui-icon { width:14px; height:14px; }
+.tool-greeting .dash-greeting { display:block; min-width:0; min-height:28px; margin:0; padding:4px 0; border:0; background:transparent; color:var(--text-secondary); font-size:11px; line-height:16px; font-weight:400; letter-spacing:0; text-align:left; white-space:normal; }
+.tool-greeting .dash-greeting:hover { color:var(--primary); }
+.tool-greeting .dash-greeting:active { transform:none; }
 </style>
 <!-- shared-shell-style:end -->
 </head>
@@ -5097,6 +5129,10 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
 
         <!-- ===== 工具主页（合并欢迎+工具网格） ===== -->
         <div id="toolPanel" style="display:flex; flex-direction:column; height:100%;">
+            <div class="tool-greeting">
+              <span data-smart-icon="sparkles" aria-hidden="true"></span>
+              <button id="dashGreeting" class="dash-greeting" type="button" onclick="refreshGreeting()" title="AI 每日问候 · 点击换一句">今天也为好设计留一点灵感。</button>
+            </div>
 
             <!-- 工具网格 -->
             <div style="flex:1; overflow-y:auto;">
@@ -6115,13 +6151,6 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
             <div class="smart-list-container" id="smartBasicList">
               <!-- JS 动态生成列表项 -->
             </div>
-            <div class="smart-footer">
-               <div class="smart-mode-check">
-                 <label class="check-item"><input type="checkbox" id="sfPrefix"> <span data-key="sf_prefix">加为前缀</span></label>
-                 <label class="check-item"><input type="checkbox" id="sfSuffix"> <span data-key="sf_suffix">加为后缀</span></label>
-               </div>
-
-            </div>
           </div>
 
           <!-- Tab 2: AI 生成 -->
@@ -6197,6 +6226,14 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
               <!-- 右侧：添加按钮 -->
               <button class="primary-btn" style="flex: 1;" onclick="openAddCustomPage()" data-key="sf_btn_add_new">+ 添加新列表</button>
             </div>
+          </div>
+
+          <!-- Shared by basic, AI and custom fill; never scrolls with a list. -->
+          <div class="smart-footer smart-affix-bar" id="smartAffixBar">
+            <label class="check-item"><input type="checkbox" id="sfPrefix"> <span data-key="sf_prefix">前缀</span></label>
+            <label class="check-item"><input type="checkbox" id="sfSuffix"> <span data-key="sf_suffix">后缀</span></label>
+            <input id="sfAffixText" type="text" maxlength="128" placeholder="自定义字符" aria-label="自定义前后缀字符，支持空格" onkeydown="if(event.key==='Enter' &amp;&amp; !event.isComposing){event.preventDefault();applySmartAffix();}">
+            <button id="sfAffixApply" class="smart-setting-btn" type="button" data-fill-action data-smart-icon="plus" onclick="applySmartAffix()" title="将字符添加到现有文字的前面或后面" aria-label="添加自定义字符"></button>
           </div>
 
           <!-- 子页面 1: 添加自定义类型 -->
@@ -12941,105 +12978,99 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
       updateGreeting();
     }
 
-    // 渲染 Tab 1: 基础填充 (带标签和AI按钮)
+    // Compact basic tiles: primary action and settings share the same header.
     function renderBasicList() {
       const container = document.getElementById('smartBasicList');
       if (!container) return;
-      container.innerHTML = '';
-
+      container.replaceChildren();
       const tDict = i18n[curLang];
-
       basicDataTypes.forEach(item => {
         const row = document.createElement('div');
-        row.className = 'smart-row';
-
-        // --- 标签 Tag 渲染 ---
-        let tagsHtml = '';
-        if (item.tags && item.tags.length > 0) {
-            // 初始化默认选中
-            if (!activeTagsMap[item.key]) {
-               activeTagsMap[item.key] = [];
-               // 默认全选或根据逻辑？根据 logic，空也是处理所有
-            }
-
-            tagsHtml = item.tags.map(t => {
-                const isActive = activeTagsMap[item.key].includes(t.v) ? 'active' : '';
-
-                // 优先根据 tag.v 查找翻译 sf_tag_xxx
-                // 特殊处理 1/0 (性别) 为 male/female
-                let tagKey = `sf_tag_${t.v.toLowerCase().replace('_','')}`;
-                if (t.v === '1') tagKey = 'sf_tag_male';
-                if (t.v === '0') tagKey = 'sf_tag_female';
-
-                const tagLabel = tDict[tagKey] || t.l;
-
-                return `<span class="tag-btn ${isActive}" onclick="toggleTag('${item.key}', '${t.v}', this, event)">${tagLabel}</span>`;
-            }).join('');
-        }
-
-        // 优先根据 item.key 查找翻译 sf_lbl_xxx
-        const displayLabel = tDict[`sf_lbl_${item.key}`] || item.label;
-
-        // 构建“发送到AI”按钮
-        let aiBtnHtml = '';
-        if (item.allowAI) {
-            aiBtnHtml = `<span class="btn-to-ai" onclick="jumpToAI('${item.key}', '${displayLabel}', event)">${tDict.sf_send_ai}</span>`;
-        }
-
-        // 构建设置按钮
-        let settingBtnHtml = '';
+        row.className = 'smart-row smart-basic-tile';
+        row.dataset.fillType = item.key;
+        const heading = document.createElement('div');
+        heading.className = 'smart-basic-heading';
+        const fill = document.createElement('button');
+        fill.type = 'button';
+        fill.className = 'smart-fill-trigger';
+        fill.dataset.fillAction = '';
+        fill.disabled = Boolean(window.smartFillBusy);
+        fill.textContent = tDict[`sf_lbl_${item.key}`] || item.label;
+        fill.title = (curLang === 'en' ? 'Fill: ' : '填充：') + fill.textContent;
+        fill.onclick = () => runBasicFill(item.key);
+        heading.append(fill);
         if (item.hasSetting) {
-            settingBtnHtml = `<div class="smart-setting-btn" onclick="openBasicSetting('${item.key}', event)">⚙️</div>`;
+          const setting = document.createElement('button');
+          setting.type = 'button';
+          setting.className = 'smart-setting-btn';
+          setting.dataset.smartIcon = 'settings';
+          setting.title = fill.textContent + (curLang === 'en' ? ' settings' : '设置');
+          setting.setAttribute('aria-label', setting.title);
+          setting.onclick = event => openBasicSetting(item.key, event);
+          heading.append(setting);
         }
-
-        row.innerHTML = `
-           <button class="smart-fill-trigger" type="button" onclick="runBasicFill('${item.key}')"><span class="smart-label">${displayLabel}</span></button>
-           <div class="row-tags">
-              ${tagsHtml}
-              ${aiBtnHtml}
-              ${settingBtnHtml}
-           </div>
-        `;
-
-        // Explicit fill action; changing tags/settings never mutates the canvas.
-        container.appendChild(row);
+        row.append(heading);
+        if (item.tags?.length) {
+          activeTagsMap[item.key] ||= [];
+          const tags = document.createElement('div');
+          tags.className = 'row-tags';
+          item.tags.forEach(tag => {
+            let tagKey = `sf_tag_${tag.v.toLowerCase().replace('_','')}`;
+            if (tag.v === '1') tagKey = 'sf_tag_male';
+            if (tag.v === '0') tagKey = 'sf_tag_female';
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'tag-btn';
+            button.textContent = tDict[tagKey] || tag.l;
+            const active = activeTagsMap[item.key].includes(tag.v);
+            button.classList.toggle('active', active);
+            button.setAttribute('aria-pressed', String(active));
+            button.onclick = event => {
+              toggleTag(item.key, tag.v, button, event);
+              button.setAttribute('aria-pressed', String(button.classList.contains('active')));
+            };
+            tags.append(button);
+          });
+          row.append(tags);
+        }
+        container.append(row);
       });
     }
 
-    // 渲染 Tab 3: 自定义字段 (仅显示用户添加的)
+    // Custom fields stay single-line lists. Titles are data, never HTML or buttons.
     function renderCustomList() {
       const container = document.getElementById('smartCustomList');
       const emptyState = document.getElementById('customEmptyState');
-      if (!container) return;
-      const tDict = i18n[curLang] || i18n.zh;
-
-      // 清空列表区域 (保留 emptyState dom)
-      // 简单做法：先把 innerHTML 清空，再根据情况加回去
-      container.innerHTML = '';
-      container.appendChild(emptyState);
-
-      if (!customDataLists || customDataLists.length === 0) {
-          emptyState.style.display = 'flex';
-          return;
-      } else {
-          emptyState.style.display = 'none';
-      }
-
-      customDataLists.forEach((item, index) => {
+      if (!container || !emptyState) return;
+      container.replaceChildren(emptyState);
+      emptyState.style.display = customDataLists?.length ? 'none' : 'flex';
+      (customDataLists || []).forEach((item, index) => {
         const row = document.createElement('div');
         row.className = 'smart-row smart-custom-row';
-        row.innerHTML = `
-           <button class="smart-fill-trigger" type="button" onclick="runCustomFill(${index}, 'order', event)"><span class="smart-label">${escapeHtml(String(item.title))}</span></button>
-           <div class="row-tags">
-              <span class="smart-custom-count">${item.list.length}${curLang === 'en' ? ' items' : ' 条'}</span>
-              <span class="tag-btn" onclick="runCustomFill(${index}, 'order', event)">${tDict.sf_custom_order}</span>
-              <span class="tag-btn" onclick="runCustomFill(${index}, 'random', event)">${tDict.sf_custom_random}</span>
-              <div class="smart-setting-btn" onclick="editCustomList(${index}, event)">✏️</div>
-              <div class="smart-setting-btn" onclick="deleteCustomList(${index}, event)">🗑️</div>
-           </div>
-        `;
-        // The field name is the primary fill action; row whitespace is inert.
-        container.appendChild(row);
+        const title = document.createElement('span');
+        title.className = 'smart-label';
+        title.textContent = String(item.title);
+        title.title = String(item.title);
+        const actions = document.createElement('div');
+        actions.className = 'smart-custom-actions';
+        const action = (name, icon, handler, fillAction = false) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = icon ? 'smart-setting-btn' : 'smart-custom-fill';
+          button.title = name + '：' + item.title;
+          button.setAttribute('aria-label', button.title);
+          if (icon) button.dataset.smartIcon = icon;
+          else button.textContent = name;
+          if (fillAction) { button.dataset.fillAction = ''; button.disabled = Boolean(window.smartFillBusy); }
+          button.onclick = handler;
+          actions.append(button);
+        };
+        action(curLang === 'en' ? 'Order' : '顺序', '', event => runCustomFill(index, 'order', event), true);
+        action(curLang === 'en' ? 'Random' : '随机', '', event => runCustomFill(index, 'random', event), true);
+        action(curLang === 'en' ? 'Edit' : '编辑', 'pencil', event => editCustomList(index, event));
+        action(curLang === 'en' ? 'Delete' : '删除', 'trash', event => deleteCustomList(index, event));
+        row.append(title, actions);
+        container.append(row);
       });
     }
 
@@ -13060,88 +13091,52 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
         activeTagsMap[key] = list;
     }
 
-    // 2. 快捷跳转到 AI 并填入提示词
-    function jumpToAI(key, label, e) {
-        e.stopPropagation();
-        switchSmartTab('ai');
 
-        // 1. 获取选中的 tags 对象数组 [{l:'中文', v:'cn'}, ...]
-        const config = basicDataTypes.find(t => t.key === key);
-        const activeVals = activeTagsMap[key] || [];
-
-        // 2. 找到对应的中文 label
-        const activeLabels = [];
-        if (config.tags) {
-            config.tags.forEach(t => {
-                if (activeVals.includes(t.v)) activeLabels.push(t.l);
-            });
-        }
-
-        // 3. 构建提示词
-        let promptText = `生成${label}`;
-        if (activeLabels.length > 0) {
-            promptText += `，要求：${activeLabels.join('、')}`;
-        }
-
-        // 4. 特殊处理：如果没有任何要求，且本来就没tag，或者没选tag，就不加冒号
-        const promptBox = document.getElementById('aiPrompt');
-        promptBox.value = promptText;
-        promptBox.focus();
+    // All sources share selection capture, affix mode and busy/result handling.
+    function getSmartFillMode() {
+      return document.getElementById('sfPrefix').checked ? 'prefix'
+        : document.getElementById('sfSuffix').checked ? 'suffix' : 'replace';
     }
 
-    // --- 填充执行逻辑 ---
-    function runBasicFill(key) {
+    function beginSmartFill(task) {
       if (window.smartFillBusy) return;
+      window.pendingFillTask = { ...task, mode: getSmartFillMode() };
       setSmartFillBusy(true);
-      // 1. 请求选中数量
-      // 为了简单，我们先不请求数量，直接让后端处理单次生成逻辑？
-      // 不，为了支持随机不重复，最好前端一次性生成
-      // 这里采用策略：先请求数量，再生成
-
-      // 这里的逻辑稍微绕一下，通过 postMsg('get-selection-count')
-      // 然后在 onmessage 里处理生成逻辑。
-      // 为简化代码，我们先把“当前要执行的任务”存起来
-      window.pendingFillTask = {
-        type: 'basic',
-        key: key,
-        // 🔥 将当前选中的标签传递给后端/生成器
-        tags: [...(activeTagsMap[key] || [])]
-      };
       postMsg('get-selection-count');
+    }
+
+    function runBasicFill(key) {
+      beginSmartFill({ type: 'basic', key, tags: [...(activeTagsMap[key] || [])] });
     }
 
     function runCustomFill(index, distribution = 'order', event) {
-      if (event) event.stopPropagation();
-      if (window.smartFillBusy) return;
-      setSmartFillBusy(true);
-      window.pendingFillTask = { type: 'custom', index: index, distribution: distribution };
-      postMsg('get-selection-count');
+      event?.stopPropagation();
+      const item = customDataLists[index];
+      if (!item?.list?.length) return;
+      beginSmartFill({ type: 'custom', dataList: [...item.list], distribution });
     }
 
-
-    function applyAiFill(dist) {
-      if (window.smartFillBusy) return;
+    function applyAiFill(distribution) {
       const text = document.getElementById('aiResultArea').innerText;
-      if(!text.trim()) return alert("请先生成内容");
-      const list = text.split('\n').filter(s => s.trim());
-
-      const modePrefix = document.getElementById('sfPrefix').checked; // AI 也可以复用前缀后缀逻辑? 需求没明说，但加上更好
-      const modeSuffix = document.getElementById('sfSuffix').checked;
-      let mode = 'replace';
-      if(modePrefix) mode = 'prefix';
-      else if(modeSuffix) mode = 'suffix';
-
-      setSmartFillBusy(true);
-      postMsg('smart-fill-exec', {
-         dataList: list,
-         mode: mode,
-         distribution: dist
-      });
+      if (!text.trim()) {
+        document.getElementById('smartFillStatus').textContent = curLang === 'en' ? 'Generate content first.' : '请先生成内容';
+        return;
+      }
+      beginSmartFill({ type: 'ai', dataList: text.split('\n').filter(line => line.trim()), distribution });
     }
 
-    // --- 收到后端消息回调 (在 window.onmessage 里补充) ---
-    // if (msg.type === 'selection-count-res') { handleFillGeneration(msg.count); }
-    // if (msg.type === 'storage-loaded') { ... }
+    function applySmartAffix() {
+      if (window.smartFillBusy) return;
+      const input = document.getElementById('sfAffixText');
+      const status = document.getElementById('smartFillStatus');
+      if (getSmartFillMode() === 'replace' || input.value.length === 0) {
+        status.textContent = curLang === 'en' ? 'Choose prefix or suffix and enter characters.' : '请选择前缀或后缀，并输入要添加的字符';
+        input.focus();
+        return;
+      }
+      // Whitespace is intentional text too; never trim the requested characters.
+      beginSmartFill({ type: 'characters', dataList: [input.value], distribution: 'order' });
+    }
 
     function handleFillGeneration(count, nodeIds) {
       if (!window.pendingFillTask) return;
@@ -13156,12 +13151,7 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
       validateSmartSeriesCount(count);
       const list = [];
 
-      // 获取当前模式
-      const isPrefix = document.getElementById('sfPrefix').checked;
-      const isSuffix = document.getElementById('sfSuffix').checked;
-      let mode = 'replace';
-      if(isPrefix) mode = 'prefix';
-      else if(isSuffix) mode = 'suffix';
+      const mode = task.mode;
 
       // 生成数据
       if (task.type === 'basic') {
@@ -13175,12 +13165,8 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
               for(let i=0; i<count; i++) list.push(generator.gen(task.tags));
           }
         }
-      } else if (task.type === 'custom') {
-        const customData = customDataLists[task.index];
-        if (customData) {
-           // 后端根据 distribution 负责顺序循环或逐项随机。
-           list.push(...customData.list);
-        }
+      } else {
+        list.push(...(task.dataList || []));
       }
 
       // 2. 排序逻辑 (修复报错点)
@@ -13224,7 +13210,7 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
         nodeIds,
         dataList: list,
         mode: mode,
-        distribution: task.type === 'custom' ? (task.distribution || 'order') : 'order'
+        distribution: task.distribution || 'order'
       });
 
       window.pendingFillTask = null;
@@ -13233,7 +13219,7 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
     function setSmartFillBusy(busy) {
       window.smartFillBusy = busy;
       document.getElementById('smartFillPanel')?.setAttribute('aria-busy', String(busy));
-      document.querySelectorAll('.smart-fill-trigger, [onclick="saveAndFill()"]').forEach(button => { button.disabled = busy; });
+      document.querySelectorAll('[data-fill-action], .smart-fill-trigger, [onclick="saveAndFill()"], [onclick^="applyAiFill("]').forEach(button => { button.disabled = busy; });
       const status = document.getElementById('smartFillStatus');
       if (status && busy) {
         status.textContent = '正在填充…';
@@ -13322,7 +13308,7 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
       e.stopPropagation();
       currentSettingKey = key;
       const config = basicDataTypes.find(t => t.key === key);
-      document.getElementById('basicSettingTitle').innerText = config.label + " " + i18n[curLang].sf_cfg_settings;
+      document.getElementById('basicSettingTitle').innerText = (i18n[curLang]['sf_lbl_' + key] || config.label) + " " + i18n[curLang].sf_cfg_settings;
 
       const container = document.getElementById('settingFormContainer');
       container.innerHTML = '';
@@ -14757,168 +14743,85 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
         initTooltipPosition();
     }, 100);
 
-    function updateGreeting() {
-        const hour = new Date().getHours();
-        const greetingEl = document.getElementById('dashGreeting');
-        if (!greetingEl) return;
+    // A compact daily greeting, cached per local day/language. Canvas tools never wait for AI.
+    function updateGreeting() { return generateDailyGreeting(false); }
+    function refreshGreeting() { return generateDailyGreeting(true); }
 
-        // 直接使用AI生成问候语
-        generateAIGreeting(greetingEl, hour);
-    }
-
-    // 点击刷新问候语
-    function refreshGreeting() {
-        const hour = new Date().getHours();
-        const greetingEl = document.getElementById('dashGreeting');
-        if (!greetingEl) return;
-
-        // 添加点击动画效果
-        greetingEl.style.transform = 'scale(0.95)';
-        setTimeout(() => {
-            greetingEl.style.transform = '';
-        }, 100);
-
-        // 生成新的问候语
-        generateAIGreeting(greetingEl, hour);
-    }
-
-    async function generateAIGreeting(element, hour) {
-        const endpoint = getAiEndpoint();
-        if (!aiConfig || (!endpoint.key && !endpoint.isProxy) || !endpoint.url) {
-            console.warn('【AI问候语】缺少AI配置 (key 或 baseUrl)，使用简单问候语');
-            // 使用简单问候语
-            const greetings = [
-                '👋 早上好！新的一天开始啦~',
-                '✨ 下午好！继续加油哦~',
-                '🌙 晚上好！今天辛苦啦~',
-                '💪 加油！你是最棒的！',
-                '🎨 设计愉快！灵感无限~',
-                '🌟 保持热爱，奔赴山海！',
-                '🌈 每一天都是新的开始~',
-                '☕ 休息一下，喝杯咖啡吧~'
-            ];
-            const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
-            element.innerText = randomGreeting;
-            return;
+    async function generateDailyGreeting(force) {
+      const element = document.getElementById('dashGreeting');
+      if (!element) return;
+      const lang = curLang;
+      const now = new Date();
+      const day = [now.getFullYear(), now.getMonth() + 1, now.getDate()].join('-');
+      const cacheKey = 'daily_greeting_' + lang;
+      const cached = PersistentCache.get(cacheKey);
+      if (!force && cached?.day === day && typeof cached.text === 'string') {
+        element.textContent = cached.text;
+        element.title = lang === 'en' ? 'AI daily greeting · Click to refresh' : 'AI 每日问候 · 点击换一句';
+        return;
+      }
+      const hour = now.getHours();
+      const period = hour >= 5 && hour < 12 ? 0 : hour >= 12 && hour < 18 ? 1 : 2;
+      const fallback = lang === 'en'
+        ? ['Good morning. Make room for a new idea.', 'Good afternoon. Keep the good ideas moving.', 'Good evening. A little inspiration goes a long way.'][period]
+        : ['早上好，为今天的设计留一点新灵感。', '下午好，让好想法继续发生。', '晚上好，别忘了给灵感和自己留点空间。'][period];
+      element.textContent = fallback;
+      const endpoint = getAiEndpoint();
+      if ((!endpoint.key && !endpoint.isProxy) || !endpoint.url) {
+        element.title = lang === 'en' ? 'Local greeting · Set up AI in Settings for a daily message' : '本地问候 · 配置 AI 后可生成每日问候';
+        return;
+      }
+      const state = window.dailyGreetingState ||= {};
+      const signature = day + ':' + lang;
+      if (state.pending === signature) return;
+      state.pending = signature;
+      const request = 'greeting-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+      state.request = request;
+      element.disabled = true;
+      element.setAttribute('aria-busy', 'true');
+      try {
+        const prompt = lang === 'en'
+          ? 'Write one warm, concise greeting for a designer. It is ' + ['morning','afternoon','evening'][period] + '. Maximum 70 characters. Plain text, no emoji, quotes or explanation.'
+          : '现在是' + ['早上','下午','晚上'][period] + '。为设计师写一句自然温暖的问候或鼓励，36字以内。只输出一句纯文本，不加表情、引号或解释。';
+        let url = endpoint.url.trim().replace(/\/+$/, '');
+        if (!url.includes('/chat/completions')) url += '/chat/completions';
+        const options = {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: endpoint.model || 'glm-4.7-flash', messages: [{ role:'user', content:prompt }], temperature:0.9, stream:false })
+        };
+        if (endpoint.key) options.headers.Authorization = 'Bearer ' + endpoint.key;
+        const data = await new Promise((resolve, reject) => {
+          const cleanup = () => { clearTimeout(timer); window.removeEventListener('message', receive); };
+          const receive = event => {
+            const msg = event.data?.pluginMessage || event.data;
+            if (msg?.type !== 'api-response' || msg.reqId !== request) return;
+            cleanup();
+            if (msg.error) reject(new Error(msg.error)); else resolve(msg.data);
+          };
+          const timer = setTimeout(() => { cleanup(); reject(new Error('Greeting timed out')); }, 15000);
+          window.addEventListener('message', receive);
+          parent.postMessage({ pluginMessage:{ type:'do-fetch', reqId:request, url, options } }, '*');
+        });
+        const content = data?.choices?.[0]?.message?.content;
+        if (typeof content !== 'string' || !content.trim()) throw new Error('Empty greeting');
+        const text = Array.from(content.replace(/\s+/g, ' ').replace(/^["“”']+|["“”']+$/g, '').trim()).slice(0, lang === 'en' ? 70 : 36).join('');
+        PersistentCache.set(cacheKey, { day, text });
+        if (state.request === request && curLang === lang) {
+          element.textContent = text;
+          element.title = lang === 'en' ? 'AI daily greeting · Click to refresh' : 'AI 每日问候 · 点击换一句';
         }
-
-        try {
-            console.log('【AI问候语】开始请求大模型...');
-            const timeDesc = hour >= 5 && hour < 12 ? '早上' : hour >= 12 && hour < 18 ? '下午' : '晚上';
-
-            const systemPrompt = "你是一个可爱、俏皮、贴心的AI助手，专门为设计师生成问候语。你的任务是生成简短、有趣、温暖的问候语。";
-            const userPrompt = `现在是${timeDesc}，请为设计师生成一句问候语或鼓励的话。
-
-要求：
-1. 语气要俏皮、可爱、有趣，善用emoji
-2. 可以换行，但最多两行
-3. 可以是问候语、鼓励的话、诗词歌赋、名言警句等
-4. 要与当前时间（${timeDesc}）相关
-5. 不要使用"大设计师"这个称呼
-6. 字数不超过36字
-7. 直接输出问候语，不要任何解释或引号
-8. 每次生成的问候语都要不同，要有创意
-
-请生成问候语：`;
-
-            const endpoint = getAiEndpoint();
-
-            const requestBody = {
-                model: endpoint.model || 'glm-4.7-flash',
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: userPrompt }
-                ],
-                temperature: 1.0, // 提高温度，增加多样性
-                stream: false
-            };
-
-            let targetUrl = endpoint.url.trim().replace(/\/+$/, '');
-            if (!targetUrl.includes('/chat/completions')) {
-                targetUrl += '/chat/completions';
-            }
-
-            const fetchOptions = {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestBody)
-            };
-            if (endpoint.key) {
-                fetchOptions.headers['Authorization'] = `Bearer ${endpoint.key}`;
-            }
-
-            const reqId = Date.now().toString();
-
-            const fetchPromise = new Promise((resolve, reject) => {
-                const messageHandler = (event) => {
-                    const msg = event.data?.pluginMessage || event.data;
-                    if (msg && msg.type === 'api-response' && msg.reqId === reqId) {
-                        window.removeEventListener('message', messageHandler);
-                        if (msg.error) reject(new Error(msg.error));
-                        else resolve(msg.data);
-                    }
-                };
-
-                window.addEventListener('message', messageHandler);
-
-                setTimeout(() => {
-                    window.removeEventListener('message', messageHandler);
-                    reject(new Error('大模型响应超时(60秒)'));
-                }, 60000);
-            });
-
-            parent.postMessage({
-                pluginMessage: {
-                    type: 'do-fetch',
-                    reqId: reqId,
-                    url: targetUrl,
-                    options: fetchOptions
-                }
-            }, '*');
-
-            const data = await fetchPromise;
-            console.log('【AI问候语】请求成功收到响应:', data);
-
-            if (data.choices && data.choices[0] && data.choices[0].message) {
-                let greeting = data.choices[0].message.content.trim();
-                greeting = greeting.replace(/^["'""'']+|["'""'']+$/g, '');
-                if (greeting.length > 36) {
-                    greeting = greeting.substring(0, 36) + '...';
-                }
-
-                element.innerText = greeting;
-            } else {
-                 console.error('【AI问候语】数据格式不对:', data);
-                 // 使用简单问候语
-                 const greetings = [
-                     '👋 早上好！新的一天开始啦~',
-                     '✨ 下午好！继续加油哦~',
-                     '🌙 晚上好！今天辛苦啦~',
-                     '💪 加油！你是最棒的！',
-                     '🎨 设计愉快！灵感无限~',
-                     '🌟 保持热爱，奔赴山海！',
-                     '🌈 每一天都是新的开始~',
-                     '☕ 休息一下，喝杯咖啡吧~'
-                 ];
-                 const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
-                 element.innerText = randomGreeting;
-            }
-        } catch (error) {
-            console.error('【AI问候语】生成失败，使用简单问候语:', error);
-            // 使用简单问候语
-            const greetings = [
-                '👋 早上好！新的一天开始啦~',
-                '✨ 下午好！继续加油哦~',
-                '🌙 晚上好！今天辛苦啦~',
-                '💪 加油！你是最棒的！',
-                '🎨 设计愉快！灵感无限~',
-                '🌟 保持热爱，奔赴山海！',
-                '🌈 每一天都是新的开始~',
-                '☕ 休息一下，喝杯咖啡吧~'
-            ];
-            const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
-            element.innerText = randomGreeting;
+      } catch {
+        if (state.request === request && curLang === lang) {
+          element.textContent = fallback;
+          element.title = lang === 'en' ? 'Local greeting · AI unavailable, click to retry' : '本地问候 · AI 暂不可用，点击重试';
         }
+      } finally {
+        if (state.request === request) {
+          state.pending = null;
+          element.disabled = false;
+          element.setAttribute('aria-busy', 'false');
+        }
+      }
     }
 
     function trackAndRun(toolId) {
@@ -17094,6 +16997,13 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
 
 
+
+
+
+
+
+
+
 <!-- shared-shell-script:start -->
 <script>
 /* Tabler Icons (MIT), embedded offline by scripts/sync-ui-shell.mjs. */
@@ -17127,10 +17037,14 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     element.dataset.shellIcon = name;
   };
   window.PluginIcons = Object.freeze({ put: putIcon });
-  const controls = '.ppt-icon,.compkit-empty-icon,.nav-icon-slot,.tc-icon,.btn-icon,.es-icon,.success-icon,.success-emoji,.section-title,.settings-section-title,.settings-item-label-icon,.builder-mode-symbol,.smart-setting-btn,.jumpback-hero-icon,.btn-clear-input,.btn-back-sub,.sub-header,.card-icon,.theory-icon,.theory-capsule-icon,.size-hero-title,[data-key],button,#dashGreeting,#testConnectionIcon,#errorToast';
+  const controls = '[data-smart-icon],.ppt-icon,.compkit-empty-icon,.nav-icon-slot,.tc-icon,.btn-icon,.es-icon,.success-icon,.success-emoji,.section-title,.settings-section-title,.settings-item-label-icon,.builder-mode-symbol,.smart-setting-btn,.jumpback-hero-icon,.btn-clear-input,.btn-back-sub,.sub-header,.card-icon,.theory-icon,.theory-capsule-icon,.size-hero-title,[data-key],button,#dashGreeting,#testConnectionIcon,#errorToast';
   const protectedContent = 'script,style,svg,textarea,input,select,option,pre,code,[contenteditable],#aiResultArea,#i18nTransList,.text-preview-main,.smart-label,.tc-tooltip,.toast-message';
   function decorate(element) {
     if (!(element instanceof Element) || element.closest(protectedContent)) return;
+    if (element.matches('[data-smart-icon]')) {
+      putIcon(element, element.dataset.smartIcon);
+      return;
+    }
     if (element.matches('.nav-icon-slot')) {
       putIcon(element, navIcons[element.closest('[data-nav]')?.dataset.nav]);
       return;
@@ -17501,6 +17415,13 @@ function generateSmartTimeSeries(count, settings) {
   function refresh() {
     document.documentElement.lang = english() ? 'en' : 'zh-CN';
     i18nUpdateModeDesc();
+    document.querySelector('#sfPrefix + span').textContent = l('前缀', 'Prefix');
+    document.querySelector('#sfSuffix + span').textContent = l('后缀', 'Suffix');
+    $('sfAffixText').placeholder = l('自定义字符', 'Characters');
+    $('sfAffixText').setAttribute('aria-label', l('自定义前后缀字符，支持空格', 'Custom affix characters, including spaces'));
+    $('sfAffixApply').title = l('将字符添加到现有文字的前面或后面', 'Add these characters before or after existing text');
+    $('sfAffixApply').setAttribute('aria-label', l('添加自定义字符', 'Add custom characters'));
+    updateGreeting();
     nav('size').querySelector('.nav-text').textContent = l('尺寸助手', 'Size assistant');
     cards.forEach(card => {
       if (toolNames[card.dataset.key]) card.querySelector('.tc-title').textContent = toolNames[card.dataset.key][english() ? 1 : 0];

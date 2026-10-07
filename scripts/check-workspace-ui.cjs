@@ -140,7 +140,94 @@ fs.mkdirSync(output, { recursive:true });
       await page.evaluate(() => { openBasicSetting('date', new Event('click')); });
       await page.locator('#dateStart').fill('2026-01-01');
       await page.evaluate(() => closeSubPage('pageBasicSetting'));
+      // Dense fill layout and one shared affix transaction path for all sources.
+      const replyCount = async () => {
+        await page.evaluate(() => window.dispatchEvent(new MessageEvent('message', { data:{ pluginMessage:{ type:'selection-count-res', count:2, nodeIds:['first','second'] } } })));
+        return page.evaluate(() => __sent.filter(message => message.type === 'smart-fill-exec').at(-1));
+      };
+      const finishFill = () => page.evaluate(() => window.dispatchEvent(new MessageEvent('message', { data:{ pluginMessage:{ type:'smart-fill-result', count:2, errors:[], message:'已填充 2 个文本' } } })));
+      await page.evaluate(() => switchSmartTab('basic'));
+      assert.equal(await page.locator('#smartBasicList .smart-basic-tile').count(), await page.evaluate(() => basicDataTypes.length));
+      assert.equal(await page.locator('#smartBasicList .btn-to-ai').count(), 0);
+      assert.equal(await page.locator('#smartBasicList').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length), 2);
+      assert(await page.locator('.smart-basic-heading').evaluateAll(rows => rows.every(row => {
+        const setting = row.querySelector('.smart-setting-btn');
+        if (!setting) return true;
+        const a = row.querySelector('.smart-fill-trigger').getBoundingClientRect(), b = setting.getBoundingClientRect();
+        return Math.abs(a.y + a.height / 2 - b.y - b.height / 2) < 1;
+      })), 'Names and settings share the same line');
+      const beforeTag = await page.evaluate(() => __sent.length);
+      await page.locator('#smartBasicList .tag-btn').first().click();
+      assert.equal(await page.evaluate(() => __sent.length), beforeTag, 'Tag changes never fill the canvas');
+      await page.locator('#sfPrefix').check();
+      await page.locator('[data-fill-type="number"] .smart-fill-trigger').click();
+      await page.locator('#sfSuffix').check();
+      assert(!(await page.locator('#sfPrefix').isChecked()), 'Affix modes remain exclusive');
+      const basicAffix = await replyCount();
+      assert.equal(basicAffix.mode, 'prefix', 'Fill mode is captured at click time');
+      assert.deepEqual(basicAffix.dataList, ['2','2']);
+      await finishFill();
+      await page.evaluate(() => { switchSmartTab('ai'); document.getElementById('aiResultArea').textContent = '甲\n乙'; });
+      assert(await page.locator('#smartAffixBar').isVisible());
+      await page.locator('[onclick="applyAiFill(\'random\')"]').click();
+      const aiAffix = await replyCount();
+      assert.equal(aiAffix.mode, 'suffix');
+      assert.equal(aiAffix.distribution, 'random');
+      assert.deepEqual(aiAffix.nodeIds, ['first','second']);
+      assert.deepEqual(aiAffix.dataList, ['甲','乙']);
+      await finishFill();
+      await page.evaluate(() => {
+        customDataLists = [{ title:'部门列表', list:['设计','产品'] }, { title:'一个很长的自定义字段标题用于验证单行省略与完整提示', list:['内容'] }];
+        switchSmartTab('custom');
+      });
+      assert.equal(await page.locator('#smartCustomList .smart-custom-count, #smartCustomList .smart-fill-trigger').count(), 0);
+      await page.locator('#sfPrefix').check();
+      await page.locator('.smart-custom-fill').first().click();
+      await page.evaluate(() => { customDataLists[0].list[0] = '已变更'; });
+      const customAffix = await replyCount();
+      assert.equal(customAffix.mode, 'prefix');
+      assert.equal(customAffix.distribution, 'order');
+      assert.deepEqual(customAffix.dataList, ['设计','产品'], 'List data is captured before edits');
+      await finishFill();
+      for (const compact of [false,true]) {
+        await page.setViewportSize(compact ? { width:340,height:440 } : { width:440,height:600 });
+        await page.evaluate(compact => { setCompactMode(compact); changeLanguage(compact ? 'en' : 'zh'); switchSmartTab('custom'); }, compact);
+        await screenshot({ path:path.join(output, `${platform}-custom-${compact ? 'compact' : 'normal'}.png`) });
+        assert(await page.locator('.smart-custom-row').evaluateAll(rows => rows.every(row => {
+          const a = row.querySelector('.smart-label').getBoundingClientRect(), b = row.querySelector('.smart-custom-actions').getBoundingClientRect();
+          return Math.abs(a.y + a.height / 2 - b.y - b.height / 2) < 1 && b.right <= innerWidth;
+        })), 'Custom titles and all four actions stay on one line');
+        const bar = await page.locator('#smartAffixBar').boundingBox(), add = await page.locator('#sfAffixApply').boundingBox();
+        assert(bar.y + bar.height <= (compact ? 440 : 600) && add.x + add.width <= (compact ? 340 : 440), 'Affix actions remain inside the viewport');
+      }
+      await page.locator('#sfSuffix').check();
+      await page.locator('#sfAffixText').fill('， ');
+      await page.locator('#sfAffixText').press('Enter');
+      const chars = await replyCount();
+      assert.equal(chars.mode, 'suffix');
+      assert.deepEqual(chars.dataList, ['， '], 'Literal punctuation and spaces are preserved');
+      await finishFill();
+      await page.setViewportSize({ width:440,height:600 });
+      await page.evaluate(() => { setCompactMode(false); changeLanguage('zh'); });
+
       await page.evaluate(() => PluginWorkspace.navigate('simple'));
+      assert(await page.locator('#dashGreeting').isVisible());
+      assert(await page.locator('#dashGreeting').innerText());
+      await page.evaluate(() => { aiConfig = { baseUrl:'https://example.test/v1', model:'test-model', key:'test-key' }; updateGreeting(); });
+      const greetingRequest = await page.evaluate(() => __sent.filter(message => message.type === 'do-fetch' && message.reqId?.startsWith('greeting-')).at(-1));
+      assert(greetingRequest);
+      await page.evaluate(reqId => window.dispatchEvent(new MessageEvent('message', { data:{ pluginMessage:{ type:'api-response', reqId, data:{ choices:[{ message:{ content:'愿今天的设计，多一点好灵感。' } }] } } } })), greetingRequest.reqId);
+      assert.equal(await page.locator('#dashGreeting').innerText(), '愿今天的设计，多一点好灵感。');
+      const greetingCount = await page.evaluate(() => __sent.filter(message => message.type === 'do-fetch').length);
+      await page.evaluate(() => updateGreeting());
+      assert.equal(await page.evaluate(() => __sent.filter(message => message.type === 'do-fetch').length), greetingCount, 'Daily greeting is cached');
+      await page.locator('#dashGreeting').click();
+      const retry = await page.evaluate(() => __sent.filter(message => message.type === 'do-fetch').at(-1));
+      assert.notEqual(retry.reqId, greetingRequest.reqId);
+      await page.evaluate(reqId => window.dispatchEvent(new MessageEvent('message', { data:{ pluginMessage:{ type:'api-response', reqId, error:'offline' } } })), retry.reqId);
+      assert(!(await page.locator('#dashGreeting').isDisabled()), 'Greeting failure releases the refresh button');
+      assert.equal(await page.locator('.tool-card:visible').count(), 22, 'Greeting failure does not hide tools');
+      await page.evaluate(() => { aiConfig.key = ''; });
       await page.locator('.tool-card').first().focus();
       assert(await page.locator('.tool-card').first().getAttribute('aria-describedby'));
       await page.evaluate(() => changeLanguage('en'));
@@ -151,7 +238,7 @@ fs.mkdirSync(output, { recursive:true });
       await page.evaluate(() => changeLanguage('zh'));
       assert((await page.locator('#i18nModeDesc').innerText()).startsWith('更新 Mode：'), 'Changing UI language preserves the current action explanation');
       assert.deepEqual(errors, [], `${platform}: browser errors`);
-      console.log(`${platform}: 14 routes × 3 sizes, both themes/languages, direct-access grid, keyboard, scrolling, size actions, fill preview/flow and safe custom titles passed.`);
+      console.log(`${platform}: 14 routes × 3 sizes, shared affixes (basic/AI/custom/characters), dense layouts, greeting cache/fallback, keyboard, scrolling, size actions, fill preview and safe titles passed.`);
       await page.close();
     }
   } finally { await browser.close(); }
