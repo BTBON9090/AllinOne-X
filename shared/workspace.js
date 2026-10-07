@@ -1,4 +1,4 @@
-/* Shared workspace navigation and search. No host mutations are issued by search. */
+/* Shared workspace navigation. Keep tools directly visible; no duplicate shell controls. */
 (() => {
   const $ = id => document.getElementById(id);
   const routes = {
@@ -17,8 +17,6 @@
     jumpback: ['jumpbackPanel', 'extensions', '保存当前视角后可一键返回。每个文件最多保存 5 个位置。', 'Save the current viewport to return later. Up to five locations per file.'],
     theory: ['theoryPanel', 'extensions', '按主题浏览设计理论，也可输入具体的设计问题。', 'Browse design principles by topic, or ask a specific design question.']
   };
-  const groups = { efficiency: ['效率工具', 'Essentials'], components: ['组件与规范', 'Components'], extensions: ['更多能力', 'More tools'] };
-  const categories = { all: ['全部', 'All'], layer: ['图层', 'Layers'], layout: ['布局', 'Layout'], text: ['文字', 'Text'], style: ['样式', 'Styles'], component: ['组件', 'Components'], shape: ['形状', 'Shapes'] };
   const english = () => curLang === 'en';
   const l = (zh, en) => english() ? en : zh;
   const nav = key => document.querySelector(`.nav-item[data-nav="${key}"]`);
@@ -35,7 +33,6 @@
   };
   let current = 'simple';
   let previous = 'simple';
-  let category = 'all';
   const scrollPositions = new Map();
   const currentPanel = () => $(current === 'settings' ? 'settingsPanel' : routes[current][0]);
   const rememberScroll = () => {
@@ -43,16 +40,12 @@
     scrollPositions.set(current, [panel, ...panel.querySelectorAll('*')].filter(el => el.scrollHeight > el.clientHeight && el.clientHeight > 0).map(el => [el, el.scrollTop]));
   };
 
-  function refreshHeader() {
-    $('workspaceTitle').textContent = label(current);
-    $('workspaceCategory').textContent = current === 'settings' ? 'All in One' : groups[routes[current][1]][english() ? 1 : 0];
-    $('workspaceBack').hidden = current !== 'settings';
-    $('workspaceHint').textContent = current === 'settings' ? l('外观与语言仅影响插件界面。AI 配置用于翻译和生成。', 'Appearance and language affect the plugin UI. AI settings are used for translation and generation.') : routes[current][english() ? 3 : 2];
-    $('workspaceBack').ariaLabel = l('返回工具', 'Back to tools');
-    $('workspaceHelp').ariaLabel = l('使用提示', 'Usage tips');
-    $('workspaceHelp').title = l('使用提示', 'Usage tips');
-    $('workspaceSearchButton').ariaLabel = l('查找工具', 'Find a tool');
-    $('workspaceSearchButton').title = l('查找工具 · ⌘/Ctrl K', 'Find a tool · ⌘/Ctrl K');
+  function refreshLocation() {
+    currentPanel().setAttribute('role', 'region');
+    currentPanel().setAttribute('aria-label', label(current));
+    Object.entries(routes).forEach(([key, route]) => {
+      nav(key).title = label(key) + ' — ' + route[english() ? 3 : 2];
+    });
   }
 
   function navigate(key) {
@@ -71,116 +64,19 @@
     });
     if (key !== 'settings') nav(key).scrollIntoView({ block:'nearest' });
     document.querySelector('.sidebar-footer button').classList.toggle('active', key === 'settings');
-    $('workspaceHint').hidden = true;
-    $('workspaceHelp').setAttribute('aria-expanded', 'false');
-    refreshHeader();
+    refreshLocation();
     if (key === 'settings') initSettingsPanel();
     if (key === 'componentBuilder') requestComponentBuilderSelection();
     if (key === 'size') { initSizeAssistant(); updateSizeSummary(); postMsg('size-assistant-inspect'); }
     for (const [el, top] of scrollPositions.get(key) || []) if (el.isConnected) el.scrollTop = top;
   }
 
-  // Build groups from the existing navigation elements: handlers and translations stay intact.
+  // One stable list of tools; preserve the original handlers and translations.
   const navScroll = document.querySelector('.nav-scroll');
   navScroll.setAttribute('role', 'navigation');
   navScroll.setAttribute('aria-label', 'All in One');
   navScroll.querySelectorAll('.nav-section-label').forEach(el => el.remove());
-  for (const group of Object.keys(groups)) {
-    const heading = document.createElement('div');
-    heading.className = 'nav-section-label';
-    heading.dataset.workspaceGroup = group;
-    navScroll.append(heading);
-    Object.entries(routes).filter(([, route]) => route[1] === group).forEach(([key]) => navScroll.append(nav(key)));
-  }
-  const brand = document.createElement('div');
-  brand.className = 'workspace-brand';
-  brand.innerHTML = '<span class="workspace-brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="workspace-brand-name">All in One</span>';
-  document.querySelector('.sidebar').prepend(brand);
-
-  function toolText(card, lang) {
-    const translation = i18n[lang]?.[card.dataset.key];
-    return Array.isArray(translation) ? translation.join(' ') : [card.querySelector('.tc-title').textContent, card.querySelector('.tc-desc').textContent].join(' ');
-  }
-  const normalize = text => String(text).normalize('NFKC').toLocaleLowerCase().trim();
-  function matches(text, query) { return normalize(query).split(/\s+/).every(word => normalize(text).includes(word)); }
-  function filterTools() {
-    const query = $('toolSearch').value;
-    let count = 0;
-    for (const card of cards) {
-      const show = (category === 'all' || card.dataset.category === category) && matches(toolText(card, 'zh') + ' ' + toolText(card, 'en') + ' ' + toolNames[card.dataset.key]?.join(' '), query);
-      card.hidden = !show;
-      if (show) count++;
-    }
-    $('toolResultCount').textContent = l(`${count} 项`, `${count} tools`);
-    $('toolResultLabel').textContent = query.trim() ? l('搜索结果', 'Search results') : categories[category][english() ? 1 : 0];
-    $('toolEmptyState').hidden = count !== 0;
-  }
-  function renderFilters() {
-    $('toolFilters').replaceChildren();
-    for (const [key, names] of Object.entries(categories)) {
-      const button = document.createElement('button');
-      button.type = 'button'; button.className = 'tool-filter';
-      button.textContent = names[english() ? 1 : 0];
-      button.setAttribute('aria-pressed', String(key === category));
-      button.onclick = () => { category = key; renderFilters(); filterTools(); };
-      $('toolFilters').append(button);
-    }
-  }
-  const empty = document.createElement('div');
-  empty.id = 'toolEmptyState'; empty.className = 'workspace-empty'; empty.hidden = true;
-  const emptyText = document.createElement('p'); emptyText.id = 'toolEmptyText';
-  const reset = document.createElement('button'); reset.type = 'button'; reset.className = 'workspace-reset';
-  reset.onclick = () => { $('toolSearch').value = ''; category = 'all'; renderFilters(); filterTools(); $('toolSearch').focus(); };
-  empty.append(emptyText, reset); $('toolGrid').after(empty);
-  $('toolSearch').addEventListener('input', filterTools);
-  $('toolSearch').addEventListener('keydown', event => {
-    if (event.key === 'Escape') { event.preventDefault(); $('toolSearch').value = ''; filterTools(); }
-  });
-
-  const dialog = $('workspaceCommands');
-  function renderCommands() {
-    const query = $('commandQuery').value;
-    const entries = Object.keys(routes).map(key => {
-      const translationKey = nav(key).querySelector('[data-key]')?.dataset.key;
-      return { title: label(key), detail: groups[routes[key][1]][english() ? 1 : 0], search: [label(key), i18n.zh[translationKey], i18n.en[translationKey], routes[key][2], routes[key][3], key === 'size' ? '尺寸 屏幕 size screen ratio' : ''].join(' '), run: () => { navigate(key); nav(key).focus(); } };
-    });
-    for (const card of cards) entries.push({ title: card.querySelector('.tc-title').textContent, detail: card.querySelector('.tc-desc').textContent, search: toolText(card, 'zh') + ' ' + toolText(card, 'en') + ' ' + toolNames[card.dataset.key]?.join(' '), run: () => { navigate('simple'); category = card.dataset.category; $('toolSearch').value = ''; renderFilters(); filterTools(); card.focus(); card.scrollIntoView({ block:'nearest' }); } });
-    const results = entries.filter(entry => matches(entry.search, query));
-    // Prefix matches first; stable ordering within each relevance bucket.
-    if (query.trim()) results.sort((a, b) => Number(normalize(b.title).startsWith(normalize(query))) - Number(normalize(a.title).startsWith(normalize(query))));
-    $('commandResults').replaceChildren();
-    for (const entry of results) {
-      const button = document.createElement('button'); button.type = 'button'; button.className = 'command-result';
-      const title = document.createElement('span'); title.textContent = entry.title;
-      const detail = document.createElement('small'); detail.textContent = entry.detail;
-      button.append(title, detail);
-      button.onclick = () => { dialog.close(); entry.run(); };
-      $('commandResults').append(button);
-    }
-    if (!results.length) {
-      const message = document.createElement('p'); message.className = 'workspace-empty';
-      message.textContent = l('未找到相关工具，试试更短的关键词。', 'No tools found. Try a shorter keyword.');
-      $('commandResults').append(message);
-    }
-  }
-  function openCommands() { if (dialog.open) return; $('commandQuery').value = ''; renderCommands(); dialog.showModal(); $('commandQuery').focus(); }
-  $('workspaceSearchButton').onclick = openCommands;
-  $('commandClose').onclick = () => dialog.close();
-  $('commandQuery').oninput = renderCommands;
-  dialog.addEventListener('click', event => { if (event.target === dialog) { const box = dialog.getBoundingClientRect(); if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) dialog.close(); } });
-  dialog.addEventListener('keydown', event => {
-    if (event.isComposing) return;
-    const buttons = [...$('commandResults').querySelectorAll('button')];
-    const index = buttons.indexOf(document.activeElement);
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-      event.preventDefault();
-      const next = event.key === 'ArrowDown' ? Math.min(index + 1, buttons.length - 1) : index - 1;
-      (next < 0 ? $('commandQuery') : buttons[next])?.focus();
-    } else if (event.key === 'Enter' && event.target === $('commandQuery')) { event.preventDefault(); buttons[0]?.click(); }
-  });
-  document.addEventListener('keydown', event => { if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k' && !event.isComposing) { event.preventDefault(); openCommands(); } });
-  $('workspaceHelp').onclick = () => { $('workspaceHint').hidden = !$('workspaceHint').hidden; $('workspaceHelp').setAttribute('aria-expanded', String(!$('workspaceHint').hidden)); };
-  $('workspaceBack').onclick = () => navigate(previous);
+  Object.keys(routes).forEach(key => navScroll.append(nav(key)));
 
   // Target dimensions precede the potentially long preset catalogue.
   const sizeCards = document.querySelectorAll('#sizePanel .size-card');
@@ -250,33 +146,21 @@
 
   function refresh() {
     document.documentElement.lang = english() ? 'en' : 'zh-CN';
+    i18nUpdateModeDesc();
     nav('size').querySelector('.nav-text').textContent = l('尺寸助手', 'Size assistant');
-    document.querySelectorAll('[data-workspace-group]').forEach(el => { el.textContent = groups[el.dataset.workspaceGroup][english() ? 1 : 0]; });
-    $('toolSearch').placeholder = l('搜索工具…', 'Search tools…');
-    $('toolSearch').ariaLabel = l('搜索简易工具', 'Search quick tools');
-    $('toolFilters').ariaLabel = l('工具分类', 'Tool category');
-    $('toolEmptyText').textContent = l('没有匹配的工具', 'No matching tools');
-    reset.textContent = l('清除搜索与筛选', 'Clear search and filters');
-    $('commandTitle').textContent = l('查找工具', 'Find a tool');
-    $('commandQuery').placeholder = l('搜索功能、中英文名称…', 'Search tools by name…');
-    $('commandQuery').ariaLabel = l('搜索功能', 'Search all tools');
-    $('commandClose').ariaLabel = l('关闭', 'Close');
-    $('commandHelp').textContent = l('仅定位工具，不会直接修改画布 · Esc 关闭', 'Locate tools without changing the canvas · Esc to close');
     cards.forEach(card => {
       if (toolNames[card.dataset.key]) card.querySelector('.tc-title').textContent = toolNames[card.dataset.key][english() ? 1 : 0];
       const tip = card.querySelector('.tc-tooltip');
       card.title = tip?.textContent || '';
       if (tip) { tip.id = 'tool-help-' + card.dataset.key; card.setAttribute('aria-describedby', tip.id); }
     });
-    renderFilters(); filterTools(); refreshHeader();
-    if (dialog.open) renderCommands();
+    refreshLocation();
   }
   const scheme = window.matchMedia('(prefers-color-scheme: dark)');
   const followSystemTheme = () => { if (PersistentCache.get('user_theme') === 'system') document.documentElement.dataset.theme = scheme.matches ? 'dark' : 'light'; };
   scheme.addEventListener('change', followSystemTheme);
   followSystemTheme();
   window.PluginWorkspace = { navigate, openSettings: () => navigate('settings'), closeSettings: () => navigate(previous), refresh, prepareFillSettings };
-  document.querySelectorAll('[data-ui-icon]').forEach(el => window.PluginIcons.put(el, el.dataset.uiIcon));
   refresh();
   navigate('simple');
 })();

@@ -35,7 +35,7 @@ fs.mkdirSync(output, { recursive:true });
           await page.locator(`.nav-item[data-nav="${key}"]`).click();
           assert.equal(await page.locator('.nav-item.active').count(), 1, `${mode} ${key}: active navigation`);
           assert.equal(await page.locator(`.nav-item[data-nav="${key}"]`).getAttribute('aria-current'), 'page');
-          assert(await page.locator('#workspaceTitle').innerText());
+          assert(await page.locator('#contentScroll > [role="region"]:visible').getAttribute('aria-label'));
           const bounds = await page.evaluate(() => ({
             rootX:document.documentElement.scrollWidth > innerWidth,
             rootY:document.documentElement.scrollHeight > innerHeight,
@@ -45,6 +45,24 @@ fs.mkdirSync(output, { recursive:true });
           assert(!bounds.rootX && !bounds.rootY, `${platform}/${mode}/${key}: document overflow`);
           assert.equal(bounds.panels.length, 1, `${key}: exactly one panel`);
           for (const box of bounds.panels) assert(box.right <= bounds.width + 1 && box.bottom <= bounds.height + 1, `${mode}/${key}: panel overflow`);
+          const controlIssues = await page.locator('#contentScroll button:visible, #contentScroll [role="button"]:visible').evaluateAll(elements => elements.flatMap(el => {
+            const s = getComputedStyle(el);
+            return s.borderTopLeftRadius !== '4px' || s.lineHeight !== '16px' ? [el.id || el.className] : [];
+          }));
+          assert.deepEqual(controlIssues, [], `${platform}/${mode}/${key}: control radius and line height`);
+          if (key === 'simple') {
+            assert.equal(await page.locator('#toolGrid').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length), 3);
+            if (mode !== 'small-english-dark') assert(await page.locator('.tool-card').last().evaluate(el => el.getBoundingClientRect().bottom <= innerHeight), 'All quick tools fit in the normal and compact Chinese first screen');
+          }
+          if (key === 'i18n') {
+            const help = await page.locator('#i18nModeDesc').innerText();
+            assert(help.startsWith(mode === 'small-english-dark' ? 'Replace:' : '直接替换：'), 'Help matches the active mode and UI language');
+            assert(!help.includes('<b>'), 'No literal markup in translated help');
+          }
+          if (key === 'select') {
+            assert.equal(await page.locator('.selector-card').first().evaluate(el => getComputedStyle(el).padding), '0px');
+            assert.equal(await page.locator('.selector-card').first().evaluate(el => getComputedStyle(el).borderTopWidth), '0px');
+          }
           if (key === 'size') {
             const before = await page.locator('.sidebar').boundingBox();
             await page.locator('.size-scroll').evaluate(el => { el.scrollTop = el.scrollHeight; });
@@ -59,26 +77,22 @@ fs.mkdirSync(output, { recursive:true });
       }
       await page.setViewportSize({ width:440,height:600 });
       await page.evaluate(() => { setCompactMode(false); changeLanguage('zh'); changeTheme('light'); PluginWorkspace.navigate('simple'); });
-      await page.locator('#toolSearch').fill('不存在的功能 xyz');
-      assert(await page.locator('#toolEmptyState').isVisible());
-      await page.locator('.workspace-reset').click();
+      assert.equal(await page.locator('#workspaceTitle, .workspace-brand, #toolSearch, #toolFilters, #workspaceCommands').count(), 0, 'No redundant header, categories or search');
       assert.equal(await page.locator('.tool-card:visible').count(), 22);
-      await page.locator('#toolSearch').fill('auto layout');
-      assert.equal(await page.locator('.tool-card:visible').count(), 2);
-      await page.locator('#toolSearch').press('Escape');
-      await page.locator('.tool-filter').filter({ hasText:/^文字$/ }).click();
-      assert.equal(await page.locator('.tool-card:visible').count(), 2);
-      await page.locator('.tool-filter').filter({ hasText:/^全部$/ }).click();
-      const scroll = page.locator('#toolGrid').locator('..');
+      const grid = await page.locator('#toolGrid').evaluate(el => {
+        const cards = [...el.children];
+        return { columns:getComputedStyle(el).gridTemplateColumns.split(' ').length,
+          visible:cards.every(card => { const b=card.getBoundingClientRect(); return b.top >= 0 && b.bottom <= innerHeight; }) };
+      });
+      assert.equal(grid.columns, 3);
+      assert(grid.visible, 'All 22 quick tools fit in the default first screen');
+      await page.locator('[data-nav="size"]').focus();
+      await page.keyboard.press('Enter');
+      assert(await page.locator('#sizePanel').isVisible(), 'Keyboard navigation works without a command palette');
+      const scroll = page.locator('.size-scroll');
       await scroll.evaluate(el => { el.scrollTop = 150; });
-      await page.evaluate(() => { PluginWorkspace.navigate('text'); PluginWorkspace.navigate('simple'); });
+      await page.evaluate(() => { PluginWorkspace.navigate('text'); PluginWorkspace.navigate('size'); });
       assert.equal(await scroll.evaluate(el => el.scrollTop), 150, 'Remember panel scroll');
-      await page.locator('#workspaceSearchButton').click();
-      await page.locator('#commandQuery').fill('尺寸');
-      assert.equal(await page.locator('.command-result').first().locator('span').innerText(), '尺寸助手');
-      await page.locator('#commandQuery').press('Enter');
-      assert.equal(await page.locator('#workspaceTitle').innerText(), '尺寸助手');
-      assert.equal(await page.locator('#workspaceCommands').evaluate(el => el.open), false);
       const size = await page.locator('#sizeWidth').inputValue();
       assert((await page.locator('#sizeTargetSummary').innerText()).startsWith(size));
       await page.locator('.size-scroll').evaluate(el => { el.scrollTop = 0; });
@@ -91,8 +105,11 @@ fs.mkdirSync(output, { recursive:true });
       assert.equal(await page.locator('#sizeWidth').inputValue(), '500');
       await page.locator('.size-preset').first().click();
       assert.equal(await page.locator('#sizeWidth').inputValue(), '2064');
-      await page.evaluate(() => { openSettings(); closeSettings(); });
-      assert.equal(await page.locator('#workspaceTitle').innerText(), '尺寸助手', 'Settings returns to the prior task');
+      await page.evaluate(() => openSettings());
+      assert(await page.locator('#settingsPanel > .sub-header').isVisible(), 'Settings keeps its local back action');
+      await screenshot({ path:path.join(output, `${platform}-settings.png`) });
+      await page.locator('#settingsPanel .btn-back-sub').click();
+      assert(await page.locator('#sizePanel').isVisible(), 'Settings returns to the prior task');
       await page.evaluate(() => { PluginWorkspace.navigate('compkit'); switchCompKitTab('showcase'); PluginWorkspace.navigate('refiner'); switchRefinerTab('find'); PluginWorkspace.navigate('compkit'); });
       assert(await page.locator('#tabCompKitShowcase').isVisible(), 'Refiner tabs must not hide CompKit tabs');
       await page.locator('[data-nav="smartFill"]').click();
@@ -123,23 +140,18 @@ fs.mkdirSync(output, { recursive:true });
       await page.evaluate(() => { openBasicSetting('date', new Event('click')); });
       await page.locator('#dateStart').fill('2026-01-01');
       await page.evaluate(() => closeSubPage('pageBasicSetting'));
-      // Command palette search never executes the mutation it finds.
-      const prior = await page.evaluate(() => __sent.length);
-      await page.keyboard.press('Control+k');
-      await page.locator('#commandQuery').fill('删除隐藏图层');
-      await page.locator('#commandQuery').press('Enter');
-      assert.equal(await page.evaluate(() => __sent.length), prior);
-      assert.equal(await page.locator(':focus').getAttribute('data-key'), 'remove_hidden');
-      await page.keyboard.press('Control+k');
-      await page.keyboard.press('Escape');
-      assert.equal(await page.locator('#workspaceCommands').evaluate(el => el.open), false);
+      await page.evaluate(() => PluginWorkspace.navigate('simple'));
+      await page.locator('.tool-card').first().focus();
+      assert(await page.locator('.tool-card').first().getAttribute('aria-describedby'));
       await page.evaluate(() => changeLanguage('en'));
-      await page.keyboard.press('Control+k');
-      await page.locator('#commandQuery').fill('组件构建');
-      assert(await page.locator('.command-result').count() > 0, 'Chinese lookup remains available in English UI');
-      await page.keyboard.press('Escape');
+      assert.equal(await page.locator('.tool-card:visible').count(), 22);
+      await page.evaluate(() => PluginWorkspace.navigate('i18n'));
+      await page.locator('[data-key="i18n_action_update"]').click();
+      assert((await page.locator('#i18nModeDesc').innerText()).startsWith('Update Mode:'));
+      await page.evaluate(() => changeLanguage('zh'));
+      assert((await page.locator('#i18nModeDesc').innerText()).startsWith('更新 Mode：'), 'Changing UI language preserves the current action explanation');
       assert.deepEqual(errors, [], `${platform}: browser errors`);
-      console.log(`${platform}: 14 routes × 3 sizes, both themes/languages, search, keyboard, scrolling, size actions, fill preview/flow and safe custom titles passed.`);
+      console.log(`${platform}: 14 routes × 3 sizes, both themes/languages, direct-access grid, keyboard, scrolling, size actions, fill preview/flow and safe custom titles passed.`);
       await page.close();
     }
   } finally { await browser.close(); }

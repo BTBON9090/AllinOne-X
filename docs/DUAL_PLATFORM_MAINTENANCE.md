@@ -35,8 +35,7 @@
 
 - `shared/ui-shell.css`：语义颜色、字号、间距、滚动与通用控件。
 - `shared/ui-shell.js`：离线 Tabler 图标和遗留控件的渐进增强。
-- `shared/workspace-header.html`、`shared/workspace-home.html`：统一标题、全局查找和工具筛选模板。
-- `shared/workspace.js`：路由注册、任务分组、搜索、滚动恢复、主题跟随和数列设置披露。
+- `shared/workspace.js`：路由注册、直接访问导航、滚动恢复、主题跟随和数列设置披露。首页直接呈现全部工具，不再生成重复页头和搜索/分类模板。
 - `shared/fill-generators.js`：无宿主依赖的数列与时间序列函数。
 
 执行 `npm run sync:ui` 更新两端 HTML 内标记区；不要直接修改生成的标记区。主线程的宿主 API 仍各自维护，避免将平台差异伪装成相同实现。
