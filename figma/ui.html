@@ -4818,6 +4818,9 @@
 
 
 
+
+
+
 <!-- shared-shell-style:start -->
 <style>
 :root {
@@ -5053,6 +5056,11 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
 #sfAffixText { flex:1; width:0; min-width:36px; height:28px; min-height:28px; padding-inline:6px; font-size:11px !important; line-height:16px !important; }
 #sfAffixApply { width:26px; height:28px; background:var(--primary-light); color:var(--primary); padding:5px; }
 [data-fill-action]:disabled { opacity:.5; cursor:progress; }
+.custom-editor-footer { align-items:center; gap:6px; }
+.custom-editor-fill-button { display:inline-flex; align-items:center; justify-content:center; flex:0 0 32px; width:32px; height:30px; padding:7px; border:0; background:var(--bg-muted); color:var(--primary); cursor:pointer; }
+.custom-editor-fill-button:hover { background:var(--primary-light); }
+.custom-editor-fill-status { flex-shrink:0; padding:6px 10px; font-size:11px; line-height:16px; color:var(--text-secondary); }
+.custom-editor-fill-status.has-error { color:var(--danger); }
 .tool-greeting { display:flex; padding:6px 12px 0; flex-shrink:0; }
 .tool-greeting .dash-greeting { display:block; flex:1; min-width:0; min-height:32px; margin:0; padding:4px 0; border:0; background:transparent; color:var(--text-primary); font-size:18px; line-height:24px !important; font-weight:700; letter-spacing:-.3px; text-align:left; white-space:normal; text-wrap:balance; overflow-wrap:anywhere; }
 .tool-greeting .dash-greeting:hover { color:var(--primary); }
@@ -6274,13 +6282,16 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
                 </div>
               </div>
             </div>
-            <div class="sub-footer">
+            <div id="customEditorFillStatus" class="custom-editor-fill-status" role="status" aria-live="polite" hidden></div>
+            <div class="sub-footer custom-editor-footer">
               <button class="primary-btn" onclick="saveCustomList()" style="flex: 1;">
                 <span style="display: flex; align-items: center; justify-content: center; gap: 6px;">
                   <span>💾</span>
                   <span data-key="sf_btn_save">保存</span>
                 </span>
               </button>
+              <button id="customEditorOrderFill" class="custom-editor-fill-button" type="button" data-fill-action data-smart-icon="list" onclick="runCustomEditorFill('order')" title="顺序录入当前内容" aria-label="顺序录入当前内容"></button>
+              <button id="customEditorRandomFill" class="custom-editor-fill-button" type="button" data-fill-action data-smart-icon="arrows-shuffle" onclick="runCustomEditorFill('random')" title="随机录入当前内容" aria-label="随机录入当前内容"></button>
             </div>
           </div>
 
@@ -7172,6 +7183,7 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
         sf_custom_random: "随机",
         sf_btn_save_list: "💾 存为自定义列表",
         sf_sub_add_title: "添加自定义数据",
+        sf_sub_edit_title: "编辑自定义数据",
         sf_sub_cfg_title: "AI 模型配置",
         // ... 原有 Smart Fill 翻译 ...
 
@@ -7898,6 +7910,7 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
         sf_custom_random: "Random",
         sf_btn_save_list: "💾 Save as List",
         sf_sub_add_title: "Add Custom Data",
+        sf_sub_edit_title: "Edit Custom Data",
         sf_sub_cfg_title: "AI Config",
         // ... Existing Smart Fill translations ...
 
@@ -10639,10 +10652,12 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
             setSmartFillBusy(false);
             const status = document.getElementById('smartFillStatus');
             if (status) { status.textContent = '生成填充内容失败：' + error.message; status.classList.add('has-error'); }
+            if (document.getElementById('pageAddCustom').classList.contains('open')) setCustomEditorFillStatus((curLang === 'en' ? 'Could not prepare fill content: ' : '生成填充内容失败：') + error.message, true);
           }
       }
       if (msg.type === 'smart-fill-result') {
           setSmartFillBusy(false);
+          if (document.getElementById('pageAddCustom').classList.contains('open')) setCustomEditorFillStatus(msg.message, Boolean(msg.errors?.length));
           const status = document.getElementById('smartFillStatus');
           if (status) {
               status.textContent = msg.message;
@@ -13156,6 +13171,7 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
           window.pendingFillTask = null;
           setSmartFillBusy(false);
           document.getElementById('smartFillStatus').textContent = '请先选择可见文本或包含文本的画板';
+          if (document.getElementById('pageAddCustom').classList.contains('open')) setCustomEditorFillStatus(curLang === 'en' ? 'Select visible text or frames containing text first.' : document.getElementById('smartFillStatus').textContent, true);
           return;
       }
 
@@ -13563,24 +13579,49 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
 
     let currentEditingIndex = -1; // 记录当前编辑的索引，-1 表示新增
 
+    function setCustomEditorFillStatus(message, hasError = false) {
+        const status = document.getElementById('customEditorFillStatus');
+        status.textContent = message;
+        status.hidden = !message;
+        status.classList.toggle('has-error', hasError);
+    }
+
+    function runCustomEditorFill(distribution) {
+        if (window.smartFillBusy) return;
+        const list = document.getElementById('customContent').value.split('\n').filter(line => line.trim());
+        if (!list.length) {
+            setCustomEditorFillStatus(curLang === 'en' ? 'Enter at least one item to fill.' : '请先输入至少一条录入内容', true);
+            document.getElementById('customContent').focus();
+            return;
+        }
+        setCustomEditorFillStatus(curLang === 'en' ? 'Filling…' : '正在录入…');
+        beginSmartFill({ type: 'custom', dataList: list, distribution });
+    }
+
     function editCustomList(index, e) {
         e.stopPropagation();
         currentEditingIndex = index;
+        setCustomEditorFillStatus('');
         const item = customDataLists[index];
 
         document.getElementById('customTitle').value = item.title;
         document.getElementById('customContent').value = item.list.join('\n');
 
         // 修改标题和按钮文字
-        document.querySelector('#pageAddCustom .sub-header span:last-child').innerText = "编辑自定义数据";
+        const title = document.querySelector('#pageAddCustom .sub-header span:last-child');
+        title.dataset.key = 'sf_sub_edit_title';
+        title.innerText = i18n[curLang].sf_sub_edit_title;
         openSubPage('pageAddCustom');
     }
 
     function openAddCustomPage() {
         currentEditingIndex = -1;
+        setCustomEditorFillStatus('');
         document.getElementById('customTitle').value = '';
         document.getElementById('customContent').value = '';
-        document.querySelector('#pageAddCustom .sub-header span:last-child').innerText = "添加自定义数据";
+        const title = document.querySelector('#pageAddCustom .sub-header span:last-child');
+        title.dataset.key = 'sf_sub_add_title';
+        title.innerText = i18n[curLang].sf_sub_add_title;
         // 隐藏清除按钮
         const clearBtn = document.getElementById('customTitleClearBtn');
         if (clearBtn) clearBtn.classList.add('hidden');
@@ -17007,6 +17048,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
 
 
+
+
+
 <!-- shared-shell-script:start -->
 <script>
 /* Tabler Icons (MIT), embedded offline by scripts/sync-ui-shell.mjs. */
@@ -17511,6 +17555,13 @@ function generateSmartTimeSeries(count, settings) {
     $('sfAffixText').setAttribute('aria-label', l('自定义前后缀字符，支持空格', 'Custom affix characters, including spaces'));
     $('sfAffixApply').title = l('将字符添加到现有文字的前面或后面', 'Add these characters before or after existing text');
     $('sfAffixApply').setAttribute('aria-label', l('添加自定义字符', 'Add custom characters'));
+    for (const [id, title] of [
+      ['customEditorOrderFill', l('顺序录入当前内容', 'Fill current content in order')],
+      ['customEditorRandomFill', l('随机录入当前内容', 'Fill current content randomly')]
+    ]) {
+      $(id).title = title;
+      $(id).setAttribute('aria-label', title);
+    }
     updateGreeting();
     nav('size').querySelector('.nav-text').textContent = l('尺寸助手', 'Size assistant');
     cards.forEach(card => {

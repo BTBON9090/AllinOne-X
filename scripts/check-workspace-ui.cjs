@@ -230,6 +230,50 @@ fs.mkdirSync(output, { recursive:true });
         const bar = await page.locator('#smartAffixBar').boundingBox(), add = await page.locator('#sfAffixApply').boundingBox();
         assert(bar.y + bar.height <= (compact ? 440 : 600) && add.x + add.width <= (compact ? 340 : 440), 'Affix actions remain inside the viewport');
       }
+      // The editor's icon-only actions fill the current draft without saving it.
+      const savedBeforeEditorFill = await page.evaluate(() => JSON.stringify(customDataLists));
+      await page.locator('#smartCustomList [data-smart-icon="pencil"]').first().click();
+      assert.equal(await page.locator('#pageAddCustom .custom-editor-fill-button').count(), 2);
+      assert(await page.locator('#pageAddCustom .custom-editor-fill-button').evaluateAll(buttons => buttons.every(button =>
+        !button.textContent.trim() && button.querySelector('svg') && button.getAttribute('aria-label') && button.title
+      )), 'Editor fill buttons show only icons with accessible names and hints');
+      await page.locator('#customContent').fill('乙\n\n甲');
+      await page.locator('#customEditorOrderFill').click();
+      assert(await page.locator('#customEditorRandomFill').isDisabled());
+      await page.locator('#customContent').fill('丙');
+      const draftOrder = await replyCount();
+      assert.deepEqual(draftOrder.dataList, ['乙','甲'], 'The draft keeps its line order and is captured at click time');
+      assert.equal(draftOrder.distribution, 'order');
+      assert.equal(draftOrder.mode, 'prefix', 'Editor actions honor the shared affix setting');
+      await finishFill();
+      assert(await page.locator('#pageAddCustom').isVisible(), 'Fill keeps the editor open');
+      assert((await page.locator('#customEditorFillStatus').innerText()).includes('2'));
+      await page.locator('#customEditorRandomFill').click();
+      const draftRandom = await replyCount();
+      assert.deepEqual(draftRandom.dataList, ['丙']);
+      assert.equal(draftRandom.distribution, 'random');
+      await finishFill();
+      assert.equal(await page.evaluate(() => JSON.stringify(customDataLists)), savedBeforeEditorFill, 'Filling does not save draft edits');
+      await page.locator('#customContent').fill(' \n\n');
+      const beforeEmptyDraft = await page.evaluate(() => __sent.length);
+      await page.locator('#customEditorOrderFill').click();
+      assert.equal(await page.evaluate(() => __sent.length), beforeEmptyDraft, 'Empty drafts send no fill request');
+      assert(await page.locator('#customEditorFillStatus').isVisible());
+      await page.locator('#customContent').fill('设计\n产品\n研发');
+      await page.locator('#customEditorOrderFill').click();
+      await page.evaluate(() => window.dispatchEvent(new MessageEvent('message', { data:{ pluginMessage:{ type:'selection-count-res', count:0, nodeIds:[] } } })));
+      assert(!(await page.locator('#customEditorOrderFill').isDisabled()), 'No selection releases editor fill actions');
+      for (const compact of [false,true]) {
+        await page.setViewportSize(compact ? { width:340,height:440 } : { width:440,height:600 });
+        await page.evaluate(compact => { setCompactMode(compact); changeLanguage(compact ? 'en' : 'zh'); setCustomEditorFillStatus(''); }, compact);
+        assert.equal(await page.locator('#pageAddCustom .sub-header > span:last-child').innerText(), compact ? 'Edit Custom Data' : '编辑自定义数据', 'Language switching preserves edit mode');
+        await screenshot({ path:path.join(output, `${platform}-custom-editor-${compact ? 'compact' : 'normal'}.png`) });
+        assert(await page.locator('#pageAddCustom .custom-editor-fill-button').evaluateAll(buttons => buttons.every(button => {
+          const box = button.getBoundingClientRect();
+          return box.right <= innerWidth && box.bottom <= innerHeight;
+        })), 'Both editor fill icons remain visible in normal and compact windows');
+      }
+      await page.locator('#pageAddCustom .btn-back-sub').click();
       await page.locator('#sfSuffix').check();
       await page.locator('#sfAffixText').fill('， ');
       await page.locator('#sfAffixText').press('Enter');

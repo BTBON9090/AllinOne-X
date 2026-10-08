@@ -153,6 +153,13 @@
     $('sfAffixText').setAttribute('aria-label', l('自定义前后缀字符，支持空格', 'Custom affix characters, including spaces'));
     $('sfAffixApply').title = l('将字符添加到现有文字的前面或后面', 'Add these characters before or after existing text');
     $('sfAffixApply').setAttribute('aria-label', l('添加自定义字符', 'Add custom characters'));
+    for (const [id, title] of [
+      ['customEditorOrderFill', l('顺序录入当前内容', 'Fill current content in order')],
+      ['customEditorRandomFill', l('随机录入当前内容', 'Fill current content randomly')]
+    ]) {
+      $(id).title = title;
+      $(id).setAttribute('aria-label', title);
+    }
     updateGreeting();
     nav('size').querySelector('.nav-text').textContent = l('尺寸助手', 'Size assistant');
     cards.forEach(card => {
