@@ -12,7 +12,8 @@
     "check:parity": "node scripts/check-dual-platform.mjs",
     "check:smart-fill": "node scripts/check-smart-fill.mjs",
     "check:fill-generators": "node scripts/check-fill-generators.mjs",
+    "check:chinese-names": "node scripts/check-chinese-names.mjs",
     "check:workspace-ui": "node scripts/check-workspace-ui.cjs",
-    "verify": "npm run sync:ui && npm run verify:figma && npm run verify:mastergo && npm run check:parity && npm run check:smart-fill && npm run check:fill-generators"
+    "verify": "npm run sync:ui && npm run verify:figma && npm run verify:mastergo && npm run check:parity && npm run check:smart-fill && npm run check:fill-generators && npm run check:chinese-names"
   }
 }
