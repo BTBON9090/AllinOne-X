@@ -225,6 +225,8 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
 .smart-custom-fill { min-height:26px; padding:5px 6px; border:0; background:var(--bg-muted); color:var(--text-secondary); font-size:11px; }
 .smart-custom-actions .smart-setting-btn { width:24px; height:26px; padding:4px; background:transparent; }
 .smart-custom-fill:hover, .smart-setting-btn:hover { background:var(--primary-light); color:var(--primary); }
+#smartCustom > .smart-footer button { display:inline-flex; align-items:center; justify-content:center; gap:6px; height:30px; min-height:30px; box-sizing:border-box; padding:0 10px !important; }
+#smartCustom > .smart-footer .btn-ai-action { width:30px; padding:0 !important; }
 .smart-affix-bar { display:flex; align-items:center; gap:6px; padding:8px 10px; }
 .smart-affix-bar .check-item { flex-shrink:0; gap:3px; font-size:11px; line-height:16px; white-space:nowrap; }
 .smart-affix-bar input[type="checkbox"] { margin:0; width:13px; height:13px; }
