@@ -1,5 +1,7 @@
 // @ts-nocheck
 declare const __html__: string;
+declare let pluginUiLanguage: string;
+declare function notifyInUiLanguage(message: string, options?: any): any;
 // -------------------------------------------------------------
 // 【更新】高级命名转换函数 (支持清除隐藏标记)
 // -------------------------------------------------------------
@@ -1122,6 +1124,8 @@ figma.on('selectionchange', () => {
 
 figma.ui.onmessage = async (msg) => {
   if (!msg || !msg.type) return;
+  if (msg.uiLanguage === 'en' || msg.uiLanguage === 'zh') pluginUiLanguage = msg.uiLanguage;
+  if (msg.type === 'ui-language-changed') { pluginUiLanguage = msg.language === 'en' ? 'en' : 'zh'; return; }
   // 新增：专治跨域不服！拦截 'do-fetch' 指令，由后台沙箱代发请求
   // =======================================================
   if (msg.type === 'do-fetch') {
@@ -1156,7 +1160,7 @@ figma.ui.onmessage = async (msg) => {
       const { dataList, mode, distribution } = msg;
       const report = (count: number, errors: string[] = [], message = '') => {
         const summary = message || `已填充 ${count} 个文本${errors.length ? `，${errors.length} 项失败：${errors[0]}` : ''}`;
-        figma.notify(summary);
+        notifyInUiLanguage(summary);
         figma.ui.postMessage({ type: 'smart-fill-result', count, errors, message: summary });
       };
       if (!Array.isArray(dataList) || dataList.length === 0) {
@@ -1213,7 +1217,7 @@ figma.ui.onmessage = async (msg) => {
     // 3. 存储/读取配置 (ClientStorage)
     case 'save-storage': {
       await figma.clientStorage.setAsync(msg.key, msg.value);
-      if (msg.notify) figma.notify("配置已保存");
+      if (msg.notify) notifyInUiLanguage("配置已保存");
       figma.ui.postMessage({ type: 'storage-saved', key: msg.key, value: msg.value });
       break;
     }
@@ -1235,7 +1239,7 @@ figma.ui.onmessage = async (msg) => {
     // ===========================
 
     case 'to-frame': {
-      if (selection.length === 0) { figma.notify("请选择形状"); return; }
+      if (selection.length === 0) { notifyInUiLanguage("请选择形状"); return; }
       const newSelection: FrameNode[] = [];
       const selCopy = [...selection];
       for (const node of selCopy) {
@@ -1263,12 +1267,12 @@ figma.ui.onmessage = async (msg) => {
         newSelection.push(frame);
       }
       if (newSelection.length > 0) figma.currentPage.selection = newSelection;
-      figma.notify("已转换为 Frame");
+      notifyInUiLanguage("已转换为 Frame");
       break;
     }
 
     case 'to-rect': {
-      if (selection.length === 0) { figma.notify("请选择图层"); return; }
+      if (selection.length === 0) { notifyInUiLanguage("请选择图层"); return; }
       const newSelection: RectangleNode[] = [];
       const selCopy = [...selection];
       for (const node of selCopy) {
@@ -1313,7 +1317,7 @@ figma.ui.onmessage = async (msg) => {
           count++;
         }
       }
-      if (count > 0) figma.notify("已交换填充/描边");
+      if (count > 0) notifyInUiLanguage("已交换填充/描边");
       break;
     }
 
@@ -1338,13 +1342,13 @@ figma.ui.onmessage = async (msg) => {
         if (n.children) n.children.forEach(rm);
       }
       selection.forEach(rm);
-      figma.notify(`移除 ${count} 个自动布局`);
+      notifyInUiLanguage(`移除 ${count} 个自动布局`);
       break;
     }
 
     case 'add-al-wrapper': {
       const newSelection = [];
-      if (selection.length === 0) { figma.notify("请选择图层"); return; }
+      if (selection.length === 0) { notifyInUiLanguage("请选择图层"); return; }
       for (const node of selection) {
         if (node.removed || !node.parent) continue;
         const frame = figma.createFrame();
@@ -1367,7 +1371,7 @@ figma.ui.onmessage = async (msg) => {
       }
       if (newSelection.length > 0) {
         figma.currentPage.selection = newSelection;
-        figma.notify("已添加自动布局外套");
+        notifyInUiLanguage("已添加自动布局外套");
       }
       break;
     }
@@ -1380,7 +1384,7 @@ figma.ui.onmessage = async (msg) => {
         if (lines.length <= 1) continue;
         let font: FontName = node.fontName;
         if (font === figma.mixed) font = node.getRangeFontName(0, 1) as FontName;
-        try { await figma.loadFontAsync(font); } catch (e) { figma.notify("字体加载失败"); continue; }
+        try { await figma.loadFontAsync(font); } catch (e) { notifyInUiLanguage("字体加载失败"); continue; }
         let cy = node.y;
         for (const l of lines) {
           if (!l.trim()) continue;
@@ -1395,10 +1399,10 @@ figma.ui.onmessage = async (msg) => {
 
     case 'join-text': {
       const tNodes = selection.filter(n => n.type === 'TEXT').sort((a, b) => Math.abs(a.y - b.y) > 5 ? a.y - b.y : a.x - b.x);
-      if (tNodes.length < 2) { figma.notify("请选2个以上文本"); return; }
+      if (tNodes.length < 2) { notifyInUiLanguage("请选2个以上文本"); return; }
       let font: FontName = tNodes[0].fontName;
       if (font === figma.mixed) font = tNodes[0].getRangeFontName(0, 1) as FontName;
-      try { await figma.loadFontAsync(font); } catch (e) { figma.notify("字体加载失败"); return; }
+      try { await figma.loadFontAsync(font); } catch (e) { notifyInUiLanguage("字体加载失败"); return; }
       const txt = tNodes.map(n => n.characters).join('\n');
       const nt = tNodes[0].clone(); nt.characters = txt; nt.textAutoResize = 'HEIGHT';
       tNodes.forEach(n => n.remove());
@@ -1454,13 +1458,13 @@ figma.ui.onmessage = async (msg) => {
         else if ('findOne' in n) { const t = (n as any).findOne((x:any) => x.type === 'TEXT'); if (t) name = t.characters; }
         if (name) n.name = name.substring(0, 20);
       });
-      figma.notify("已重命名");
+      notifyInUiLanguage("已重命名");
       break;
     }
 
     case 'detach-all': {
       const sel = figma.currentPage.selection;
-      if (sel.length === 0) { figma.notify("请先选中图层"); return; }
+      if (sel.length === 0) { notifyInUiLanguage("请先选中图层"); return; }
       const targets: InstanceNode[] = [];
       const scan = (n: any) => {
         if ('children' in n) {
@@ -1469,13 +1473,13 @@ figma.ui.onmessage = async (msg) => {
         if (n.type === 'INSTANCE') targets.push(n);
       };
       sel.forEach(scan);
-      if (targets.length === 0) { figma.notify("未找到可解绑的实例"); return; }
+      if (targets.length === 0) { notifyInUiLanguage("未找到可解绑的实例"); return; }
       for (const node of targets) {
         if (!node.removed) {
           try { node.detachInstance(); } catch (e) {}
         }
       }
-      figma.notify(`已解绑 ${targets.length} 个组件`);
+      notifyInUiLanguage(`已解绑 ${targets.length} 个组件`);
       break;
     }
 
@@ -1488,7 +1492,7 @@ figma.ui.onmessage = async (msg) => {
       }
       let count = 0;
       h.reverse().forEach(n => { if (!n.removed) { n.remove(); count++; } });
-      figma.notify(`已删除 ${count} 个隐藏图层`);
+      notifyInUiLanguage(`已删除 ${count} 个隐藏图层`);
       break;
     }
 
@@ -1503,11 +1507,11 @@ figma.ui.onmessage = async (msg) => {
             const result = Math.abs(diffY) > 2 ? diffY : diffX;
             return isReverse ? -result : result;
           }).forEach(n => p!.appendChild(n));
-          figma.notify(isReverse ? "已反转排列（从下到上）" : "已排列（从上到下）");
+          notifyInUiLanguage(isReverse ? "已反转排列（从下到上）" : "已排列（从上到下）");
           layerSortDirection = isReverse ? 'asc' : 'desc';
         }
       } else {
-        figma.notify("请至少选择两个同级图层");
+        notifyInUiLanguage("请至少选择两个同级图层");
       }
       break;
     }
@@ -1525,7 +1529,7 @@ figma.ui.onmessage = async (msg) => {
         targets = [...(selection[0] as any).children];
       }
       if (!p || targets.length < 2) {
-        figma.notify("请选择至少两个同级图层，或选择一个包含多个子图层的容器");
+        notifyInUiLanguage("请选择至少两个同级图层，或选择一个包含多个子图层的容器");
         return;
       }
       const isReverse = (layerNameSortDirection === 'desc');
@@ -1533,7 +1537,7 @@ figma.ui.onmessage = async (msg) => {
         const cmp = a.name < b.name ? -1 : (a.name > b.name ? 1 : 0);
         return isReverse ? -cmp : cmp;
       }).forEach(n => p!.appendChild(n));
-      figma.notify(isReverse ? "已按名称倒序排列（Z→A）" : "已按名称排序（A→Z）");
+      notifyInUiLanguage(isReverse ? "已按名称倒序排列（Z→A）" : "已按名称排序（A→Z）");
       layerNameSortDirection = isReverse ? 'asc' : 'desc';
       break;
     }
@@ -1554,7 +1558,7 @@ figma.ui.onmessage = async (msg) => {
           count++;
         }
       }
-      figma.notify(`已解散 ${count} 个组`);
+      notifyInUiLanguage(`已解散 ${count} 个组`);
       break;
     }
 
@@ -1565,12 +1569,12 @@ figma.ui.onmessage = async (msg) => {
         if ('children' in n) n.children.forEach(ul);
       }
       selection.forEach(ul);
-      figma.notify(`已解锁 ${count} 个图层`);
+      notifyInUiLanguage(`已解锁 ${count} 个图层`);
       break;
     }
 
     case 'pixel-perfect': {
-      if (selection.length === 0) { figma.notify("请选择图层"); return; }
+      if (selection.length === 0) { notifyInUiLanguage("请选择图层"); return; }
       let count = 0;
       for (const node of selection) {
         if (!node.removed) {
@@ -1583,24 +1587,24 @@ figma.ui.onmessage = async (msg) => {
           count++;
         }
       }
-      figma.notify(`已对齐 ${count} 个图层`);
+      notifyInUiLanguage(`已对齐 ${count} 个图层`);
       break;
     }
 
     case 'swap-positions': {
-      if (selection.length !== 2) { figma.notify("请严格选择 2 个图层进行交换"); return; }
+      if (selection.length !== 2) { notifyInUiLanguage("请严格选择 2 个图层进行交换"); return; }
       const n1 = selection[0];
       const n2 = selection[1];
       const x1 = n1.x, y1 = n1.y;
       n1.x = n2.x; n1.y = n2.y;
       n2.x = x1; n2.y = y1;
-      figma.notify("位置已互换");
+      notifyInUiLanguage("位置已互换");
       break;
     }
 
     case 'create-styles': {
       console.log("=== 开始执行创建样式 ===");
-      if (selection.length === 0) { figma.notify("请选择图层"); return; }
+      if (selection.length === 0) { notifyInUiLanguage("请选择图层"); return; }
       let createdCount = 0;
       const conflicts: string[] = [];
       const errors: string[] = [];
@@ -1665,21 +1669,21 @@ figma.ui.onmessage = async (msg) => {
             }
           }
         }
-      } catch (e) { console.error("全局错误:", e); figma.notify("样式创建失败: " + String(e).slice(0, 50)); return; }
+      } catch (e) { console.error("全局错误:", e); notifyInUiLanguage("样式创建失败: " + String(e).slice(0, 50)); return; }
 
       const parts = [];
       if (createdCount > 0) parts.push(`新建 ${createdCount} 个`);
       if (conflicts.length > 0) parts.push(`跳过重复 ${conflicts.length} 个`);
       if (errors.length > 0) parts.push(`失败 ${errors.length} 个`);
-      if (parts.length > 0) figma.notify(parts.join('，'));
-      else figma.notify("未发现可创建的样式（选中的图层可能没有填充/文本/效果属性）");
+      if (parts.length > 0) notifyInUiLanguage(parts.join('，'));
+      else notifyInUiLanguage("未发现可创建的样式（选中的图层可能没有填充/文本/效果属性）");
       break;
     }
 
     case 'match-styles': {
       console.log("=== 开始匹配样式 ===");
       const sel = figma.currentPage.selection;
-      if (sel.length === 0) { figma.notify("请先选择范围"); return; }
+      if (sel.length === 0) { notifyInUiLanguage("请先选择范围"); return; }
       let countFill = 0, countStroke = 0, countText = 0, countEffect = 0;
       try {
         const paints = await figma.getLocalPaintStylesAsync();
@@ -1738,11 +1742,11 @@ figma.ui.onmessage = async (msg) => {
         };
 
         for (const node of sel) await traverse(node);
-      } catch (e) { console.error(e); figma.notify("匹配出错"); return; }
+      } catch (e) { console.error(e); notifyInUiLanguage("匹配出错"); return; }
 
       const total = countFill + countStroke + countText + countEffect;
-      if (total > 0) figma.notify(`匹配成功: 填充${countFill} / 描边${countStroke} / 文本${countText} / 效果${countEffect}`);
-      else figma.notify("未发现可匹配的样式");
+      if (total > 0) notifyInUiLanguage(`匹配成功: 填充${countFill} / 描边${countStroke} / 文本${countText} / 效果${countEffect}`);
+      else notifyInUiLanguage("未发现可匹配的样式");
       break;
     }
 
@@ -1754,7 +1758,7 @@ figma.ui.onmessage = async (msg) => {
       if (sel.length > 0) {
         figma.ui.postMessage({ type: 'update-name-input', name: sel[0].name });
       } else {
-        figma.notify("请先选择一个图层以获取名称");
+        notifyInUiLanguage("请先选择一个图层以获取名称");
       }
       break;
     }
@@ -1775,7 +1779,7 @@ figma.ui.onmessage = async (msg) => {
         if (f.scope === 'inside') {
             // 模式：内在元素 (不包含选中项本身)
             if (sel.length === 0) {
-                figma.notify("⚠️ 请先选择一个容器(Frame/Group)");
+                notifyInUiLanguage("⚠️ 请先选择一个容器(Frame/Group)");
                 return;
             }
             for (const node of sel) {
@@ -1789,7 +1793,7 @@ figma.ui.onmessage = async (msg) => {
         else if (f.scope === 'children') {
             // 模式：仅直系子级
             if (sel.length === 0) {
-                figma.notify("⚠️ 请先选择一个容器(Frame/Group)");
+                notifyInUiLanguage("⚠️ 请先选择一个容器(Frame/Group)");
                 return;
             }
             for (const node of sel) {
@@ -1804,7 +1808,7 @@ figma.ui.onmessage = async (msg) => {
                 const siblings = sel[0].parent.children.filter(n => !sel.includes(n));
                 searchTargets.push(...siblings);
             } else {
-                figma.notify("⚠️ 请先选择一个图层");
+                notifyInUiLanguage("⚠️ 请先选择一个图层");
                 return;
             }
         }
@@ -2053,7 +2057,7 @@ figma.ui.onmessage = async (msg) => {
         if (results.length > 0) {
             figma.currentPage.selection = results;
             figma.viewport.scrollAndZoomIntoView(results);
-            figma.notify(`✅ 已选中 ${results.length} 个图层`);
+            notifyInUiLanguage(`✅ 已选中 ${results.length} 个图层`);
 
             // 🔥 新增：将结果回传给 UI
             figma.ui.postMessage({
@@ -2063,7 +2067,7 @@ figma.ui.onmessage = async (msg) => {
             });
 
         } else {
-            figma.notify("⚠️ 未找到图层，请检查 Console的筛选池大小");
+            notifyInUiLanguage("⚠️ 未找到图层，请检查 Console的筛选池大小");
             figma.ui.postMessage({ type: 'found-layers-result', count: 0, layers: [] });
         }
         break;
@@ -2129,7 +2133,7 @@ figma.ui.onmessage = async (msg) => {
 
                         // C. 只有多选时才提示，单选静默，体验最好
                         if (targets.length > 1) {
-                            figma.notify(`已定位 ${targets.length} 项`);
+                            notifyInUiLanguage(`已定位 ${targets.length} 项`);
                         }
                     }
 
@@ -2150,7 +2154,7 @@ figma.ui.onmessage = async (msg) => {
       // 必须恰好选中两个容器 (Frame/Group/Section/Component 等)
       const containers = sel.filter(n => 'children' in n);
       if (sel.length !== 2 || containers.length !== 2) {
-        figma.notify("请在画布上选中恰好两个画板/容器");
+        notifyInUiLanguage("请在画布上选中恰好两个画板/容器");
         return;
       }
       const [cA, cB] = containers;
@@ -2248,7 +2252,7 @@ figma.ui.onmessage = async (msg) => {
         next = nodes;
       }
       figma.currentPage.selection = next;
-      figma.notify(`已选中 ${next.length} 个图层`);
+      notifyInUiLanguage(`已选中 ${next.length} 个图层`);
       break;
     }
 
@@ -2331,10 +2335,10 @@ figma.ui.onmessage = async (msg) => {
 
         let msgTxt = `已标记 左红 ${redCount} 个 · 右绿 ${greenCount} 个`;
         if (skipped > 0) msgTxt += `（跳过 ${skipped} 个）`;
-        figma.notify(msgTxt);
+        notifyInUiLanguage(msgTxt);
       } catch (e: any) {
         console.error('[dup-fill-red] 异常:', e);
-        figma.notify('填充失败：' + (e && e.message ? e.message : String(e)));
+        notifyInUiLanguage('填充失败：' + (e && e.message ? e.message : String(e)));
       }
       break;
     }
@@ -2344,7 +2348,7 @@ figma.ui.onmessage = async (msg) => {
     // ===========================
     case 'find-replace': {
       const { findText, replaceText } = msg;
-      if (!findText) { figma.notify("请输入查找内容，注意区分大小写"); return; }
+      if (!findText) { notifyInUiLanguage("请输入查找内容，注意区分大小写"); return; }
 
       // 确定范围：如果有选区则在选区内查，否则在全页查
       const scope = selection.length > 0 ? selection : [figma.currentPage];
@@ -2358,7 +2362,7 @@ figma.ui.onmessage = async (msg) => {
       };
       scope.forEach(collect);
 
-      if (textNodes.length === 0) { figma.notify("范围内没有文本"); return; }
+      if (textNodes.length === 0) { notifyInUiLanguage("范围内没有文本"); return; }
 
       // 批量处理
       for (const node of textNodes) {
@@ -2382,8 +2386,8 @@ figma.ui.onmessage = async (msg) => {
         }
       }
 
-      if (count > 0) figma.notify(`已替换 ${count} 处文本`);
-      else figma.notify("未找到匹配内容");
+      if (count > 0) notifyInUiLanguage(`已替换 ${count} 处文本`);
+      else notifyInUiLanguage("未找到匹配内容");
       break;
     }
 
@@ -2395,7 +2399,7 @@ figma.ui.onmessage = async (msg) => {
 
       // --- 修复点 1：安全检查不通过时，要告诉 UI 重置按钮 ---
       if (!pageName.includes('copy') && !pageName.includes('副本')) {
-        figma.notify("⚠️ 请先将 Page 重命名为 'xxx 副本' 以确保安全！", {error: true});
+        notifyInUiLanguage("⚠️ 请先将 Page 重命名为 'xxx 副本' 以确保安全！", {error: true});
         // 发送一个 'step-error' 消息给 UI，让它停止转圈
         figma.ui.postMessage({ type: 'step-error', step: 1 });
         return;
@@ -2404,7 +2408,7 @@ figma.ui.onmessage = async (msg) => {
       const slides = getSlides();
       // --- 修复点 2：没选图层时，也要告诉 UI 重置按钮 ---
       if (slides.length === 0) {
-        figma.notify("请至少选择一个 Frame 画板");
+        notifyInUiLanguage("请至少选择一个 Frame 画板");
         figma.ui.postMessage({ type: 'step-error', step: 1 });
         return;
       }
@@ -2623,7 +2627,7 @@ figma.ui.onmessage = async (msg) => {
                 }
             } catch (err) {}
         }
-        figma.notify(`✨ 已成功修复 ${count} 项命名`);
+        notifyInUiLanguage(`✨ 已成功修复 ${count} 项命名`);
         break;
     }
 
@@ -2646,7 +2650,7 @@ figma.ui.onmessage = async (msg) => {
         }
 
         if (searchPool.length === 0 && scope === 'selection') {
-            figma.notify("请先选择图层");
+            notifyInUiLanguage("请先选择图层");
             // 即使失败，也要发回空结果，以此重置前端按钮状态
             figma.ui.postMessage({ type: 'text-find-results', data: [] });
             return;
@@ -2689,7 +2693,7 @@ figma.ui.onmessage = async (msg) => {
         figma.ui.postMessage({ type: 'text-find-results', data: results });
 
         if (results.length === 0) {
-            figma.notify("未找到匹配文本");
+            notifyInUiLanguage("未找到匹配文本");
         }
         break;
     }
@@ -2725,7 +2729,7 @@ figma.ui.onmessage = async (msg) => {
                         node.setRangeFills(msg.index, msg.index + cachedData.length, cachedData.fills);
 
                         delete highlightCache[cacheKey];
-                        figma.notify("已还原颜色");
+                        notifyInUiLanguage("已还原颜色");
                         figma.ui.postMessage({ type: 'highlight-status', key: cacheKey, status: false });
 
                     } else {
@@ -2736,12 +2740,12 @@ figma.ui.onmessage = async (msg) => {
                         const highlightPaint = [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 } }];
                         node.setRangeFills(msg.index, msg.index + msg.length, highlightPaint);
 
-                        figma.notify("已标记 (再次点击可还原)");
+                        notifyInUiLanguage("已标记 (再次点击可还原)");
                         figma.ui.postMessage({ type: 'highlight-status', key: cacheKey, status: true });
                     }
                 }
             } else {
-                figma.notify("图层不存在 (可能已被删除)");
+                notifyInUiLanguage("图层不存在 (可能已被删除)");
             }
         } catch (e) {
             console.error("定位失败:", e);
@@ -2812,7 +2816,7 @@ figma.ui.onmessage = async (msg) => {
             processedUids: Array.from(processedIds)
         });
 
-        figma.notify(`已替换 ${successCount} 处文本`);
+        notifyInUiLanguage(`已替换 ${successCount} 处文本`);
         break;
     }
 
@@ -2837,7 +2841,7 @@ figma.ui.onmessage = async (msg) => {
             } catch(e) { console.log("还原失败", e) }
         }
         highlightCache = {}; // 清空池子
-        figma.notify(`已还原 ${count} 处高亮`);
+        notifyInUiLanguage(`已还原 ${count} 处高亮`);
         // 通知前端清除所有高亮样式
         figma.ui.postMessage({ type: 'clear-all-highlights-ui' });
         break;
@@ -2860,7 +2864,7 @@ figma.ui.onmessage = async (msg) => {
       let spots = dataStr ? JSON.parse(dataStr) :[];
 
       if (spots.length >= 5) {
-        figma.notify("最多只能保存 5 个锚点！");
+        notifyInUiLanguage("最多只能保存 5 个锚点！");
         return;
       }
 
@@ -2884,7 +2888,7 @@ figma.ui.onmessage = async (msg) => {
       spots.push(newSpot);
       figma.root.setPluginData('JUMPBACK_SPOTS', JSON.stringify(spots));
 
-      figma.notify("📍 位置已保存");
+      notifyInUiLanguage("📍 位置已保存");
       figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
       break;
     }
@@ -2906,7 +2910,7 @@ figma.ui.onmessage = async (msg) => {
             // === 修复点 2：在 dynamic-page 模式下，必须用 setCurrentPageAsync 切换页面 ===
             await figma.setCurrentPageAsync(targetPage as PageNode);
           } else {
-            figma.notify("⚠️ 该位置所在的页面已被删除！");
+            notifyInUiLanguage("⚠️ 该位置所在的页面已被删除！");
             return;
           }
         }
@@ -2938,10 +2942,10 @@ figma.ui.onmessage = async (msg) => {
            figma.currentPage.selection = [];
         }
 
-        figma.notify("🚀 已传送！");
+        notifyInUiLanguage("🚀 已传送！");
       } catch (e) {
         console.warn("Jumpback failed:", e);
-        figma.notify("传送失败，可能是图层结构已发生巨大改变");
+        notifyInUiLanguage("传送失败，可能是图层结构已发生巨大改变");
       }
       break;
     }
@@ -2959,7 +2963,7 @@ figma.ui.onmessage = async (msg) => {
 
       // 重新渲染 UI
       figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
-      figma.notify("🗑️ 锚点已删除");
+      notifyInUiLanguage("🗑️ 锚点已删除");
       break;
     }
 
@@ -2972,7 +2976,7 @@ figma.ui.onmessage = async (msg) => {
       if (index > -1 && msg.newName.trim() !== '') {
         spots[index].name = msg.newName.substring(0, 20); // 限制长度
         figma.root.setPluginData('JUMPBACK_SPOTS', JSON.stringify(spots));
-        figma.notify("已重命名");
+        notifyInUiLanguage("已重命名");
       } else {
          // 如果名字为空，发回原数据恢复 UI
          figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
@@ -3078,7 +3082,7 @@ figma.ui.onmessage = async (msg) => {
         const valid = selected.filter(node => node.type === 'FRAME' || node.type === 'RECTANGLE') as Array<FrameNode | RectangleNode>;
         if (!valid.length || !Number.isFinite(width) || !Number.isFinite(height)) {
             const message = '请先选择一个或多个 Frame / 矩形';
-            figma.notify(message, { error: true });
+            notifyInUiLanguage(message, { error: true });
             figma.ui.postMessage({ type: 'size-assistant-result', ok: false, message });
             break;
         }
@@ -3100,7 +3104,7 @@ figma.ui.onmessage = async (msg) => {
         }
         try { figma.commitUndo(); } catch (_) {}
         const message = `已将 ${resized} 个图层设为 ${width} × ${height}${warnings.length ? `，${warnings.length} 个图层调整失败` : ''}`;
-        figma.notify(message, warnings.length ? { error: true } : undefined);
+        notifyInUiLanguage(message, warnings.length ? { error: true } : undefined);
         figma.ui.postMessage({ type: 'size-assistant-result', ok: resized > 0, message, warnings });
         break;
     }
@@ -3238,15 +3242,15 @@ figma.ui.onmessage = async (msg) => {
                 const canonicalKey = normalizeI18nModeName(lang);
                 if (!modeIdMap[canonicalKey]) {
                     try {
-                        // 如果是免费版，这里会报错
+                        // The host enforces the collection's current mode capacity.
                         const newModeId = collection.addMode(lang);
                         modeIdMap[lang] = newModeId;
                         modeIdMap[canonicalKey] = newModeId;
                     } catch (e) {
-                        // 弹出明确的 Plan 限制提示
+                        // Explain the failed operation without assuming a fixed plan quota.
                         figma.ui.postMessage({
                             type: 'i18n-bind-error',
-                            error: `无法创建 "${lang}" 列。\n原因：Figma 免费版限制每个合集只能有 1 个 Mode（当前已有 "Original"）。\n\n建议：\n1. 升级 Figma 团队版\n2. 或使用插件的 "⚡ 直接替换" 模式。`
+                            error: `无法创建 "${lang}" 语言模式。当前合集可能已达到模式数量限制。可改用「直接替换」，或检查当前方案支持的模式数量。`
                         });
                         return; // 终止执行
                     }
@@ -3390,12 +3394,12 @@ figma.ui.onmessage = async (msg) => {
         figma.currentPage.selection = figma.currentPage.selection;
         figma.commitUndo();
         const message = `已应用 ${result.changed} 项组件规范优化${result.warnings.length ? `；${result.warnings.length} 项未能修改` : ''}`;
-        figma.notify(message);
+        notifyInUiLanguage(message);
         figma.ui.postMessage({ type: 'component-ai-applied', ok: true, message, warnings: result.warnings });
         sendComponentBuilderSelection();
       } catch (error) {
         const message = `应用失败：${String((error as any)?.message || error)}`;
-        figma.notify(message, { error: true });
+        notifyInUiLanguage(message, { error: true });
         figma.ui.postMessage({ type: 'component-ai-applied', ok: false, message });
       }
       break;
@@ -3404,13 +3408,13 @@ figma.ui.onmessage = async (msg) => {
     case 'component-builder-reverse': {
       if (selection.length !== 1 || selection[0].type !== 'INSTANCE') {
         const message = '请只选择一个实例（Instance）后再逆向母版';
-        figma.notify(message);
+        notifyInUiLanguage(message);
         figma.ui.postMessage({ type: 'component-builder-result', ok: false, message });
         break;
       }
       if (componentReverseRunning) {
         const message = '实例逆向正在处理中，请等待当前操作完成';
-        figma.notify(message);
+        notifyInUiLanguage(message);
         figma.ui.postMessage({ type: 'component-builder-result', ok: false, message });
         break;
       }
@@ -3421,7 +3425,7 @@ figma.ui.onmessage = async (msg) => {
         result = await reverseInstanceToMaster(selection[0] as InstanceNode);
       } catch (error) {
         const message = `逆向失败：${String((error as any)?.message || error)}`;
-        figma.notify(message);
+        notifyInUiLanguage(message);
         figma.ui.postMessage({ type: 'component-builder-result', ok: false, message });
       } finally {
         componentReverseRunning = false;
@@ -3447,7 +3451,7 @@ figma.ui.onmessage = async (msg) => {
         : '';
       const modeText = result.recoveryMode === 'raster' ? '（视觉快照兜底）' : '';
       const message = `已逆向组件母版${modeText}${overflowText}，并保留 ${result.propertyCount} 个有效属性${warningText}`;
-      figma.notify(message);
+      notifyInUiLanguage(message);
       figma.ui.postMessage({
         type: 'component-builder-result',
         ok: true,
@@ -3465,7 +3469,7 @@ figma.ui.onmessage = async (msg) => {
       const frames = selection.filter(node => node.type === 'FRAME') as FrameNode[];
       if (selection.length === 0 || frames.length !== selection.length) {
         const message = '请选择一个或多个 Frame；当前选择中不能混入其他图层类型';
-        figma.notify(message);
+        notifyInUiLanguage(message);
         figma.ui.postMessage({ type: 'component-builder-result', ok: false, message });
         break;
       }
@@ -3474,7 +3478,7 @@ figma.ui.onmessage = async (msg) => {
       });
       if (connectorFrames.length > 0) {
         const message = `有 ${connectorFrames.length} 个 Frame 连接了原型连线；为避免连接目标丢失，本次未转换`;
-        figma.notify(message);
+        notifyInUiLanguage(message);
         figma.ui.postMessage({ type: 'component-builder-result', ok: false, message });
         break;
       }
@@ -3491,7 +3495,7 @@ figma.ui.onmessage = async (msg) => {
           const message = mode === 'set' || mode === 'language'
             ? '创建组件集时，所选 Frame 必须位于同一父级'
             : '合并为单个组件时，所选 Frame 必须位于同一父级';
-          figma.notify(message);
+          notifyInUiLanguage(message);
           figma.ui.postMessage({ type: 'component-builder-result', ok: false, message });
           break;
         }
@@ -3580,7 +3584,7 @@ figma.ui.onmessage = async (msg) => {
           .filter(Boolean)
           .join('、');
         const message = `已创建${typeLabel}${exposedLabel ? `，并生成${exposedLabel}` : ''}${warnings.length ? `；${warnings.length} 项已跳过` : ''}`;
-        figma.notify(message);
+        notifyInUiLanguage(message);
         figma.ui.postMessage({
           type: 'component-builder-result',
           ok: true,
@@ -3590,7 +3594,7 @@ figma.ui.onmessage = async (msg) => {
         });
       } catch (error) {
         const message = `创建失败：${String((error as any)?.message || error)}`;
-        figma.notify(message);
+        notifyInUiLanguage(message);
         figma.ui.postMessage({ type: 'component-builder-result', ok: false, message });
       }
       break;
@@ -3682,14 +3686,14 @@ figma.ui.onmessage = async (msg) => {
 
       // 1. 检查是否只选中了一个节点，且必须是 Component Set
       if (selection.length !== 1 || selection[0].type !== 'COMPONENT_SET') {
-        figma.notify("请选中一个 Component Set (组件集)！", { error: true });
+        notifyInUiLanguage("请选中一个 Component Set (组件集)！", { error: true });
         break;
       }
 
       const componentSet = selection[0] as ComponentSetNode;
       const variants = componentSet.children as ComponentNode[];
       if (variants.length === 0) {
-        figma.notify("组件集为空", { error: true });
+        notifyInUiLanguage("组件集为空", { error: true });
         break;
       }
 
@@ -3764,7 +3768,7 @@ figma.ui.onmessage = async (msg) => {
       let resultMsg = hasY
         ? `✨ 矩阵重排完成！${xArray.length} x ${yArray.length}${groups.length > 1 ? `，共 ${groups.length} 个分组` : ''}`
         : `✨ 单维度排列完成！${xArray.length} 个变体水平排列`;
-      figma.notify(resultMsg);
+      notifyInUiLanguage(resultMsg);
       break;
     }
 
@@ -3791,7 +3795,7 @@ figma.ui.onmessage = async (msg) => {
         }
       }
       if (compSets.length === 0) {
-        figma.notify("请选中至少一个 Component Set！", { error: true });
+        notifyInUiLanguage("请选中至少一个 Component Set！", { error: true });
         break;
       }
 
@@ -4021,7 +4025,7 @@ figma.ui.onmessage = async (msg) => {
       figma.currentPage.selection = [container];
       figma.viewport.scrollAndZoomIntoView([container]);
 
-      figma.notify(`✅ 批量排布完成！共 ${compSets.length} 个组件集`);
+      notifyInUiLanguage(`✅ 批量排布完成！共 ${compSets.length} 个组件集`);
       break;
     }
 
@@ -4071,7 +4075,7 @@ figma.ui.onmessage = async (msg) => {
       }
 
       if (!targetNode) {
-        figma.notify("请选中一个 Component Set 或已生成的说明书画板！", { error: true });
+        notifyInUiLanguage("请选中一个 Component Set 或已生成的说明书画板！", { error: true });
         break;
       }
 
@@ -4729,7 +4733,7 @@ figma.ui.onmessage = async (msg) => {
       figma.currentPage.selection = [boardFrame];
       figma.viewport.scrollAndZoomIntoView([boardFrame]);
 
-      figma.notify("✅ 说明书生成完毕！");
+      notifyInUiLanguage("✅ 说明书生成完毕！");
       figma.commitUndo();
       break;
     }

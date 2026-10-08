@@ -4,7 +4,7 @@
   "private": true,
   "description": "All in One plugin port for MasterGo",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && node ../scripts/embed-host-locale.mjs mastergo",
     "check:ui": "node scripts/check-ui-syntax.mjs",
     "check:component-builder": "node scripts/check-component-builder.mjs",
     "check:parity": "node scripts/check-parity.mjs",

@@ -33,7 +33,7 @@ for (const platform of ['figma', 'mastergo']) {
     getNodeByIdAsync: async id => { if (id === 'unreadable') throw new Error('gone'); return nodes.get(id); },
     notify: () => {}, ui: { postMessage: message => messages.push(message) }
   };
-  const context = vm.createContext({ figma: host, mg: host, sendToUI: m => messages.push(m), console: { error: () => {} } });
+  const context = vm.createContext({ figma: host, mg: host, notifyInUiLanguage: () => {}, sendToUI: m => messages.push(m), console: { error: () => {} } });
   vm.runInContext(ts.transpileModule(helpers + '\n' + handler, { compilerOptions: { target: ts.ScriptTarget.ES2020 } }).outputText, context);
   const text = (id, fonts, content = 'Before', x = 0) => {
     let characters = content;

@@ -1,3 +1,340 @@
+// shared-host-locale:start
+/* UI-owned terminology and messages shared by both hosts. Values and document
+   content are never passed through this catalogue by the UI binding layer. */
+(() => {
+  const phrases = [
+    ['全页','Whole page'], ['选中图层','Selected layers'], ['当前页面','Current page'],
+    ['查找配置','Find settings'], ['查找内容','Find text'], ['替换为','Replace with'],
+    ['还原','Restore'], ['重置','Reset'], ['开始查找','Find'], ['返回','Back'],
+    ['返回列表','Back to library'], ['清空','Clear'], ['删除','Delete'], ['编辑','Edit'],
+    ['保存','Save'], ['关闭','Close'], ['设置','Settings'], ['导入 JSON','Import JSON'],
+    ['导出 JSON','Export JSON'], ['清空列表','Clear all lists'], ['测试连接','Test connection'],
+    ['取消','Cancel'], ['确定','Confirm'], ['无','None'], ['默认','Default'],
+    ['自动识别','Auto-detect'], ['中文','Chinese'], ['简体中文','Chinese (Simplified)'],
+    ['繁体中文','Chinese (Traditional)'], ['日本語','Japanese'], ['한국어','Korean'],
+    ['Français','French'], ['Deutsch','German'], ['Español','Spanish'], ['Italiano','Italian'],
+    ['Português','Portuguese'], ['Русский','Russian'], ['العربية','Arabic'],
+    ['浅色','Light'], ['深色','Dark'], ['跟随系统','Follow system'],
+    ['GLM (免费使用 4.7flash,比较慢)','GLM (free built-in access; slower responses)'],
+    ['Anthropic (原生或第三方)','Anthropic (direct or third-party API)'],
+    ['通常以 /v1 结尾。如果使用中转或代理，请填写代理地址。','Usually ends in /v1. For a proxy, enter its API base URL.'],
+    ['GLM 用户留空即可享受内置免费通道','For GLM, leave this blank to use the built-in free connection.'],
+    ['源语言','Source language'], ['直接替换不会创建变量或 Mode。','Direct replacement does not create variables or modes.'],
+    ['语言切换','Language variants'], ['语言组件集','Language component set'],
+    ['选择多个不同语言的 Frame，选择「语言切换」后构建，自动生成 Language 变体属性。','Select frames in different languages and choose Language variants to create a component set with a Language variant property.'],
+    ['建议命名为「Button/zh-CN」、「Button/en-US」，也支持中文、English、日本語等常见语言别名。未识别时会保留 Frame 名作为语言值。','Use names such as Button/zh-CN or Button/en-US. Common language aliases are also supported; unrecognized names are kept as the language value.'],
+    ['选择文本或画板，点击字段填充','Select text or frames, then click a field to fill.'],
+    ['请先选择可见文本或包含文本的画板','Select visible text or frames containing text first.'],
+    ['正在填充…','Filling…'], ['正在录入…','Filling…'], ['请先生成内容','Generate content first.'],
+    ['请先输入至少一条录入内容','Enter at least one item to fill.'],
+    ['请选择前缀或后缀，并输入要添加的字符','Choose prefix or suffix and enter the characters to add.'],
+    ['生成方式','Generation method'], ['随机生成','Random'], ['按序填写','Sequence'],
+    ['数列类型','Sequence type'], ['等差数列','Arithmetic progression'],
+    ['等比数列','Geometric progression'], ['斐波那契数列','Fibonacci sequence'],
+    ['自然数','Natural numbers'], ['奇数数列','Odd numbers'], ['偶数数列','Even numbers'],
+    ['质数数列','Prime numbers'], ['平方数列','Square numbers'], ['三角数列','Triangular numbers'],
+    ['阶乘数列','Factorials'], ['起始值','Start value'], ['第二项','Second term'],
+    ['公差','Common difference'], ['公比','Common ratio'], ['起始时间','Start time'],
+    ['递增步长（秒）','Step (seconds)'],
+    ['例如 900 秒表示每个图层递增 15 分钟，超过 24 小时后循环。','A 900-second step adds 15 minutes for each layer. Values wrap after 24 hours.'],
+    ['步长（秒）','Step (seconds)'], ['步长 (秒)','Step (seconds)'],
+    ['斐波那契使用起始值和第二项；等差使用公差；等比使用公比。','Fibonacci uses the start value and second term; arithmetic progressions use a difference, and geometric progressions use a ratio.'],
+    ['2023年10月1日','Chinese date'],
+    ['请输入标题...','Enter a title…'], ['请输入预设名称...','Enter a preset name…'],
+    ['图层 Layer','Layer'], ['图层名称 (Name)','Layer name'], ['图层透明度 (Opacity)','Layer opacity'],
+    ['可见性 (Visible)','Visibility'], ['是否锁定 (Locked)','Locked'], ['旋转 (Rotation)','Rotation'],
+    ['图层叠加模式','Layer blend mode'], ['元素在父图层中的顺序','Sibling index'],
+    ['元素在父图层中的倒序','Reverse sibling index'], ['子元素数量','Child count'],
+    ['是否展开','Expanded'], ['多边形边数','Polygon sides'], ['位置与尺寸 Bounds','Position and size'],
+    ['宽度 (Width)','Width'], ['高度 (Height)','Height'], ['X 坐标','X position'], ['Y 坐标','Y position'],
+    ['绝对宽度','Absolute width'], ['绝对高度','Absolute height'], ['绝对 X','Absolute X'], ['绝对 Y','Absolute Y'],
+    ['填充 Fills','Fills'], ['填充数量','Fill count'], ['填充色','Fill color'], ['填充透明度','Fill opacity'],
+    ['填充叠加模式','Fill blend mode'], ['填充类型','Fill type'], ['填充可见','Fill visibility'],
+    ['填充样式 ID','Fill style ID'], ['圆角 Radius','Corner radius'], ['全部圆角','All corners'],
+    ['左上圆角','Top-left corner'], ['右上圆角','Top-right corner'], ['左下圆角','Bottom-left corner'],
+    ['右下圆角','Bottom-right corner'], ['转角平滑','Corner smoothing'],
+    ['描边 Strokes','Strokes'], ['描边数量','Stroke count'], ['描边颜色','Stroke color'],
+    ['描边粗细','Stroke weight'], ['描边透明度','Stroke opacity'], ['描边叠加模式','Stroke blend mode'],
+    ['描边种类','Stroke type'], ['描边可见','Stroke visibility'], ['描边对齐','Stroke alignment'],
+    ['描边端点','Stroke cap'], ['描边转角','Stroke join'], ['描边斜接限制','Stroke miter limit'],
+    ['描边样式 ID','Stroke style ID'], ['效果 Effects','Effects'], ['效果数量','Effect count'],
+    ['效果类型','Effect type'], ['效果可见','Effect visibility'], ['效果样式 ID','Effect style ID'],
+    ['图层定位','Layout positioning'], ['分布方向','Layout direction'], ['主轴对齐','Primary-axis alignment'],
+    ['交叉轴对齐','Cross-axis alignment'], ['子元素间距','Item spacing'], ['上边距','Top padding'],
+    ['下边距','Bottom padding'], ['左边距','Left padding'], ['右边距','Right padding'],
+    ['图层网格数量','Layout grid count'], ['网格样式 ID','Grid style ID'], ['文本 Text','Text'],
+    ['文本内容','Text content'], ['字体','Font family'], ['字重 / 样式','Font weight / style'], ['字号','Font size'],
+    ['是否有链接','Has hyperlink'], ['水平对齐','Horizontal alignment'], ['垂直对齐','Vertical alignment'],
+    ['字体修饰','Text decoration'], ['字间距','Letter spacing'], ['字间距单位','Letter-spacing unit'],
+    ['行高','Line height'], ['行高单位','Line-height unit'], ['丢失字体','Missing fonts'],
+    ['段落缩进','Paragraph indent'], ['段落间距','Paragraph spacing'], ['文字样式 ID','Text style ID'],
+    ['组件 Component','Component'], ['组件描述','Component description'], ['相同母组件 ID','Main component ID'],
+    ['组件属性数量','Component property count'], ['变体属性数量','Variant property count'],
+    ['原型 Prototype','Prototype'], ['交互动作数量','Interaction count'],
+    ['滚动溢出方向','Overflow scrolling'], ['固定子元素数量','Fixed child count'],
+    ['含','Contains'], ['开头是','Starts with'], ['结尾是','Ends with'],
+    ['目标尺寸','Target dimensions'], ['宽度 W','Width W'], ['高度 H','Height H'],
+    ['比例计算基准','Aspect-ratio anchor'], ['取整方式','Rounding'], ['保持宽度','Keep width'],
+    ['保持高度','Keep height'], ['四舍五入','Nearest integer'], ['向上取整','Round up'],
+    ['向下取整','Round down'], ['保留小数','Keep decimals'], ['锁定宽高比','Lock aspect ratio'],
+    ['保持中心位置','Keep center position'], ['手机','Phones'], ['平板 / 折叠','Tablets / foldables'],
+    ['桌面屏幕','Desktop screens'], ['穿戴设备','Wearables'], ['经典比例','Aspect ratios'],
+    ['设计视口','Design viewport'], ['原生分辨率','Native resolution'],
+    ['物理分辨率','Native resolution'], ['请先选择 Frame 或矩形','Select frames or rectangles first.'],
+    ['批量设定所选尺寸','Resize selected layers'], ['正在设定...','Resizing…'],
+    ['没有匹配的尺寸预设','No matching size presets.'], ['搜索品牌、设备或比例','Search brands, devices or ratios'],
+    ['搜索品牌、设备或比例...','Search brands, devices or ratios…'],
+    ['自定义尺寸；勾选锁定宽高比可联动调整。','Custom dimensions. Lock the aspect ratio to resize proportionally.'],
+    ['6.3 英寸。460 ppi，三倍像素密度设计视口。','6.3 inches, 460 ppi. Design viewport at 3× pixel density.'],
+    ['6.9 英寸 QHD+，适合大屏 Android 界面检查。','6.9-inch QHD+ screen for checking large-screen Android interfaces.'],
+    ['6.3 英寸，20:9，使用 Material 布局时可同时验证 360dp。','6.3 inches, 20:9. Also check 360dp when using Material layouts.'],
+    ['6.9 英寸，接近 20:9，适合安卓旗舰大屏。','6.9 inches, approximately 20:9, for large Android phone layouts.'],
+    ['HUAWEI · Mate X7 外屏','HUAWEI · Mate X7 cover screen'], ['Mate X7 外屏','Mate X7 cover screen'],
+    ['6.49 英寸外屏，建议关注窄宽下的文字换行。','6.49-inch cover screen. Check text wrapping at narrow widths.'],
+    ['紧凑视口','Compact viewport'], ['主流视口','Standard viewport'],
+    ['通用 360dp 基准，用于发现窄屏布局问题。','A 360dp baseline for checking narrow-screen layouts.'],
+    ['跨 iOS 与 Android 的常用原型尺寸。','A commonly used prototype size for iOS and Android.'],
+    ['桌面设计基准','Desktop design baseline'], ['圆形手表 44mm','Round watch, 44mm'],
+    ['常用网页设计宽度，建议主内容再设置最大宽度。','A common web design width. Set a maximum width for the main content.'],
+    ['16:9 主流显示器与视频画布。','16:9 display and video canvas.'],
+    ['16:9 高分辨率桌面，注意内容不应无限拉宽。','High-resolution 16:9 desktop canvas. Limit the width of text and content.'],
+    ['16:9，适合大屏展示和高清导出校验。','16:9 canvas for large displays and high-resolution export checks.'],
+    ['21:9 超宽屏，适合时间线、仪表盘和多窗口工作台。','21:9 ultrawide canvas for timelines, dashboards and multi-window workspaces.'],
+    ['信息应在短时间内完成读取，避免长文本和密集操作。','Make information quick to read. Avoid long text and dense controls.'],
+    ['1:1 画布仅代表外接矩形，关键内容需留在中心安全区。','The 1:1 canvas is the bounding square. Keep key content within the central safe area.'],
+    ['1:1 正方形','1:1 Square'], ['4:3 经典画幅','4:3 Classic'], ['3:2 摄影 / 生产力','3:2 Photography / productivity'],
+    ['16:10 效率屏','16:10 Productivity'], ['16:9 宽屏','16:9 Widescreen'], ['2:1 超宽','2:1 Wide'],
+    ['21:9 电影宽屏','21:9 Cinematic'], ['√2 纸张比例','√2 Paper ratio'], ['√3 几何比例','√3 Geometric ratio'],
+    ['φ 黄金比例','φ Golden ratio'], ['1+√2 白银比例','1+√2 Silver ratio'],
+    ['头像、图标、商品缩略图与方形社交内容。','Avatars, icons, product thumbnails and square social content.'],
+    ['平板、演示和传统摄影常用比例。','A common ratio for tablets, presentations and traditional photography.'],
+    ['相机画幅与 Surface 类生产力屏幕。','Camera frames and productivity displays such as Surface devices.'],
+    ['笔记本与创作工作台，比 16:9 提供更多垂直空间。','Laptops and creative workspaces, with more vertical room than 16:9.'],
+    ['视频、演示、电视与主流显示器。','Video, presentations, television and standard displays.'],
+    ['现代手机、横幅 Banner 与全景构图。','Modern phones, banners and panoramic compositions.'],
+    ['电影感视频、超宽屏与沉浸式展示。','Cinematic video, ultrawide screens and immersive presentations.'],
+    ['A 系列纸张比例，对半裁切后仍保持相同比例。','The A-series paper ratio. Halving the sheet preserves its aspect ratio.'],
+    ['适合三角网格、展示画幅与几何构图实验。','For triangular grids, presentation formats and geometric composition studies.'],
+    ['约 1:1.618，可用于构图分区，不应取代实际内容验证。','Approximately 1:1.618. Useful for composition studies; validate with real content.'],
+    ['约 1:2.414，适合细长编排、建筑感版面与展示实验。','Approximately 1:2.414, for elongated layouts, architectural compositions and presentation studies.'],
+    ['AI 设计理论助手','Design Theory Assistant'], ['输入设计问题或理论关键词...','Ask a design question or enter a principle…'],
+    ['继续提问...','Ask a follow-up question…'], ['发送','Send'], ['暂无详细拆解','No detailed explanation available.'],
+    ['核心释义','Key idea'], ['应用案例','In practice'], ['理论价值','Why it matters'],
+    ['交互与可用性','Interaction & usability'], ['心理学','Psychology'], ['视觉感知','Visual perception'],
+    ['商业策略','Product strategy'], ['系统思维','Systems thinking'],
+    ['暂无设计理论数据','No design principles available.'],
+    ['请填写标题和内容','Enter a title and content.'], ['确定删除这个列表吗？','Delete this list?'],
+    ['列表已经是空的了','The list is already empty.'], ['没有数据可导出','There is no data to export.'],
+    ['⚠️ 确定要清空所有自定义列表吗？此操作不可恢复！','Clear all custom lists? This cannot be undone.'],
+    ['确定要重新开始吗？','Restart the export workflow?'], ['没有数据','No data available.'],
+    ['配置已保存','Settings saved.'], ['请选择形状','Select shapes first.'], ['请选择图层','Select layers first.'],
+    ['请先选中图层','Select layers first.'], ['字体加载失败','Could not load the font.'],
+    ['请选2个以上文本','Select at least two text layers.'], ['已重命名','Layers renamed.'],
+    ['未找到可解绑的实例','No detachable instances found.'], ['已交换填充/描边','Fill and stroke swapped.'],
+    ['已添加自动布局外套','Auto Layout frames added.'], ['已转换为 Frame','Converted to frames.'],
+    ['请至少选择两个同级图层','Select at least two sibling layers.'],
+    ['请选择至少两个同级图层，或选择一个包含多个子图层的容器','Select at least two sibling layers or a container with multiple children.'],
+    ['已反转排列（从下到上）','Layer order reversed, bottom to top.'], ['已排列（从上到下）','Layers sorted, top to bottom.'],
+    ['已按名称倒序排列（Z→A）','Layers sorted by name, Z to A.'], ['已按名称排序（A→Z）','Layers sorted by name, A to Z.'],
+    ['组件集为空','The component set is empty.'], ['✅ 说明书生成完毕！','Component documentation generated.'],
+    ['英文','English'], ['请严格选择 2 个图层进行交换','Select exactly two layers to swap.'],
+    ['位置已互换','Layer positions swapped.'], ['请先选择范围','Select a scope first.'],
+    ['未发现可创建的样式（选中的图层可能没有填充/文本/效果属性）','No styles can be created from the selection’s fills, text or effects.'],
+    ['匹配出错','Style matching failed.'], ['未发现可匹配的样式','No matching styles found.'],
+    ['请先选择一个图层以获取名称','Select a layer to read its name.'],
+    ['⚠️ 请先选择一个容器(Frame/Group)','Select a frame or group first.'],
+    ['⚠️ 请先选择一个图层','Select a layer first.'],
+    ['⚠️ 未找到图层，请检查 Console的筛选池大小','No layers found. Check the search scope and filters.'],
+    ['请在画布上选中恰好两个画板/容器','Select exactly two frames or containers on the canvas.'],
+    ['请输入查找内容，注意区分大小写','Enter text to find. Matching is case-sensitive.'],
+    ['范围内没有文本','There is no text in this scope.'], ['未找到匹配内容','No matching content found.'],
+    ["⚠️ 请先将 Page 重命名为 'xxx 副本' 以确保安全！",'Duplicate the page and include “copy” in its name before exporting.'],
+    ['请至少选择一个 Frame 画板','Select at least one frame.'],
+    ['请先选择图层','Select layers first.'], ['未找到匹配文本','No matching text found.'],
+    ['已还原颜色','Original colors restored.'], ['已标记 (再次点击可还原)','Highlighted. Click again to restore the original color.'],
+    ['图层不存在 (可能已被删除)','The layer no longer exists; it may have been deleted.'],
+    ['最多只能保存 5 个锚点！','You can save up to five viewport bookmarks.'],
+    ['📍 位置已保存','Viewport bookmark saved.'],
+    ['⚠️ 该位置所在的页面已被删除！','The page containing this bookmark has been deleted.'],
+    ['🚀 已传送！','Returned to the saved viewport.'],
+    ['传送失败，可能是图层结构已发生巨大改变','Could not restore the viewport. The layer structure may have changed.'],
+    ['🗑️ 锚点已删除','Viewport bookmark deleted.'],
+    ['连接超时(60秒)','Connection timed out after 60 seconds.'],
+    ['连接失败','Connection failed.'], ['连接失败：API 返回格式异常','Connection failed: the API returned an unexpected response.'],
+    ['连接超时，请检查网络或 Base URL','Connection timed out. Check the network and API base URL.'],
+    ['内置通道暂时不可用，请稍后重试或填写自己的 API Key','The built-in connection is unavailable. Try again later or enter your own API key.'],
+    ['网络错误，请检查 Base URL 是否正确','Network error. Check the API base URL.'],
+    ['测试中...','Testing…'], ['正在测试...','Testing…'],
+    ['执行出错，请重试。','The operation failed. Please try again.'],
+    ['⚠️ 确定要全自动执行吗？\n请确保当前是【副本】页面，且已选中要导出的画板。','Run all export steps automatically? Make sure you are on a copied page and have selected the frames to export.'],
+    ['PPT 生成失败，请重试','PPT generation failed. Please try again.'],
+    ['资源包数据为空，请重新运行导出流程。','The asset package is empty. Run the export workflow again.'],
+    ['请输入要查找的内容','Enter text to find.'],
+    ['请至少选择一个搜索目标 (Prop Name 或 Prop Value)','Select at least one search target: property name or property value.'],
+    ['请至少选择一项','Select at least one item.'],
+    ['文件格式错误：必须是数组','Invalid file format: expected an array.'],
+    ['数据结构不符','The data does not have the expected structure.'],
+    ['导入成功！','Imported successfully.'], ['请输入提示词','Enter a prompt.'],
+    ['请先配置 API Key','Set up an API key first.'],
+    ['请先配置 API 接口地址','Set up the API base URL first.'],
+    ['未能获取到生成的文本内容','No generated text was returned.'],
+    ['内容为空，无法保存','There is no content to save.'],
+    ['没有已有的列表可追加，请先新建。','Create a list before appending content.'],
+    ['请输入标题','Enter a title.'], ['已保存为新列表','Saved as a new list.'],
+    ['目标列表无效','The selected list is not available.'],
+    ['未选中任何画板或节点，请先在画布上框选目标','Select the target frames or layers on the canvas first.'],
+    ['AI响应超时','AI response timed out.'],
+    ['AI 未返回可用的组件修改方案','The AI did not return a usable component update plan.'],
+    ['AI 请求失败','AI request failed.'],
+    ['AI 返回内容不是有效 JSON','The AI response is not valid JSON.'],
+    ['请先在设置面板配置 AI Key','Set up an AI key in Settings first.'],
+    ['用户强制中断','Cancelled by the user.'],
+    ['模型未返回有效数据','The model did not return valid data.'],
+    ['尚未扫描，请先点击【扫描】提取文本。','Click Scan to collect the text before translating.'],
+    ['✅ 当前范围内没有「未绑定」的文本需要处理。\n\n所有文本均已绑定变量。\n\n如需重新翻译，请将「目标文本」切换为【画板全部文本】后再扫描。','All text in this scope is already bound to variables. To translate it again, choose All Text on Frames and scan again.'],
+    ['✅ 当前范围内没有需要处理的文本。','There is no text to process in the current scope.'],
+    ['本地合集尚未包含任何语言Mode，请先选择「创建Mode」','The local collection has no language modes. Choose Create Mode first.'],
+    ['保存为新列表','Save as a new list'],
+    ['AI 分析中 0/0','AI analysis: 0/0'], ['已勾选 0 个','0 items selected'],
+    ['查找结果','Search results'], ['共 0 项','0 items'], ['全选未替换项','Select all unreplaced items'],
+    ['太棒了！未发现需要修复的组件命名','All clear. No component naming issues found.'],
+    ['全部修复完成','All issues fixed'], ['命名已更新，界面更加整洁了。','Names have been updated.'],
+    ['返回继续检查','Back to review'], ['点击展开配置','Expand settings'],
+    ['章节导航','Jump to a section'], ['跳转到章节','Jump to a section'],
+    ['免费内置通道','Built-in free connection'],
+    ['：当前使用 GLM-4.7-Flash（免费模型），已锁定不可更改。',': The built-in connection uses GLM-4.7-Flash; its model cannot be changed.'],
+    ['如需使用其他模型，请填写自己的 API Key。','Enter your own API key to use another model.'],
+    ['尺寸助手','Size Assistant'],
+    ['为所选 Frame 或矩形批量设定屏幕尺寸。设计视口适合界面设计，原生分辨率适合展示和物理像素对照。设备库更新于 2026-09。','Resize selected frames or rectangles. Use design viewports for interface layouts and native resolution for pixel-level comparisons. Device presets were updated in September 2026.'],
+    ['建议：移动端界面优先使用设计视口，同时在多个代表性宽度下检查响应式布局。','For mobile interfaces, start with the design viewport and check responsive layouts at several representative widths.'],
+    ['X 轴 (列)','X axis (columns)'], ['Y 轴 (行)','Y axis (rows)'], ['- 可选','— optional'],
+    ['无（单维度排列）','None (one-dimensional layout)'], ['快捷设置','Quick settings'],
+    ['区块间距','Section spacing'], ['组件集布局','Component set layout'], ['网格线','Grid lines'],
+    ['画板样式','Frame style'], ['显示选项','Display options'], ['虚线网格','Dashed grid'],
+    ['轴标签','Axis labels'], ['属性面板','Property summary'], ['使用指南','Usage guide'],
+    ['组件集内边距','Component set padding'], ['组件集之间间距','Spacing between component sets'],
+    ['显示虚线网格','Show dashed grid'], ['发生错误','An error occurred'],
+    ['切换精简模式','Toggle compact mode'], ['导入','Import'], ['刷新','Refresh'],
+    ['输入查找对象的名称...','Enter a layer name to find…'], ['清空输入','Clear input'],
+    ['拾取选中图层名称','Use the selected layer’s name'], ['区分大小写','Match case'],
+    ['查找选中元素内部的所有图层','Search all layers inside the selection'],
+    ['查找与选中元素同级的所有图层','Search layers sharing the selection’s parent'],
+    ['查找选中元素的直接子级图层','Search the selection’s direct children'],
+    ['查找选中元素的所有子孙图层','Search all descendants of the selection'],
+    ['查找当前 Page 下的所有图层','Search all layers on the current page'],
+    ['按连字符切词段，词段完全相同才算命中','Split names at hyphens and match identical segments'],
+    ['名称包含对方连续片段即命中，更宽松','Match a contiguous part of the other name; a broader comparison'],
+    ['左侧画板','Left frame'], ['右侧画板','Right frame'], ['还原所有标红','Restore all highlighted layers'],
+    ['重置所有设置','Reset all settings'], ['输入查找关键词...','Enter text to find…'],
+    ["在名称前自动添加 '.'","Add a dot prefix to the name"], ["移除名称开头的 '.' 或 '_'","Remove a leading dot or underscore"],
+    ['请先完成扫描','Complete the scan first.'], ['关闭可加快速度。','Turn this off for faster responses.'],
+    ['生成结果将显示在这里...','Generated content will appear here…'], ['保存为新的列表','Save as a new list'],
+    ['追加到已有列表','Append to an existing list'], ['热门推荐 (推荐)','Popular providers'],
+    ['国内其他优秀平台','Other providers in China'], ['国际平台与聚合','International providers and aggregators'],
+    ['横竖切换','Swap width and height'], ['输入设计者名称','Enter the designer’s name'],
+    ['如：首页、详情页','For example: Home, Details'],
+    ['13 英寸，4:3。分栏布局和横竖屏都应检查。','13 inches, 4:3. Check split layouts and both orientations.'],
+    ['3:2 触控屏，适合生产力界面和纵向阅读。','3:2 touchscreen for productivity interfaces and portrait reading.'],
+    ['3:2，横屏工作台可优先检查 1440 设计宽度。','3:2 screen. Check a design width of 1440 for landscape workspaces.'],
+    ['Mate X7 内屏','Mate X7 inner screen'],
+    ['8 英寸近方形折叠屏，需避免只沿用手机单栏。','8-inch, nearly square foldable screen. Check layouts beyond a single phone column.'],
+    ['通用平板视口','Standard tablet viewport'],
+    ['经典 3:4 平板基准，适合响应式断点验证。','A classic 3:4 tablet baseline for testing responsive breakpoints.'],
+    ['填充列表为空','The fill list is empty.'],
+    ['未找到可填充的可见文本','No visible text layers can be filled.'],
+    ['请先选择一个或多个 Frame / 矩形','Select one or more frames or rectangles.'],
+    ['请只选择一个实例（Instance）后再逆向母版','Select exactly one instance to rebuild its main component.'],
+    ['实例逆向正在处理中，请等待当前操作完成','A component rebuild is in progress. Wait for it to finish.'],
+    ['请选择一个或多个 Frame；当前选择中不能混入其他图层类型','Select one or more frames without other layer types.'],
+    ['组件集模式至少需要两个 Frame','Component set mode requires at least two frames.'],
+    ['语言组件集模式至少需要两个 Frame','Language component set mode requires at least two frames.'],
+    ['请选中一个 Component Set (组件集)！','Select one component set.'],
+    ['请选中至少一个 Component Set！','Select at least one component set.'],
+    ['请选中一个 Component Set 或已生成的说明书画板！','Select a component set or a generated documentation frame.']
+  ];
+  const exact = new Map(phrases);
+  const rules = [
+    [/^前 5 项：/, 'First 5: '], [/^已填充 (\d+) 个文本$/, 'Filled $1 text layers.'],
+    [/^已填充 (\d+) 个文本[，,]失败 (\d+) 个$/, 'Filled $1 text layers; $2 failed.'],
+    [/^移除 (\d+) 个自动布局$/, 'Removed Auto Layout from $1 layers.'],
+    [/^已解绑 (\d+) 个组件$/, 'Detached $1 instances.'],
+    [/^已删除 (\d+) 个隐藏图层$/, 'Deleted $1 hidden layers.'],
+    [/^已解散 (\d+) 个组$/, 'Ungrouped $1 groups.'],
+    [/^已解锁 (\d+) 个图层$/, 'Unlocked $1 layers.'],
+    [/^已对齐 (\d+) 个图层$/, 'Aligned $1 layers to pixels.'],
+    [/^已定位 (\d+) 项$/, 'Located $1 items.'],
+    [/^已选中 (\d+) 个图层$/, 'Selected $1 layers.'],
+    [/^已替换 (\d+) 处文本$/, 'Replaced $1 text matches.'],
+    [/^已成功修复 (\d+) 项命名$/, 'Fixed $1 naming issues.'],
+    [/^已还原 (\d+) 处高亮$/, 'Restored $1 highlighted items.'],
+    [/^AI 分析中 (\d+)\/(\d+)$/, 'AI analysis: $1/$2'],
+    [/^已勾选 (\d+) 个$/, '$1 items selected'], [/^共 (\d+) 项$/, '$1 items'],
+    [/^匹配成功: 填充(\d+) \/ 描边(\d+) \/ 文本(\d+) \/ 效果(\d+)$/, 'Styles matched: $1 fills / $2 strokes / $3 text / $4 effects.'],
+    [/^✅ 批量排布完成！共 (\d+) 个组件集$/, 'Arranged $1 component sets.'],
+    [/^生成填充内容失败：/, 'Could not prepare fill content: '],
+    [/^AI调用失败[:：]\s*/, 'AI request failed: '],
+    [/^AI 调用失败[:：]\s*/, 'AI request failed: '],
+    [/^AI 请求失败[:：]\s*/, 'AI request failed: '],
+    [/^连接失败[:：]\s*/, 'Connection failed: '],
+    [/^连接成功！模型 (.+) 通过(内置通道|API)响应正常$/, (match,model,connection) => 'Connected. Model ' + model + ' responded through the ' + (connection === 'API' ? 'API.' : 'built-in connection.')],
+    [/^生成失败[:：]\s*/, 'Generation failed: '],
+    [/^导入失败[:：]\s*/, 'Import failed: '],
+    [/^应用失败[:：]\s*/, 'Could not apply changes: '], [/^逆向失败[:：]\s*/, 'Component rebuild failed: '],
+    [/^创建失败[:：]\s*/, 'Creation failed: '],
+    [/^已将 (\d+) 个图层设为 ([\d.]+) × ([\d.]+)(?:，(\d+) 个图层调整失败)?$/, (match, count, width, height, failed) => 'Resized ' + count + ' layers to ' + width + ' × ' + height + (failed ? '; ' + failed + ' failed.' : '.')],
+    [/^已填充 (\d+) 个文本，(\d+) 项失败：(.*)$/s, 'Filled $1 text layers; $2 failed: $3'],
+    [/^多语言 Mode 已同步更新！$/, 'Language modes updated.'],
+    [/^成功替换了 (\d+) 个文本节点！$/, 'Replaced $1 text layers.'],
+    [/^已逆向组件母版/, 'Main component rebuilt'],
+    [/（视觉快照兜底）/, ' (visual snapshot fallback)'],
+    [/，完整还原 (\d+) 个真实变体/, '; restored all $1 actual variants'],
+    [/，原组件集 (\d+) 个变体超过上限 (\d+)，已保留当前真实变体/, '; the source has $1 variants, exceeding the $2 limit; kept the current actual variant'],
+    [/，并保留 (\d+) 个有效属性/, '; preserved $1 valid properties'],
+    [/；(\d+) 项内容已安全降级或跳过/, '; $1 items used a safe fallback or were skipped'],
+    [/^已创建(语言组件集|组件集|单个组件|多个组件)/, (match, type) => ({ '语言组件集':'Created a language component set', '组件集':'Created a component set', '单个组件':'Created one component', '多个组件':'Created separate components' })[type]],
+    [/，并生成文字属性、实例属性/, '; exposed text and instance swap properties'],
+    [/，并生成文字属性/, '; exposed text properties'],
+    [/，并生成实例属性/, '; exposed instance swap properties'],
+    [/；(\d+) 项已跳过/, '; $1 items skipped'],
+    [/^有 (\d+) 个 Frame 连接了原型连线；为避免连接目标丢失，本次未转换$/, '$1 frames have prototype connections. They were not converted to preserve connection targets.'],
+    [/^已应用 (\d+) 项组件规范优化(?:；(\d+) 项未能修改)?$/, (match, done, failed) => 'Applied ' + done + ' component updates' + (failed ? '; ' + failed + ' could not be changed.' : '.')],
+    [/^无法创建 "([^"]+)" 语言模式。当前合集可能已达到模式数量限制。可改用「直接替换」，或检查当前方案支持的模式数量。$/, 'Could not create the "$1" language mode. The collection may have reached its mode limit. Use Direct Replace or check the mode capacity supported by your plan.'],
+    [/^请求失败[:：]\s*/, 'Request failed: '], [/^错误[:：]\s*/, 'Error: '],
+    [/^已找到 (\d+) 个图层$/, 'Found $1 layers.'],
+    [/^已选择 (\d+) 个图层$/, 'Selected $1 layers.'],
+    [/^已就绪：/, 'Ready: '], [/^(\d+) 个 Frame$/, '$1 frames'],
+    [/^(\d+) 个组件$/, '$1 components'], [/^(\d+) 个画板$/, '$1 frames']
+  ];
+  function translate(value, language) {
+    if (value === null || value === undefined) return '';
+    const text = String(value);
+    if (language !== 'en') return text;
+    const source = text.trim();
+    let result = exact.get(source);
+    if (result === undefined) {
+      result = source;
+      for (const [pattern, replacement] of rules) if (pattern.test(result)) result = result.replace(pattern, replacement);
+      if (result === source) {
+        const plain = source.replace(/^[\p{Extended_Pictographic}\uFE0F\s]+/u, '');
+        let localized = exact.get(plain) ?? plain;
+        for (const [pattern, replacement] of rules) if (pattern.test(localized)) localized = localized.replace(pattern, replacement);
+        if (localized !== plain) result = source.slice(0, source.length - plain.length) + localized;
+      }
+    }
+    return text.slice(0, text.indexOf(source)) + result + text.slice(text.indexOf(source) + source.length);
+  }
+  function addPairs(pairs) {
+    for (const [zh, en] of pairs) if (typeof zh === 'string' && typeof en === 'string' && !exact.has(zh.trim())) exact.set(zh.trim(), en.trim());
+  }
+  globalThis.PluginLocale = Object.freeze({ translate, addPairs });
+})();
+
+/* Prepended to the compiled host script; source algorithms call this adapter. */
+let pluginUiLanguage = 'zh';
+function notifyInUiLanguage(message, options) {
+  return mg.notify(PluginLocale.translate(message, pluginUiLanguage), options);
+}
+// shared-host-locale:end
 // -------------------------------------------------------------
 // 【更新】高级命名转换函数 (支持清除隐藏标记)
 // -------------------------------------------------------------
@@ -2549,6 +2886,12 @@ mg.ui.onmessage = async (rawMessage) => {
     const msg = (rawMessage === null || rawMessage === void 0 ? void 0 : rawMessage.pluginMessage) || rawMessage;
     if (!msg || !msg.type)
         return;
+    if (msg.uiLanguage === 'en' || msg.uiLanguage === 'zh')
+        pluginUiLanguage = msg.uiLanguage;
+    if (msg.type === 'ui-language-changed') {
+        pluginUiLanguage = msg.language === 'en' ? 'en' : 'zh';
+        return;
+    }
     if (msg.type === 'mg-image-size-result') {
         const resolve = imageSizeWaiters.get(msg.reqId);
         if (resolve) {
@@ -2574,7 +2917,7 @@ mg.ui.onmessage = async (rawMessage) => {
             const { dataList, mode, distribution } = msg;
             const report = (count, errors = [], message = '') => {
                 const summary = message || `已填充 ${count} 个文本${errors.length ? `，${errors.length} 项失败：${errors[0]}` : ''}`;
-                mg.notify(summary);
+                notifyInUiLanguage(summary);
                 sendToUI({ type: 'smart-fill-result', count, errors, message: summary });
             };
             if (!Array.isArray(dataList) || dataList.length === 0) {
@@ -2647,7 +2990,7 @@ mg.ui.onmessage = async (rawMessage) => {
         case 'save-storage': {
             await mg.clientStorage.setAsync(msg.key, msg.value);
             if (msg.notify)
-                mg.notify("配置已保存");
+                notifyInUiLanguage("配置已保存");
             sendToUI({ type: 'storage-saved', key: msg.key, value: msg.value });
             break;
         }
@@ -2666,7 +3009,7 @@ mg.ui.onmessage = async (rawMessage) => {
         // ===========================
         case 'to-frame': {
             if (selection.length === 0) {
-                mg.notify("请选择形状");
+                notifyInUiLanguage("请选择形状");
                 return;
             }
             const newSelection = [];
@@ -2699,12 +3042,12 @@ mg.ui.onmessage = async (rawMessage) => {
             }
             if (newSelection.length > 0)
                 mg.document.currentPage.selection = newSelection;
-            mg.notify("已转换为 Frame");
+            notifyInUiLanguage("已转换为 Frame");
             break;
         }
         case 'to-rect': {
             if (selection.length === 0) {
-                mg.notify("请选择图层");
+                notifyInUiLanguage("请选择图层");
                 return;
             }
             const newSelection = [];
@@ -2755,7 +3098,7 @@ mg.ui.onmessage = async (rawMessage) => {
                 }
             }
             if (count > 0)
-                mg.notify("已交换填充/描边");
+                notifyInUiLanguage("已交换填充/描边");
             break;
         }
         case 'reset-image': {
@@ -2783,13 +3126,13 @@ mg.ui.onmessage = async (rawMessage) => {
                     n.children.forEach(rm);
             }
             selection.forEach(rm);
-            mg.notify(`移除 ${count} 个自动布局`);
+            notifyInUiLanguage(`移除 ${count} 个自动布局`);
             break;
         }
         case 'add-al-wrapper': {
             const newSelection = [];
             if (selection.length === 0) {
-                mg.notify("请选择图层");
+                notifyInUiLanguage("请选择图层");
                 return;
             }
             for (const node of selection) {
@@ -2817,7 +3160,7 @@ mg.ui.onmessage = async (rawMessage) => {
             }
             if (newSelection.length > 0) {
                 mg.document.currentPage.selection = newSelection;
-                mg.notify("已添加自动布局外套");
+                notifyInUiLanguage("已添加自动布局外套");
             }
             break;
         }
@@ -2833,7 +3176,7 @@ mg.ui.onmessage = async (rawMessage) => {
                     await loadTextFonts(node);
                 }
                 catch (e) {
-                    mg.notify("字体加载失败");
+                    notifyInUiLanguage("字体加载失败");
                     continue;
                 }
                 let cy = node.y;
@@ -2857,14 +3200,14 @@ mg.ui.onmessage = async (rawMessage) => {
         case 'join-text': {
             const tNodes = selection.filter(n => n.type === 'TEXT').sort((a, b) => Math.abs(a.y - b.y) > 5 ? a.y - b.y : a.x - b.x);
             if (tNodes.length < 2) {
-                mg.notify("请选2个以上文本");
+                notifyInUiLanguage("请选2个以上文本");
                 return;
             }
             try {
                 await loadTextFonts(tNodes[0]);
             }
             catch (e) {
-                mg.notify("字体加载失败");
+                notifyInUiLanguage("字体加载失败");
                 return;
             }
             const txt = tNodes.map(n => n.characters).join('\n');
@@ -2932,13 +3275,13 @@ mg.ui.onmessage = async (rawMessage) => {
                 if (name)
                     n.name = name.substring(0, 20);
             });
-            mg.notify("已重命名");
+            notifyInUiLanguage("已重命名");
             break;
         }
         case 'detach-all': {
             const sel = mg.document.currentPage.selection;
             if (sel.length === 0) {
-                mg.notify("请先选中图层");
+                notifyInUiLanguage("请先选中图层");
                 return;
             }
             const targets = [];
@@ -2952,7 +3295,7 @@ mg.ui.onmessage = async (rawMessage) => {
             };
             sel.forEach(scan);
             if (targets.length === 0) {
-                mg.notify("未找到可解绑的实例");
+                notifyInUiLanguage("未找到可解绑的实例");
                 return;
             }
             for (const node of targets) {
@@ -2963,7 +3306,7 @@ mg.ui.onmessage = async (rawMessage) => {
                     catch (e) { }
                 }
             }
-            mg.notify(`已解绑 ${targets.length} 个组件`);
+            notifyInUiLanguage(`已解绑 ${targets.length} 个组件`);
             break;
         }
         case 'remove-hidden': {
@@ -2980,7 +3323,7 @@ mg.ui.onmessage = async (rawMessage) => {
                 n.remove();
                 count++;
             } });
-            mg.notify(`已删除 ${count} 个隐藏图层`);
+            notifyInUiLanguage(`已删除 ${count} 个隐藏图层`);
             break;
         }
         case 'sort-layers': {
@@ -2994,12 +3337,12 @@ mg.ui.onmessage = async (rawMessage) => {
                         const result = Math.abs(diffY) > 2 ? diffY : diffX;
                         return isReverse ? -result : result;
                     }).forEach(n => p.appendChild(n));
-                    mg.notify(isReverse ? "已反转排列（从下到上）" : "已排列（从上到下）");
+                    notifyInUiLanguage(isReverse ? "已反转排列（从下到上）" : "已排列（从上到下）");
                     layerSortDirection = isReverse ? 'asc' : 'desc';
                 }
             }
             else {
-                mg.notify("请至少选择两个同级图层");
+                notifyInUiLanguage("请至少选择两个同级图层");
             }
             break;
         }
@@ -3017,7 +3360,7 @@ mg.ui.onmessage = async (rawMessage) => {
                 targets = [...selection[0].children];
             }
             if (!p || targets.length < 2) {
-                mg.notify("请选择至少两个同级图层，或选择一个包含多个子图层的容器");
+                notifyInUiLanguage("请选择至少两个同级图层，或选择一个包含多个子图层的容器");
                 return;
             }
             const isReverse = (layerNameSortDirection === 'desc');
@@ -3025,7 +3368,7 @@ mg.ui.onmessage = async (rawMessage) => {
                 const cmp = a.name < b.name ? -1 : (a.name > b.name ? 1 : 0);
                 return isReverse ? -cmp : cmp;
             }).forEach(n => p.appendChild(n));
-            mg.notify(isReverse ? "已按名称倒序排列（Z→A）" : "已按名称排序（A→Z）");
+            notifyInUiLanguage(isReverse ? "已按名称倒序排列（Z→A）" : "已按名称排序（A→Z）");
             layerNameSortDirection = isReverse ? 'asc' : 'desc';
             break;
         }
@@ -3049,7 +3392,7 @@ mg.ui.onmessage = async (rawMessage) => {
                     count++;
                 }
             }
-            mg.notify(`已解散 ${count} 个组`);
+            notifyInUiLanguage(`已解散 ${count} 个组`);
             break;
         }
         case 'unlock-all': {
@@ -3063,12 +3406,12 @@ mg.ui.onmessage = async (rawMessage) => {
                     n.children.forEach(ul);
             }
             selection.forEach(ul);
-            mg.notify(`已解锁 ${count} 个图层`);
+            notifyInUiLanguage(`已解锁 ${count} 个图层`);
             break;
         }
         case 'pixel-perfect': {
             if (selection.length === 0) {
-                mg.notify("请选择图层");
+                notifyInUiLanguage("请选择图层");
                 return;
             }
             let count = 0;
@@ -3087,12 +3430,12 @@ mg.ui.onmessage = async (rawMessage) => {
                     count++;
                 }
             }
-            mg.notify(`已对齐 ${count} 个图层`);
+            notifyInUiLanguage(`已对齐 ${count} 个图层`);
             break;
         }
         case 'swap-positions': {
             if (selection.length !== 2) {
-                mg.notify("请严格选择 2 个图层进行交换");
+                notifyInUiLanguage("请严格选择 2 个图层进行交换");
                 return;
             }
             const n1 = selection[0];
@@ -3102,13 +3445,13 @@ mg.ui.onmessage = async (rawMessage) => {
             n1.y = n2.y;
             n2.x = x1;
             n2.y = y1;
-            mg.notify("位置已互换");
+            notifyInUiLanguage("位置已互换");
             break;
         }
         case 'create-styles': {
             console.log("=== 开始执行创建样式 ===");
             if (selection.length === 0) {
-                mg.notify("请选择图层");
+                notifyInUiLanguage("请选择图层");
                 return;
             }
             let createdCount = 0;
@@ -3189,7 +3532,7 @@ mg.ui.onmessage = async (rawMessage) => {
             }
             catch (e) {
                 console.error("全局错误:", e);
-                mg.notify("样式创建失败: " + String(e).slice(0, 50));
+                notifyInUiLanguage("样式创建失败: " + String(e).slice(0, 50));
                 return;
             }
             const parts = [];
@@ -3200,16 +3543,16 @@ mg.ui.onmessage = async (rawMessage) => {
             if (errors.length > 0)
                 parts.push(`失败 ${errors.length} 个`);
             if (parts.length > 0)
-                mg.notify(parts.join('，'));
+                notifyInUiLanguage(parts.join('，'));
             else
-                mg.notify("未发现可创建的样式（选中的图层可能没有填充/文本/效果属性）");
+                notifyInUiLanguage("未发现可创建的样式（选中的图层可能没有填充/文本/效果属性）");
             break;
         }
         case 'match-styles': {
             console.log("=== 开始匹配样式 ===");
             const sel = mg.document.currentPage.selection;
             if (sel.length === 0) {
-                mg.notify("请先选择范围");
+                notifyInUiLanguage("请先选择范围");
                 return;
             }
             let countFill = 0, countStroke = 0, countText = 0, countEffect = 0;
@@ -3294,14 +3637,14 @@ mg.ui.onmessage = async (rawMessage) => {
             }
             catch (e) {
                 console.error(e);
-                mg.notify("匹配出错");
+                notifyInUiLanguage("匹配出错");
                 return;
             }
             const total = countFill + countStroke + countText + countEffect;
             if (total > 0)
-                mg.notify(`匹配成功: 填充${countFill} / 描边${countStroke} / 文本${countText} / 效果${countEffect}`);
+                notifyInUiLanguage(`匹配成功: 填充${countFill} / 描边${countStroke} / 文本${countText} / 效果${countEffect}`);
             else
-                mg.notify("未发现可匹配的样式");
+                notifyInUiLanguage("未发现可匹配的样式");
             break;
         }
         // ===========================
@@ -3313,7 +3656,7 @@ mg.ui.onmessage = async (rawMessage) => {
                 sendToUI({ type: 'update-name-input', name: sel[0].name });
             }
             else {
-                mg.notify("请先选择一个图层以获取名称");
+                notifyInUiLanguage("请先选择一个图层以获取名称");
             }
             break;
         }
@@ -3330,7 +3673,7 @@ mg.ui.onmessage = async (rawMessage) => {
             if (f.scope === 'inside') {
                 // 模式：内在元素 (不包含选中项本身)
                 if (sel.length === 0) {
-                    mg.notify("⚠️ 请先选择一个容器(Frame/Group)");
+                    notifyInUiLanguage("⚠️ 请先选择一个容器(Frame/Group)");
                     return;
                 }
                 for (const node of sel) {
@@ -3344,7 +3687,7 @@ mg.ui.onmessage = async (rawMessage) => {
             else if (f.scope === 'children') {
                 // 模式：仅直系子级
                 if (sel.length === 0) {
-                    mg.notify("⚠️ 请先选择一个容器(Frame/Group)");
+                    notifyInUiLanguage("⚠️ 请先选择一个容器(Frame/Group)");
                     return;
                 }
                 for (const node of sel) {
@@ -3360,7 +3703,7 @@ mg.ui.onmessage = async (rawMessage) => {
                     searchTargets.push(...siblings);
                 }
                 else {
-                    mg.notify("⚠️ 请先选择一个图层");
+                    notifyInUiLanguage("⚠️ 请先选择一个图层");
                     return;
                 }
             }
@@ -3642,7 +3985,7 @@ mg.ui.onmessage = async (rawMessage) => {
             if (results.length > 0) {
                 mg.document.currentPage.selection = results;
                 mg.viewport.scrollAndZoomIntoView(results);
-                mg.notify(`✅ 已选中 ${results.length} 个图层`);
+                notifyInUiLanguage(`✅ 已选中 ${results.length} 个图层`);
                 // 🔥 新增：将结果回传给 UI
                 sendToUI({
                     type: 'found-layers-result',
@@ -3651,7 +3994,7 @@ mg.ui.onmessage = async (rawMessage) => {
                 });
             }
             else {
-                mg.notify("⚠️ 未找到图层，请检查 Console的筛选池大小");
+                notifyInUiLanguage("⚠️ 未找到图层，请检查 Console的筛选池大小");
                 sendToUI({ type: 'found-layers-result', count: 0, layers: [] });
             }
             break;
@@ -3710,7 +4053,7 @@ mg.ui.onmessage = async (rawMessage) => {
                         mg.viewport.scrollAndZoomIntoView(targets);
                         // C. 只有多选时才提示，单选静默，体验最好
                         if (targets.length > 1) {
-                            mg.notify(`已定位 ${targets.length} 项`);
+                            notifyInUiLanguage(`已定位 ${targets.length} 项`);
                         }
                     }
                 }
@@ -3729,7 +4072,7 @@ mg.ui.onmessage = async (rawMessage) => {
             // 必须恰好选中两个容器 (Frame/Group/Section/Component 等)
             const containers = sel.filter(n => 'children' in n);
             if (sel.length !== 2 || containers.length !== 2) {
-                mg.notify("请在画布上选中恰好两个画板/容器");
+                notifyInUiLanguage("请在画布上选中恰好两个画板/容器");
                 return;
             }
             const [cA, cB] = containers;
@@ -3827,7 +4170,7 @@ mg.ui.onmessage = async (rawMessage) => {
                 next = nodes;
             }
             mg.document.currentPage.selection = next;
-            mg.notify(`已选中 ${next.length} 个图层`);
+            notifyInUiLanguage(`已选中 ${next.length} 个图层`);
             break;
         }
         case 'dup-fill-red': {
@@ -3919,11 +4262,11 @@ mg.ui.onmessage = async (rawMessage) => {
                 let msgTxt = `已标记 左红 ${redCount} 个 · 右绿 ${greenCount} 个`;
                 if (skipped > 0)
                     msgTxt += `（跳过 ${skipped} 个）`;
-                mg.notify(msgTxt);
+                notifyInUiLanguage(msgTxt);
             }
             catch (e) {
                 console.error('[dup-fill-red] 异常:', e);
-                mg.notify('填充失败：' + (e && e.message ? e.message : String(e)));
+                notifyInUiLanguage('填充失败：' + (e && e.message ? e.message : String(e)));
             }
             break;
         }
@@ -3933,7 +4276,7 @@ mg.ui.onmessage = async (rawMessage) => {
         case 'find-replace': {
             const { findText, replaceText } = msg;
             if (!findText) {
-                mg.notify("请输入查找内容，注意区分大小写");
+                notifyInUiLanguage("请输入查找内容，注意区分大小写");
                 return;
             }
             // 确定范围：如果有选区则在选区内查，否则在全页查
@@ -3949,7 +4292,7 @@ mg.ui.onmessage = async (rawMessage) => {
             };
             scope.forEach(collect);
             if (textNodes.length === 0) {
-                mg.notify("范围内没有文本");
+                notifyInUiLanguage("范围内没有文本");
                 return;
             }
             // 批量处理
@@ -3967,9 +4310,9 @@ mg.ui.onmessage = async (rawMessage) => {
                 }
             }
             if (count > 0)
-                mg.notify(`已替换 ${count} 处文本`);
+                notifyInUiLanguage(`已替换 ${count} 处文本`);
             else
-                mg.notify("未找到匹配内容");
+                notifyInUiLanguage("未找到匹配内容");
             break;
         }
         // ===========================
@@ -3979,7 +4322,7 @@ mg.ui.onmessage = async (rawMessage) => {
             const pageName = mg.document.currentPage.name.toLowerCase();
             // --- 修复点 1：安全检查不通过时，要告诉 UI 重置按钮 ---
             if (!pageName.includes('copy') && !pageName.includes('副本')) {
-                mg.notify("⚠️ 请先将 Page 重命名为 'xxx 副本' 以确保安全！", { type: 'error' });
+                notifyInUiLanguage("⚠️ 请先将 Page 重命名为 'xxx 副本' 以确保安全！", { type: 'error' });
                 // 发送一个 'step-error' 消息给 UI，让它停止转圈
                 sendToUI({ type: 'step-error', step: 1 });
                 return;
@@ -3987,7 +4330,7 @@ mg.ui.onmessage = async (rawMessage) => {
             const slides = getSlides();
             // --- 修复点 2：没选图层时，也要告诉 UI 重置按钮 ---
             if (slides.length === 0) {
-                mg.notify("请至少选择一个 Frame 画板");
+                notifyInUiLanguage("请至少选择一个 Frame 画板");
                 sendToUI({ type: 'step-error', step: 1 });
                 return;
             }
@@ -4191,7 +4534,7 @@ mg.ui.onmessage = async (rawMessage) => {
                 }
                 catch (err) { }
             }
-            mg.notify(`✨ 已成功修复 ${count} 项命名`);
+            notifyInUiLanguage(`✨ 已成功修复 ${count} 项命名`);
             break;
         }
         // -------------------------------------------------------------
@@ -4211,7 +4554,7 @@ mg.ui.onmessage = async (rawMessage) => {
                 searchPool = [mg.document.currentPage];
             }
             if (searchPool.length === 0 && scope === 'selection') {
-                mg.notify("请先选择图层");
+                notifyInUiLanguage("请先选择图层");
                 // 即使失败，也要发回空结果，以此重置前端按钮状态
                 sendToUI({ type: 'text-find-results', data: [] });
                 return;
@@ -4247,7 +4590,7 @@ mg.ui.onmessage = async (rawMessage) => {
             // 4. 发送结果给前端
             sendToUI({ type: 'text-find-results', data: results });
             if (results.length === 0) {
-                mg.notify("未找到匹配文本");
+                notifyInUiLanguage("未找到匹配文本");
             }
             break;
         }
@@ -4273,7 +4616,7 @@ mg.ui.onmessage = async (rawMessage) => {
                             const cachedData = highlightCache[cacheKey]; // { fills, length }
                             node.setRangeFills(msg.index, msg.index + cachedData.length, cachedData.fills);
                             delete highlightCache[cacheKey];
-                            mg.notify("已还原颜色");
+                            notifyInUiLanguage("已还原颜色");
                             sendToUI({ type: 'highlight-status', key: cacheKey, status: false });
                         }
                         else {
@@ -4282,13 +4625,13 @@ mg.ui.onmessage = async (rawMessage) => {
                             highlightCache[cacheKey] = { fills: currentFills, length: msg.length };
                             const highlightPaint = [solidPaint({ r: 1, g: 0, b: 0 })];
                             node.setRangeFills(msg.index, msg.index + msg.length, highlightPaint);
-                            mg.notify("已标记 (再次点击可还原)");
+                            notifyInUiLanguage("已标记 (再次点击可还原)");
                             sendToUI({ type: 'highlight-status', key: cacheKey, status: true });
                         }
                     }
                 }
                 else {
-                    mg.notify("图层不存在 (可能已被删除)");
+                    notifyInUiLanguage("图层不存在 (可能已被删除)");
                 }
             }
             catch (e) {
@@ -4349,7 +4692,7 @@ mg.ui.onmessage = async (rawMessage) => {
                 count: successCount,
                 processedUids: Array.from(processedIds)
             });
-            mg.notify(`已替换 ${successCount} 处文本`);
+            notifyInUiLanguage(`已替换 ${successCount} 处文本`);
             break;
         }
         // -------------------------------------------------------------
@@ -4374,7 +4717,7 @@ mg.ui.onmessage = async (rawMessage) => {
                 }
             }
             highlightCache = {}; // 清空池子
-            mg.notify(`已还原 ${count} 处高亮`);
+            notifyInUiLanguage(`已还原 ${count} 处高亮`);
             // 通知前端清除所有高亮样式
             sendToUI({ type: 'clear-all-highlights-ui' });
             break;
@@ -4391,7 +4734,7 @@ mg.ui.onmessage = async (rawMessage) => {
         case 'jb-save': {
             const spots = await loadJumpbackSpots();
             if (spots.length >= 5) {
-                mg.notify("最多只能保存 5 个锚点！");
+                notifyInUiLanguage("最多只能保存 5 个锚点！");
                 return;
             }
             // 获取案发现场数据
@@ -4411,7 +4754,7 @@ mg.ui.onmessage = async (rawMessage) => {
             };
             spots.push(newSpot);
             await saveJumpbackSpots(spots);
-            mg.notify("📍 位置已保存");
+            notifyInUiLanguage("📍 位置已保存");
             sendToUI({ type: 'jb-render-spots', data: spots });
             break;
         }
@@ -4431,7 +4774,7 @@ mg.ui.onmessage = async (rawMessage) => {
                         mg.document.currentPage = targetPage;
                     }
                     else {
-                        mg.notify("⚠️ 该位置所在的页面已被删除！");
+                        notifyInUiLanguage("⚠️ 该位置所在的页面已被删除！");
                         return;
                     }
                 }
@@ -4459,11 +4802,11 @@ mg.ui.onmessage = async (rawMessage) => {
                     // 如果图层被删了，清空当前选中项，视角依然过去 (补全了这里)
                     mg.document.currentPage.selection = [];
                 }
-                mg.notify("🚀 已传送！");
+                notifyInUiLanguage("🚀 已传送！");
             }
             catch (e) {
                 console.warn("Jumpback failed:", e);
-                mg.notify("传送失败，可能是图层结构已发生巨大改变");
+                notifyInUiLanguage("传送失败，可能是图层结构已发生巨大改变");
             }
             break;
         }
@@ -4477,7 +4820,7 @@ mg.ui.onmessage = async (rawMessage) => {
             await saveJumpbackSpots(spots);
             // 重新渲染 UI
             sendToUI({ type: 'jb-render-spots', data: spots });
-            mg.notify("🗑️ 锚点已删除");
+            notifyInUiLanguage("🗑️ 锚点已删除");
             break;
         }
         case 'jb-rename': {
@@ -4488,7 +4831,7 @@ mg.ui.onmessage = async (rawMessage) => {
             if (index > -1 && msg.newName.trim() !== '') {
                 spots[index].name = msg.newName.substring(0, 20); // 限制长度
                 await saveJumpbackSpots(spots);
-                mg.notify("已重命名");
+                notifyInUiLanguage("已重命名");
             }
             else {
                 // 如果名字为空，发回原数据恢复 UI
@@ -4586,7 +4929,7 @@ mg.ui.onmessage = async (rawMessage) => {
             const valid = selected.filter(node => node.type === 'FRAME' || node.type === 'RECTANGLE');
             if (!valid.length || !Number.isFinite(width) || !Number.isFinite(height)) {
                 const message = '请先选择一个或多个 Frame / 矩形';
-                mg.notify(message);
+                notifyInUiLanguage(message);
                 sendToUI({ type: 'size-assistant-result', ok: false, message });
                 break;
             }
@@ -4608,7 +4951,7 @@ mg.ui.onmessage = async (rawMessage) => {
                 }
             }
             const message = `已将 ${resized} 个图层设为 ${width} × ${height}${warnings.length ? `，${warnings.length} 个图层调整失败` : ''}`;
-            mg.notify(message);
+            notifyInUiLanguage(message);
             sendToUI({ type: 'size-assistant-result', ok: resized > 0, message, warnings });
             break;
         }
@@ -4896,13 +5239,13 @@ mg.ui.onmessage = async (rawMessage) => {
                 const result = applyComponentAiPlan(msg.plan);
                 mg.commitUndo();
                 const message = `已应用 ${result.changed} 项组件规范优化${result.warnings.length ? `；${result.warnings.length} 项未能修改` : ''}`;
-                mg.notify(message, { type: result.warnings.length ? 'warning' : 'success' });
+                notifyInUiLanguage(message, { type: result.warnings.length ? 'warning' : 'success' });
                 sendToUI({ type: 'component-ai-applied', ok: true, message, warnings: result.warnings });
                 sendComponentBuilderSelection();
             }
             catch (error) {
                 const message = `应用失败：${String((error === null || error === void 0 ? void 0 : error.message) || error)}`;
-                mg.notify(message, { type: 'error' });
+                notifyInUiLanguage(message, { type: 'error' });
                 sendToUI({ type: 'component-ai-applied', ok: false, message });
             }
             break;
@@ -4910,13 +5253,13 @@ mg.ui.onmessage = async (rawMessage) => {
         case 'component-builder-reverse': {
             if (selection.length !== 1 || selection[0].type !== 'INSTANCE') {
                 const message = '请只选择一个实例（Instance）后再逆向母版';
-                mg.notify(message, { type: 'warning' });
+                notifyInUiLanguage(message, { type: 'warning' });
                 sendToUI({ type: 'component-builder-result', ok: false, message });
                 break;
             }
             if (componentReverseRunning) {
                 const message = '实例逆向正在处理中，请等待当前操作完成';
-                mg.notify(message, { type: 'warning' });
+                notifyInUiLanguage(message, { type: 'warning' });
                 sendToUI({ type: 'component-builder-result', ok: false, message });
                 break;
             }
@@ -4927,7 +5270,7 @@ mg.ui.onmessage = async (rawMessage) => {
             }
             catch (error) {
                 const message = `逆向失败：${describeReverseFailure(error)}`;
-                mg.notify(message, { type: 'error' });
+                notifyInUiLanguage(message, { type: 'error' });
                 sendToUI({ type: 'component-builder-result', ok: false, message });
             }
             finally {
@@ -4966,7 +5309,7 @@ mg.ui.onmessage = async (rawMessage) => {
                 ? `，原组件集${result.overflowVariantCountIsMinimum ? '至少 ' : ' '}${result.overflowVariantCount} 个变体超过上限 ${MAX_REVERSED_VARIANTS}，已保留为单变体组件集及原属性`
                 : variantText;
             const message = `已逆向组件母版${modeText}${overflowText}，并保留 ${result.propertyCount} 个有效属性${warningText}`;
-            mg.notify(message, { type: result.warnings.length > 0 ? 'warning' : 'success' });
+            notifyInUiLanguage(message, { type: result.warnings.length > 0 ? 'warning' : 'success' });
             sendToUI({
                 type: 'component-builder-result',
                 ok: true,
@@ -4983,14 +5326,14 @@ mg.ui.onmessage = async (rawMessage) => {
             const frames = selection.filter(node => node.type === 'FRAME');
             if (selection.length === 0 || frames.length !== selection.length) {
                 const message = '请选择一个或多个 Frame；当前选择中不能混入其他图层类型';
-                mg.notify(message, { type: 'warning' });
+                notifyInUiLanguage(message, { type: 'warning' });
                 sendToUI({ type: 'component-builder-result', ok: false, message });
                 break;
             }
             const connectorFrames = frames.filter(frame => frame.attachedConnectors.length > 0);
             if (connectorFrames.length > 0) {
                 const message = `有 ${connectorFrames.length} 个 Frame 连接了原型连线；为避免连接目标丢失，本次未转换`;
-                mg.notify(message, { type: 'warning' });
+                notifyInUiLanguage(message, { type: 'warning' });
                 sendToUI({ type: 'component-builder-result', ok: false, message });
                 break;
             }
@@ -5007,7 +5350,7 @@ mg.ui.onmessage = async (rawMessage) => {
                     const message = mode === 'set' || mode === 'language'
                         ? '创建组件集时，所选 Frame 必须位于同一父级'
                         : '合并为单个组件时，所选 Frame 必须位于同一父级';
-                    mg.notify(message, { type: 'warning' });
+                    notifyInUiLanguage(message, { type: 'warning' });
                     sendToUI({ type: 'component-builder-result', ok: false, message });
                     break;
                 }
@@ -5076,7 +5419,7 @@ mg.ui.onmessage = async (rawMessage) => {
                     exposeInstances ? '实例属性' : ''
                 ].filter(Boolean).join('、');
                 const message = `已创建${typeLabel}${exposedLabel ? `，并生成${exposedLabel}` : ''}${warnings.length ? `；${warnings.length} 项已跳过` : ''}`;
-                mg.notify(message, { type: warnings.length > 0 ? 'warning' : 'success' });
+                notifyInUiLanguage(message, { type: warnings.length > 0 ? 'warning' : 'success' });
                 sendToUI({
                     type: 'component-builder-result',
                     ok: true,
@@ -5087,7 +5430,7 @@ mg.ui.onmessage = async (rawMessage) => {
             }
             catch (error) {
                 const message = `创建失败：${String((error === null || error === void 0 ? void 0 : error.message) || error)}`;
-                mg.notify(message, { type: 'error' });
+                notifyInUiLanguage(message, { type: 'error' });
                 sendToUI({ type: 'component-builder-result', ok: false, message });
             }
             break;
@@ -5172,13 +5515,13 @@ mg.ui.onmessage = async (rawMessage) => {
             const selection = mg.document.currentPage.selection;
             // 1. 检查是否只选中了一个节点，且必须是 Component Set
             if (selection.length !== 1 || selection[0].type !== 'COMPONENT_SET') {
-                mg.notify("请选中一个 Component Set (组件集)！", { type: 'error' });
+                notifyInUiLanguage("请选中一个 Component Set (组件集)！", { type: 'error' });
                 break;
             }
             const componentSet = selection[0];
             const variants = componentSet.children;
             if (variants.length === 0) {
-                mg.notify("组件集为空", { type: 'error' });
+                notifyInUiLanguage("组件集为空", { type: 'error' });
                 break;
             }
             // 2. 解析变体属性
@@ -5246,7 +5589,7 @@ mg.ui.onmessage = async (rawMessage) => {
             let resultMsg = hasY
                 ? `✨ 矩阵重排完成！${xArray.length} x ${yArray.length}${groups.length > 1 ? `，共 ${groups.length} 个分组` : ''}`
                 : `✨ 单维度排列完成！${xArray.length} 个变体水平排列`;
-            mg.notify(resultMsg);
+            notifyInUiLanguage(resultMsg);
             break;
         }
         // 批量排布：多个组件集统一排列
@@ -5276,7 +5619,7 @@ mg.ui.onmessage = async (rawMessage) => {
                 }
             }
             if (compSets.length === 0) {
-                mg.notify("请选中至少一个 Component Set！", { type: 'error' });
+                notifyInUiLanguage("请选中至少一个 Component Set！", { type: 'error' });
                 break;
             }
             await mg.loadFontAsync({ family: "Inter", style: "Regular" });
@@ -5493,7 +5836,7 @@ mg.ui.onmessage = async (rawMessage) => {
             }
             mg.document.currentPage.selection = [container];
             mg.viewport.scrollAndZoomIntoView([container]);
-            mg.notify(`✅ 批量排布完成！共 ${compSets.length} 个组件集`);
+            notifyInUiLanguage(`✅ 批量排布完成！共 ${compSets.length} 个组件集`);
             break;
         }
         // 生成说明书（完整版）
@@ -5539,7 +5882,7 @@ mg.ui.onmessage = async (rawMessage) => {
                 }
             }
             if (!targetNode) {
-                mg.notify("请选中一个 Component Set 或已生成的说明书画板！", { type: 'error' });
+                notifyInUiLanguage("请选中一个 Component Set 或已生成的说明书画板！", { type: 'error' });
                 break;
             }
             const componentSet = targetNode;
@@ -6187,7 +6530,7 @@ mg.ui.onmessage = async (rawMessage) => {
             }
             mg.document.currentPage.selection = [boardFrame];
             mg.viewport.scrollAndZoomIntoView([boardFrame]);
-            mg.notify("✅ 说明书生成完毕！");
+            notifyInUiLanguage("✅ 说明书生成完毕！");
             mg.commitUndo();
             break;
         }

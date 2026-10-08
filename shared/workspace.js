@@ -24,10 +24,10 @@
   const panelIds = [...Object.values(routes).map(route => route[0]), 'selectionFooter', 'settingsPanel', 'emptyPanel'];
   const cards = [...document.querySelectorAll('#toolGrid .tool-card')];
   const toolNames = {
-    reverse_component:['实例逆向','Restore source'], to_frame:['矩形转画板','Rectangle to frame'], to_rect:['画板转矩形','Frame to rectangle'],
+    reverse_component:['实例逆向','Rebuild main component'], to_frame:['矩形转画板','Rectangle to frame'], to_rect:['画板转矩形','Frame to rectangle'],
     split_text:['拆分文本','Split text'], join_text:['合并文本','Join text'], remove_al:['移除自动布局','Remove auto layout'], add_al_wrapper:['包裹自动布局','Wrap in auto layout'],
-    up_one:['上移一层','Move up a level'], up_all:['移至顶层','Move to top level'], ungroup_all:['解散所有编组','Ungroup all'], unlock_all:['解锁所有图层','Unlock layers'],
-    swap_fs:['互换填充描边','Swap fill / stroke'], reset_image:['还原图片比例','Reset image ratio'], sort_layers:['可见度排序','Sort by visibility'], sort_by_name:['名称排序','Sort by name'],
+    up_one:['上移一层','Move up one level'], up_all:['移至顶层','Move to page root'], ungroup_all:['解散所有编组','Ungroup all'], unlock_all:['解锁所有图层','Unlock layers'],
+    swap_fs:['互换填充描边','Swap fill / stroke'], reset_image:['还原图片比例','Reset image ratio'], sort_layers:['按位置排序','Sort by position'], sort_by_name:['名称排序','Sort by name'],
     rename_content:['按文本命名','Name from text'], detach_all:['分离组件实例','Detach instances'], remove_hidden:['删除隐藏图层','Delete hidden layers'], pixel_perfect:['像素对齐','Align to pixels'],
     swap_positions:['交换图层位置','Swap positions'], create_styles:['创建本地样式','Create local styles'], match_styles:['重新关联样式','Match local styles']
   };
@@ -65,6 +65,7 @@
     if (key !== 'settings') nav(key).scrollIntoView({ block:'nearest' });
     document.querySelector('.sidebar-footer button').classList.toggle('active', key === 'settings');
     refreshLocation();
+    window.PluginLocalization?.refresh();
     if (key === 'settings') initSettingsPanel();
     if (key === 'componentBuilder') requestComponentBuilderSelection();
     if (key === 'size') { initSizeAssistant(); updateSizeSummary(); postMsg('size-assistant-inspect'); }
@@ -169,6 +170,14 @@
       if (tip) { tip.id = 'tool-help-' + card.dataset.key; card.setAttribute('aria-describedby', tip.id); }
     });
     refreshLocation();
+    window.PluginLocalization?.refresh();
+    window.TheoryWorkspace?.refresh();
+    if (sizeAssistantState.initialized) {
+      renderSizePresets();
+      const preset = SIZE_ASSISTANT_PRESETS.find(item => item.id === sizeAssistantState.selectedId);
+      $('sizeGuidance').textContent = preset ? PluginLocalization.t(preset.note)
+        : l('自定义尺寸；勾选锁定宽高比可联动调整。','Custom dimensions. Lock the aspect ratio to resize proportionally.');
+    }
   }
   const scheme = window.matchMedia('(prefers-color-scheme: dark)');
   const followSystemTheme = () => { if (PersistentCache.get('user_theme') === 'system') document.documentElement.dataset.theme = scheme.matches ? 'dark' : 'light'; };

@@ -38,7 +38,14 @@
 - `shared/workspace.js`：路由注册、直接访问导航、滚动恢复、主题跟随和数列设置披露。首页直接呈现全部工具，不再生成重复页头和搜索/分类模板。
 - `shared/fill-generators.js`：无宿主依赖的数列与时间序列函数。
 - `shared/chinese-names.js`：双端共用的完整中文姓名库与不重复抽取逻辑，维护说明见 `docs/CHINESE_NAME_LIBRARY.md`。
+- `shared/localization-core.js`：补充词库与参数化提示；`localization-ui.js` 校对已有词条并绑定界面文案，`localization-host.js` 提供宿主通知语言适配。
+- `shared/theory-data.js`、`theory-locales.js`、`theory-workspace.js`：理论数据、英文正文与阅读/提问交互。
 
 执行 `npm run sync:ui` 更新两端 HTML 内标记区；不要直接修改生成的标记区。主线程的宿主 API 仍各自维护，避免将平台差异伪装成相同实现。
+
+两端构建都会通过 `scripts/embed-host-locale.mjs` 将共享通知词库加入宿主脚本。
+新增界面文案需添加英文词条或共享词库，并执行 `npm run check:localization-ui`。
+文案绑定禁止修改用户输入、文档对象名称或生成结果；自定义值请标记
+`data-user-content` 或放在已有的数据容器中。
 
 新增面板时同步更新路由注册、两端静态模板与导航，再运行功能等价和浏览器回归。浏览器测试是模拟宿主消息，不替代真实 Figma / MasterGo 画布验收。

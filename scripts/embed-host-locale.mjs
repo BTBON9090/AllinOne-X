@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const platform = process.argv[2];
+if (!['figma','mastergo'].includes(platform)) throw new Error('Choose figma or mastergo');
+const target = path.join(root, platform, platform === 'figma' ? 'code.js' : 'main.js');
+const code = fs.readFileSync(target, 'utf8').replace(/^\/\/ shared-host-locale:start[\s\S]*?\/\/ shared-host-locale:end\n/, '');
+const core = fs.readFileSync(path.join(root,'shared/localization-core.js'),'utf8');
+const adapter = fs.readFileSync(path.join(root,'shared/localization-host.js'),'utf8').replaceAll('__PLUGIN_HOST__', platform === 'figma' ? 'figma' : 'mg');
+fs.writeFileSync(target, '// shared-host-locale:start\n' + core + '\n' + adapter + '// shared-host-locale:end\n' + code);

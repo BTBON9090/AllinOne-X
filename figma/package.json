@@ -4,7 +4,7 @@
   "description": "Figma All in One Plugin",
   "main": "code.js",
   "scripts": {
-    "build": "tsc code.ts --outFile code.js && node scripts/embed-ui.mjs",
+    "build": "tsc code.ts --outFile code.js && node scripts/embed-ui.mjs && node ../scripts/embed-host-locale.mjs figma",
     "watch": "tsc code.ts --outFile code.js --watch",
     "check:ui": "node scripts/check-ui-syntax.mjs",
     "check:component-builder": "node scripts/check-component-builder.mjs",

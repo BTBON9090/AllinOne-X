@@ -9,6 +9,11 @@ const icons = Object.fromEntries(Object.entries(catalog.icons).map(([name, data]
 const js = fs.readFileSync(path.join(root, 'shared/ui-shell.js'), 'utf8').replace('__TABLER_ICONS__', () => JSON.stringify(icons))
   + '\n' + fs.readFileSync(path.join(root, 'shared/fill-generators.js'), 'utf8')
   + '\n' + fs.readFileSync(path.join(root, 'shared/chinese-names.js'), 'utf8')
+  + '\n' + fs.readFileSync(path.join(root, 'shared/theory-data.js'), 'utf8')
+  + '\n' + fs.readFileSync(path.join(root, 'shared/theory-locales.js'), 'utf8')
+  + '\n' + fs.readFileSync(path.join(root, 'shared/localization-core.js'), 'utf8')
+  + '\n' + fs.readFileSync(path.join(root, 'shared/localization-ui.js'), 'utf8')
+  + '\n' + fs.readFileSync(path.join(root, 'shared/theory-workspace.js'), 'utf8')
   + '\n' + fs.readFileSync(path.join(root, 'shared/workspace.js'), 'utf8');
 for (const platform of ['figma', 'mastergo']) {
   const file = path.join(root, platform, 'ui.html');

@@ -4823,6 +4823,18 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 <!-- shared-shell-style:start -->
 <style>
 :root {
@@ -5069,6 +5081,52 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
 .tool-greeting .dash-greeting { display:block; flex:1; min-width:0; min-height:32px; margin:0; padding:4px 0; border:0; background:transparent; color:var(--text-primary); font-size:18px; line-height:24px !important; font-weight:700; letter-spacing:-.3px; text-align:left; white-space:normal; text-wrap:balance; overflow-wrap:anywhere; }
 .tool-greeting .dash-greeting:hover { color:var(--primary); }
 .tool-greeting .dash-greeting:active { transform:none; }
+
+/* Theory reading view: one text column with quiet section markers. */
+.theory-capsule-container { min-height:0; padding:10px; overscroll-behavior:contain; }
+.theory-group { margin:0 0 14px; padding:0; border:0; }
+.theory-group-title { margin:0 0 6px; font-size:12px; line-height:18px; font-weight:600; letter-spacing:0; color:var(--text-primary); }
+.theory-capsule-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px; }
+.theory-capsule { min-width:0; min-height:30px; padding:6px; gap:5px; align-items:center; border:0; background:var(--bg-muted); font-size:11px; font-weight:400; text-align:left; box-shadow:none; }
+.theory-capsule:hover { background:var(--primary-light); transform:none; border:0; }
+.theory-capsule-icon { display:flex; flex:0 0 16px; color:var(--primary); }
+.theory-detail-nav, .theory-chat-header { min-height:40px; padding:6px 10px; gap:6px; border-bottom:1px solid var(--border); box-shadow:none; background:var(--bg-surface); }
+.btn-back-theory { padding:6px; gap:4px; min-height:28px; font-size:11px; }
+.btn-back-theory > span:first-child { display:flex; }
+.detail-cat-badge { max-width:50%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0; font-size:10px; line-height:14px; font-weight:400; color:var(--text-secondary); background:transparent; text-transform:none; letter-spacing:0; }
+.theory-article-scroll { position:relative; min-height:0; min-width:0; padding:12px 10px 16px; background:var(--bg-surface); overscroll-behavior:contain; }
+.theory-hero { margin:0 0 14px; padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; text-align:left; }
+.theory-title-row { display:flex; align-items:flex-start; gap:8px; }
+.theory-title-row .t-icon-large { display:flex; flex:0 0 24px; width:24px; height:24px; margin:0; color:var(--primary); }
+.theory-title-row .ui-icon { width:22px; height:22px; }
+.theory-hero h1 { min-width:0; margin:0; font-size:17px; line-height:23px; font-weight:650; letter-spacing:-.2px; }
+.theory-hero .t-subtitle { margin:6px 0 0; font-size:11px; line-height:16px; font-weight:400; color:var(--text-secondary); }
+.theory-hero .t-desc-main { margin:8px 0 0; padding:0; font-size:12px; line-height:19px; color:var(--text-primary); }
+.theory-outline { display:block; margin:0 0 12px; }
+.theory-outline-label { display:block; margin-bottom:4px; font-size:10px; line-height:14px; color:var(--text-secondary); }
+.theory-outline select { width:100%; }
+#theoryDetailDynamicContent { padding:0; }
+.theory-principle { padding:12px 0; margin:0; border-top:1px solid var(--border); }
+.theory-principle-title { display:flex; align-items:flex-start; gap:6px; margin:0 0 8px; font-size:12px; line-height:18px; font-weight:600; color:var(--text-primary); }
+.theory-principle-number { flex:0 0 18px; font-size:10px; line-height:18px; font-weight:600; font-variant-numeric:tabular-nums; color:var(--primary); }
+.theory-principle-block { margin:8px 0 0; }
+.theory-principle-core { padding:6px 8px; border-radius:4px; background:var(--bg-muted); }
+.theory-block-label { margin:0 0 3px; font-size:10px; line-height:14px; font-weight:500; color:var(--text-secondary); }
+.theory-block-copy { margin:0; font-size:12px; line-height:19px; overflow-wrap:anywhere; color:var(--text-primary); }
+.theory-principle-val .theory-block-copy { font-size:11px; line-height:18px; color:var(--text-secondary); }
+.theory-input-section, .theory-chat-input { display:block; flex-shrink:0; padding:8px 10px; border-top:1px solid var(--border); background:var(--bg-surface); backdrop-filter:none; -webkit-backdrop-filter:none; box-shadow:none; }
+.theory-composer { display:flex; align-items:flex-end; gap:4px; width:100%; padding:4px 4px 4px 8px; border:0; border-radius:4px; background:var(--bg-muted); box-shadow:none; }
+.theory-composer:focus-within { outline:2px solid var(--primary-light); outline-offset:1px; }
+.theory-composer textarea { display:block; flex:1; width:0 !important; min-width:0; min-height:28px; max-height:96px; height:28px; margin:0; padding:5px 0 !important; border:0 !important; resize:none; background:transparent !important; font-size:12px !important; line-height:18px !important; color:var(--text-primary); box-shadow:none; overflow-y:auto; }
+.theory-composer textarea:focus { outline:none; box-shadow:none; }
+.theory-composer button { position:static !important; inset:auto !important; display:flex; align-items:center; justify-content:center; flex:0 0 28px; width:28px; min-width:28px; height:28px; min-height:28px; margin:0; padding:6px; border:0; background:#7135db; color:#fff; box-shadow:none; }
+.theory-composer button:hover:not(:disabled) { background:#6125c6; }
+.theory-composer button:disabled { opacity:.45; background:var(--bg-hover); color:var(--text-secondary); cursor:default; }
+.theory-chat-header .chat-title { font-size:12px; line-height:18px; font-weight:600; }
+.theory-chat-messages { padding:10px; gap:8px; overscroll-behavior:contain; }
+.theory-chat-message { padding:7px 8px; font-size:12px; line-height:19px; border-radius:4px; white-space:pre-wrap; overflow-wrap:anywhere; }
+.theory-chat-message.user { background:var(--primary-light); color:var(--text-primary); }
+.theory-chat-message.ai { max-width:100%; padding:0 0 8px; border:0; background:transparent; color:var(--text-primary); }
 </style>
 <!-- shared-shell-style:end -->
 </head>
@@ -6076,80 +6134,48 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
             </div>
         </div>
 
-        <!-- Panel 8: Design Theory (设计理论) -->
-        <div id="theoryPanel" style="display: none; flex-direction: column; height: 100%; background: var(--bg-white);">
-
-          <!-- 1. 首页：胶囊分组 + 底部输入框 -->
-          <div id="theoryHomeView" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
-            <!-- 胶囊分组列表 -->
-            <div class="theory-capsule-container" id="theoryCapsuleContainer">
-              <!-- JS 动态渲染 -->
-            </div>
-
-            <!-- 底部输入区域 -->
+        <!-- Panel 8: Design Theory -->
+        <div id="theoryPanel" style="display:none; flex-direction:column; height:100%; background:var(--bg-surface);">
+          <div id="theoryHomeView" style="display:flex; flex-direction:column; flex:1; min-height:0;">
+            <div class="theory-capsule-container" id="theoryCapsuleContainer"></div>
             <div class="theory-input-section">
-              <div class="theory-input-wrapper">
-                <textarea class="theory-input" id="theoryQuestionInput" placeholder="输入设计问题或理论关键词..." rows="2"></textarea>
-                <button class="theory-send-btn" onclick="sendTheoryQuestion()">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                  </svg>
-                </button>
+              <div class="theory-input-wrapper theory-composer">
+                <textarea class="theory-input" id="theoryQuestionInput" placeholder="输入设计问题或理论关键词..." rows="1" aria-label="设计问题"></textarea>
+                <button id="theoryQuestionSend" class="theory-send-btn" type="button" data-smart-icon="arrow-up" onclick="sendTheoryQuestion()" title="发送" aria-label="发送问题"></button>
               </div>
             </div>
           </div>
-
-          <!-- 2. AI对话视图 -->
-          <div id="theoryChatView" style="display: none; flex-direction: column; flex: 1; min-height: 0; background: var(--bg-surface);">
+          <div id="theoryChatView" style="display:none; flex-direction:column; flex:1; min-height:0; background:var(--bg-surface);">
             <div class="theory-chat-header">
-              <button class="btn-back-theory" onclick="closeTheoryChat()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                返回
-              </button>
+              <button class="btn-back-theory" type="button" onclick="closeTheoryChat()"><span data-smart-icon="chevron-left"></span><span class="theory-back-label">返回</span></button>
               <div class="chat-title">AI 设计理论助手</div>
             </div>
-
-            <div class="theory-chat-messages" id="theoryChatMessages">
-              <!-- JS 动态渲染对话消息 -->
-            </div>
-
+            <div class="theory-chat-messages" id="theoryChatMessages" role="log" aria-live="polite"></div>
             <div class="theory-chat-input">
-              <textarea class="theory-chat-textarea" id="theoryChatInput" placeholder="继续提问..." rows="2"></textarea>
-              <button class="theory-chat-send" onclick="sendTheoryChat()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="22" y1="2" x2="11" y2="13"></line>
-                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-              </button>
+              <div class="theory-composer">
+                <textarea class="theory-chat-textarea" id="theoryChatInput" placeholder="继续提问..." rows="1" aria-label="继续提问"></textarea>
+                <button id="theoryChatSend" class="theory-chat-send" type="button" data-smart-icon="arrow-up" onclick="sendTheoryChat()" title="发送" aria-label="发送问题"></button>
+              </div>
             </div>
           </div>
-
-          <!-- 3. 详情视图 -->
-          <div id="theoryDetailView" style="display: none; flex-direction: column; flex: 1; min-height: 0; background: var(--bg-white);">
-            <div class="theory-detail-nav">
-              <button class="btn-back-theory" onclick="closeTheoryDetail()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                返回列表
-              </button>
-              <div class="detail-cat-badge" id="detailCatBadge">Category</div>
-            </div>
-
-            <!-- 详情页滚动区域 -->
-            <div class="theory-article-scroll">
-              <!-- 头部 Hero 区域 -->
-              <div class="theory-hero">
-                <div class="t-icon-large" id="detailIcon">💡</div>
-                <h1 id="detailTitle">Theory Title</h1>
-                <p class="t-subtitle" id="detailSubtitle">Subtitle</p>
+          <div id="theoryDetailView" style="display:none; flex-direction:column; flex:1; min-height:0; background:var(--bg-surface);">
+            <nav class="theory-detail-nav">
+              <button class="btn-back-theory" type="button" onclick="closeTheoryDetail()"><span data-smart-icon="chevron-left"></span><span class="theory-back-label">返回列表</span></button>
+              <span id="detailCatBadge" class="detail-cat-badge"></span>
+            </nav>
+            <article class="theory-article-scroll">
+              <header class="theory-hero">
+                <div class="theory-title-row"><span id="detailIcon" class="t-icon-large" aria-hidden="true"></span><h1 id="detailTitle"></h1></div>
+                <p id="detailSubtitle" class="t-subtitle"></p>
                 <p id="detailMainDesc" class="t-desc-main"></p>
-              </div>
-
-              <hr class="t-divider">
-
-              <!-- 动态渲染区域 -->
-              <div id="theoryDetailDynamicContent">
-                <!-- JS 将在这里插入子理论卡片 -->
+              </header>
+              <label class="theory-outline" id="theoryDetailOutline" hidden><span class="theory-outline-label">章节导航</span><select id="theorySectionSelect" aria-label="跳转到章节"></select></label>
+              <div id="theoryDetailDynamicContent"></div>
+            </article>
+            <div class="theory-input-section">
+              <div class="theory-composer">
+                <textarea id="theoryDetailInput" class="theory-input" rows="1" placeholder="询问这个理论的应用..." aria-label="询问当前理论"></textarea>
+                <button id="theoryDetailSend" class="theory-send-btn" type="button" data-smart-icon="arrow-up" onclick="TheoryWorkspace.sendDetailQuestion()" title="发送" aria-label="发送问题"></button>
               </div>
             </div>
           </div>
@@ -8627,17 +8653,10 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
     // =============================================================================
 
     function postMsg(type, data = {}) {
-        parent.postMessage({ pluginMessage: { type, ...data } }, '*');
+        parent.postMessage({ pluginMessage: { type, uiLanguage:curLang, ...data } }, '*');
     }
 
-    function toggleLang() {
-      curLang = curLang === 'zh' ? 'en' : 'zh';
-      PersistentCache.set('user_lang', curLang);
-      updateLanguage();
-      if (typeof updateComponentBuilderControls === 'function') updateComponentBuilderControls();
-      if(typeof renderBasicList === 'function') renderBasicList();
-      if(typeof renderCustomList === 'function') renderCustomList();
-    }
+    function toggleLang() { changeLanguage(curLang === 'zh' ? 'en' : 'zh'); }
 
     function updateLanguage() {
       const t = i18n[curLang];
@@ -9550,634 +9569,10 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
     // =============================================================================
 
     // 1. 核心数据库 (Data - Final Ultimate Version)
-    const theoryDB = [
-      // -------------------------------------------------------
-      // 1. 交互与可用性 (Interaction)
-      // -------------------------------------------------------
-      {
-        id: 'nielsen',
-        cat: 'interaction',
-        icon: '🔟',
-        title: '尼尔森十大可用性原则',
-        subtitle: '产品设计领域的"圣经"，评估易用性的黄金标准',
-        desc: '1994年由 Jakob Nielsen 提出。它们不是严格的法律，而是基于经验的启发式规则（Heuristics）。遵循这些原则可以消除 80% 的低级交互错误。',
-        subItems: [
-          {
-            title: "1. 系统状态的可见性 (Visibility of system status)",
-            core: "系统应在合理时间内，通过适当反馈，始终告知用户当前发生了什么。",
-            case: "微信发送消息时的'转圈'和'红色感叹号'；电梯楼层显示；下载进度条。",
-            val: "消除不确定性，给予用户安全感和掌控感。"
-          },
-          {
-            title: "2. 系统与现实世界的匹配 (Match between system and the real world)",
-            core: "使用用户熟悉的语言和现实世界的概念（拟物化/隐喻）。",
-            case: "回收站图标；指南针APP模仿真实罗盘；电子书翻页动画。",
-            val: "降低学习成本，利用用户的既有认知模型。"
-          },
-          {
-            title: "3. 用户操控与自由 (User control and freedom)",
-            core: "提供显著的'紧急出口'，支持撤销和重做。",
-            case: "微信'撤回消息'；Gmail '撤销发送'；弹窗的关闭(X)按钮。",
-            val: "给用户'后悔药'，鼓励探索而不必担心不可逆后果。"
-          },
-          {
-            title: "4. 一致性与标准化 (Consistency and standards)",
-            core: "遵循平台惯例，内部用词、布局、操作逻辑统一。",
-            case: "统一的保存图标；红绿灯逻辑（红=停/删）；底部导航栏布局。",
-            val: "降低记忆负担，建立产品可信度。"
-          },
-          {
-            title: "5. 防错原则 (Error prevention)",
-            core: "利用限制条件或确认选项，从源头防止错误发生。",
-            case: "必填项未填时按钮置灰；搜索引擎纠错；删除二次确认。",
-            val: "阻断错误，提高任务完成率。"
-          },
-          {
-            title: "6. 再认而非回忆 (Recognition rather than recall)",
-            core: "把选项和对象显示出来，让用户'认'，而不是'背'。",
-            case: "浏览记录；字体菜单显示字体样式；电商'猜你喜欢'。",
-            val: "识别比回忆容易，显著降低认知负荷。"
-          },
-          {
-            title: "7. 使用的灵活与高效 (Flexibility and efficiency of use)",
-            core: "为专家用户提供快捷键或宏命令。",
-            case: "Excel 快捷键；双击点赞；Spotlight 搜索。",
-            val: "满足不同层级用户，提升长期体验。"
-          },
-          {
-            title: "8. 美观与简约设计 (Aesthetic and minimalist design)",
-            core: "去除无关信息，最大化信噪比。",
-            case: "Google 首页；无印良品风格；去分割线设计。",
-            val: "突出核心任务，减少注意力争夺。"
-          },
-          {
-            title: "9. 帮助用户识别、诊断和恢复错误",
-            core: "错误信息应说人话，并给出解决方案。",
-            case: "断网提示'检查网络'而非'Error 404'；密码错误提示'找回密码'。",
-            val: "减少挫败感，帮助闭环解决问题。"
-          },
-          {
-            title: "10. 帮助与文档 (Help and documentation)",
-            core: "必要时提供易检索、步骤清晰的帮助。",
-            case: "新手引导 (Onboarding)；Tooltip；客服 FAQ。",
-            val: "作为最后的安全网兜底复杂场景。"
-          }
-        ]
-      },
-      {
-        id: 'wcag',
-        cat: 'interaction',
-        icon: '♿',
-        title: 'WCAG 无障碍指南',
-        subtitle: '让所有人（包括残障人士）都能使用',
-        desc: 'Web Content Accessibility Guidelines 是全球通用的无障碍设计标准，遵循 POUR 四大原则。',
-        subItems: [
-          {
-            title: "1. 可感知 (Perceivable)",
-            core: "信息和界面必须以用户能感知的方式呈现（不能只靠视觉）。",
-            case: "为图片提供 Alt 文本（给盲人读屏软件用）；视频加字幕（给听障用户）。",
-            val: "确保感官障碍用户也能获取信息。"
-          },
-          {
-            title: "2. 可操作 (Operable)",
-            core: "界面组件必须可操作（不能只靠鼠标）。",
-            case: "支持纯键盘操作（Tab键切换焦点）；避免导致癫痫的快速闪烁。",
-            val: "确保肢体障碍用户能顺畅交互。"
-          },
-          {
-            title: "3. 可理解 (Understandable)",
-            core: "信息和操作必须易于理解。",
-            case: "表单报错要说明原因；避免使用生僻的行业黑话。",
-            val: "降低认知门槛，特别是对认知障碍人群。"
-          },
-          {
-            title: "4. 鲁棒性 (Robust)",
-            core: "内容能被各种辅助技术（如读屏器）可靠地解析。",
-            case: "使用标准的 HTML 标签而不是自造标签；保持代码规范。",
-            val: "兼容现在和未来的各种辅助设备。"
-          }
-        ]
-      },
-      {
-        id: 'ai_guide',
-        cat: 'interaction',
-        icon: '🤖',
-        title: '人与 AI 交互指南',
-        subtitle: '微软/Google 针对 AI 产品的新原则',
-        desc: 'AI 具有不确定性（幻觉）和进化性，传统的确定性交互原则不再完全适用。',
-        subItems: [
-          {
-            title: "1. 明确系统能力 (Make clear what the system can do)",
-            core: "帮助用户建立正确的心理预期，避免过度信任。",
-            case: "ChatGPT 启动页列出'我能写代码、由于数据限制可能产生错误'。",
-            val: "防止用户因期望过高而产生失望。"
-          },
-          {
-            title: "2. 优雅地失败 (Support efficient correction)",
-            core: "AI 经常犯错，要提供简单的修正机制。",
-            case: "Midjourney 生成图如果不满意，提供'U1/V1'重绘按钮；语音助手听错了支持文本编辑。",
-            val: "将错误转化为微调的机会，降低挫败感。"
-          },
-          {
-            title: "3. 随着时间学习 (Learn over time)",
-            core: "系统应记住用户的偏好，越用越好用。",
-            case: "网易云音乐的'私人FM'；抖音的推荐算法。",
-            val: "建立长期的个性化壁垒。"
-          }
-        ]
-      },
-      {
-        id: 'vui',
-        cat: 'interaction',
-        icon: '🎙️',
-        title: '语音交互原则 (VUI)',
-        subtitle: '看不见的界面设计',
-        desc: '针对 Siri、小爱同学、车载语音等无屏幕或少屏幕场景的设计原则。',
-        subItems: [
-          {
-            title: "1. 会话合作原则 (Grice's Maxims)",
-            core: "机器说话要像人：量的准则（别废话）、质的准则（别瞎说）、关联准则（不跑题）。",
-            case: "问'天气怎么样'，回答'北京今天晴，20度'，而不是念一段气象百科。",
-            val: "降低认知负荷，模拟自然对话体验。"
-          },
-          {
-            title: "2. 容错与重听 (Error Handling)",
-            core: "语音是线性的，无法像屏幕一样'扫视'，一旦听错成本很高。",
-            case: "当没听清时，问'你是说播放周杰伦吗？'（隐式确认）而不是直接报错。",
-            val: "防止对话进入死胡同。"
-          }
-        ]
-      },
-      {
-        id: 'spatial',
-        cat: 'interaction',
-        icon: '🥽',
-        title: '空间计算原则 (Spatial Computing)',
-        subtitle: 'Apple Vision Pro / AR / VR 设计',
-        desc: '从 2D 屏幕跨越到 3D 空间，交互逻辑发生了根本性变化：眼睛是鼠标，手势是点击。',
-        subItems: [
-          {
-            title: "1. 视线与手势协同 (Eyes & Hands)",
-            core: "利用眼动追踪进行'注视'（Hover），利用手势进行'确认'（Click）。",
-            case: "Vision Pro 中，看着图标它会微微浮起，捏合手指即可打开。",
-            val: "最符合直觉的'意念控制'体验。"
-          },
-          {
-            title: "2. 舒适距离与视场角",
-            core: "内容应放置在距离用户 1.5-2 米的舒适区，主要内容在中心 30度 视角内。",
-            case: "主界面窗口总是默认出现在正前方，避免用户频繁转头（脖子累）。",
-            val: "符合人体工程学，避免晕动症和疲劳。"
-          },
-          {
-            title: "3. 沉浸与穿透 (Immersion Spectrum)",
-            core: "允许用户在'完全虚拟'和'现实增强'之间自由调节。",
-            case: "旋转数码旋钮，可以在'看见客厅'和'置身月球'之间无缝切换。",
-            val: "赋予用户对环境的掌控感。"
-          }
-        ]
-      },
-      {
-        id: 'fitts',
-        cat: 'interaction',
-        icon: '🎯',
-        title: '费茨定律 (Fitts\'s Law)',
-        subtitle: '距离与大小决定操作效率',
-        desc: '从一个起始位置移动到一个最终目标所需的时间，由目标的距离和大小决定。简而言之：目标越大、距离越近，越容易操作。',
-        subItems: [
-          {
-            title: "核心公式",
-            core: "T = a + b log2(D/W + 1)。时间(T)与距离(D)成正比，与宽度(W)成反比。",
-            case: "不仅适用于鼠标，更适用于触摸屏的手指操作。",
-            val: "量化了交互效率，为按钮布局提供数学依据。"
-          },
-          {
-            title: "应用：拇指热区",
-            core: "在移动端，将高频操作放在屏幕底部（拇指自然触达区）。",
-            case: "现代APP的底部导航栏；iOS 地址栏下移；弹窗操作按钮在底部。",
-            val: "减少手指移动距离，提升单手操作舒适度。"
-          },
-          {
-            title: "应用：无限大目标",
-            core: "屏幕边缘和角落是'无限大'的目标，因为鼠标无法移出边缘。",
-            case: "Windows 开始菜单在左下角；Mac 菜单栏贴顶。",
-            val: "利用物理边缘实现盲操作。"
-          }
-        ]
-      },
-      {
-        id: 'doherty',
-        cat: 'interaction',
-        icon: '⚡️',
-        title: '多赫蒂阈值 (Doherty Threshold)',
-        subtitle: '400ms 是人机交互的界限',
-        desc: '为了保持用户的注意力，系统响应时间不应超过 400 毫秒。如果超过，用户就会分心，效率下降。',
-        subItems: [
-          {
-            title: "即时反馈",
-            core: "任何操作都必须在 0.1秒内给予视觉反馈。",
-            case: "按钮按下的按压态（Pressed state）；Tab切换的高亮。",
-            val: "告诉用户'系统收到了你的操作'。"
-          },
-          {
-            title: "感知性能 (Perceived Performance)",
-            core: "如果物理速度慢，就欺骗大脑，让它觉得快。",
-            case: "骨架屏 (Skeleton)；点赞瞬间变红（本地预判）；进度条动画。",
-            val: "消除'等待感'，留住不耐烦的用户。"
-          }
-        ]
-      },
-
-      // -------------------------------------------------------
-      // 2. 心理学 (Psychology)
-      // -------------------------------------------------------
-      {
-        id: 'norman',
-        cat: 'psychology',
-        icon: '❤️',
-        title: '情感化设计 (Emotional Design)',
-        subtitle: '唐·诺曼提出的三个设计层次',
-        desc: '好的设计不仅要好用，还要能引发情感共鸣。诺曼将设计认知分为三个层次。',
-        subItems: [
-          {
-            title: "1. 本能层 (Visceral)",
-            core: "关注外观、感官刺激。'颜值即正义'。",
-            case: "Apple 产品精致的铝合金质感；跑车流线型的外形；精美的图标。",
-            val: "第一印象决定用户是否愿意接近产品。"
-          },
-          {
-            title: "2. 行为层 (Behavioral)",
-            core: "关注功能、性能和可用性。'好用才是硬道理'。",
-            case: "顺滑的滑动列表；一键下单的便捷；符合人体工学的手柄。",
-            val: "决定了用户能否完成任务，是产品的基础。"
-          },
-          {
-            title: "3. 反思层 (Reflective)",
-            core: "关注意识、回忆、自我形象和品牌认同。",
-            case: "佩戴劳力士象征身份；网易云音乐评论区的情感共鸣；环保产品的自我满足感。",
-            val: "建立长期情感连接，让用户成为粉丝。"
-          }
-        ]
-      },
-      {
-        id: 'miller',
-        cat: 'psychology',
-        icon: '🧠',
-        title: '米勒定律 (Miller\'s Law)',
-        subtitle: '神奇的数字 7 ± 2',
-        desc: '普通人的工作记忆只能同时处理 5 到 9 个信息块。超过这个数量，大脑就会过载。',
-        subItems: [
-          {
-            title: "分块 (Chunking)",
-            core: "将复杂信息拆解为更小的组合，以便记忆。",
-            case: "手机号 138-0000-0000 (3-4-4结构)；银行卡号每4位一个空格。",
-            val: "突破短时记忆瓶颈，提升信息易读性。"
-          },
-          {
-            title: "选项限制",
-            core: "导航菜单或选项卡尽量控制在 5-9 个以内。",
-            case: "APP 底部 Tab 一般不超过 5 个；超过的部分收入'更多'。",
-            val: "防止选择困难和认知过载。"
-          }
-        ]
-      },
-      {
-        id: 'hick',
-        cat: 'psychology',
-        icon: '🤔',
-        title: '希克定律 (Hick\'s Law)',
-        subtitle: '选择越多，决策越慢',
-        desc: '做决策所需的时间与选项数量呈对数关系。大脑天然厌恶复杂的决策。',
-        subItems: [
-          {
-            title: "做减法",
-            core: "在特定场景下，尽量减少选项数量。Less is More。",
-            case: "落地页（Landing Page）只保留一个'立即购买'按钮；遥控器精简按钮。",
-            val: "降低决策瘫痪风险，提高转化率。"
-          },
-          {
-            title: "分步引导 (Wizard)",
-            core: "将复杂任务拆解为简单步骤。",
-            case: "注册流程：分三页填手机号、验证码、密码，而不是一页填所有。",
-            val: "降低单页认知负荷，利用沉没成本鼓励完成。"
-          }
-        ]
-      },
-      {
-        id: 'peakend',
-        cat: 'psychology',
-        icon: '🏔️',
-        title: '峰终定律 (Peak-End Rule)',
-        subtitle: '记忆由高潮和结尾决定',
-        desc: '诺贝尔奖得主丹尼尔·卡尼曼提出。用户对体验的记忆不是平均值，而是由"最高峰"和"结束时"决定的。',
-        subItems: [
-          {
-            title: "制造峰值 (Peak)",
-            core: "在流程中设计一个让用户感到惊喜或极致便利的时刻。",
-            case: "游戏抽卡金光特效；电商下单后的'确定性'快感。",
-            val: "一个高光时刻可掩盖许多瑕疵。"
-          },
-          {
-            title: "优化终值 (End)",
-            core: "确保流程的最后一步是愉快的。",
-            case: "宜家出口的冰淇淋；外卖支付成功后的红包。",
-            val: "好的结尾极大提升复购意愿。"
-          }
-        ]
-      },
-
-      // -------------------------------------------------------
-      // 3. 视觉感知 (Visual)
-      // -------------------------------------------------------
-      {
-        id: 'gestalt',
-        cat: 'visual',
-        icon: '👀',
-        title: '格式塔原理 (Gestalt)',
-        subtitle: '全版本：大脑如何组织视觉元素',
-        desc: '解释了人类视觉感知系统如何将复杂元素简化、分组。UI 排版的底层逻辑。',
-        subItems: [
-          {
-            title: "1. 邻近性 (Proximity)",
-            core: "位置靠近的元素被视为一组。",
-            case: "标签与输入框的间距 < 标签与上一行输入框的间距。",
-            val: "利用间距构建层级，无需分割线。"
-          },
-          {
-            title: "2. 共同区域 (Common Region)",
-            core: "同一背景框内的元素被视为一组。权重高于邻近性。",
-            case: "卡片式设计 (Card UI)。",
-            val: "最强大的分组工具，明确内容边界。"
-          },
-          {
-            title: "3. 相似性 (Similarity)",
-            core: "形状、颜色相同的元素被视为一组。",
-            case: "所有可点击链接使用相同蓝色；按钮风格统一。",
-            val: "建立功能模式识别。"
-          },
-          {
-            title: "4. 连续性 (Continuity)",
-            core: "人眼倾向于观察连续的路径。",
-            case: "横滑卡片露出一半，暗示可滑动。",
-            val: "引导视线，暗示屏幕外内容。"
-          },
-          {
-            title: "5. 闭合性 (Closure)",
-            core: "大脑会自动补全不完整的图形。",
-            case: "Loading 断开的圆环；极简图标。",
-            val: "利用负空间简化设计。"
-          },
-          {
-            title: "6. 共同命运 (Common Fate)",
-            core: "同向运动的元素是一组。动效核心。",
-            case: "下拉菜单整体展开；侧滑返回全页移动。",
-            val: "建立动效逻辑关联。"
-          },
-          {
-            title: "7. 图底关系 (Figure-Ground)",
-            core: "分辨前景与背景。",
-            case: "弹窗背景压暗（遮罩）。",
-            val: "引导注意力聚焦。"
-          }
-        ]
-      },
-      {
-        id: 'vonrestorff',
-        cat: 'visual',
-        icon: '🌟',
-        title: '冯·雷斯托夫效应 (隔离效应)',
-        subtitle: '与众不同者，最易被铭记',
-        desc: '在多个相似物体中，那个长得最不一样的（颜色、形状、大小）最容易被记住。',
-        subItems: [
-          {
-            title: "强调核心操作 (CTA)",
-            core: "最重要的按钮必须在视觉上完全隔离。",
-            case: "灰色的取消按钮 vs 亮蓝色的确认按钮。",
-            val: "引导注意力，提升转化率。"
-          }
-        ]
-      },
-
-      // -------------------------------------------------------
-      // 4. 商业策略 (Business)
-      // -------------------------------------------------------
-      {
-        id: 'hook',
-        cat: 'business',
-        icon: '🪝',
-        title: '上瘾模型 (Hook Model)',
-        subtitle: '如何打造让用户养成的习惯的产品',
-        desc: '由尼尔·埃亚尔提出。通过四个阶段的循环，让用户在不知不觉中对产品产生依赖。',
-        subItems: [
-          {
-            title: "1. 触发 (Trigger)",
-            core: "外部触发（推送、广告）和内部触发（无聊、焦虑）。",
-            case: "收到微信消息提示音（外部）；感到孤独想刷朋友圈（内部）。",
-            val: "习惯养成的起点。"
-          },
-          {
-            title: "2. 行动 (Action)",
-            core: "在动机和能力的驱使下完成最简单的行为。",
-            case: "双击屏幕点赞；下拉刷新。",
-            val: "降低行动门槛是关键。"
-          },
-          {
-            title: "3. 多变的酬赏 (Variable Reward)",
-            core: "不可预测的反馈比固定的反馈更迷人（老虎机机制）。",
-            case: "刷抖音不知道下一条是什么；盲盒；点赞数的不确定性。",
-            val: "多巴胺分泌的核心来源。"
-          },
-          {
-            title: "4. 投入 (Investment)",
-            core: "用户投入的越多（时间、数据、社交关系），越离不开。",
-            case: "收藏歌单；积累粉丝；完善个人资料。",
-            val: "增加转换成本，建立护城河。"
-          }
-        ]
-      },
-      {
-        id: 'kano',
-        cat: 'business',
-        icon: '📊',
-        title: '卡诺模型 (Kano Model)',
-        subtitle: '需求优先级分析工具',
-        desc: '并非所有功能都同等重要。根据对满意度的影响，将需求分类。',
-        subItems: [
-          {
-            title: "1. 基本型 (Must-be)",
-            core: "必须有，没有会被骂，有了不加分。",
-            case: "微信能发消息；火锅店有热水。",
-            val: "产品的及格线，必须100%满足。"
-          },
-          {
-            title: "2. 期望型 (Performance)",
-            core: "越多越好，线性提升满意度。",
-            case: "电池续航；网速；存储空间。",
-            val: "产品的核心竞争力战场。"
-          },
-          {
-            title: "3. 兴奋型 (Delighters)",
-            core: "没有无所谓，有了惊喜若狂。",
-            case: "海底捞美甲；微信拍一拍。",
-            val: "低成本创造口碑传播点。"
-          }
-        ]
-      },
-
-      // -------------------------------------------------------
-      // 5. 系统思维 (System)
-      // -------------------------------------------------------
-      {
-        id: 'atomic',
-        cat: 'system',
-        icon: '⚛️',
-        title: '原子设计 (Atomic Design)',
-        subtitle: 'Brad Frost：构建设计系统的方法论',
-        desc: '将界面视为由微小组件构成的系统而非孤立的页面。',
-        subItems: [
-          {
-            title: "1. 原子 (Atoms)",
-            core: "不可再分的最小单元。",
-            case: "颜色 Token、字体样式、图标、HTML标签。",
-            val: "系统的基础DNA。"
-          },
-          {
-            title: "2. 分子 (Molecules)",
-            core: "原子的简单组合，具有单一功能。",
-            case: "搜索框（输入框+按钮）；表单项（标签+输入框）。",
-            val: "开始形成可复用的组件。"
-          },
-          {
-            title: "3. 组织 (Organisms)",
-            core: "分子组合成复杂模块。",
-            case: "顶部导航栏；产品卡片；页脚。",
-            val: "界面的主要构成区块。"
-          },
-          {
-            title: "4. 模板与页面 (Templates & Pages)",
-            core: "从抽象结构到具体内容的落地。",
-            case: "线框图 -> 填充了真实数据的最终设计稿。",
-            val: "验证系统在真实场景下的表现。"
-          }
-        ]
-      },
-      {
-        id: 'iso9241',
-        cat: 'system',
-        icon: '📐',
-        title: 'ISO 9241-210 标准',
-        subtitle: '人机交互的人机工程学标准',
-        desc: '定义了"以人为中心的设计 (HCD)" 流程，是工业界和专业 UX 领域的权威标准。',
-        subItems: [
-          {
-            title: "核心：以人为中心",
-            core: "设计应基于对用户、任务和环境的明确理解。",
-            case: "在设计车载大屏前，必须了解驾驶员的注意力限制和光照环境。",
-            val: "避免'闭门造车'，确保产品适应真实世界。"
-          },
-          {
-            title: "迭代设计流程",
-            core: "理解使用背景 -> 规定用户需求 -> 设计解决方案 -> 评估设计。",
-            case: "用户调研 -> 需求文档 -> 原型设计 -> 可用性测试 -> 修改 -> 再测试。",
-            val: "承认设计无法一次完美，必须通过反馈不断修正。"
-          }
-        ]
-      },
-      {
-        id: 'tesler',
-        cat: 'system',
-        icon: '⚖️',
-        title: '泰斯勒定律 (复杂性守恒)',
-        subtitle: '复杂性不会消失，只能转移',
-        desc: '任何系统都有一个无法减少的复杂性下限。问题是：谁来承担？用户还是开发者？',
-        subItems: [
-          {
-            title: "把麻烦留给开发者",
-            core: "不要让用户设定系统可以自动推断的参数。",
-            case: "输入'北京到上海'自动查询车次（系统承担复杂性）vs 自己查时刻表（用户承担）。",
-            val: "用开发成本换取用户体验。"
-          }
-        ]
-      }
-    ];
+    // Built-in theory content is shared through shared/theory-data.js.
 
     // 2. 渲染列表逻辑
-    function renderTheoryList(category = 'all') {
-      console.log('【设计理论】renderTheoryList 被调用，参数:', category);
-
-      const container = document.getElementById('theoryCapsuleContainer');
-
-      // 检查容器是否存在
-      if (!container) {
-        console.error('【设计理论】找不到容器元素 theoryCapsuleContainer');
-        return;
-      }
-
-      // 检查数据是否存在
-      if (typeof theoryDB === 'undefined' || !theoryDB || theoryDB.length === 0) {
-        console.error('【设计理论】找不到 theoryDB 数据源或数据为空');
-        container.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">暂无设计理论数据</div>';
-        return;
-      }
-
-      console.log('【设计理论】容器元素找到，开始渲染');
-      console.log('【设计理论】theoryDB 数据:', theoryDB);
-      console.log('【设计理论】theoryDB 长度:', theoryDB.length);
-
-      container.innerHTML = '';
-
-      // 按类型分组
-      const categories = {
-        'interaction': { name: '交互与可用性', items: [] },
-        'psychology': { name: '心理学', items: [] },
-        'visual': { name: '视觉感知', items: [] },
-        'business': { name: '商业策略', items: [] },
-        'system': { name: '系统思维', items: [] }
-      };
-
-      // 分组
-      theoryDB.forEach(item => {
-        console.log('【设计理论】处理项目:', item.id, '分类:', item.cat);
-        if (categories[item.cat]) {
-          categories[item.cat].items.push(item);
-        } else {
-          console.warn('【设计理论】未知分类:', item.cat);
-        }
-      });
-
-      console.log('【设计理论】分组结果:', categories);
-
-      // 渲染每个分组
-      Object.keys(categories).forEach(catKey => {
-        const cat = categories[catKey];
-        console.log('【设计理论】渲染分组:', catKey, '项目数:', cat.items.length);
-        if (cat.items.length === 0) return;
-
-        const groupDiv = document.createElement('div');
-        groupDiv.className = 'theory-group';
-
-        groupDiv.innerHTML = `
-          <div class="theory-group-title">${cat.name}</div>
-          <div class="theory-capsule-list"></div>
-        `;
-
-        const listDiv = groupDiv.querySelector('.theory-capsule-list');
-
-        cat.items.forEach(item => {
-          const capsule = document.createElement('div');
-          capsule.className = 'theory-capsule';
-          capsule.onclick = () => openTheoryDetail(item.id);
-          capsule.innerHTML = `
-            <span class="theory-capsule-icon">${item.icon}</span>
-            <span>${item.title}</span>
-          `;
-          listDiv.appendChild(capsule);
-        });
-
-        container.appendChild(groupDiv);
-      });
-
-      console.log('【设计理论】渲染完成，容器innerHTML长度:', container.innerHTML.length);
-    }
+function renderTheoryList(category = 'all') { return window.TheoryWorkspace.renderLibrary(category); }
 
     // 页面加载时预先渲染一次（方案B）
     window.addEventListener('DOMContentLoaded', () => {
@@ -10191,254 +9586,28 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
     // 3. 发送问题到AI
     let theoryChatHistory = [];
 
-    function sendTheoryQuestion() {
-      const input = document.getElementById('theoryQuestionInput');
-      const question = input.value.trim();
-
-      if (!question) return;
-
-      // 清空输入框
-      input.value = '';
-
-      // 切换到对话视图
-      document.getElementById('theoryHomeView').style.display = 'none';
-      document.getElementById('theoryChatView').style.display = 'flex';
-      document.getElementById('theoryDetailView').style.display = 'none';
-
-      // 清空历史记录
-      theoryChatHistory = [];
-
-      // 添加用户消息
-      addTheoryChatMessage('user', question);
-      theoryChatHistory.push({ role: 'user', content: question });
-
-      // 调用AI
-      callTheoryAI(question);
-    }
+function sendTheoryQuestion() { return window.TheoryWorkspace.sendQuestion(); }
 
     // 4. 继续对话
-    function sendTheoryChat() {
-      const input = document.getElementById('theoryChatInput');
-      const question = input.value.trim();
-
-      if (!question) return;
-
-      // 清空输入框
-      input.value = '';
-
-      // 添加用户消息
-      addTheoryChatMessage('user', question);
-      theoryChatHistory.push({ role: 'user', content: question });
-
-      // 调用AI
-      callTheoryAI(question);
-    }
+function sendTheoryChat() { return window.TheoryWorkspace.sendChat(); }
 
     // 5. 添加聊天消息
-    function addTheoryChatMessage(role, content) {
-      const container = document.getElementById('theoryChatMessages');
-      const msgDiv = document.createElement('div');
-      msgDiv.className = `theory-chat-message ${role}`;
-      msgDiv.innerText = content;
-      container.appendChild(msgDiv);
-
-      // 滚动到底部
-      container.scrollTop = container.scrollHeight;
-    }
+function addTheoryChatMessage(role, content) { return window.TheoryWorkspace.addMessage(role, content); }
 
     // 6. 调用AI
-    async function callTheoryAI(question) {
-      const endpoint = getAiEndpoint();
-      if (!aiConfig || (!endpoint.key && !endpoint.isProxy) || !endpoint.url) {
-        addTheoryChatMessage('ai', '抱歉，AI配置不完整，无法回答问题。请先在设置中配置AI。');
-        return;
-      }
-
-      try {
-        const systemPrompt = `你是一个专业的设计理论助手，精通各种设计理论、设计原则、用户体验设计、交互设计、视觉设计等领域的知识。
-
-你的任务是：
-1. 回答用户关于设计理论的问题
-2. 提供专业、准确、易懂的解释
-3. 结合实际案例说明理论的应用
-4. 推荐相关的设计理论或资源
-
-回答要求：
-- 语言简洁明了，避免过于学术化
-- 适当使用emoji增加趣味性
-- 如果涉及具体的设计理论，要说明其来源、核心观点和应用场景
-- 如果用户问的是设计问题，要结合相关理论给出建议`;
-
-        const requestBody = {
-          model: endpoint.model || 'glm-4.7-flash',
-          messages: [
-            { role: "system", content: systemPrompt },
-            ...theoryChatHistory
-          ],
-          temperature: 0.7,
-          stream: false
-        };
-
-        let targetUrl = endpoint.url.trim().replace(/\/+$/, '');
-        if (!targetUrl.includes('/chat/completions')) {
-          targetUrl += '/chat/completions';
-        }
-
-        const fetchOptions = {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody)
-        };
-        if (endpoint.key) {
-          fetchOptions.headers['Authorization'] = `Bearer ${endpoint.key}`;
-        }
-
-        const reqId = Date.now().toString();
-
-        const fetchPromise = new Promise((resolve, reject) => {
-          const messageHandler = (event) => {
-            const msg = event.data?.pluginMessage || event.data;
-            if (msg && msg.type === 'api-response' && msg.reqId === reqId) {
-              window.removeEventListener('message', messageHandler);
-              if (msg.error) reject(new Error(msg.error));
-              else resolve(msg.data);
-            }
-          };
-
-          window.addEventListener('message', messageHandler);
-
-          setTimeout(() => {
-            window.removeEventListener('message', messageHandler);
-            reject(new Error('AI响应超时'));
-          }, 60000);
-        });
-
-        parent.postMessage({
-          pluginMessage: {
-            type: 'do-fetch',
-            reqId: reqId,
-            url: targetUrl,
-            options: fetchOptions
-          }
-        }, '*');
-
-        const data = await fetchPromise;
-
-        if (data.choices && data.choices[0] && data.choices[0].message) {
-          const answer = data.choices[0].message.content.trim();
-          addTheoryChatMessage('ai', answer);
-          theoryChatHistory.push({ role: 'assistant', content: answer });
-        } else {
-          addTheoryChatMessage('ai', '抱歉，AI返回的数据格式不正确。');
-        }
-      } catch (error) {
-        console.error('【设计理论AI】调用失败:', error);
-        addTheoryChatMessage('ai', `抱歉，AI调用失败：${error.message}`);
-      }
-    }
+async function callTheoryAI(question) { return window.TheoryWorkspace.requestAnswer(question); }
 
     // 7. 关闭对话
-    function closeTheoryChat() {
-      document.getElementById('theoryHomeView').style.display = 'flex';
-      document.getElementById('theoryChatView').style.display = 'none';
-      document.getElementById('theoryDetailView').style.display = 'none';
-
-      // 清空对话记录
-      document.getElementById('theoryChatMessages').innerHTML = '';
-      theoryChatHistory = [];
-    }
+function closeTheoryChat() { return window.TheoryWorkspace.closeChat(); }
 
     // 8. 筛选逻辑（保留兼容）
-    function filterTheory(cat, el) {
-      // 样式切换
-      document.querySelectorAll('.t-tag').forEach(t => t.classList.remove('active'));
-      el.classList.add('active');
-      // 渲染
-      renderTheoryList(cat);
-    }
+function filterTheory(cat, el) { return window.TheoryWorkspace.filter(cat, el); }
 
     // 9. 打开详情页
-    function openTheoryDetail(id) {
-      const item = theoryDB.find(t => t.id === id);
-      if(!item) return;
-
-      // A. 填充头部 Hero 内容
-      const detailIcon = document.getElementById('detailIcon');
-      const detailTitle = document.getElementById('detailTitle');
-      const detailSubtitle = document.getElementById('detailSubtitle');
-      const detailMainDesc = document.getElementById('detailMainDesc');
-      const detailCatBadge = document.getElementById('detailCatBadge');
-
-      if (detailIcon) detailIcon.innerText = item.icon;
-      if (detailTitle) detailTitle.innerText = item.title;
-      if (detailSubtitle) detailSubtitle.innerText = item.subtitle;
-      if (detailMainDesc) detailMainDesc.innerHTML = item.desc;
-      if (detailCatBadge) detailCatBadge.innerText = item.cat.toUpperCase();
-
-      // B. 动态渲染 Sub-items
-      const container = document.getElementById('theoryDetailDynamicContent');
-      if (!container) return;
-
-      container.innerHTML = '';
-
-      if (item.subItems && item.subItems.length > 0) {
-        item.subItems.forEach((sub, index) => {
-          const div = document.createElement('div');
-          div.className = 'sub-theory-card';
-
-          div.innerHTML = `
-            <div class="st-index">${index + 1}</div>
-            <div class="st-title">${sub.title}</div>
-
-            <div class="st-block">
-              <div class="st-label lbl-core">✨ 核心释义</div>
-              <div class="st-text">${sub.core}</div>
-            </div>
-
-            <div class="st-block">
-              <div class="st-label lbl-case">🌰 应用案例</div>
-              <div class="st-text">${sub.case}</div>
-            </div>
-
-            <div class="st-block">
-              <div class="st-label lbl-val">💎 理论价值</div>
-              <div class="st-text">${sub.val}</div>
-            </div>
-          `;
-          container.appendChild(div);
-        });
-      } else {
-        container.innerHTML = `<div style="padding:20px; text-align:center; color:#999;">暂无详细拆解</div>`;
-      }
-
-      // C. 切换视图
-      const homeView = document.getElementById('theoryHomeView');
-      const chatView = document.getElementById('theoryChatView');
-      const detailView = document.getElementById('theoryDetailView');
-      const mainHeader = document.getElementById('mainHeader');
-
-      if (homeView) homeView.style.display = 'none';
-      if (chatView) chatView.style.display = 'none';
-      if (detailView) detailView.style.display = 'flex';
-      if (mainHeader) mainHeader.style.display = 'none';
-
-      // 滚动回顶部
-      const scrollArea = document.querySelector('.theory-article-scroll');
-      if (scrollArea) scrollArea.scrollTop = 0;
-    }
+function openTheoryDetail(id) { return window.TheoryWorkspace.openDetail(id); }
 
     // 10. 关闭详情页
-    function closeTheoryDetail() {
-      const homeView = document.getElementById('theoryHomeView');
-      const chatView = document.getElementById('theoryChatView');
-      const detailView = document.getElementById('theoryDetailView');
-      const mainHeader = document.getElementById('mainHeader');
-
-      if (homeView) homeView.style.display = 'flex';
-      if (chatView) chatView.style.display = 'none';
-      if (detailView) detailView.style.display = 'none';
-      if (mainHeader) mainHeader.style.display = 'block';
-    }
+function closeTheoryDetail() { return window.TheoryWorkspace.closeDetail(); }
 
     // 11. 搜索功能对接
     const theorySearchInput = document.getElementById('searchInput');
@@ -13442,11 +12611,11 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
                 <label class="config-label">${i18n[curLang].sf_cfg_time_range}</label>
                 <div style="display:flex; gap:8px; align-items:center;">
                     <div style="flex:1">
-                         <input type="time" id="timeStart" class="search-box" value="${tStart.substring(0,5)}" step="1" style="width:100%">
+                         <input type="time" id="timeStart" class="search-box" value="${tStart}" step="1" style="width:100%">
                     </div>
                     <span style="color:#999">-</span>
                     <div style="flex:1">
-                         <input type="time" id="timeEnd" class="search-box" value="${tEnd.substring(0,5)}" step="1" style="width:100%">
+                         <input type="time" id="timeEnd" class="search-box" value="${tEnd}" step="1" style="width:100%">
                     </div>
                 </div>
                 <div style="font-size:11px; color:#999; margin-top:4px;">${i18n[curLang].sf_cfg_time_help}</div>
@@ -14049,7 +13218,7 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
            // 填充 Select 选项
            const select = document.getElementById('saveTargetSelect');
            select.innerHTML = customDataLists.map((item, idx) =>
-               `<option value="${idx}">${item.title} (现有${item.list.length}条)</option>`
+               `<option value="${idx}" data-user-content>${escapeHtml(item.title)} (${item.list.length}${curLang === 'en' ? ' items' : '条'})</option>`
            ).join('');
        }
     }
@@ -14664,8 +13833,9 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
     function renderSizePresets() {
       const list = document.getElementById('sizePresetList');
       if (!list) return;
+      const translate = value => window.PluginLocalization?.t(value) || value;
       const query = String(document.getElementById('sizeSearch')?.value || '').trim().toLowerCase();
-      const items = SIZE_ASSISTANT_PRESETS.filter(item => item.category === sizeAssistantState.category && (!query || `${item.brand || ''} ${item.name} ${item.note}`.toLowerCase().includes(query)));
+      const items = SIZE_ASSISTANT_PRESETS.filter(item => item.category === sizeAssistantState.category && (!query || `${item.brand || ''} ${item.name} ${item.note} ${translate(item.name)} ${translate(item.note)}`.toLowerCase().includes(query)));
       if (!items.length) {
         list.innerHTML = '<div class="size-empty">没有匹配的尺寸预设</div>';
         return;
@@ -14674,8 +13844,8 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
       list.innerHTML = items.map(item => {
         const dimensions = item.ratio ? `${item.ratio.toFixed(3)}:1` : `${item[mode][0]} × ${item[mode][1]}`;
         return `<div class="size-preset ${item.id === sizeAssistantState.selectedId ? 'active' : ''}" onclick="selectSizePreset('${item.id}')">
-          <div class="size-preset-row"><span class="size-preset-name">${item.brand ? `${item.brand} · ` : ''}${item.name}</span><span class="size-preset-dim">${dimensions}</span></div>
-          <div class="size-preset-note">${item.note}</div>
+          <div class="size-preset-row"><span class="size-preset-name">${item.brand ? `${item.brand} · ` : ''}${translate(item.name)}</span><span class="size-preset-dim">${dimensions}</span></div>
+          <div class="size-preset-note">${translate(item.note)}</div>
         </div>`;
       }).join('');
     }
@@ -14806,6 +13976,7 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
         ? ['👋 Good morning! Fresh ideas ahead.', '☀️ Good afternoon! Keep creating.', '🌙 Good evening! You did well today.'][period]
         : ['👋 早上好！新的一天开始啦～', '☀️ 下午好，灵感正在路上～', '🌙 晚上好，今天也辛苦啦～'][period];
       element.textContent = fallback;
+      element.title = lang === 'en' ? 'AI daily greeting · Click to refresh' : 'AI 每日问候 · 点击换一句';
       const endpoint = getAiEndpoint();
       if ((!endpoint.key && !endpoint.isProxy) || !endpoint.url) {
         element.title = lang === 'en' ? 'Local greeting · Set up AI in Settings for a daily message' : '本地问候 · 配置 AI 后可生成每日问候';
@@ -15240,7 +14411,7 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
             const checkA = document.createElement('input');
             checkA.type = 'checkbox';
             checkA.checked = dupChecked.has(pair.aId);
-            checkA.setAttribute('aria-label', `选择 ${pair.aName}`);
+            checkA.setAttribute('aria-label', `${curLang === 'en' ? 'Select' : '选择'} ${pair.aName}`);
             checkA.onclick = event => event.stopPropagation();
             checkA.onchange = event => {
                 event.stopPropagation();
@@ -15270,7 +14441,7 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
             const checkB = document.createElement('input');
             checkB.type = 'checkbox';
             checkB.checked = dupChecked.has(pair.bId);
-            checkB.setAttribute('aria-label', `选择 ${pair.bName}`);
+            checkB.setAttribute('aria-label', `${curLang === 'en' ? 'Select' : '选择'} ${pair.bName}`);
             checkB.onclick = event => event.stopPropagation();
             checkB.onchange = event => {
                 event.stopPropagation();
@@ -16037,6 +15208,7 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
         Object.keys(presets).forEach(name => {
             const option = document.createElement('option');
             option.value = name;
+            option.setAttribute('data-user-content', '');
             option.textContent = name;
             select.appendChild(option);
         });
@@ -16626,7 +15798,7 @@ Please output JSON:`;
         } else if (mode === 'create') {
             // 将 "创建新变量合集" 移动到最底部
             let options = existingOptions;
-            options += `<option value="__new__">✨ ${i18n[curLang].i18n_create_new_collection}</option>`;
+            options += `<option value="__new__" data-key="i18n_create_new_collection">✨ ${i18n[curLang].i18n_create_new_collection}</option>`;
 
             container.innerHTML = `
                 <select id="i18nCollectionSelect" class="search-box" style="flex: 1; margin-bottom: 8px;" onchange="i18nHandleCollectionChange(true)">
@@ -17057,6 +16229,18 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 <!-- shared-shell-script:start -->
 <script>
 /* Tabler Icons (MIT), embedded offline by scripts/sync-ui-shell.mjs. */
@@ -17406,6 +16590,1425 @@ function generateSmartTimeSeries(count, settings) {
   globalThis.ChineseNameLibrary = Object.freeze({ entries, next });
 })();
 
+const theoryDB = [
+      // -------------------------------------------------------
+      // 1. 交互与可用性 (Interaction)
+      // -------------------------------------------------------
+      {
+        id: 'nielsen',
+        cat: 'interaction',
+        icon: '🔟',
+        title: '尼尔森十大可用性原则',
+        subtitle: '用于评估界面可用性的十条启发式原则',
+        desc: 'Jakob Nielsen 提出的十条可用性启发式原则，可用于发现常见交互问题；它们是设计指南，需要结合真实用户和任务验证。',
+        subItems: [
+          {
+            title: "1. 系统状态的可见性 (Visibility of system status)",
+            core: "系统应在合理时间内，通过适当反馈，始终告知用户当前发生了什么。",
+            case: "微信发送消息时的'转圈'和'红色感叹号'；电梯楼层显示；下载进度条。",
+            val: "消除不确定性，给予用户安全感和掌控感。"
+          },
+          {
+            title: "2. 系统与现实世界的匹配 (Match between system and the real world)",
+            core: "使用用户熟悉的语言和现实世界的概念（拟物化/隐喻）。",
+            case: "回收站图标；指南针APP模仿真实罗盘；电子书翻页动画。",
+            val: "降低学习成本，利用用户的既有认知模型。"
+          },
+          {
+            title: "3. 用户操控与自由 (User control and freedom)",
+            core: "提供显著的'紧急出口'，支持撤销和重做。",
+            case: "微信'撤回消息'；Gmail '撤销发送'；弹窗的关闭(X)按钮。",
+            val: "给用户'后悔药'，鼓励探索而不必担心不可逆后果。"
+          },
+          {
+            title: "4. 一致性与标准化 (Consistency and standards)",
+            core: "遵循平台惯例，内部用词、布局、操作逻辑统一。",
+            case: "统一的保存图标；红绿灯逻辑（红=停/删）；底部导航栏布局。",
+            val: "降低记忆负担，建立产品可信度。"
+          },
+          {
+            title: "5. 防错原则 (Error prevention)",
+            core: "利用限制条件或确认选项，从源头防止错误发生。",
+            case: "必填项未填时按钮置灰；搜索引擎纠错；删除二次确认。",
+            val: "阻断错误，提高任务完成率。"
+          },
+          {
+            title: "6. 再认而非回忆 (Recognition rather than recall)",
+            core: "把选项和对象显示出来，让用户'认'，而不是'背'。",
+            case: "浏览记录；字体菜单显示字体样式；电商'猜你喜欢'。",
+            val: "识别比回忆容易，显著降低认知负荷。"
+          },
+          {
+            title: "7. 使用的灵活与高效 (Flexibility and efficiency of use)",
+            core: "为专家用户提供快捷键或宏命令。",
+            case: "Excel 快捷键；双击点赞；Spotlight 搜索。",
+            val: "满足不同层级用户，提升长期体验。"
+          },
+          {
+            title: "8. 美观与简约设计 (Aesthetic and minimalist design)",
+            core: "去除无关信息，最大化信噪比。",
+            case: "Google 首页；无印良品风格；去分割线设计。",
+            val: "突出核心任务，减少注意力争夺。"
+          },
+          {
+            title: "9. 帮助用户识别、诊断和恢复错误",
+            core: "错误信息应说人话，并给出解决方案。",
+            case: "断网提示'检查网络'而非'Error 404'；密码错误提示'找回密码'。",
+            val: "减少挫败感，帮助闭环解决问题。"
+          },
+          {
+            title: "10. 帮助与文档 (Help and documentation)",
+            core: "必要时提供易检索、步骤清晰的帮助。",
+            case: "新手引导 (Onboarding)；Tooltip；客服 FAQ。",
+            val: "作为最后的安全网兜底复杂场景。"
+          }
+        ]
+      },
+      {
+        id: 'wcag',
+        cat: 'interaction',
+        icon: '♿',
+        title: 'WCAG 无障碍指南',
+        subtitle: '让所有人（包括残障人士）都能使用',
+        desc: 'Web Content Accessibility Guidelines 是全球通用的无障碍设计标准，遵循 POUR 四大原则。',
+        subItems: [
+          {
+            title: "1. 可感知 (Perceivable)",
+            core: "信息和界面必须以用户能感知的方式呈现（不能只靠视觉）。",
+            case: "为图片提供 Alt 文本（给盲人读屏软件用）；视频加字幕（给听障用户）。",
+            val: "确保感官障碍用户也能获取信息。"
+          },
+          {
+            title: "2. 可操作 (Operable)",
+            core: "界面组件必须可操作（不能只靠鼠标）。",
+            case: "支持纯键盘操作（Tab键切换焦点）；避免导致癫痫的快速闪烁。",
+            val: "确保肢体障碍用户能顺畅交互。"
+          },
+          {
+            title: "3. 可理解 (Understandable)",
+            core: "信息和操作必须易于理解。",
+            case: "表单报错要说明原因；避免使用生僻的行业黑话。",
+            val: "降低认知门槛，特别是对认知障碍人群。"
+          },
+          {
+            title: "4. 鲁棒性 (Robust)",
+            core: "内容能被各种辅助技术（如读屏器）可靠地解析。",
+            case: "使用标准的 HTML 标签而不是自造标签；保持代码规范。",
+            val: "兼容现在和未来的各种辅助设备。"
+          }
+        ]
+      },
+      {
+        id: 'ai_guide',
+        cat: 'interaction',
+        icon: '🤖',
+        title: '人与 AI 交互指南',
+        subtitle: '微软/Google 针对 AI 产品的新原则',
+        desc: 'AI 具有不确定性（幻觉）和进化性，传统的确定性交互原则不再完全适用。',
+        subItems: [
+          {
+            title: "1. 明确系统能力 (Make clear what the system can do)",
+            core: "帮助用户建立正确的心理预期，避免过度信任。",
+            case: "ChatGPT 启动页列出'我能写代码、由于数据限制可能产生错误'。",
+            val: "防止用户因期望过高而产生失望。"
+          },
+          {
+            title: "2. 支持高效纠正 (Support efficient correction)",
+            core: "AI 经常犯错，要提供简单的修正机制。",
+            case: "Midjourney 生成图如果不满意，提供'U1/V1'重绘按钮；语音助手听错了支持文本编辑。",
+            val: "将错误转化为微调的机会，降低挫败感。"
+          },
+          {
+            title: "3. 随着时间学习 (Learn over time)",
+            core: "系统应记住用户的偏好，越用越好用。",
+            case: "网易云音乐的'私人FM'；抖音的推荐算法。",
+            val: "建立长期的个性化壁垒。"
+          }
+        ]
+      },
+      {
+        id: 'vui',
+        cat: 'interaction',
+        icon: '🎙️',
+        title: '语音交互原则 (VUI)',
+        subtitle: '看不见的界面设计',
+        desc: '针对 Siri、小爱同学、车载语音等无屏幕或少屏幕场景的设计原则。',
+        subItems: [
+          {
+            title: "1. 会话合作原则 (Grice's Maxims)",
+            core: "机器说话要像人：量的准则（别废话）、质的准则（别瞎说）、关联准则（不跑题）。",
+            case: "问'天气怎么样'，回答'北京今天晴，20度'，而不是念一段气象百科。",
+            val: "降低认知负荷，模拟自然对话体验。"
+          },
+          {
+            title: "2. 容错与重听 (Error Handling)",
+            core: "语音是线性的，无法像屏幕一样'扫视'，一旦听错成本很高。",
+            case: "当没听清时，问'你是说播放周杰伦吗？'（隐式确认）而不是直接报错。",
+            val: "防止对话进入死胡同。"
+          }
+        ]
+      },
+      {
+        id: 'spatial',
+        cat: 'interaction',
+        icon: '🥽',
+        title: '空间计算原则 (Spatial Computing)',
+        subtitle: 'Apple Vision Pro / AR / VR 设计',
+        desc: '从 2D 屏幕跨越到 3D 空间，交互逻辑发生了根本性变化：眼睛是鼠标，手势是点击。',
+        subItems: [
+          {
+            title: "1. 视线与手势协同 (Eyes & Hands)",
+            core: "利用眼动追踪进行'注视'（Hover），利用手势进行'确认'（Click）。",
+            case: "Vision Pro 中，看着图标它会微微浮起，捏合手指即可打开。",
+            val: "最符合直觉的'意念控制'体验。"
+          },
+          {
+            title: "2. 舒适距离与视场角",
+            core: "内容应按目标设备与任务放在舒适的距离和视场范围内，避免频繁转头。",
+            case: "主界面窗口总是默认出现在正前方，避免用户频繁转头（脖子累）。",
+            val: "符合人体工程学，避免晕动症和疲劳。"
+          },
+          {
+            title: "3. 沉浸与穿透 (Immersion Spectrum)",
+            core: "允许用户在'完全虚拟'和'现实增强'之间自由调节。",
+            case: "旋转数码旋钮，可以在'看见客厅'和'置身月球'之间无缝切换。",
+            val: "赋予用户对环境的掌控感。"
+          }
+        ]
+      },
+      {
+        id: 'fitts',
+        cat: 'interaction',
+        icon: '🎯',
+        title: '费茨定律 (Fitts\'s Law)',
+        subtitle: '距离与大小决定操作效率',
+        desc: '从一个起始位置移动到一个最终目标所需的时间，由目标的距离和大小决定。简而言之：目标越大、距离越近，越容易操作。',
+        subItems: [
+          {
+            title: "核心公式",
+            core: "T = a + b log2(D/W + 1)。移动时间随距离 D 与目标宽度 W 的比值按对数关系增长。",
+            case: "不仅适用于鼠标，更适用于触摸屏的手指操作。",
+            val: "量化了交互效率，为按钮布局提供数学依据。"
+          },
+          {
+            title: "应用：拇指热区",
+            core: "在移动端，将高频操作放在屏幕底部（拇指自然触达区）。",
+            case: "现代APP的底部导航栏；iOS 地址栏下移；弹窗操作按钮在底部。",
+            val: "减少手指移动距离，提升单手操作舒适度。"
+          },
+          {
+            title: "应用：无限大目标",
+            core: "屏幕边缘和角落是'无限大'的目标，因为鼠标无法移出边缘。",
+            case: "Windows 开始菜单在左下角；Mac 菜单栏贴顶。",
+            val: "利用物理边缘实现盲操作。"
+          }
+        ]
+      },
+      {
+        id: 'doherty',
+        cat: 'interaction',
+        icon: '⚡️',
+        title: '多赫蒂阈值 (Doherty Threshold)',
+        subtitle: '及时反馈，保持操作连贯',
+        desc: '快速响应有助于用户保持注意力和操作节奏；约 400 毫秒可作为短交互的参考，而非所有任务的统一硬性上限。',
+        subItems: [
+          {
+            title: "即时反馈",
+            core: "任何操作都必须在 0.1秒内给予视觉反馈。",
+            case: "按钮按下的按压态（Pressed state）；Tab切换的高亮。",
+            val: "告诉用户'系统收到了你的操作'。"
+          },
+          {
+            title: "感知性能 (Perceived Performance)",
+            core: "如果物理速度慢，就欺骗大脑，让它觉得快。",
+            case: "骨架屏 (Skeleton)；点赞瞬间变红（本地预判）；进度条动画。",
+            val: "消除'等待感'，留住不耐烦的用户。"
+          }
+        ]
+      },
+
+      // -------------------------------------------------------
+      // 2. 心理学 (Psychology)
+      // -------------------------------------------------------
+      {
+        id: 'norman',
+        cat: 'psychology',
+        icon: '❤️',
+        title: '情感化设计 (Emotional Design)',
+        subtitle: '唐·诺曼提出的三个设计层次',
+        desc: '好的设计不仅要好用，还要能引发情感共鸣。诺曼将设计认知分为三个层次。',
+        subItems: [
+          {
+            title: "1. 本能层 (Visceral)",
+            core: "关注外观、感官刺激。'颜值即正义'。",
+            case: "Apple 产品精致的铝合金质感；跑车流线型的外形；精美的图标。",
+            val: "第一印象决定用户是否愿意接近产品。"
+          },
+          {
+            title: "2. 行为层 (Behavioral)",
+            core: "关注功能、性能和可用性。'好用才是硬道理'。",
+            case: "顺滑的滑动列表；一键下单的便捷；符合人体工学的手柄。",
+            val: "决定了用户能否完成任务，是产品的基础。"
+          },
+          {
+            title: "3. 反思层 (Reflective)",
+            core: "关注意识、回忆、自我形象和品牌认同。",
+            case: "佩戴劳力士象征身份；网易云音乐评论区的情感共鸣；环保产品的自我满足感。",
+            val: "建立长期情感连接，让用户成为粉丝。"
+          }
+        ]
+      },
+      {
+        id: 'miller',
+        cat: 'psychology',
+        icon: '🧠',
+        title: '米勒定律 (Miller\'s Law)',
+        subtitle: '工作记忆与有意义的信息分块',
+        desc: '米勒的研究指出短时记忆的限制与分块价值；常见的 7 ± 2 表述不是所有界面必须遵守的菜单数量上限。',
+        subItems: [
+          {
+            title: "分块 (Chunking)",
+            core: "将复杂信息拆解为更小的组合，以便记忆。",
+            case: "手机号 138-0000-0000 (3-4-4结构)；银行卡号每4位一个空格。",
+            val: "突破短时记忆瓶颈，提升信息易读性。"
+          },
+          {
+            title: "选项限制",
+            core: "根据实际任务组织选项，让用户能理解和比较，而不必同时记住所有信息。",
+            case: "APP 底部 Tab 一般不超过 5 个；超过的部分收入'更多'。",
+            val: "防止选择困难和认知过载。"
+          }
+        ]
+      },
+      {
+        id: 'hick',
+        cat: 'psychology',
+        icon: '🤔',
+        title: '希克定律 (Hick\'s Law)',
+        subtitle: '选择越多，决策越慢',
+        desc: '做决策所需的时间与选项数量呈对数关系。大脑天然厌恶复杂的决策。',
+        subItems: [
+          {
+            title: "做减法",
+            core: "在特定场景下，尽量减少选项数量。Less is More。",
+            case: "落地页（Landing Page）只保留一个'立即购买'按钮；遥控器精简按钮。",
+            val: "降低决策瘫痪风险，提高转化率。"
+          },
+          {
+            title: "分步引导 (Wizard)",
+            core: "将复杂任务拆解为简单步骤。",
+            case: "注册流程：分三页填手机号、验证码、密码，而不是一页填所有。",
+            val: "降低单页认知负荷，利用沉没成本鼓励完成。"
+          }
+        ]
+      },
+      {
+        id: 'peakend',
+        cat: 'psychology',
+        icon: '🏔️',
+        title: '峰终定律 (Peak-End Rule)',
+        subtitle: '记忆由高潮和结尾决定',
+        desc: '诺贝尔奖得主丹尼尔·卡尼曼提出。用户对体验的记忆不是平均值，而是由"最高峰"和"结束时"决定的。',
+        subItems: [
+          {
+            title: "制造峰值 (Peak)",
+            core: "在流程中设计一个让用户感到惊喜或极致便利的时刻。",
+            case: "游戏抽卡金光特效；电商下单后的'确定性'快感。",
+            val: "一个高光时刻可掩盖许多瑕疵。"
+          },
+          {
+            title: "优化终值 (End)",
+            core: "确保流程的最后一步是愉快的。",
+            case: "宜家出口的冰淇淋；外卖支付成功后的红包。",
+            val: "好的结尾极大提升复购意愿。"
+          }
+        ]
+      },
+
+      // -------------------------------------------------------
+      // 3. 视觉感知 (Visual)
+      // -------------------------------------------------------
+      {
+        id: 'gestalt',
+        cat: 'visual',
+        icon: '👀',
+        title: '格式塔原理 (Gestalt)',
+        subtitle: '全版本：大脑如何组织视觉元素',
+        desc: '解释了人类视觉感知系统如何将复杂元素简化、分组。UI 排版的底层逻辑。',
+        subItems: [
+          {
+            title: "1. 邻近性 (Proximity)",
+            core: "位置靠近的元素被视为一组。",
+            case: "标签与输入框的间距 < 标签与上一行输入框的间距。",
+            val: "利用间距构建层级，无需分割线。"
+          },
+          {
+            title: "2. 共同区域 (Common Region)",
+            core: "同一背景框内的元素被视为一组。权重高于邻近性。",
+            case: "卡片式设计 (Card UI)。",
+            val: "最强大的分组工具，明确内容边界。"
+          },
+          {
+            title: "3. 相似性 (Similarity)",
+            core: "形状、颜色相同的元素被视为一组。",
+            case: "所有可点击链接使用相同蓝色；按钮风格统一。",
+            val: "建立功能模式识别。"
+          },
+          {
+            title: "4. 连续性 (Continuity)",
+            core: "人眼倾向于观察连续的路径。",
+            case: "横滑卡片露出一半，暗示可滑动。",
+            val: "引导视线，暗示屏幕外内容。"
+          },
+          {
+            title: "5. 闭合性 (Closure)",
+            core: "大脑会自动补全不完整的图形。",
+            case: "Loading 断开的圆环；极简图标。",
+            val: "利用负空间简化设计。"
+          },
+          {
+            title: "6. 共同命运 (Common Fate)",
+            core: "同向运动的元素是一组。动效核心。",
+            case: "下拉菜单整体展开；侧滑返回全页移动。",
+            val: "建立动效逻辑关联。"
+          },
+          {
+            title: "7. 图底关系 (Figure-Ground)",
+            core: "分辨前景与背景。",
+            case: "弹窗背景压暗（遮罩）。",
+            val: "引导注意力聚焦。"
+          }
+        ]
+      },
+      {
+        id: 'vonrestorff',
+        cat: 'visual',
+        icon: '🌟',
+        title: '冯·雷斯托夫效应 (隔离效应)',
+        subtitle: '与众不同者，最易被铭记',
+        desc: '在多个相似物体中，那个长得最不一样的（颜色、形状、大小）最容易被记住。',
+        subItems: [
+          {
+            title: "强调核心操作 (CTA)",
+            core: "最重要的按钮必须在视觉上完全隔离。",
+            case: "灰色的取消按钮 vs 亮蓝色的确认按钮。",
+            val: "引导注意力，提升转化率。"
+          }
+        ]
+      },
+
+      // -------------------------------------------------------
+      // 4. 商业策略 (Business)
+      // -------------------------------------------------------
+      {
+        id: 'hook',
+        cat: 'business',
+        icon: '🪝',
+        title: '上瘾模型 (Hook Model)',
+        subtitle: '如何打造让用户养成的习惯的产品',
+        desc: '由尼尔·埃亚尔提出。通过四个阶段的循环，让用户在不知不觉中对产品产生依赖。',
+        subItems: [
+          {
+            title: "1. 触发 (Trigger)",
+            core: "外部触发（推送、广告）和内部触发（无聊、焦虑）。",
+            case: "收到微信消息提示音（外部）；感到孤独想刷朋友圈（内部）。",
+            val: "习惯养成的起点。"
+          },
+          {
+            title: "2. 行动 (Action)",
+            core: "在动机和能力的驱使下完成最简单的行为。",
+            case: "双击屏幕点赞；下拉刷新。",
+            val: "降低行动门槛是关键。"
+          },
+          {
+            title: "3. 多变的酬赏 (Variable Reward)",
+            core: "不可预测的反馈比固定的反馈更迷人（老虎机机制）。",
+            case: "刷抖音不知道下一条是什么；盲盒；点赞数的不确定性。",
+            val: "多巴胺分泌的核心来源。"
+          },
+          {
+            title: "4. 投入 (Investment)",
+            core: "用户投入的越多（时间、数据、社交关系），越离不开。",
+            case: "收藏歌单；积累粉丝；完善个人资料。",
+            val: "增加转换成本，建立护城河。"
+          }
+        ]
+      },
+      {
+        id: 'kano',
+        cat: 'business',
+        icon: '📊',
+        title: '卡诺模型 (Kano Model)',
+        subtitle: '需求优先级分析工具',
+        desc: '并非所有功能都同等重要。根据对满意度的影响，将需求分类。',
+        subItems: [
+          {
+            title: "1. 基本型 (Must-be)",
+            core: "必须有，没有会被骂，有了不加分。",
+            case: "微信能发消息；火锅店有热水。",
+            val: "产品的及格线，必须100%满足。"
+          },
+          {
+            title: "2. 期望型 (Performance)",
+            core: "越多越好，线性提升满意度。",
+            case: "电池续航；网速；存储空间。",
+            val: "产品的核心竞争力战场。"
+          },
+          {
+            title: "3. 兴奋型 (Delighters)",
+            core: "没有无所谓，有了惊喜若狂。",
+            case: "海底捞美甲；微信拍一拍。",
+            val: "低成本创造口碑传播点。"
+          }
+        ]
+      },
+
+      // -------------------------------------------------------
+      // 5. 系统思维 (System)
+      // -------------------------------------------------------
+      {
+        id: 'atomic',
+        cat: 'system',
+        icon: '⚛️',
+        title: '原子设计 (Atomic Design)',
+        subtitle: 'Brad Frost：构建设计系统的方法论',
+        desc: '将界面视为由微小组件构成的系统而非孤立的页面。',
+        subItems: [
+          {
+            title: "1. 原子 (Atoms)",
+            core: "不可再分的最小单元。",
+            case: "颜色 Token、字体样式、图标、HTML标签。",
+            val: "系统的基础DNA。"
+          },
+          {
+            title: "2. 分子 (Molecules)",
+            core: "原子的简单组合，具有单一功能。",
+            case: "搜索框（输入框+按钮）；表单项（标签+输入框）。",
+            val: "开始形成可复用的组件。"
+          },
+          {
+            title: "3. 组织 (Organisms)",
+            core: "分子组合成复杂模块。",
+            case: "顶部导航栏；产品卡片；页脚。",
+            val: "界面的主要构成区块。"
+          },
+          {
+            title: "4. 模板与页面 (Templates & Pages)",
+            core: "从抽象结构到具体内容的落地。",
+            case: "线框图 -> 填充了真实数据的最终设计稿。",
+            val: "验证系统在真实场景下的表现。"
+          }
+        ]
+      },
+      {
+        id: 'iso9241',
+        cat: 'system',
+        icon: '📐',
+        title: 'ISO 9241-210 标准',
+        subtitle: '人机交互的人机工程学标准',
+        desc: '定义了"以人为中心的设计 (HCD)" 流程，是工业界和专业 UX 领域的权威标准。',
+        subItems: [
+          {
+            title: "核心：以人为中心",
+            core: "设计应基于对用户、任务和环境的明确理解。",
+            case: "在设计车载大屏前，必须了解驾驶员的注意力限制和光照环境。",
+            val: "避免'闭门造车'，确保产品适应真实世界。"
+          },
+          {
+            title: "迭代设计流程",
+            core: "理解使用背景 -> 规定用户需求 -> 设计解决方案 -> 评估设计。",
+            case: "用户调研 -> 需求文档 -> 原型设计 -> 可用性测试 -> 修改 -> 再测试。",
+            val: "承认设计无法一次完美，必须通过反馈不断修正。"
+          }
+        ]
+      },
+      {
+        id: 'tesler',
+        cat: 'system',
+        icon: '⚖️',
+        title: '泰斯勒定律 (复杂性守恒)',
+        subtitle: '复杂性不会消失，只能转移',
+        desc: '任何系统都有一个无法减少的复杂性下限。问题是：谁来承担？用户还是开发者？',
+        subItems: [
+          {
+            title: "把麻烦留给开发者",
+            core: "不要让用户设定系统可以自动推断的参数。",
+            case: "输入'北京到上海'自动查询车次（系统承担复杂性）vs 自己查时刻表（用户承担）。",
+            val: "用开发成本换取用户体验。"
+          }
+        ]
+      }
+    ];
+
+/* Reviewed English versions of every built-in principle and every detail block.
+   The order matches the Chinese catalogue; no subsection is dropped. */
+(() => {
+  const content = {
+    nielsen: ['Nielsen’s Usability Heuristics','Ten practical principles for evaluating interface usability',
+      'Jakob Nielsen’s heuristics are broad guidelines for interaction design. Use them to identify common usability issues, then validate the design with real users.',
+      [
+        ['System status visibility','Keep users informed about what the system is doing, with timely feedback.','Show upload progress, loading states and a clear indication when an action has finished.','Reduces uncertainty and helps users choose their next step.'],
+        ['Match the real world','Use concepts, language and sequences familiar to the intended audience.','A shopping cart represents selected items; a calendar uses familiar dates and chronological order.','Makes unfamiliar interfaces easier to understand.'],
+        ['User control and freedom','Provide clear ways to cancel, go back and undo unintended actions.','Offer Undo after deletion and let people cancel a dialog without losing their work.','Supports exploration and recovery from mistakes.'],
+        ['Consistency and standards','Follow platform conventions and use consistent terms, layouts and interactions.','Use one save icon and a consistent navigation pattern throughout the product.','Reduces learning effort and builds predictable behavior.'],
+        ['Prevent errors','Use constraints and clear choices to prevent avoidable mistakes before they happen.','Disable submission when required fields are missing and check risky actions before committing them.','Improves task completion by reducing preventable errors.'],
+        ['Recognition over recall','Keep relevant objects and choices visible instead of requiring users to remember them.','Show recent items, font previews and previously selected options.','Reduces memory demands.'],
+        ['Flexible and efficient use','Support both newcomers and experienced users with appropriate shortcuts.','Provide keyboard shortcuts, search and efficient ways to repeat frequent actions.','Helps experienced users work faster while keeping basic tasks approachable.'],
+        ['Minimalist presentation','Remove irrelevant information so the important content remains easy to find.','Keep a search page focused and remove decorative elements that compete with the task.','Improves the signal-to-noise ratio.'],
+        ['Help users recover from errors','Explain the problem in plain language and offer a practical next step.','Suggest checking the network when a connection fails, or provide password recovery after a failed sign-in.','Reduces frustration and helps users complete the task.'],
+        ['Help and documentation','Provide searchable help with clear steps when the task requires it.','Use onboarding, contextual tooltips and an accessible FAQ.','Supports users when the interface alone cannot explain a complex task.']
+      ]],
+    wcag: ['WCAG Accessibility Guidelines','Make interfaces usable by people with different abilities',
+      'The Web Content Accessibility Guidelines organize accessibility around four principles: perceivable, operable, understandable and robust.',
+      [
+        ['Perceivable','Present information in forms users can perceive; do not rely on vision alone.','Provide useful image alternatives and captions for video.','Helps people with sensory disabilities access the same information.'],
+        ['Operable','Make controls usable with different input methods, including a keyboard.','Provide visible keyboard focus and avoid flashing content that could trigger seizures.','Supports people who cannot use a mouse or need alternative input methods.'],
+        ['Understandable','Make information, instructions and interactions clear and predictable.','Explain form errors and avoid unexplained specialist terminology.','Reduces cognitive barriers.'],
+        ['Robust','Use content and interface semantics that assistive technologies can interpret reliably.','Use appropriate HTML elements, labels and accessible control names.','Improves compatibility with browsers and assistive technologies.']
+      ]],
+    ai_guide: ['Human–AI Interaction Guidelines','Set expectations and support correction',
+      'AI systems can produce uncertain or incorrect results. Interfaces should explain their capabilities, support correction and adapt carefully over time.',
+      [
+        ['Make capabilities clear','Help users understand what the system can and cannot do.','Explain supported tasks and the circumstances in which generated answers may be unreliable.','Builds realistic expectations and reduces misplaced trust.'],
+        ['Support efficient correction','Make it easy to edit, refine or recover from an incorrect AI result.','Let users revise an image-generation request or edit a misrecognized voice command.','Turns an error into an opportunity to improve the result.'],
+        ['Learn from user behavior','Use appropriate feedback and preferences to improve the experience over time.','Personalize music recommendations or remember explicitly selected preferences.','Supports useful long-term personalization.']
+      ]],
+    vui: ['Voice Interface Principles','Design conversations without a full visual interface',
+      'Voice interfaces, including assistants and in-car systems, need concise prompts, clear turn-taking and useful ways to recover when recognition fails.',
+      [
+        ['Cooperative conversation','Make responses relevant, accurate and concise, following the user’s conversational context.','For a weather question, give the location, conditions and temperature rather than a long explanation.','Reduces listening effort and makes conversation feel natural.'],
+        ['Error handling and confirmation','Spoken information is sequential, so users cannot scan it as they can a screen.','When recognition is uncertain, ask whether the user meant a particular artist or command.','Prevents confusion and helps the conversation continue.']
+      ]],
+    spatial: ['Spatial Computing Principles','Design for gaze, gestures and immersive environments',
+      'Spatial interfaces extend beyond a flat screen. Gaze can identify a target, while gestures or other input methods confirm the intended action.',
+      [
+        ['Coordinate gaze and gestures','Separate targeting from confirmation so users can look around without triggering actions.','Highlight a target under gaze and confirm it with a supported pinch gesture.','Makes the interaction easier to learn and helps prevent accidental activation.'],
+        ['Comfortable placement','Place key content at a comfortable distance and within a convenient viewing area.','Keep primary windows in front of the user and avoid requiring frequent head turns.','Reduces physical effort; validate placement for the device and task.'],
+        ['Control immersion','Give users a clear way to adjust how much virtual content surrounds them.','A supported device control can move between a view of the room and a virtual environment.','Preserves the user’s sense of control over the environment.']
+      ]],
+    fitts: ['Fitts’s Law','Target size and distance affect pointing effort',
+      'Reaching a larger or closer target is generally easier than reaching a smaller or more distant one. Use this relationship when positioning interactive controls.',
+      [
+        ['The pointing-time model','T = a + b log₂(D/W + 1). Movement time depends on the ratio between distance D and target width W.','Use the model to consider target size and travel distance for a particular pointing task.','Offers a quantitative way to reason about pointing efficiency.'],
+        ['Thumb reach','Place frequent mobile actions where users can reach them comfortably.','Bottom navigation, reachable browser controls and lower dialog actions can reduce hand movement.','Improves comfort during one-handed use.'],
+        ['Screen edges and corners','A pointer constrained by a screen edge can make targets at that edge easier to acquire.','A desktop menu bar at the top edge or a corner-positioned system control can benefit from the boundary.','Uses pointer boundaries to reduce precise aiming; the benefit depends on the input method.']
+      ]],
+    doherty: ['Doherty Threshold','Keep interactions responsive',
+      'Fast responses help users maintain focus and momentum. Around 400 milliseconds is a commonly cited reference for short interactions, rather than a universal deadline.',
+      [
+        ['Immediate feedback','Acknowledge an input promptly, even if the full operation will take longer.','Show a pressed state when a button is activated and update the selected tab immediately.','Confirms that the system received the action.'],
+        ['Perceived performance','Explain progress and provide useful intermediate states while work continues.','Use skeleton content, optimistic feedback where safe, and meaningful progress indicators.','Makes waiting easier to understand without hiding failures.']
+      ]],
+    norman: ['Emotional Design','Don Norman’s three levels of design',
+      'Useful products can also create emotional connections. Norman describes visceral, behavioral and reflective aspects of the experience.',
+      [
+        ['Visceral','The immediate response to appearance and sensory qualities.','Material finish, a streamlined silhouette or carefully drawn icons influence the first impression.','Affects whether people feel drawn to the product.'],
+        ['Behavioral','The experience of function, performance and usability during an activity.','Smooth scrolling, a straightforward purchase flow and a comfortable controller support successful use.','Helps users complete their tasks.'],
+        ['Reflective','The meaning associated with memories, identity and personal values.','A product can express status, connect people through shared stories or support environmental values.','Can contribute to lasting emotional attachment.']
+      ]],
+    miller: ['Miller’s Law','Working memory and meaningful chunks',
+      'Miller’s research highlighted limits in short-term memory and the value of chunking. The familiar 7 ± 2 figure is not a universal rule for the number of menu items.',
+      [
+        ['Chunking','Group information into meaningful units that are easier to remember.','Separate a phone number into readable groups, or space a card number in groups of four.','Improves readability and supports recall.'],
+        ['Manage choice complexity','Organize options so users can understand and compare them without holding everything in memory.','Keep primary navigation focused and provide useful grouping for less frequent actions.','Reduces cognitive load; test the structure with the actual task and content.']
+      ]],
+    hick: ['Hick–Hyman Law','More uncertain choices can take longer',
+      'Choice time tends to increase as the number and uncertainty of alternatives grow. Clear organization can make decisions easier.',
+      [
+        ['Reduce unnecessary choices','Remove options that are irrelevant to the current task.','Give a landing page a clear primary action and simplify frequently used controls.','Reduces avoidable decision effort.'],
+        ['Guide complex tasks in steps','Divide a demanding task into understandable stages.','A registration flow can ask for contact details, verification and a password in separate stages.','Reduces the amount of information presented at once.']
+      ]],
+    peakend: ['Peak–End Rule','Memorable moments and endings shape recollection',
+      'People’s recollection of an experience can be influenced strongly by its most intense moment and its ending, rather than by an average of every moment.',
+      [
+        ['Create a positive peak','Include a moment of genuine convenience, clarity or pleasant surprise.','A game reward animation or a reassuring purchase confirmation can make a moment memorable.','Adds a positive moment without excusing problems elsewhere in the experience.'],
+        ['Improve the ending','Finish a flow with a clear and satisfying outcome.','Confirm a successful delivery order or offer a useful final step after completing a task.','Helps users leave with a positive and understandable conclusion.']
+      ]],
+    gestalt: ['Gestalt Principles','How people organize visual information',
+      'Gestalt principles describe how visual elements are perceived as groups and relationships. They help explain the structure of a layout.',
+      [
+        ['Proximity','Elements close together are often perceived as belonging together.','Place a label closer to its input than to the previous form row.','Uses spacing to express grouping and hierarchy.'],
+        ['Common region','Elements within a shared area are often perceived as one group.','A shared background can connect the content and actions belonging to one object.','Clarifies ownership when spacing alone is insufficient.'],
+        ['Similarity','Elements with similar visual properties can appear related.','Use a consistent link treatment and a shared button style for similar actions.','Helps users recognize functional patterns.'],
+        ['Continuity','People tend to follow smooth, continuous visual paths.','Show part of the next item to indicate that a horizontal collection continues.','Guides attention and helps reveal content beyond the current view.'],
+        ['Closure','People can perceive a complete form from incomplete visual information.','An open loading ring or a minimal outline can suggest a complete shape.','Supports concise forms and useful negative space.'],
+        ['Common fate','Elements moving together can be perceived as one group.','Animate a menu as a group or move a page together during a back gesture.','Connects motion to the relationship between elements.'],
+        ['Figure and ground','People distinguish a foreground object from its background.','Dim the surrounding interface when a modal dialog needs attention.','Helps direct attention to the active layer.']
+      ]],
+    vonrestorff: ['Von Restorff Effect','Distinctive items are easier to remember',
+      'An item that differs from similar surrounding items can be more memorable. Contrast can highlight a meaningful exception.',
+      [
+        ['Emphasize the main action','Give an important action a distinct treatment relative to nearby secondary actions.','A neutral Cancel button and a prominent Confirm button make the intended hierarchy clear.','Directs attention without making every control compete for emphasis.']
+      ]],
+    hook: ['Hook Model','A framework for habit-forming products',
+      'Nir Eyal’s model describes a cycle of triggers, actions, variable rewards and investment. Use it to understand repeated engagement.',
+      [
+        ['Trigger','A prompt can come from the environment or from a person’s internal need.','A message notification is an external trigger; wanting social connection can be an internal one.','Initiates the engagement cycle.'],
+        ['Action','The user performs an accessible action supported by motivation and ability.','Double-tapping to like or pulling to refresh makes the next action easy.','Reduces the effort required to proceed.'],
+        ['Variable reward','An uncertain result can sustain curiosity and repeated engagement.','A changing content feed or an unpredictable social response can encourage another visit.','Helps explain engagement patterns; design with the user’s interests in mind.'],
+        ['Investment','Users contribute time, content or relationships that make the product more personally useful.','Saving playlists, building a following or completing a profile adds personal value.','Makes future interactions more relevant and increases switching effort.']
+      ]],
+    kano: ['Kano Model','Understand how features affect satisfaction',
+      'Features can influence satisfaction in different ways. The Kano model helps distinguish basic expectations, performance attributes and unexpected benefits.',
+      [
+        ['Basic expectations','People expect these features; their absence causes dissatisfaction.','A messaging product must reliably send messages, and a service must meet its basic promises.','Defines the foundation the product needs to provide.'],
+        ['Performance attributes','Better performance on these attributes generally increases satisfaction.','Battery life, connection speed and available storage can improve with measurable performance.','Highlights areas for competitive improvement.'],
+        ['Delighters','An unexpected useful feature can create a pleasant surprise.','A thoughtful extra service or a playful, useful interaction can exceed expectations.','Offers opportunities to add meaningful value.']
+      ]],
+    atomic: ['Atomic Design','Brad Frost’s approach to interface systems',
+      'Atomic Design treats an interface as a system of related parts. Atoms, molecules, organisms, templates and pages work together rather than forming a rigid sequence.',
+      [
+        ['Atoms','Small interface elements that retain a clear, individual function.','Labels, inputs and buttons provide basic building blocks, supported by color and typography tokens.','Establishes the foundation of the system.'],
+        ['Molecules','Simple combinations of elements that perform a focused task.','An input and button form a search control; a label and input form a field.','Creates reusable functional combinations.'],
+        ['Organisms','Larger interface sections composed of smaller parts.','A navigation header, product card or footer combines related elements.','Defines major sections of the interface.'],
+        ['Templates and pages','Templates describe structure; pages demonstrate it with actual content.','Populate a structural layout with realistic text, images and data.','Checks whether the system works with real content.']
+      ]],
+    iso9241: ['ISO 9241-210','Human-centered design for interactive systems',
+      'ISO 9241-210 describes human-centered design activities and principles for interactive systems. Understand users and their context, then develop and evaluate solutions iteratively.',
+      [
+        ['Understand people and context','Base design decisions on a clear understanding of users, tasks and environments.','Before designing an in-car screen, consider driver attention, lighting and the operating context.','Helps the product fit real conditions of use.'],
+        ['Iterate through evaluation','Understand the context, specify requirements, develop solutions and evaluate them.','Research, requirements, prototypes and usability testing inform successive improvements.','Uses evidence and feedback to refine the design.']
+      ]],
+    tesler: ['Tesler’s Law','Consider who carries the complexity',
+      'Some complexity is intrinsic to a task. Design decisions determine how much of it is handled by the system and how much is left to the user.',
+      [
+        ['Let the system handle appropriate work','Automate details the system can infer reliably, while keeping the user in control.','Given an origin and destination, show available train services rather than asking the user to assemble a timetable.','Exchanges implementation effort for a simpler user task.']
+      ]]
+  };
+  const categories = {
+    interaction: ['交互与可用性','Interaction & usability'],
+    psychology: ['心理学','Psychology'], visual: ['视觉感知','Visual perception'],
+    business: ['商业策略','Product strategy'], system: ['系统思维','Systems thinking']
+  };
+  function item(source, language) {
+    if (language !== 'en') return source;
+    const translated = content[source.id];
+    if (!translated) throw new Error('Missing theory translation: ' + source.id);
+    return { ...source, title:translated[0], subtitle:translated[1], desc:translated[2],
+      subItems:translated[3].map(([title, core, example, val]) => ({ title, core, case:example, val })) };
+  }
+  globalThis.TheoryLocale = Object.freeze({ content, categories, item });
+})();
+
+/* UI-owned terminology and messages shared by both hosts. Values and document
+   content are never passed through this catalogue by the UI binding layer. */
+(() => {
+  const phrases = [
+    ['全页','Whole page'], ['选中图层','Selected layers'], ['当前页面','Current page'],
+    ['查找配置','Find settings'], ['查找内容','Find text'], ['替换为','Replace with'],
+    ['还原','Restore'], ['重置','Reset'], ['开始查找','Find'], ['返回','Back'],
+    ['返回列表','Back to library'], ['清空','Clear'], ['删除','Delete'], ['编辑','Edit'],
+    ['保存','Save'], ['关闭','Close'], ['设置','Settings'], ['导入 JSON','Import JSON'],
+    ['导出 JSON','Export JSON'], ['清空列表','Clear all lists'], ['测试连接','Test connection'],
+    ['取消','Cancel'], ['确定','Confirm'], ['无','None'], ['默认','Default'],
+    ['自动识别','Auto-detect'], ['中文','Chinese'], ['简体中文','Chinese (Simplified)'],
+    ['繁体中文','Chinese (Traditional)'], ['日本語','Japanese'], ['한국어','Korean'],
+    ['Français','French'], ['Deutsch','German'], ['Español','Spanish'], ['Italiano','Italian'],
+    ['Português','Portuguese'], ['Русский','Russian'], ['العربية','Arabic'],
+    ['浅色','Light'], ['深色','Dark'], ['跟随系统','Follow system'],
+    ['GLM (免费使用 4.7flash,比较慢)','GLM (free built-in access; slower responses)'],
+    ['Anthropic (原生或第三方)','Anthropic (direct or third-party API)'],
+    ['通常以 /v1 结尾。如果使用中转或代理，请填写代理地址。','Usually ends in /v1. For a proxy, enter its API base URL.'],
+    ['GLM 用户留空即可享受内置免费通道','For GLM, leave this blank to use the built-in free connection.'],
+    ['源语言','Source language'], ['直接替换不会创建变量或 Mode。','Direct replacement does not create variables or modes.'],
+    ['语言切换','Language variants'], ['语言组件集','Language component set'],
+    ['选择多个不同语言的 Frame，选择「语言切换」后构建，自动生成 Language 变体属性。','Select frames in different languages and choose Language variants to create a component set with a Language variant property.'],
+    ['建议命名为「Button/zh-CN」、「Button/en-US」，也支持中文、English、日本語等常见语言别名。未识别时会保留 Frame 名作为语言值。','Use names such as Button/zh-CN or Button/en-US. Common language aliases are also supported; unrecognized names are kept as the language value.'],
+    ['选择文本或画板，点击字段填充','Select text or frames, then click a field to fill.'],
+    ['请先选择可见文本或包含文本的画板','Select visible text or frames containing text first.'],
+    ['正在填充…','Filling…'], ['正在录入…','Filling…'], ['请先生成内容','Generate content first.'],
+    ['请先输入至少一条录入内容','Enter at least one item to fill.'],
+    ['请选择前缀或后缀，并输入要添加的字符','Choose prefix or suffix and enter the characters to add.'],
+    ['生成方式','Generation method'], ['随机生成','Random'], ['按序填写','Sequence'],
+    ['数列类型','Sequence type'], ['等差数列','Arithmetic progression'],
+    ['等比数列','Geometric progression'], ['斐波那契数列','Fibonacci sequence'],
+    ['自然数','Natural numbers'], ['奇数数列','Odd numbers'], ['偶数数列','Even numbers'],
+    ['质数数列','Prime numbers'], ['平方数列','Square numbers'], ['三角数列','Triangular numbers'],
+    ['阶乘数列','Factorials'], ['起始值','Start value'], ['第二项','Second term'],
+    ['公差','Common difference'], ['公比','Common ratio'], ['起始时间','Start time'],
+    ['递增步长（秒）','Step (seconds)'],
+    ['例如 900 秒表示每个图层递增 15 分钟，超过 24 小时后循环。','A 900-second step adds 15 minutes for each layer. Values wrap after 24 hours.'],
+    ['步长（秒）','Step (seconds)'], ['步长 (秒)','Step (seconds)'],
+    ['斐波那契使用起始值和第二项；等差使用公差；等比使用公比。','Fibonacci uses the start value and second term; arithmetic progressions use a difference, and geometric progressions use a ratio.'],
+    ['2023年10月1日','Chinese date'],
+    ['请输入标题...','Enter a title…'], ['请输入预设名称...','Enter a preset name…'],
+    ['图层 Layer','Layer'], ['图层名称 (Name)','Layer name'], ['图层透明度 (Opacity)','Layer opacity'],
+    ['可见性 (Visible)','Visibility'], ['是否锁定 (Locked)','Locked'], ['旋转 (Rotation)','Rotation'],
+    ['图层叠加模式','Layer blend mode'], ['元素在父图层中的顺序','Sibling index'],
+    ['元素在父图层中的倒序','Reverse sibling index'], ['子元素数量','Child count'],
+    ['是否展开','Expanded'], ['多边形边数','Polygon sides'], ['位置与尺寸 Bounds','Position and size'],
+    ['宽度 (Width)','Width'], ['高度 (Height)','Height'], ['X 坐标','X position'], ['Y 坐标','Y position'],
+    ['绝对宽度','Absolute width'], ['绝对高度','Absolute height'], ['绝对 X','Absolute X'], ['绝对 Y','Absolute Y'],
+    ['填充 Fills','Fills'], ['填充数量','Fill count'], ['填充色','Fill color'], ['填充透明度','Fill opacity'],
+    ['填充叠加模式','Fill blend mode'], ['填充类型','Fill type'], ['填充可见','Fill visibility'],
+    ['填充样式 ID','Fill style ID'], ['圆角 Radius','Corner radius'], ['全部圆角','All corners'],
+    ['左上圆角','Top-left corner'], ['右上圆角','Top-right corner'], ['左下圆角','Bottom-left corner'],
+    ['右下圆角','Bottom-right corner'], ['转角平滑','Corner smoothing'],
+    ['描边 Strokes','Strokes'], ['描边数量','Stroke count'], ['描边颜色','Stroke color'],
+    ['描边粗细','Stroke weight'], ['描边透明度','Stroke opacity'], ['描边叠加模式','Stroke blend mode'],
+    ['描边种类','Stroke type'], ['描边可见','Stroke visibility'], ['描边对齐','Stroke alignment'],
+    ['描边端点','Stroke cap'], ['描边转角','Stroke join'], ['描边斜接限制','Stroke miter limit'],
+    ['描边样式 ID','Stroke style ID'], ['效果 Effects','Effects'], ['效果数量','Effect count'],
+    ['效果类型','Effect type'], ['效果可见','Effect visibility'], ['效果样式 ID','Effect style ID'],
+    ['图层定位','Layout positioning'], ['分布方向','Layout direction'], ['主轴对齐','Primary-axis alignment'],
+    ['交叉轴对齐','Cross-axis alignment'], ['子元素间距','Item spacing'], ['上边距','Top padding'],
+    ['下边距','Bottom padding'], ['左边距','Left padding'], ['右边距','Right padding'],
+    ['图层网格数量','Layout grid count'], ['网格样式 ID','Grid style ID'], ['文本 Text','Text'],
+    ['文本内容','Text content'], ['字体','Font family'], ['字重 / 样式','Font weight / style'], ['字号','Font size'],
+    ['是否有链接','Has hyperlink'], ['水平对齐','Horizontal alignment'], ['垂直对齐','Vertical alignment'],
+    ['字体修饰','Text decoration'], ['字间距','Letter spacing'], ['字间距单位','Letter-spacing unit'],
+    ['行高','Line height'], ['行高单位','Line-height unit'], ['丢失字体','Missing fonts'],
+    ['段落缩进','Paragraph indent'], ['段落间距','Paragraph spacing'], ['文字样式 ID','Text style ID'],
+    ['组件 Component','Component'], ['组件描述','Component description'], ['相同母组件 ID','Main component ID'],
+    ['组件属性数量','Component property count'], ['变体属性数量','Variant property count'],
+    ['原型 Prototype','Prototype'], ['交互动作数量','Interaction count'],
+    ['滚动溢出方向','Overflow scrolling'], ['固定子元素数量','Fixed child count'],
+    ['含','Contains'], ['开头是','Starts with'], ['结尾是','Ends with'],
+    ['目标尺寸','Target dimensions'], ['宽度 W','Width W'], ['高度 H','Height H'],
+    ['比例计算基准','Aspect-ratio anchor'], ['取整方式','Rounding'], ['保持宽度','Keep width'],
+    ['保持高度','Keep height'], ['四舍五入','Nearest integer'], ['向上取整','Round up'],
+    ['向下取整','Round down'], ['保留小数','Keep decimals'], ['锁定宽高比','Lock aspect ratio'],
+    ['保持中心位置','Keep center position'], ['手机','Phones'], ['平板 / 折叠','Tablets / foldables'],
+    ['桌面屏幕','Desktop screens'], ['穿戴设备','Wearables'], ['经典比例','Aspect ratios'],
+    ['设计视口','Design viewport'], ['原生分辨率','Native resolution'],
+    ['物理分辨率','Native resolution'], ['请先选择 Frame 或矩形','Select frames or rectangles first.'],
+    ['批量设定所选尺寸','Resize selected layers'], ['正在设定...','Resizing…'],
+    ['没有匹配的尺寸预设','No matching size presets.'], ['搜索品牌、设备或比例','Search brands, devices or ratios'],
+    ['搜索品牌、设备或比例...','Search brands, devices or ratios…'],
+    ['自定义尺寸；勾选锁定宽高比可联动调整。','Custom dimensions. Lock the aspect ratio to resize proportionally.'],
+    ['6.3 英寸。460 ppi，三倍像素密度设计视口。','6.3 inches, 460 ppi. Design viewport at 3× pixel density.'],
+    ['6.9 英寸 QHD+，适合大屏 Android 界面检查。','6.9-inch QHD+ screen for checking large-screen Android interfaces.'],
+    ['6.3 英寸，20:9，使用 Material 布局时可同时验证 360dp。','6.3 inches, 20:9. Also check 360dp when using Material layouts.'],
+    ['6.9 英寸，接近 20:9，适合安卓旗舰大屏。','6.9 inches, approximately 20:9, for large Android phone layouts.'],
+    ['HUAWEI · Mate X7 外屏','HUAWEI · Mate X7 cover screen'], ['Mate X7 外屏','Mate X7 cover screen'],
+    ['6.49 英寸外屏，建议关注窄宽下的文字换行。','6.49-inch cover screen. Check text wrapping at narrow widths.'],
+    ['紧凑视口','Compact viewport'], ['主流视口','Standard viewport'],
+    ['通用 360dp 基准，用于发现窄屏布局问题。','A 360dp baseline for checking narrow-screen layouts.'],
+    ['跨 iOS 与 Android 的常用原型尺寸。','A commonly used prototype size for iOS and Android.'],
+    ['桌面设计基准','Desktop design baseline'], ['圆形手表 44mm','Round watch, 44mm'],
+    ['常用网页设计宽度，建议主内容再设置最大宽度。','A common web design width. Set a maximum width for the main content.'],
+    ['16:9 主流显示器与视频画布。','16:9 display and video canvas.'],
+    ['16:9 高分辨率桌面，注意内容不应无限拉宽。','High-resolution 16:9 desktop canvas. Limit the width of text and content.'],
+    ['16:9，适合大屏展示和高清导出校验。','16:9 canvas for large displays and high-resolution export checks.'],
+    ['21:9 超宽屏，适合时间线、仪表盘和多窗口工作台。','21:9 ultrawide canvas for timelines, dashboards and multi-window workspaces.'],
+    ['信息应在短时间内完成读取，避免长文本和密集操作。','Make information quick to read. Avoid long text and dense controls.'],
+    ['1:1 画布仅代表外接矩形，关键内容需留在中心安全区。','The 1:1 canvas is the bounding square. Keep key content within the central safe area.'],
+    ['1:1 正方形','1:1 Square'], ['4:3 经典画幅','4:3 Classic'], ['3:2 摄影 / 生产力','3:2 Photography / productivity'],
+    ['16:10 效率屏','16:10 Productivity'], ['16:9 宽屏','16:9 Widescreen'], ['2:1 超宽','2:1 Wide'],
+    ['21:9 电影宽屏','21:9 Cinematic'], ['√2 纸张比例','√2 Paper ratio'], ['√3 几何比例','√3 Geometric ratio'],
+    ['φ 黄金比例','φ Golden ratio'], ['1+√2 白银比例','1+√2 Silver ratio'],
+    ['头像、图标、商品缩略图与方形社交内容。','Avatars, icons, product thumbnails and square social content.'],
+    ['平板、演示和传统摄影常用比例。','A common ratio for tablets, presentations and traditional photography.'],
+    ['相机画幅与 Surface 类生产力屏幕。','Camera frames and productivity displays such as Surface devices.'],
+    ['笔记本与创作工作台，比 16:9 提供更多垂直空间。','Laptops and creative workspaces, with more vertical room than 16:9.'],
+    ['视频、演示、电视与主流显示器。','Video, presentations, television and standard displays.'],
+    ['现代手机、横幅 Banner 与全景构图。','Modern phones, banners and panoramic compositions.'],
+    ['电影感视频、超宽屏与沉浸式展示。','Cinematic video, ultrawide screens and immersive presentations.'],
+    ['A 系列纸张比例，对半裁切后仍保持相同比例。','The A-series paper ratio. Halving the sheet preserves its aspect ratio.'],
+    ['适合三角网格、展示画幅与几何构图实验。','For triangular grids, presentation formats and geometric composition studies.'],
+    ['约 1:1.618，可用于构图分区，不应取代实际内容验证。','Approximately 1:1.618. Useful for composition studies; validate with real content.'],
+    ['约 1:2.414，适合细长编排、建筑感版面与展示实验。','Approximately 1:2.414, for elongated layouts, architectural compositions and presentation studies.'],
+    ['AI 设计理论助手','Design Theory Assistant'], ['输入设计问题或理论关键词...','Ask a design question or enter a principle…'],
+    ['继续提问...','Ask a follow-up question…'], ['发送','Send'], ['暂无详细拆解','No detailed explanation available.'],
+    ['核心释义','Key idea'], ['应用案例','In practice'], ['理论价值','Why it matters'],
+    ['交互与可用性','Interaction & usability'], ['心理学','Psychology'], ['视觉感知','Visual perception'],
+    ['商业策略','Product strategy'], ['系统思维','Systems thinking'],
+    ['暂无设计理论数据','No design principles available.'],
+    ['请填写标题和内容','Enter a title and content.'], ['确定删除这个列表吗？','Delete this list?'],
+    ['列表已经是空的了','The list is already empty.'], ['没有数据可导出','There is no data to export.'],
+    ['⚠️ 确定要清空所有自定义列表吗？此操作不可恢复！','Clear all custom lists? This cannot be undone.'],
+    ['确定要重新开始吗？','Restart the export workflow?'], ['没有数据','No data available.'],
+    ['配置已保存','Settings saved.'], ['请选择形状','Select shapes first.'], ['请选择图层','Select layers first.'],
+    ['请先选中图层','Select layers first.'], ['字体加载失败','Could not load the font.'],
+    ['请选2个以上文本','Select at least two text layers.'], ['已重命名','Layers renamed.'],
+    ['未找到可解绑的实例','No detachable instances found.'], ['已交换填充/描边','Fill and stroke swapped.'],
+    ['已添加自动布局外套','Auto Layout frames added.'], ['已转换为 Frame','Converted to frames.'],
+    ['请至少选择两个同级图层','Select at least two sibling layers.'],
+    ['请选择至少两个同级图层，或选择一个包含多个子图层的容器','Select at least two sibling layers or a container with multiple children.'],
+    ['已反转排列（从下到上）','Layer order reversed, bottom to top.'], ['已排列（从上到下）','Layers sorted, top to bottom.'],
+    ['已按名称倒序排列（Z→A）','Layers sorted by name, Z to A.'], ['已按名称排序（A→Z）','Layers sorted by name, A to Z.'],
+    ['组件集为空','The component set is empty.'], ['✅ 说明书生成完毕！','Component documentation generated.'],
+    ['英文','English'], ['请严格选择 2 个图层进行交换','Select exactly two layers to swap.'],
+    ['位置已互换','Layer positions swapped.'], ['请先选择范围','Select a scope first.'],
+    ['未发现可创建的样式（选中的图层可能没有填充/文本/效果属性）','No styles can be created from the selection’s fills, text or effects.'],
+    ['匹配出错','Style matching failed.'], ['未发现可匹配的样式','No matching styles found.'],
+    ['请先选择一个图层以获取名称','Select a layer to read its name.'],
+    ['⚠️ 请先选择一个容器(Frame/Group)','Select a frame or group first.'],
+    ['⚠️ 请先选择一个图层','Select a layer first.'],
+    ['⚠️ 未找到图层，请检查 Console的筛选池大小','No layers found. Check the search scope and filters.'],
+    ['请在画布上选中恰好两个画板/容器','Select exactly two frames or containers on the canvas.'],
+    ['请输入查找内容，注意区分大小写','Enter text to find. Matching is case-sensitive.'],
+    ['范围内没有文本','There is no text in this scope.'], ['未找到匹配内容','No matching content found.'],
+    ["⚠️ 请先将 Page 重命名为 'xxx 副本' 以确保安全！",'Duplicate the page and include “copy” in its name before exporting.'],
+    ['请至少选择一个 Frame 画板','Select at least one frame.'],
+    ['请先选择图层','Select layers first.'], ['未找到匹配文本','No matching text found.'],
+    ['已还原颜色','Original colors restored.'], ['已标记 (再次点击可还原)','Highlighted. Click again to restore the original color.'],
+    ['图层不存在 (可能已被删除)','The layer no longer exists; it may have been deleted.'],
+    ['最多只能保存 5 个锚点！','You can save up to five viewport bookmarks.'],
+    ['📍 位置已保存','Viewport bookmark saved.'],
+    ['⚠️ 该位置所在的页面已被删除！','The page containing this bookmark has been deleted.'],
+    ['🚀 已传送！','Returned to the saved viewport.'],
+    ['传送失败，可能是图层结构已发生巨大改变','Could not restore the viewport. The layer structure may have changed.'],
+    ['🗑️ 锚点已删除','Viewport bookmark deleted.'],
+    ['连接超时(60秒)','Connection timed out after 60 seconds.'],
+    ['连接失败','Connection failed.'], ['连接失败：API 返回格式异常','Connection failed: the API returned an unexpected response.'],
+    ['连接超时，请检查网络或 Base URL','Connection timed out. Check the network and API base URL.'],
+    ['内置通道暂时不可用，请稍后重试或填写自己的 API Key','The built-in connection is unavailable. Try again later or enter your own API key.'],
+    ['网络错误，请检查 Base URL 是否正确','Network error. Check the API base URL.'],
+    ['测试中...','Testing…'], ['正在测试...','Testing…'],
+    ['执行出错，请重试。','The operation failed. Please try again.'],
+    ['⚠️ 确定要全自动执行吗？\n请确保当前是【副本】页面，且已选中要导出的画板。','Run all export steps automatically? Make sure you are on a copied page and have selected the frames to export.'],
+    ['PPT 生成失败，请重试','PPT generation failed. Please try again.'],
+    ['资源包数据为空，请重新运行导出流程。','The asset package is empty. Run the export workflow again.'],
+    ['请输入要查找的内容','Enter text to find.'],
+    ['请至少选择一个搜索目标 (Prop Name 或 Prop Value)','Select at least one search target: property name or property value.'],
+    ['请至少选择一项','Select at least one item.'],
+    ['文件格式错误：必须是数组','Invalid file format: expected an array.'],
+    ['数据结构不符','The data does not have the expected structure.'],
+    ['导入成功！','Imported successfully.'], ['请输入提示词','Enter a prompt.'],
+    ['请先配置 API Key','Set up an API key first.'],
+    ['请先配置 API 接口地址','Set up the API base URL first.'],
+    ['未能获取到生成的文本内容','No generated text was returned.'],
+    ['内容为空，无法保存','There is no content to save.'],
+    ['没有已有的列表可追加，请先新建。','Create a list before appending content.'],
+    ['请输入标题','Enter a title.'], ['已保存为新列表','Saved as a new list.'],
+    ['目标列表无效','The selected list is not available.'],
+    ['未选中任何画板或节点，请先在画布上框选目标','Select the target frames or layers on the canvas first.'],
+    ['AI响应超时','AI response timed out.'],
+    ['AI 未返回可用的组件修改方案','The AI did not return a usable component update plan.'],
+    ['AI 请求失败','AI request failed.'],
+    ['AI 返回内容不是有效 JSON','The AI response is not valid JSON.'],
+    ['请先在设置面板配置 AI Key','Set up an AI key in Settings first.'],
+    ['用户强制中断','Cancelled by the user.'],
+    ['模型未返回有效数据','The model did not return valid data.'],
+    ['尚未扫描，请先点击【扫描】提取文本。','Click Scan to collect the text before translating.'],
+    ['✅ 当前范围内没有「未绑定」的文本需要处理。\n\n所有文本均已绑定变量。\n\n如需重新翻译，请将「目标文本」切换为【画板全部文本】后再扫描。','All text in this scope is already bound to variables. To translate it again, choose All Text on Frames and scan again.'],
+    ['✅ 当前范围内没有需要处理的文本。','There is no text to process in the current scope.'],
+    ['本地合集尚未包含任何语言Mode，请先选择「创建Mode」','The local collection has no language modes. Choose Create Mode first.'],
+    ['保存为新列表','Save as a new list'],
+    ['AI 分析中 0/0','AI analysis: 0/0'], ['已勾选 0 个','0 items selected'],
+    ['查找结果','Search results'], ['共 0 项','0 items'], ['全选未替换项','Select all unreplaced items'],
+    ['太棒了！未发现需要修复的组件命名','All clear. No component naming issues found.'],
+    ['全部修复完成','All issues fixed'], ['命名已更新，界面更加整洁了。','Names have been updated.'],
+    ['返回继续检查','Back to review'], ['点击展开配置','Expand settings'],
+    ['章节导航','Jump to a section'], ['跳转到章节','Jump to a section'],
+    ['免费内置通道','Built-in free connection'],
+    ['：当前使用 GLM-4.7-Flash（免费模型），已锁定不可更改。',': The built-in connection uses GLM-4.7-Flash; its model cannot be changed.'],
+    ['如需使用其他模型，请填写自己的 API Key。','Enter your own API key to use another model.'],
+    ['尺寸助手','Size Assistant'],
+    ['为所选 Frame 或矩形批量设定屏幕尺寸。设计视口适合界面设计，原生分辨率适合展示和物理像素对照。设备库更新于 2026-09。','Resize selected frames or rectangles. Use design viewports for interface layouts and native resolution for pixel-level comparisons. Device presets were updated in September 2026.'],
+    ['建议：移动端界面优先使用设计视口，同时在多个代表性宽度下检查响应式布局。','For mobile interfaces, start with the design viewport and check responsive layouts at several representative widths.'],
+    ['X 轴 (列)','X axis (columns)'], ['Y 轴 (行)','Y axis (rows)'], ['- 可选','— optional'],
+    ['无（单维度排列）','None (one-dimensional layout)'], ['快捷设置','Quick settings'],
+    ['区块间距','Section spacing'], ['组件集布局','Component set layout'], ['网格线','Grid lines'],
+    ['画板样式','Frame style'], ['显示选项','Display options'], ['虚线网格','Dashed grid'],
+    ['轴标签','Axis labels'], ['属性面板','Property summary'], ['使用指南','Usage guide'],
+    ['组件集内边距','Component set padding'], ['组件集之间间距','Spacing between component sets'],
+    ['显示虚线网格','Show dashed grid'], ['发生错误','An error occurred'],
+    ['切换精简模式','Toggle compact mode'], ['导入','Import'], ['刷新','Refresh'],
+    ['输入查找对象的名称...','Enter a layer name to find…'], ['清空输入','Clear input'],
+    ['拾取选中图层名称','Use the selected layer’s name'], ['区分大小写','Match case'],
+    ['查找选中元素内部的所有图层','Search all layers inside the selection'],
+    ['查找与选中元素同级的所有图层','Search layers sharing the selection’s parent'],
+    ['查找选中元素的直接子级图层','Search the selection’s direct children'],
+    ['查找选中元素的所有子孙图层','Search all descendants of the selection'],
+    ['查找当前 Page 下的所有图层','Search all layers on the current page'],
+    ['按连字符切词段，词段完全相同才算命中','Split names at hyphens and match identical segments'],
+    ['名称包含对方连续片段即命中，更宽松','Match a contiguous part of the other name; a broader comparison'],
+    ['左侧画板','Left frame'], ['右侧画板','Right frame'], ['还原所有标红','Restore all highlighted layers'],
+    ['重置所有设置','Reset all settings'], ['输入查找关键词...','Enter text to find…'],
+    ["在名称前自动添加 '.'","Add a dot prefix to the name"], ["移除名称开头的 '.' 或 '_'","Remove a leading dot or underscore"],
+    ['请先完成扫描','Complete the scan first.'], ['关闭可加快速度。','Turn this off for faster responses.'],
+    ['生成结果将显示在这里...','Generated content will appear here…'], ['保存为新的列表','Save as a new list'],
+    ['追加到已有列表','Append to an existing list'], ['热门推荐 (推荐)','Popular providers'],
+    ['国内其他优秀平台','Other providers in China'], ['国际平台与聚合','International providers and aggregators'],
+    ['横竖切换','Swap width and height'], ['输入设计者名称','Enter the designer’s name'],
+    ['如：首页、详情页','For example: Home, Details'],
+    ['13 英寸，4:3。分栏布局和横竖屏都应检查。','13 inches, 4:3. Check split layouts and both orientations.'],
+    ['3:2 触控屏，适合生产力界面和纵向阅读。','3:2 touchscreen for productivity interfaces and portrait reading.'],
+    ['3:2，横屏工作台可优先检查 1440 设计宽度。','3:2 screen. Check a design width of 1440 for landscape workspaces.'],
+    ['Mate X7 内屏','Mate X7 inner screen'],
+    ['8 英寸近方形折叠屏，需避免只沿用手机单栏。','8-inch, nearly square foldable screen. Check layouts beyond a single phone column.'],
+    ['通用平板视口','Standard tablet viewport'],
+    ['经典 3:4 平板基准，适合响应式断点验证。','A classic 3:4 tablet baseline for testing responsive breakpoints.'],
+    ['填充列表为空','The fill list is empty.'],
+    ['未找到可填充的可见文本','No visible text layers can be filled.'],
+    ['请先选择一个或多个 Frame / 矩形','Select one or more frames or rectangles.'],
+    ['请只选择一个实例（Instance）后再逆向母版','Select exactly one instance to rebuild its main component.'],
+    ['实例逆向正在处理中，请等待当前操作完成','A component rebuild is in progress. Wait for it to finish.'],
+    ['请选择一个或多个 Frame；当前选择中不能混入其他图层类型','Select one or more frames without other layer types.'],
+    ['组件集模式至少需要两个 Frame','Component set mode requires at least two frames.'],
+    ['语言组件集模式至少需要两个 Frame','Language component set mode requires at least two frames.'],
+    ['请选中一个 Component Set (组件集)！','Select one component set.'],
+    ['请选中至少一个 Component Set！','Select at least one component set.'],
+    ['请选中一个 Component Set 或已生成的说明书画板！','Select a component set or a generated documentation frame.']
+  ];
+  const exact = new Map(phrases);
+  const rules = [
+    [/^前 5 项：/, 'First 5: '], [/^已填充 (\d+) 个文本$/, 'Filled $1 text layers.'],
+    [/^已填充 (\d+) 个文本[，,]失败 (\d+) 个$/, 'Filled $1 text layers; $2 failed.'],
+    [/^移除 (\d+) 个自动布局$/, 'Removed Auto Layout from $1 layers.'],
+    [/^已解绑 (\d+) 个组件$/, 'Detached $1 instances.'],
+    [/^已删除 (\d+) 个隐藏图层$/, 'Deleted $1 hidden layers.'],
+    [/^已解散 (\d+) 个组$/, 'Ungrouped $1 groups.'],
+    [/^已解锁 (\d+) 个图层$/, 'Unlocked $1 layers.'],
+    [/^已对齐 (\d+) 个图层$/, 'Aligned $1 layers to pixels.'],
+    [/^已定位 (\d+) 项$/, 'Located $1 items.'],
+    [/^已选中 (\d+) 个图层$/, 'Selected $1 layers.'],
+    [/^已替换 (\d+) 处文本$/, 'Replaced $1 text matches.'],
+    [/^已成功修复 (\d+) 项命名$/, 'Fixed $1 naming issues.'],
+    [/^已还原 (\d+) 处高亮$/, 'Restored $1 highlighted items.'],
+    [/^AI 分析中 (\d+)\/(\d+)$/, 'AI analysis: $1/$2'],
+    [/^已勾选 (\d+) 个$/, '$1 items selected'], [/^共 (\d+) 项$/, '$1 items'],
+    [/^匹配成功: 填充(\d+) \/ 描边(\d+) \/ 文本(\d+) \/ 效果(\d+)$/, 'Styles matched: $1 fills / $2 strokes / $3 text / $4 effects.'],
+    [/^✅ 批量排布完成！共 (\d+) 个组件集$/, 'Arranged $1 component sets.'],
+    [/^生成填充内容失败：/, 'Could not prepare fill content: '],
+    [/^AI调用失败[:：]\s*/, 'AI request failed: '],
+    [/^AI 调用失败[:：]\s*/, 'AI request failed: '],
+    [/^AI 请求失败[:：]\s*/, 'AI request failed: '],
+    [/^连接失败[:：]\s*/, 'Connection failed: '],
+    [/^连接成功！模型 (.+) 通过(内置通道|API)响应正常$/, (match,model,connection) => 'Connected. Model ' + model + ' responded through the ' + (connection === 'API' ? 'API.' : 'built-in connection.')],
+    [/^生成失败[:：]\s*/, 'Generation failed: '],
+    [/^导入失败[:：]\s*/, 'Import failed: '],
+    [/^应用失败[:：]\s*/, 'Could not apply changes: '], [/^逆向失败[:：]\s*/, 'Component rebuild failed: '],
+    [/^创建失败[:：]\s*/, 'Creation failed: '],
+    [/^已将 (\d+) 个图层设为 ([\d.]+) × ([\d.]+)(?:，(\d+) 个图层调整失败)?$/, (match, count, width, height, failed) => 'Resized ' + count + ' layers to ' + width + ' × ' + height + (failed ? '; ' + failed + ' failed.' : '.')],
+    [/^已填充 (\d+) 个文本，(\d+) 项失败：(.*)$/s, 'Filled $1 text layers; $2 failed: $3'],
+    [/^多语言 Mode 已同步更新！$/, 'Language modes updated.'],
+    [/^成功替换了 (\d+) 个文本节点！$/, 'Replaced $1 text layers.'],
+    [/^已逆向组件母版/, 'Main component rebuilt'],
+    [/（视觉快照兜底）/, ' (visual snapshot fallback)'],
+    [/，完整还原 (\d+) 个真实变体/, '; restored all $1 actual variants'],
+    [/，原组件集 (\d+) 个变体超过上限 (\d+)，已保留当前真实变体/, '; the source has $1 variants, exceeding the $2 limit; kept the current actual variant'],
+    [/，并保留 (\d+) 个有效属性/, '; preserved $1 valid properties'],
+    [/；(\d+) 项内容已安全降级或跳过/, '; $1 items used a safe fallback or were skipped'],
+    [/^已创建(语言组件集|组件集|单个组件|多个组件)/, (match, type) => ({ '语言组件集':'Created a language component set', '组件集':'Created a component set', '单个组件':'Created one component', '多个组件':'Created separate components' })[type]],
+    [/，并生成文字属性、实例属性/, '; exposed text and instance swap properties'],
+    [/，并生成文字属性/, '; exposed text properties'],
+    [/，并生成实例属性/, '; exposed instance swap properties'],
+    [/；(\d+) 项已跳过/, '; $1 items skipped'],
+    [/^有 (\d+) 个 Frame 连接了原型连线；为避免连接目标丢失，本次未转换$/, '$1 frames have prototype connections. They were not converted to preserve connection targets.'],
+    [/^已应用 (\d+) 项组件规范优化(?:；(\d+) 项未能修改)?$/, (match, done, failed) => 'Applied ' + done + ' component updates' + (failed ? '; ' + failed + ' could not be changed.' : '.')],
+    [/^无法创建 "([^"]+)" 语言模式。当前合集可能已达到模式数量限制。可改用「直接替换」，或检查当前方案支持的模式数量。$/, 'Could not create the "$1" language mode. The collection may have reached its mode limit. Use Direct Replace or check the mode capacity supported by your plan.'],
+    [/^请求失败[:：]\s*/, 'Request failed: '], [/^错误[:：]\s*/, 'Error: '],
+    [/^已找到 (\d+) 个图层$/, 'Found $1 layers.'],
+    [/^已选择 (\d+) 个图层$/, 'Selected $1 layers.'],
+    [/^已就绪：/, 'Ready: '], [/^(\d+) 个 Frame$/, '$1 frames'],
+    [/^(\d+) 个组件$/, '$1 components'], [/^(\d+) 个画板$/, '$1 frames']
+  ];
+  function translate(value, language) {
+    if (value === null || value === undefined) return '';
+    const text = String(value);
+    if (language !== 'en') return text;
+    const source = text.trim();
+    let result = exact.get(source);
+    if (result === undefined) {
+      result = source;
+      for (const [pattern, replacement] of rules) if (pattern.test(result)) result = result.replace(pattern, replacement);
+      if (result === source) {
+        const plain = source.replace(/^[\p{Extended_Pictographic}\uFE0F\s]+/u, '');
+        let localized = exact.get(plain) ?? plain;
+        for (const [pattern, replacement] of rules) if (pattern.test(localized)) localized = localized.replace(pattern, replacement);
+        if (localized !== plain) result = source.slice(0, source.length - plain.length) + localized;
+      }
+    }
+    return text.slice(0, text.indexOf(source)) + result + text.slice(text.indexOf(source) + source.length);
+  }
+  function addPairs(pairs) {
+    for (const [zh, en] of pairs) if (typeof zh === 'string' && typeof en === 'string' && !exact.has(zh.trim())) exact.set(zh.trim(), en.trim());
+  }
+  globalThis.PluginLocale = Object.freeze({ translate, addPairs });
+})();
+
+/* Bind only UI-owned text and attributes. Drafts, layer names, generated results,
+   component properties and message history retain their original content. */
+(() => {
+  const reviewedEnglish = {
+    nav_simple:'Quick Tools', nav_text:'Find & Replace', nav_ppt:'PPT Export',
+    nav_refiner:'Component Cleanup', nav_jumpback:'Viewport Bookmarks',
+    nav_skew:'Isometric Transform', nav_i18n:'Language Switch', nav_component_builder:'Component Builder',
+    skew_left_wall:'Right vertical', skew_right_wall:'Left vertical',
+    skew_left_lie:'Right horizontal', skew_right_lie:'Left horizontal',
+    sf_tab_ai:'AI Generation', sf_btn_seq:'Fill in Order', sf_btn_rnd:'Fill Randomly',
+    sf_btn_save_list:'Save as Custom List', sf_sub_cfg_title:'AI Settings',
+    sf_tag_zip:'Include postal code', sf_tag_comma:'Thousands separator',
+    sf_tag_noproto:'No protocol', sf_tag_long:'Long path', sf_tag_port:'With port',
+    sf_btn_save_cfg:'Save Settings', sf_btn_save_fill:'Save & Fill',
+    sf_lbl_baseurl:'API Base URL', sf_lbl_model:'Model', sf_cfg_range:'Range (minimum–maximum)',
+    sf_cfg_time_help:'Enter hours and minutes; seconds are generated randomly.',
+    sf_cfg_decimal:'Decimal places (0 for integers)', sf_cfg_thous:'Use thousands separators (1,000)',
+    sf_cfg_sort:'Sort order', sf_sort_date_asc:'Oldest first', sf_sort_date_desc:'Newest first',
+    sf_sort_time_asc:'Earliest first', sf_sort_time_desc:'Latest first',
+    sf_time_fmt_cn:'Chinese long format', sf_lbl_province:'Province / city / district',
+    sf_lbl_community:'Residential community', sf_lbl_bank:'Bank card number',
+    sf_lbl_news_title:'News headline', sf_lbl_lorem:'Quotations',
+    sf_btn_new_list:'Save as New List', sf_btn_append_list:'Append to List',
+    settings_lang_zh:'Chinese', settings_theme_system:'Follow system', btn_lang:'ZH / EN',
+    settings_ai:'AI Settings', target_comp_name:'Component name', target_prop_name:'Property name',
+    target_prop_value:'Property value', ref_chip_pname:'Property name', ref_chip_pval:'Property value',
+    ref_chip_pname_title:'Component name', ref_chip_prop_key_title:'Property name',
+    ref_chip_prop_val_title:'Property value', lbl_case:'Naming style', opt_keep_orig:'Keep original',
+    opt_unmark:'Remove hidden-name prefix (. / _)', opt_mark_hidden:'Add hidden-name prefix (.)',
+    opt_id:'Remove internal ID (#21:3)', lbl_opt:'Cleanup options',
+    empty_perfect_title:'All clear', btn_reset:'Reset Settings', ref_btn_find_preview:'Preview Matches',
+    ref_success_title:'Changes applied', ref_success_btn:'Continue with Remaining Items',
+    cb_subtitle:'Create reusable components from one or more frames.',
+    cb_reverse_title:'Rebuild Main Component', cb_reverse_btn:'Rebuild Selected Instance',
+    cb_create_title:'Create Components from Frames', cb_mode_single:'Single Component',
+    cb_mode_multiple:'Separate Components', cb_expose_text:'Expose text as properties',
+    cb_expose_instance:'Expose nested instance swaps', cb_create_btn:'Create Components',
+    ck_tab_showcase:'Documentation', ck_scope_single:'Single Documentation Frame',
+    ck_scope_batch:'Batch Catalog', ck_builtin_preset:'Built-in Preset',
+    ck_preset_landscape_minimal:'Minimal Landscape', ck_preset_portrait_full:'Detailed Portrait',
+    ck_matrix_desc:'Arrange a component set’s variants in a matrix.',
+    ck_showcase_title:'Component Documentation', ck_showcase_desc:'Create a component documentation frame.',
+    ck_config:'Layout Settings', ck_compset_settings:'Component Set Settings',
+    ck_board_settings:'Frame Settings', ck_draw_options:'Display Options',
+    ck_draw_grid:'Show dashed grid', ck_draw_labels:'Show axis labels',
+    ck_draw_props:'Show property summary', ck_draw_usage:'Show usage guide',
+    ck_lang_zh:'Chinese', ck_ai_description:'Generate descriptions with AI',
+    ck_ai_generating:'AI is analyzing the component…', ck_btn_showcase:'Generate Documentation',
+    ck_tag_updated:'Last updated', ck_status_review:'Awaiting review',
+    sel_scope_in:'Within', sel_scope_page:'Whole page', sel_ph_name:'Enter a layer name…', sel_title_prop:'Advanced Properties',
+    sel_t_compset:'Component Set', sel_t_section:'Section', sel_t_auto:'Auto Layout',
+    sel_s_hidden:'Hidden', sel_s_export:'Exportable', sel_s_clip:'Clips content',
+    sel_s_nochild:'No children', sel_state_all:'All states', sel_title_state:'State',
+    txt_btn_exec:'Replace', txt_btn_find:'Find', txt_btn_finding:'Finding…',
+    txt_title_config:'Find settings', txt_restore:'Restore settings', find_replace_complete:'Replacement complete',
+    find_continue_btn:'Find Again', refiner_fix_success:'Changes applied',
+    i18n_detect_title:'Scan Text', i18n_unbound_only:'Unbound Text', i18n_scan_total:'Text layers scanned',
+    i18n_bound_count:'Bound text layers', i18n_unbound_count:'Unbound text layers',
+    i18n_action_title:'Translation Settings', i18n_target_lang_collection:'Target Language & Variable Collection',
+    i18n_target_lang:'Target language', i18n_collection_prefix:'Variable collection',
+    i18n_action_replace:'Direct Replace', i18n_bind_btn:'Confirm & Bind Variables',
+    ppt_tip_1:'Duplicate the current page before exporting. Include “copy” in the duplicate’s name.',
+    ppt_btn_auto:'Export PPT Automatically', ppt_btn_manual:'Download Assets Manually',
+    ppt_step1_t:'1. Clean Up Layers', ppt_step3_t:'3. Flatten Layers', ppt_stat_wait:'Ready',
+    ppt_tip_4:'A 1920 × 1080 frame has a 16:9 aspect ratio. Enable 0.5× scaling to export at half size.',
+    ppt_tip_5:'Reset restarts the plugin workflow. Use the editor’s Undo command to restore canvas changes.',
+    dup_btn_fill:'Apply Color Markers', dup_btn_fill_title:'Mark selected left-side layers red and right-side layers green',
+    dup_ai_fail:'AI filtering failed. All initial matches were kept.', dup_btn_last:'Previous Results'
+  };
+  Object.assign(i18n.en, reviewedEnglish);
+  i18n.zh.sf_prefix = '前缀'; i18n.zh.sf_suffix = '后缀';
+  i18n.zh.sel_scope_page = '全页';
+  i18n.zh.sf_cfg_time_help = '支持时、分、秒；随机模式会在指定范围内生成。';
+  i18n.en.sf_cfg_time_help = 'Supports hours, minutes and seconds. Random mode uses the selected time range.';
+  i18n.zh.refiner_fix_count_suffix = '项。点击继续，返回列表处理剩余项。';
+  i18n.en.refiner_fix_count_suffix = 'items. Click Continue to review the remaining items.';
+  i18n.zh.sf_privacy_note = 'API 配置保存在本地；使用 AI 时，请求会发送至所选的服务商或代理。';
+  i18n.en.sf_privacy_note = 'API settings are stored locally. AI requests are sent to the selected provider or proxy.';
+  // Correct array descriptions as well as short labels.
+  i18n.en.sort_layers = ['Sort by Position','Visual layer order','Reorder layers by their canvas position, top to bottom and left to right. Click again to reverse the order.','Layers sorted.'];
+  i18n.en.up_all = ['Move to Page Root','Move out of nested containers','Move selected layers to the page’s root level.','Moved to page root.'];
+  i18n.en.create_styles = ['Create Local Styles','Create reusable styles','Create local fill, text and effect styles from the selection, checking for existing names.','Style check complete.'];
+  const stripIcon = text => text.replace(/[\p{Extended_Pictographic}\uFE0F]/gu, '').trim();
+  const pairs = [];
+  for (const [key, zh] of Object.entries(i18n.zh)) {
+    const en = i18n.en[key];
+    if (Array.isArray(zh) && Array.isArray(en)) zh.forEach((value, index) => pairs.push([value, en[index]]));
+    else if (typeof zh === 'string' && typeof en === 'string') pairs.push([zh, en]);
+  }
+  PluginLocale.addPairs(pairs);
+  PluginLocale.addPairs(pairs.filter(([zh,en]) => typeof zh === 'string' && typeof en === 'string').map(([zh,en]) => [stripIcon(zh), stripIcon(en)]));
+  const language = () => curLang === 'en' ? 'en' : 'zh';
+  const t = text => PluginLocale.translate(text, language());
+  const protectedContent = 'script,style,svg,textarea,[contenteditable],[data-user-content],#dashGreeting,#aiResultArea,#i18nTransList,.text-preview-main,.smart-label,.tc-tooltip,.sel-result-name,.comp-info,.dup-pair-name,.res-old,.res-new,.res-name,.res-text,.txt-old,.txt-new,.d-col-name,.dup-layer-name,#builderSelectionNames,.theory-chat-message,#theoryDetailDynamicContent,#detailMainDesc,#saveTargetSelect,#dialogListSelect,#dialogTargetSelect,#compkitXSelect option:not([value=""]),#compkitYSelect option:not([value=""]),#i18nCollectionControl option:not([value=""])';
+  const textBindings = new Map(), attributeBindings = new Map();
+  const attributes = ['placeholder','title','aria-label','data-tooltip','label'];
+  function bindText(node) {
+    const parent = node.parentElement;
+    if (!parent || parent.closest(protectedContent)) return;
+    const ownerKey = parent.closest('[data-key]')?.getAttribute('data-key');
+    if (ownerKey && i18n[curLang]?.[ownerKey] !== undefined) return;
+    const current = node.nodeValue, bound = textBindings.get(node);
+    const source = bound && current === bound.output ? bound.source : current;
+    const translated = t(source);
+    if (PluginLocale.translate(source, 'en') === source) { textBindings.delete(node); return; }
+    textBindings.set(node, { source, output:translated });
+    if (current !== translated) node.nodeValue = translated;
+  }
+  function bindAttributes(element) {
+    if (element.closest(protectedContent) && !element.matches('textarea,#aiResultArea')) return;
+    const bound = attributeBindings.get(element) || new Map();
+    for (const name of attributes) {
+      if (!element.hasAttribute(name) || name === 'label' && element.tagName !== 'OPTGROUP') continue;
+      if (name === 'title' && element.hasAttribute('data-key-title')) continue;
+      if (name === 'placeholder' && element.hasAttribute('data-key')) continue;
+      const current = element.getAttribute(name), previous = bound.get(name);
+      const source = previous && current === previous.output ? previous.source : current;
+      const translated = t(source);
+      if (PluginLocale.translate(source, 'en') === source) { bound.delete(name); continue; }
+      bound.set(name, { source, output:translated });
+      if (current !== translated) element.setAttribute(name, translated);
+    }
+    if (bound.size) attributeBindings.set(element, bound); else attributeBindings.delete(element);
+  }
+  function scan(root) {
+    if (root.nodeType === Node.TEXT_NODE) { bindText(root); return; }
+    if (!(root instanceof Element)) return;
+    if (root.closest(protectedContent)) {
+      if (root.matches('textarea,#aiResultArea')) bindAttributes(root);
+      return;
+    }
+    bindAttributes(root);
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) bindText(walker.currentNode);
+    root.querySelectorAll('[placeholder],[title],[aria-label],[data-tooltip],optgroup').forEach(bindAttributes);
+  }
+  let sentLanguage;
+  function refresh() {
+    if (sentLanguage !== language()) {
+      sentLanguage = language();
+      postMsg('ui-language-changed', { language:sentLanguage });
+    }
+    for (const [node, bound] of textBindings) {
+      if (!node.isConnected) { textBindings.delete(node); continue; }
+      bindText(node);
+    }
+    for (const [element] of attributeBindings) {
+      if (!element.isConnected) { attributeBindings.delete(element); continue; }
+      bindAttributes(element);
+    }
+    scan(document.body);
+  }
+  const pending = new Set(); let scheduled = false;
+  new MutationObserver(records => {
+    for (const record of records) {
+      if (record.type === 'attributes') pending.add(record.target);
+      else if (record.type === 'characterData') pending.add(record.target);
+      else record.addedNodes.forEach(node => pending.add(node));
+    }
+    if (!scheduled && pending.size) {
+      scheduled = true;
+      queueMicrotask(() => { scheduled = false; const roots = [...pending]; pending.clear(); roots.forEach(scan); });
+    }
+  }).observe(document.body, { subtree:true, childList:true, characterData:true, attributes:true, attributeFilter:attributes });
+  for (const method of ['alert','confirm','prompt']) {
+    const original = window[method].bind(window);
+    window[method] = (message, ...rest) => original(t(message), ...rest);
+  }
+  window.PluginLocalization = Object.freeze({ refresh, t, reviewedEnglish });
+  updateLanguage();
+})();
+
+/* Shared library, reading view and compact contextual question composer. */
+(() => {
+  const $ = id => document.getElementById(id);
+  const l = (zh, en) => curLang === 'en' ? en : zh;
+  const icons = { nielsen:'checklist', wcag:'accessible', ai_guide:'robot', vui:'microphone', spatial:'device-vision-pro', fitts:'focus-2', doherty:'bolt', norman:'heart', miller:'brain', hick:'help', peakend:'mountain', gestalt:'eye', vonrestorff:'star', hook:'link', kano:'presentation', atomic:'atom', iso9241:'ruler-measure-2', tesler:'aspect-ratio' };
+  const node = (tag, className, text) => {
+    const element = document.createElement(tag);
+    if (className) element.className = className;
+    if (text !== undefined) element.textContent = text;
+    return element;
+  };
+  let category = 'all', selectedId = null, returnToDetail = null;
+  let history = [], busy = false, requestToken = 0, cancelRequest = null, savedDetailScroll = 0;
+  const record = id => TheoryLocale.item(theoryDB.find(item => item.id === id), curLang);
+  const displayTitle = title => curLang === 'en' ? title : title.replace(/\s*\([A-Za-z][^)]*\)/g, '');
+  function renderLibrary(filter = category) {
+    category = filter || 'all';
+    const container = $('theoryCapsuleContainer');
+    container.replaceChildren();
+    for (const [key, labels] of Object.entries(TheoryLocale.categories)) {
+      if (category !== 'all' && category !== key) continue;
+      const section = node('section', 'theory-group');
+      section.append(node('h2', 'theory-group-title', labels[curLang === 'en' ? 1 : 0]));
+      const list = node('div', 'theory-capsule-list');
+      for (const source of theoryDB.filter(item => item.cat === key)) {
+        const item = TheoryLocale.item(source, curLang);
+        const button = node('button', 'theory-capsule');
+        button.type = 'button'; button.dataset.theoryId = item.id;
+        const icon = node('span', 'theory-capsule-icon');
+        PluginIcons.put(icon, icons[item.id]);
+        button.append(icon, node('span', '', displayTitle(item.title)));
+        button.title = item.title;
+        button.onclick = () => openDetail(item.id);
+        list.append(button);
+      }
+      section.append(list); container.append(section);
+    }
+  }
+  function renderDetail(resetScroll = false) {
+    if (!selectedId) return;
+    const item = record(selectedId);
+    const scroll = document.querySelector('.theory-article-scroll');
+    const top = resetScroll ? 0 : scroll.scrollTop;
+    PluginIcons.put($('detailIcon'), icons[item.id]);
+    $('detailTitle').textContent = displayTitle(item.title);
+    $('detailSubtitle').textContent = item.subtitle;
+    $('detailMainDesc').textContent = item.desc;
+    $('detailCatBadge').textContent = TheoryLocale.categories[item.cat][curLang === 'en' ? 1 : 0];
+    const container = $('theoryDetailDynamicContent'); container.replaceChildren();
+    const select = $('theorySectionSelect'); select.replaceChildren();
+    const placeholder = node('option','',l('选择章节','Choose a section'));
+    placeholder.value = ''; select.append(placeholder);
+    $('theoryDetailOutline').hidden = item.subItems.length < 4;
+    document.querySelector('.theory-outline-label').textContent = l('章节导航','Jump to a section');
+    select.setAttribute('aria-label', l('跳转到章节','Jump to a section'));
+    item.subItems.forEach((sub, index) => {
+      const title = displayTitle(sub.title.replace(/^\d+\.\s*/, ''));
+      const section = node('section', 'theory-principle');
+      section.id = 'theory-principle-' + index;
+      const heading = node('h2', 'theory-principle-title');
+      heading.append(node('span', 'theory-principle-number', String(index + 1).padStart(2,'0')), node('span','',title));
+      section.append(heading);
+      for (const [key, caption] of [
+        ['core', l('核心释义','Key idea')], ['case', l('应用案例','In practice')], ['val', l('理论价值','Why it matters')]
+      ]) {
+        const block = node('div', 'theory-principle-block theory-principle-' + key);
+        block.append(node('h3', 'theory-block-label', caption), node('p', 'theory-block-copy', sub[key]));
+        section.append(block);
+      }
+      container.append(section);
+      const option = node('option', '', (index + 1) + ' · ' + title); option.value = String(index); select.append(option);
+    });
+    scroll.scrollTop = top;
+  }
+  function show(view) {
+    for (const id of ['theoryHomeView','theoryChatView','theoryDetailView']) $(id).style.display = id === view ? 'flex' : 'none';
+  }
+  function openDetail(id, restore = false) {
+    if (!theoryDB.some(item => item.id === id)) return;
+    selectedId = id; show('theoryDetailView'); renderDetail(!restore);
+    if (restore) document.querySelector('.theory-article-scroll').scrollTop = savedDetailScroll;
+  }
+  function closeDetail() { show('theoryHomeView'); }
+  function filter(cat, element) {
+    document.querySelectorAll('.t-tag').forEach(item => item.classList.remove('active'));
+    element?.classList.add('active'); renderLibrary(cat);
+  }
+  function addMessage(role, content) {
+    const message = node('div', 'theory-chat-message ' + role, content);
+    $('theoryChatMessages').append(message);
+    $('theoryChatMessages').scrollTop = $('theoryChatMessages').scrollHeight;
+  }
+  const composers = [
+    ['theoryQuestionInput','theoryQuestionSend', () => sendQuestion()],
+    ['theoryChatInput','theoryChatSend', () => sendChat()],
+    ['theoryDetailInput','theoryDetailSend', () => sendDetailQuestion()]
+  ];
+  function updateSendState() {
+    for (const [inputId, buttonId] of composers) {
+      const button = $(buttonId);
+      button.disabled = busy || !$(inputId).value.trim();
+      button.setAttribute('aria-busy', String(busy));
+      button.dataset.smartIcon = busy ? 'loader' : 'arrow-up';
+      PluginIcons.put(button, button.dataset.smartIcon);
+      button.title = busy ? l('正在生成回答…','Generating an answer…') : l('发送 · Enter；换行 · Shift+Enter','Send · Enter; new line · Shift+Enter');
+      button.setAttribute('aria-label', l('发送问题','Send question'));
+    }
+  }
+  function resizeInput(input) {
+    input.style.height = 'auto';
+    input.style.height = Math.min(96, Math.max(28, input.scrollHeight)) + 'px';
+  }
+  function startChat(inputId, detail) {
+    const input = $(inputId), question = input.value.trim();
+    if (!question || busy) return;
+    returnToDetail = detail ? selectedId : null;
+    if (detail) savedDetailScroll = document.querySelector('.theory-article-scroll').scrollTop;
+    history = []; $('theoryChatMessages').replaceChildren();
+    show('theoryChatView');
+    input.value = ''; resizeInput(input);
+    addMessage('user', question); history.push({ role:'user', content:question });
+    updateSendState(); requestAnswer(question);
+    $('theoryChatInput').focus();
+  }
+  function sendQuestion() { startChat('theoryQuestionInput', false); }
+  function sendDetailQuestion() { startChat('theoryDetailInput', true); }
+  function sendChat() {
+    const input = $('theoryChatInput'), question = input.value.trim();
+    if (!question || busy) return;
+    input.value = ''; resizeInput(input);
+    addMessage('user', question); history.push({ role:'user', content:question });
+    requestAnswer(question);
+  }
+  async function requestAnswer() {
+    if (busy) return;
+    const endpoint = getAiEndpoint();
+    if ((!endpoint.key && !endpoint.isProxy) || !endpoint.url) {
+      addMessage('ai', l('请先在设置中配置 AI 服务，再发送问题。','Configure an AI service in Settings before asking a question.'));
+      return;
+    }
+    busy = true; updateSendState();
+    const token = ++requestToken;
+    const context = returnToDetail ? record(returnToDetail) : null;
+    const instructions = curLang === 'en'
+      ? 'You are a design theory assistant. Reply in English with concise, accurate explanations and practical examples. Distinguish established findings from design guidelines. Do not invent sources.'
+      : '你是设计理论助手。用简洁准确的中文解释并给出实际应用案例，区分研究结论与设计建议，不编造来源。';
+    try {
+      let url = endpoint.url.trim().replace(/\/+$/, '');
+      if (!url.includes('/chat/completions')) url += '/chat/completions';
+      const options = {
+        method:'POST', headers:{ 'Content-Type':'application/json' },
+        body:JSON.stringify({ model:endpoint.model || 'glm-4.7-flash',
+          messages:[{ role:'system', content:instructions + (context ? '\nCurrent principle: ' + JSON.stringify(context) : '') }, ...history],
+          temperature:.7, stream:false })
+      };
+      if (endpoint.key) options.headers.Authorization = 'Bearer ' + endpoint.key;
+      const reqId = 'theory-' + Date.now() + '-' + token;
+      const data = await new Promise((resolve, reject) => {
+        const cleanup = () => { clearTimeout(timer); window.removeEventListener('message', receive); cancelRequest = null; };
+        const receive = event => {
+          const msg = event.data?.pluginMessage || event.data;
+          if (msg?.type !== 'api-response' || msg.reqId !== reqId) return;
+          cleanup(); msg.error ? reject(new Error(msg.error)) : resolve(msg.data);
+        };
+        const timer = setTimeout(() => { cleanup(); reject(new Error(l('AI 响应超时','AI response timed out'))); }, 60000);
+        cancelRequest = () => { cleanup(); reject(new Error('cancelled')); };
+        window.addEventListener('message', receive);
+        postMsg('do-fetch', { reqId, url, options });
+      });
+      if (token !== requestToken) return;
+      const answer = data?.choices?.[0]?.message?.content;
+      if (typeof answer !== 'string' || !answer.trim()) throw new Error(l('AI 返回了空回答','The AI returned an empty answer'));
+      addMessage('ai', answer.trim()); history.push({ role:'assistant', content:answer.trim() });
+    } catch (error) {
+      if (token === requestToken) addMessage('ai', l('请求失败：','Request failed: ') + PluginLocale.translate(error.message, curLang));
+    } finally {
+      if (token === requestToken) { busy = false; updateSendState(); }
+    }
+  }
+  function closeChat() {
+    ++requestToken; cancelRequest?.(); busy = false; updateSendState();
+    const back = returnToDetail; history = []; $('theoryChatMessages').replaceChildren();
+    if (back) openDetail(back, true); else show('theoryHomeView');
+  }
+  function refresh() {
+    renderLibrary(category);
+    if (selectedId && $('theoryDetailView').style.display === 'flex') renderDetail();
+    document.querySelector('#theoryChatView .chat-title').textContent = l('AI 设计理论助手','Design Theory Assistant');
+    document.querySelector('#theoryChatView .theory-back-label').textContent = l('返回','Back');
+    document.querySelector('#theoryDetailView .theory-back-label').textContent = l('返回列表','Back to library');
+    for (const [id, zh, en] of [
+      ['theoryQuestionInput','输入设计问题或理论关键词…','Ask a design question or enter a principle…'],
+      ['theoryChatInput','继续提问…','Ask a follow-up question…'],
+      ['theoryDetailInput','询问这个理论的应用…','Ask how to apply this principle…']
+    ]) { $(id).placeholder = l(zh,en); $(id).setAttribute('aria-label', l(zh,en)); }
+    updateSendState();
+  }
+  $('theorySectionSelect').onchange = event => {
+    const section = $('theory-principle-' + event.target.value);
+    const scroll = document.querySelector('.theory-article-scroll');
+    if (section) scroll.scrollTo({ top:scroll.scrollTop + section.getBoundingClientRect().top - scroll.getBoundingClientRect().top - 8, behavior:'auto' });
+    event.target.value = '';
+  };
+  for (const [id, , send] of composers) {
+    const input = $(id);
+    input.addEventListener('input', () => { resizeInput(input); updateSendState(); });
+    input.addEventListener('keydown', event => {
+      if (event.key === 'Enter' && !event.shiftKey && !event.isComposing && event.keyCode !== 229) {
+        event.preventDefault(); send();
+      }
+    });
+  }
+  window.addEventListener('resize', () => composers.forEach(([id]) => resizeInput($(id))));
+  window.TheoryWorkspace = Object.freeze({ renderLibrary, openDetail, closeDetail, sendQuestion, sendDetailQuestion, sendChat, addMessage, requestAnswer, closeChat, filter, refresh });
+  refresh();
+})();
+
 /* Shared workspace navigation. Keep tools directly visible; no duplicate shell controls. */
 (() => {
   const $ = id => document.getElementById(id);
@@ -17432,10 +18035,10 @@ function generateSmartTimeSeries(count, settings) {
   const panelIds = [...Object.values(routes).map(route => route[0]), 'selectionFooter', 'settingsPanel', 'emptyPanel'];
   const cards = [...document.querySelectorAll('#toolGrid .tool-card')];
   const toolNames = {
-    reverse_component:['实例逆向','Restore source'], to_frame:['矩形转画板','Rectangle to frame'], to_rect:['画板转矩形','Frame to rectangle'],
+    reverse_component:['实例逆向','Rebuild main component'], to_frame:['矩形转画板','Rectangle to frame'], to_rect:['画板转矩形','Frame to rectangle'],
     split_text:['拆分文本','Split text'], join_text:['合并文本','Join text'], remove_al:['移除自动布局','Remove auto layout'], add_al_wrapper:['包裹自动布局','Wrap in auto layout'],
-    up_one:['上移一层','Move up a level'], up_all:['移至顶层','Move to top level'], ungroup_all:['解散所有编组','Ungroup all'], unlock_all:['解锁所有图层','Unlock layers'],
-    swap_fs:['互换填充描边','Swap fill / stroke'], reset_image:['还原图片比例','Reset image ratio'], sort_layers:['可见度排序','Sort by visibility'], sort_by_name:['名称排序','Sort by name'],
+    up_one:['上移一层','Move up one level'], up_all:['移至顶层','Move to page root'], ungroup_all:['解散所有编组','Ungroup all'], unlock_all:['解锁所有图层','Unlock layers'],
+    swap_fs:['互换填充描边','Swap fill / stroke'], reset_image:['还原图片比例','Reset image ratio'], sort_layers:['按位置排序','Sort by position'], sort_by_name:['名称排序','Sort by name'],
     rename_content:['按文本命名','Name from text'], detach_all:['分离组件实例','Detach instances'], remove_hidden:['删除隐藏图层','Delete hidden layers'], pixel_perfect:['像素对齐','Align to pixels'],
     swap_positions:['交换图层位置','Swap positions'], create_styles:['创建本地样式','Create local styles'], match_styles:['重新关联样式','Match local styles']
   };
@@ -17473,6 +18076,7 @@ function generateSmartTimeSeries(count, settings) {
     if (key !== 'settings') nav(key).scrollIntoView({ block:'nearest' });
     document.querySelector('.sidebar-footer button').classList.toggle('active', key === 'settings');
     refreshLocation();
+    window.PluginLocalization?.refresh();
     if (key === 'settings') initSettingsPanel();
     if (key === 'componentBuilder') requestComponentBuilderSelection();
     if (key === 'size') { initSizeAssistant(); updateSizeSummary(); postMsg('size-assistant-inspect'); }
@@ -17577,6 +18181,14 @@ function generateSmartTimeSeries(count, settings) {
       if (tip) { tip.id = 'tool-help-' + card.dataset.key; card.setAttribute('aria-describedby', tip.id); }
     });
     refreshLocation();
+    window.PluginLocalization?.refresh();
+    window.TheoryWorkspace?.refresh();
+    if (sizeAssistantState.initialized) {
+      renderSizePresets();
+      const preset = SIZE_ASSISTANT_PRESETS.find(item => item.id === sizeAssistantState.selectedId);
+      $('sizeGuidance').textContent = preset ? PluginLocalization.t(preset.note)
+        : l('自定义尺寸；勾选锁定宽高比可联动调整。','Custom dimensions. Lock the aspect ratio to resize proportionally.');
+    }
   }
   const scheme = window.matchMedia('(prefers-color-scheme: dark)');
   const followSystemTheme = () => { if (PersistentCache.get('user_theme') === 'system') document.documentElement.dataset.theme = scheme.matches ? 'dark' : 'light'; };
