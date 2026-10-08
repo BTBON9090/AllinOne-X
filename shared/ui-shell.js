@@ -30,7 +30,7 @@
   };
   window.PluginIcons = Object.freeze({ put: putIcon });
   const controls = '[data-smart-icon],.ppt-icon,.compkit-empty-icon,.nav-icon-slot,.tc-icon,.btn-icon,.es-icon,.success-icon,.success-emoji,.section-title,.settings-section-title,.settings-item-label-icon,.builder-mode-symbol,.smart-setting-btn,.jumpback-hero-icon,.btn-clear-input,.btn-back-sub,.sub-header,.card-icon,.theory-icon,.theory-capsule-icon,.size-hero-title,[data-key],button,#dashGreeting,#testConnectionIcon,#errorToast';
-  const protectedContent = 'script,style,svg,textarea,input,select,option,pre,code,[contenteditable],#aiResultArea,#i18nTransList,.text-preview-main,.smart-label,.tc-tooltip,.toast-message';
+  const protectedContent = 'script,style,svg,textarea,input,select,option,pre,code,[contenteditable],#dashGreeting,#aiResultArea,#i18nTransList,.text-preview-main,.smart-label,.tc-tooltip,.toast-message';
   function decorate(element) {
     if (!(element instanceof Element) || element.closest(protectedContent)) return;
     if (element.matches('[data-smart-icon]')) {

@@ -4815,6 +4815,8 @@
 
 
 
+
+
 <!-- shared-shell-style:start -->
 <style>
 :root {
@@ -5050,10 +5052,8 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
 #sfAffixText { flex:1; width:0; min-width:36px; height:28px; min-height:28px; padding-inline:6px; font-size:11px !important; line-height:16px !important; }
 #sfAffixApply { width:26px; height:28px; background:var(--primary-light); color:var(--primary); padding:5px; }
 [data-fill-action]:disabled { opacity:.5; cursor:progress; }
-.tool-greeting { display:flex; align-items:center; gap:6px; padding:6px 12px 0; flex-shrink:0; color:var(--primary); }
-.tool-greeting > span { display:flex; flex-shrink:0; }
-.tool-greeting .ui-icon { width:14px; height:14px; }
-.tool-greeting .dash-greeting { display:block; min-width:0; min-height:28px; margin:0; padding:4px 0; border:0; background:transparent; color:var(--text-secondary); font-size:11px; line-height:16px; font-weight:400; letter-spacing:0; text-align:left; white-space:normal; }
+.tool-greeting { display:flex; padding:6px 12px 0; flex-shrink:0; }
+.tool-greeting .dash-greeting { display:block; flex:1; min-width:0; min-height:32px; margin:0; padding:4px 0; border:0; background:transparent; color:var(--text-primary); font-size:18px; line-height:24px !important; font-weight:700; letter-spacing:-.3px; text-align:left; white-space:normal; text-wrap:balance; overflow-wrap:anywhere; }
 .tool-greeting .dash-greeting:hover { color:var(--primary); }
 .tool-greeting .dash-greeting:active { transform:none; }
 </style>
@@ -5138,8 +5138,7 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
         <!-- ===== 工具主页（合并欢迎+工具网格） ===== -->
         <div id="toolPanel" style="display:flex; flex-direction:column; height:100%;">
             <div class="tool-greeting">
-              <span data-smart-icon="sparkles" aria-hidden="true"></span>
-              <button id="dashGreeting" class="dash-greeting" type="button" onclick="refreshGreeting()" title="AI 每日问候 · 点击换一句">今天也为好设计留一点灵感。</button>
+              <button id="dashGreeting" class="dash-greeting" type="button" onclick="refreshGreeting()" title="AI 每日问候 · 点击换一句">👋 今天也要设计愉快呀～</button>
             </div>
 
             <!-- 工具网格 -->
@@ -14798,6 +14797,10 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
     function updateGreeting() { return generateDailyGreeting(false); }
     function refreshGreeting() { return generateDailyGreeting(true); }
 
+    function withGreetingEmoji(text) {
+      return /\p{Extended_Pictographic}/u.test(text) ? text : '✨ ' + text;
+    }
+
     async function generateDailyGreeting(force) {
       const element = document.getElementById('dashGreeting');
       if (!element) return;
@@ -14807,15 +14810,15 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
       const cacheKey = 'daily_greeting_' + lang;
       const cached = PersistentCache.get(cacheKey);
       if (!force && cached?.day === day && typeof cached.text === 'string') {
-        element.textContent = cached.text;
+        element.textContent = withGreetingEmoji(cached.text);
         element.title = lang === 'en' ? 'AI daily greeting · Click to refresh' : 'AI 每日问候 · 点击换一句';
         return;
       }
       const hour = now.getHours();
       const period = hour >= 5 && hour < 12 ? 0 : hour >= 12 && hour < 18 ? 1 : 2;
       const fallback = lang === 'en'
-        ? ['Good morning. Make room for a new idea.', 'Good afternoon. Keep the good ideas moving.', 'Good evening. A little inspiration goes a long way.'][period]
-        : ['早上好，为今天的设计留一点新灵感。', '下午好，让好想法继续发生。', '晚上好，别忘了给灵感和自己留点空间。'][period];
+        ? ['👋 Good morning! Fresh ideas ahead.', '☀️ Good afternoon! Keep creating.', '🌙 Good evening! You did well today.'][period]
+        : ['👋 早上好！新的一天开始啦～', '☀️ 下午好，灵感正在路上～', '🌙 晚上好，今天也辛苦啦～'][period];
       element.textContent = fallback;
       const endpoint = getAiEndpoint();
       if ((!endpoint.key && !endpoint.isProxy) || !endpoint.url) {
@@ -14832,8 +14835,8 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
       element.setAttribute('aria-busy', 'true');
       try {
         const prompt = lang === 'en'
-          ? 'Write one warm, concise greeting for a designer. It is ' + ['morning','afternoon','evening'][period] + '. Maximum 70 characters. Plain text, no emoji, quotes or explanation.'
-          : '现在是' + ['早上','下午','晚上'][period] + '。为设计师写一句自然温暖的问候或鼓励，36字以内。只输出一句纯文本，不加表情、引号或解释。';
+          ? 'Write one warm, concise greeting for a designer. It is ' + ['morning','afternoon','evening'][period] + '. Maximum 70 characters. Include 1–2 friendly emoji. Plain text, no quotes or explanation.'
+          : '现在是' + ['早上','下午','晚上'][period] + '。为设计师写一句自然温暖、有亲和力的问候或鼓励，36字以内，加 1–2 个贴切的 emoji。只输出问候语，不加引号或解释。';
         let url = endpoint.url.trim().replace(/\/+$/, '');
         if (!url.includes('/chat/completions')) url += '/chat/completions';
         const options = {
@@ -14855,7 +14858,7 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
         });
         const content = data?.choices?.[0]?.message?.content;
         if (typeof content !== 'string' || !content.trim()) throw new Error('Empty greeting');
-        const text = Array.from(content.replace(/\s+/g, ' ').replace(/^["“”']+|["“”']+$/g, '').trim()).slice(0, lang === 'en' ? 70 : 36).join('');
+        const text = withGreetingEmoji(Array.from(content.replace(/\s+/g, ' ').replace(/^["“”']+|["“”']+$/g, '').trim()).slice(0, lang === 'en' ? 70 : 36).join(''));
         PersistentCache.set(cacheKey, { day, text });
         if (state.request === request && curLang === lang) {
           element.textContent = text;
@@ -17038,6 +17041,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
 
 
+
+
 <!-- shared-shell-script:start -->
 <script>
 /* Tabler Icons (MIT), embedded offline by scripts/sync-ui-shell.mjs. */
@@ -17072,7 +17077,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   };
   window.PluginIcons = Object.freeze({ put: putIcon });
   const controls = '[data-smart-icon],.ppt-icon,.compkit-empty-icon,.nav-icon-slot,.tc-icon,.btn-icon,.es-icon,.success-icon,.success-emoji,.section-title,.settings-section-title,.settings-item-label-icon,.builder-mode-symbol,.smart-setting-btn,.jumpback-hero-icon,.btn-clear-input,.btn-back-sub,.sub-header,.card-icon,.theory-icon,.theory-capsule-icon,.size-hero-title,[data-key],button,#dashGreeting,#testConnectionIcon,#errorToast';
-  const protectedContent = 'script,style,svg,textarea,input,select,option,pre,code,[contenteditable],#aiResultArea,#i18nTransList,.text-preview-main,.smart-label,.tc-tooltip,.toast-message';
+  const protectedContent = 'script,style,svg,textarea,input,select,option,pre,code,[contenteditable],#dashGreeting,#aiResultArea,#i18nTransList,.text-preview-main,.smart-label,.tc-tooltip,.toast-message';
   function decorate(element) {
     if (!(element instanceof Element) || element.closest(protectedContent)) return;
     if (element.matches('[data-smart-icon]')) {
