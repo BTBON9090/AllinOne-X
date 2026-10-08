@@ -208,13 +208,16 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
 }
 
 /* Basic fields are compact two-column actions; custom fields are single-line rows. */
-#smartBasicList { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-content:start; gap:4px 8px; }
-.smart-basic-tile { padding:2px; margin:0; gap:0; min-height:32px; }
-.smart-basic-heading { display:flex; align-items:center; gap:2px; min-width:0; }
-.smart-basic-heading .smart-fill-trigger { flex:1; min-width:0; padding:6px 4px; min-height:28px; font-size:12px; font-weight:500; }
+#smartBasicList { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); grid-auto-rows:max-content; align-content:start; gap:6px; }
+.smart-basic-tile { display:block; padding:4px 7px; margin:0; min-height:36px; border-radius:4px; background:var(--bg-muted); }
+.smart-basic-tile:hover { background:var(--bg-hover); }
+.smart-basic-heading { display:flex; flex-wrap:wrap; align-items:center; gap:2px 4px; min-width:0; }
+.smart-basic-heading .smart-fill-trigger { flex:1 0 auto; max-width:100%; min-width:0; padding:4px 0; min-height:28px; font-size:12px; font-weight:500; }
+.smart-basic-heading .smart-fill-trigger:hover { background:transparent; color:var(--primary); }
 .smart-basic-heading .smart-setting-btn { width:24px; height:24px; padding:4px; background:transparent; }
-.smart-basic-tile .row-tags { gap:2px; padding:0 4px 3px; }
-.smart-basic-tile .tag-btn { min-height:22px; padding:3px 5px; font-size:10px; background:var(--bg-muted); }
+.smart-basic-heading .row-tags { flex:0 1 auto; max-width:100%; gap:2px; padding:0; }
+.smart-basic-tile .tag-btn { min-height:24px; padding:4px; font-size:10px; color:var(--text-secondary); background:transparent; }
+.smart-basic-tile .tag-btn:hover { background:var(--bg-surface); color:var(--primary); }
 .smart-basic-tile .tag-btn.active { color:var(--primary); background:var(--primary-light); }
 .smart-custom-row { flex-direction:row; align-items:center; gap:8px; min-height:36px; padding:3px 0; margin:0 0 3px; }
 .smart-custom-row > .smart-label { display:block; flex:1; min-width:0; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; line-height:18px; font-weight:500; }

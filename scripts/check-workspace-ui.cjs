@@ -59,6 +59,22 @@ fs.mkdirSync(output, { recursive:true });
             assert(help.startsWith(mode === 'small-english-dark' ? 'Replace:' : '直接替换：'), 'Help matches the active mode and UI language');
             assert(!help.includes('<b>'), 'No literal markup in translated help');
           }
+          if (key === 'smartFill') {
+            assert(await page.locator('.smart-basic-tile').evaluateAll(tiles => tiles.every(tile => {
+              const box = tile.getBoundingClientRect();
+              const title = tile.querySelector('.smart-fill-trigger');
+              return tile.getAttribute('aria-labelledby') === title.id && getComputedStyle(tile).borderTopWidth === '0px'
+                && [...tile.querySelectorAll('button')].every(button => {
+                  const b = button.getBoundingClientRect();
+                  return b.left >= box.left && b.right <= box.right + 1 && b.top >= box.top && b.bottom <= box.bottom + 1;
+                });
+            })), 'Every title, setting and option stays inside one borderless group');
+            assert.equal(await page.locator('.smart-basic-tile > .row-tags').count(), 0, 'Options belong to the same heading flow');
+            if (mode === 'normal') assert(await page.locator('.smart-basic-tile').last().evaluate(el =>
+              el.getBoundingClientRect().bottom <= document.getElementById('smartAffixBar').getBoundingClientRect().top
+            ), 'All basic types fit above the fixed affix bar');
+            await screenshot({ path:path.join(output, `${platform}-fill-${mode}.png`) });
+          }
           if (key === 'select') {
             assert.equal(await page.locator('.selector-card').first().evaluate(el => getComputedStyle(el).padding), '0px');
             assert.equal(await page.locator('.selector-card').first().evaluate(el => getComputedStyle(el).borderTopWidth), '0px');
