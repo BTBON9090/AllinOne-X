@@ -9,7 +9,7 @@ function createPluginWindowController(adapter) {
   const bubble = { width:70, height:48 };
   const clamp = (n, lo, hi) => Math.max(lo, Math.min(Math.max(lo, hi), n));
   const dimensions = msg => ({
-    width:clamp(Number(msg.width) || fullSize.width, 340, 1600),
+    width:clamp(Number(msg.width) || fullSize.width, 170, 1600),
     height:clamp(Number(msg.height) || fullSize.height, 400, 1600)
   });
   function metrics() {

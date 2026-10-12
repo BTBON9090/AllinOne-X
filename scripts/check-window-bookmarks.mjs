@@ -40,6 +40,12 @@ for (const platform of ['figma','mastergo']) {
   handle({ type:'window-expand' }); assert.deepEqual(sizes.at(-1).slice(0,2),[360,520]);
   handle({ type:'window-nudge',dx:-16,dy:-16 }); assert.equal(position.x,816);
   assert.equal(host.viewport.zoom,0.5); assert.deepEqual(bounds,{ x:-200,y:-100,width:2400,height:1800 });
+  for (const width of [210,170]) {
+    handle({ type:'resize-drag',width,height:520 });
+    handle({ type:'window-collapse',width,height:520 });
+    handle({ type:'window-expand' });
+    assert.deepEqual(sizes.at(-1).slice(0,2),[width,520],'A manually narrowed window survives bubble collapse / expand');
+  }
   delete host.ui.getPosition; delete host.ui.moveTo;
   handle({ type:'window-init' }); assert.equal(messages.at(-1).canMove,false);
   handle({ type:'window-collapse',width:360,height:520 }); handle({ type:'window-expand' });

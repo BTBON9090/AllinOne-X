@@ -53,6 +53,7 @@
     rememberScroll();
     if (key === 'settings' && current !== 'settings') previous = current;
     current = key;
+    document.querySelector('.main-content').dataset.route = key;
     panelIds.forEach(id => { const el = $(id); if (el) el.style.display = 'none'; });
     document.querySelectorAll('.sub-page').forEach(el => { el.classList.remove('open'); el.style.display = 'none'; });
     currentPanel().style.display = 'flex';

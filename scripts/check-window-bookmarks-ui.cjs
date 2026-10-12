@@ -91,6 +91,27 @@ fs.mkdirSync(output,{ recursive:true });
       await page.screenshot({ path:path.join(output,`${platform}-groups-compact.png`),animations:'disabled' });
       assert.equal(await page.locator('#collapseWindow').isVisible(),true);
       assert.equal(await page.evaluate(() => document.documentElement.scrollHeight > innerHeight || document.documentElement.scrollWidth > innerWidth),false);
+      for (const [compact,width] of [[false,210],[true,170]]) {
+        await page.evaluate(compact => { setCompactMode(compact); PluginWorkspace.navigate('simple'); },compact);
+        await page.setViewportSize({ width:compact ? 360 : 440,height:520 });
+        const corner = await page.locator('#resizeHandle').boundingBox();
+        await page.mouse.move(corner.x+8,corner.y+8); await page.mouse.down();
+        await page.mouse.move(0,0,{ steps:6 }); await page.mouse.up();
+        const resize = await page.evaluate(() => __sent.filter(m => m.type === 'resize-drag').at(-1));
+        assert.deepEqual([resize.width,resize.height],[width,400],'Corner drag uses the halved width floor and keeps the height floor');
+        await page.setViewportSize({ width,height:520 });
+        await page.waitForFunction(() => document.querySelector('.sidebar').getBoundingClientRect().width === 44);
+        assert.equal(await page.locator('.tool-grid').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length),width < 200 ? 1 : 2);
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),false);
+        await page.screenshot({ path:path.join(output,`${platform}-narrow-${width}.png`),animations:'disabled' });
+        await page.evaluate(() => PluginWorkspace.navigate('size'));
+        assert(await page.locator('.main-content').evaluate(el => el.scrollWidth > el.clientWidth),'Complex controls remain available in a local horizontal scroll region');
+        await page.locator('.main-content').evaluate(el => { el.scrollLeft = el.scrollWidth; });
+        assert(await page.locator('.main-content').evaluate(el => el.scrollLeft > 0));
+        assert.equal(await page.locator('#resizeHandle').isVisible(),true);
+        assert.equal(await page.locator('.nav-item').first().isVisible(),true);
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),false);
+      }
       assert.deepEqual(errors,[]);
       await page.close();
       console.log(`${platform}: grouped navigation, safe names, pointer/keyboard sorting, cancel/error recovery, bubble dragging, state preservation, English and compact dark layout passed.`);
