@@ -4847,6 +4847,7 @@
 
 
 
+
 <!-- shared-shell-style:start -->
 <style>
 :root {
@@ -4995,21 +4996,16 @@ body.bubble-mode > #pluginBubble { display:flex !important; position:fixed; inse
 .bookmark-sort-hint { margin-top:7px; color:var(--text-tertiary); font-size:10px; line-height:15px; }
 .bookmark-status { font-size:10px; line-height:15px; color:var(--primary); }
 .bookmark-status:empty { display:none; }
-.jumpback-list { padding:8px 10px; gap:4px; }
-.spot-item { display:flex; flex-direction:row; align-items:center; gap:6px; padding:6px 0; border:0; border-bottom:1px solid var(--border); background:transparent; box-shadow:none; border-radius:0; flex-shrink:0; animation:none; transition:background-color 120ms ease; }
-.spot-item:hover { transform:none; box-shadow:none; border-bottom-color:var(--border); }
-.spot-item.is-sorting { background:var(--primary-light); border-bottom-color:var(--primary); }
-.bookmark-content { flex:1; min-width:0; }
-.spot-page-title { font-size:10px; line-height:14px; color:var(--text-tertiary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin:0; text-transform:none; letter-spacing:0; }
-.spot-name-input { width:100%; padding:3px 0; margin:0; height:26px; font-size:12px; line-height:18px; border:0 !important; background:transparent !important; }
+.spot-item { flex-shrink:0; animation:none; }
+.spot-item.is-sorting { background:var(--primary-light); border-color:var(--primary); }
+.bookmark-content { display:contents; }
+.bookmark-card-heading { display:flex; align-items:center; gap:8px; min-width:0; }
+.bookmark-card-heading .spot-page-title { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .bookmark-icon { display:flex; align-items:center; justify-content:center; width:26px; height:28px; padding:4px; border:0; border-radius:4px; background:transparent; color:var(--text-secondary); flex-shrink:0; }
 .bookmark-icon:hover { background:var(--bg-hover); color:var(--primary); }
 .bookmark-handle { width:22px; cursor:grab; touch-action:none; color:var(--text-tertiary); }
 .bookmark-handle:disabled,.bookmark-handle[aria-disabled="true"] { opacity:.35; cursor:default; }
 .bookmark-handle:active { cursor:grabbing; }
-.spot-actions { display:flex; gap:1px; flex-shrink:0; margin:0; }
-.spot-actions .btn-spot-del { width:26px; height:28px; padding:4px; }
-#spotList .spot-name-input { min-height:26px; height:26px; padding:3px 0; }
 .footer-btn { min-height:28px; padding:6px; gap:6px; border:0; background:transparent; justify-content:flex-start; font-size:11px; font-weight:500; }
 
 /* Direct-access collection: three columns, no toolbar or decorative card shell. */
@@ -16276,6 +16272,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
 
 
+
 <!-- shared-shell-script:start -->
 <script>
 /* Tabler Icons (MIT), embedded offline by scripts/sync-ui-shell.mjs. */
@@ -18177,7 +18174,7 @@ const theoryDB = [
   const l = (zh, en) => curLang === 'en' ? en : zh;
   let spots = [], drag = null, pending = false, requestId = 0, scrollFrame = 0, statusKey = '';
   const hint = document.createElement('div');
-  hint.className = 'bookmark-sort-hint';
+  hint.className = 'bookmark-sort-hint sr-only';
   document.querySelector('.jumpback-header').append(hint);
   const status = document.createElement('div');
   status.className = 'bookmark-status'; status.setAttribute('aria-live','polite');
@@ -18205,7 +18202,7 @@ const theoryDB = [
     const icon = document.createElement('span'); PluginIcons.put(icon, 'device-floppy');
     const text = document.createElement('span'); text.dataset.key = save.disabled ? 'wb_slot_full' : 'wb_btn_save_spot'; text.textContent = t[text.dataset.key];
     save.append(icon,text);
-    hint.textContent = l('拖拽左侧手柄排序；聚焦手柄后按 ↑ ↓ 调整', 'Drag a handle to sort, or focus it and press ↑ / ↓.');
+    hint.textContent = l('拖拽卡片右上角手柄排序；聚焦手柄后按 ↑ ↓ 调整', 'Drag the handle at the top right of a card to sort, or focus it and press ↑ / ↓.');
     if (!spots.length) {
       const empty = document.createElement('div'); empty.className = 'jumpback-empty';
       const title = document.createElement('div'); title.className = 'jumpback-empty-title'; title.textContent = t.wb_empty_title;
@@ -18225,12 +18222,16 @@ const theoryDB = [
         if (name.value.trim()) spot.name = name.value.substring(0,20);
         jbRename(spot.id,name.value);
       });
-      content.append(page,name);
+      const heading = document.createElement('div'); heading.className = 'bookmark-card-heading';
+      heading.append(page,handle);
+      content.append(heading,name);
       const actions = document.createElement('div'); actions.className = 'spot-actions';
       const jump = button('player-play',t.wb_btn_jump,'jump'); jump.addEventListener('click', () => jbJump(spot.id));
-      const remove = button('trash',t.wb_delete,'delete'); remove.classList.add('btn-spot-del'); remove.addEventListener('click', () => jbDelete(spot.id));
+      jump.className = 'btn-spot-jump';
+      const jumpLabel = document.createElement('span'); jumpLabel.dataset.key = 'wb_btn_jump'; jumpLabel.textContent = t.wb_btn_jump; jump.append(jumpLabel);
+      const remove = button('trash',t.wb_delete,'delete'); remove.className = 'btn-spot-del'; remove.addEventListener('click', () => jbDelete(spot.id));
       actions.append(jump,remove);
-      item.append(handle,content,actions); list.append(item);
+      item.append(content,actions); list.append(item);
       handle.addEventListener('pointerdown', e => start(e,item));
       handle.addEventListener('keydown', e => {
         if (e.key === 'Escape' && drag) { cancel(e); return; }
@@ -18335,7 +18336,7 @@ const theoryDB = [
   function refresh() {
     setStatus(statusKey);
     const t = i18n[curLang];
-    hint.textContent = l('拖拽左侧手柄排序；聚焦手柄后按 ↑ ↓ 调整', 'Drag a handle to sort, or focus it and press ↑ / ↓.');
+    hint.textContent = l('拖拽卡片右上角手柄排序；聚焦手柄后按 ↑ ↓ 调整', 'Drag the handle at the top right of a card to sort, or focus it and press ↑ / ↓.');
     const saveLabel = save.querySelector('[data-key]');
     if (saveLabel) saveLabel.textContent = t[saveLabel.dataset.key];
     for (const input of list.querySelectorAll('.spot-name-input')) { input.title = t.wb_rename; input.setAttribute('aria-label',t.wb_rename); }

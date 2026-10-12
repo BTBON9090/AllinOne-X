@@ -29,7 +29,11 @@ fs.mkdirSync(output,{ recursive:true });
       const spots = ['a','b','c'].map((id,index) => ({ id,name:`位置 ${index+1} <svg onload=alert(1)>`,pageName:'中文 页面 ⚡',zoom:index + 0.5,centerX:42 }));
       await emit({ type:'jb-render-spots',data:spots });
       assert.equal(await page.locator('.spot-item').count(),3);
-      assert.equal(await page.locator('.bookmark-content svg').count(),0,'Document names are literal text, never markup or icons');
+      assert.equal(await page.locator('.spot-page-title svg').count(),0,'Document names are literal text, never markup or icons');
+      assert(await page.locator('.spot-item').evaluateAll(items => items.every(item => {
+        const style = getComputedStyle(item), input = item.querySelector('input').getBoundingClientRect(), jump = item.querySelector('.btn-spot-jump').getBoundingClientRect();
+        return style.flexDirection === 'column' && style.borderTopWidth === '1px' && jump.top >= input.bottom && jump.height >= 40;
+      })),'Original bordered cards keep the name above the bottom action row');
       assert.equal(await page.locator('.spot-name-input').first().inputValue(),spots[0].name);
       const handle = page.locator('.spot-item[data-spot-id="a"] .bookmark-handle');
       const from = await handle.boundingBox(), to = await page.locator('.spot-item[data-spot-id="c"]').boundingBox();
