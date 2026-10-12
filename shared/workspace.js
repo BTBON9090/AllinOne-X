@@ -72,12 +72,26 @@
     for (const [el, top] of scrollPositions.get(key) || []) if (el.isConnected) el.scrollTop = top;
   }
 
-  // One stable list of tools; preserve the original handlers and translations.
+  // All tools remain directly accessible; headings separate tasks without folding.
   const navScroll = document.querySelector('.nav-scroll');
   navScroll.setAttribute('role', 'navigation');
   navScroll.setAttribute('aria-label', 'All in One');
   navScroll.querySelectorAll('.nav-section-label').forEach(el => el.remove());
-  Object.keys(routes).forEach(key => navScroll.append(nav(key)));
+  const navGroups = [
+    ['效率工具', 'Productivity', ['simple','select','text','smartFill','size','jumpback']],
+    ['组件与图层', 'Components & Layers', ['refiner','componentBuilder','duplicate','compkit']],
+    ['设计拓展', 'Design Extras', ['i18n','skew','ppt','theory']]
+  ].map(([zh, en, keys], index) => {
+    const group = document.createElement('section');
+    group.className = 'nav-group';
+    const heading = document.createElement('div');
+    heading.id = `navGroup${index}`;
+    heading.className = 'nav-group-label';
+    group.setAttribute('aria-labelledby', heading.id);
+    group.append(heading, ...keys.map(nav));
+    navScroll.append(group);
+    return { heading, zh, en };
+  });
 
   // Target dimensions precede the potentially long preset catalogue.
   const sizeCards = document.querySelectorAll('#sizePanel .size-card');
@@ -146,6 +160,9 @@
   }
 
   function refresh() {
+    navGroups.forEach(({ heading, zh, en }) => { heading.textContent = l(zh, en); });
+    window.PluginWindow?.refresh();
+    window.PluginBookmarks?.refresh();
     document.documentElement.lang = english() ? 'en' : 'zh-CN';
     i18nUpdateModeDesc();
     document.querySelector('#sfPrefix + span').textContent = l('前缀', 'Prefix');

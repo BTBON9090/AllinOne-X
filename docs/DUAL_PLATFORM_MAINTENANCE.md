@@ -40,10 +40,12 @@
 - `shared/chinese-names.js`：双端共用的完整中文姓名库与不重复抽取逻辑，维护说明见 `docs/CHINESE_NAME_LIBRARY.md`。
 - `shared/localization-core.js`：补充词库与参数化提示；`localization-ui.js` 校对已有词条并绑定界面文案，`localization-host.js` 提供宿主通知语言适配。
 - `shared/theory-data.js`、`theory-locales.js`、`theory-workspace.js`：理论数据、英文正文与阅读/提问交互。
+- `shared/window-workspace.js`：收起、展开、气泡与面板拖拽；`window-host.js` 为共享状态/几何控制，`window-adapters.js` 转换两端公开窗口 API 的坐标。
+- `shared/bookmark-workspace.js`：安全渲染锚点名称、拖拽/键盘排序、保存反馈；位置对象与排序持久化仍由各自主线程负责。
 
 执行 `npm run sync:ui` 更新两端 HTML 内标记区；不要直接修改生成的标记区。主线程的宿主 API 仍各自维护，避免将平台差异伪装成相同实现。
 
-两端构建都会通过 `scripts/embed-host-locale.mjs` 将共享通知词库加入宿主脚本。
+两端构建都会通过 `scripts/embed-host-locale.mjs` 将共享通知词库和窗口控制器加入宿主脚本。不要只运行 tsc 后直接交付。
 新增界面文案需添加英文词条或共享词库，并执行 `npm run check:localization-ui`。
 文案绑定禁止修改用户输入、文档对象名称或生成结果；自定义值请标记
 `data-user-content` 或放在已有的数据容器中。

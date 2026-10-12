@@ -2,6 +2,9 @@
 declare const __html__: string;
 declare let pluginUiLanguage: string;
 declare function notifyInUiLanguage(message: string, options?: any): any;
+declare function handlePluginWindowMessage(message: any): boolean;
+declare function reorderPluginBookmarks(spots: any[], ids: string[]): any[] | null;
+declare function installPluginBookmarkQueue(ui: any): void;
 // -------------------------------------------------------------
 // 【更新】高级命名转换函数 (支持清除隐藏标记)
 // -------------------------------------------------------------
@@ -1126,6 +1129,7 @@ figma.ui.onmessage = async (msg) => {
   if (!msg || !msg.type) return;
   if (msg.uiLanguage === 'en' || msg.uiLanguage === 'zh') pluginUiLanguage = msg.uiLanguage;
   if (msg.type === 'ui-language-changed') { pluginUiLanguage = msg.language === 'en' ? 'en' : 'zh'; return; }
+  if (handlePluginWindowMessage(msg)) return;
   // 新增：专治跨域不服！拦截 'do-fetch' 指令，由后台沙箱代发请求
   // =======================================================
   if (msg.type === 'do-fetch') {
@@ -2856,6 +2860,17 @@ figma.ui.onmessage = async (msg) => {
       const dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
       const spots = dataStr ? JSON.parse(dataStr) :[];
       figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
+      break;
+    }
+
+    case 'jb-reorder': {
+      const raw = figma.root.getPluginData('JUMPBACK_SPOTS');
+      const spots = raw ? JSON.parse(raw) : [];
+      const ordered = reorderPluginBookmarks(spots, msg.ids);
+      let error = !ordered;
+      try { if (ordered) figma.root.setPluginData('JUMPBACK_SPOTS', JSON.stringify(ordered)); }
+      catch (_) { error = true; }
+      figma.ui.postMessage({ type:'jb-render-spots', data:error ? spots : ordered, requestId:msg.requestId, error });
       break;
     }
 
@@ -5368,3 +5383,5 @@ function parseVariantName(name: string): Record<string, string> {
   });
   return result;
 }
+
+installPluginBookmarkQueue(figma.ui);

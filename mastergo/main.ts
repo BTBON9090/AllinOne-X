@@ -1,5 +1,8 @@
 declare let pluginUiLanguage: string;
 declare function notifyInUiLanguage(message: string, options?: any): any;
+declare function handlePluginWindowMessage(message: any): boolean;
+declare function reorderPluginBookmarks(spots: any[], ids: string[]): any[] | null;
+declare function installPluginBookmarkQueue(ui: any): void;
 // -------------------------------------------------------------
 // 【更新】高级命名转换函数 (支持清除隐藏标记)
 // -------------------------------------------------------------
@@ -2899,6 +2902,7 @@ mg.ui.onmessage = async (rawMessage) => {
   if (!msg || !msg.type) return;
   if (msg.uiLanguage === 'en' || msg.uiLanguage === 'zh') pluginUiLanguage = msg.uiLanguage;
   if (msg.type === 'ui-language-changed') { pluginUiLanguage = msg.language === 'en' ? 'en' : 'zh'; return; }
+  if (handlePluginWindowMessage(msg)) return;
   if (msg.type === 'mg-image-size-result') {
     const resolve = imageSizeWaiters.get(msg.reqId);
     if (resolve) {
@@ -4590,6 +4594,16 @@ mg.ui.onmessage = async (rawMessage) => {
       // 初始化读取
       const spots = await loadJumpbackSpots();
       sendToUI({ type: 'jb-render-spots', data: spots });
+      break;
+    }
+
+    case 'jb-reorder': {
+      const spots = await loadJumpbackSpots();
+      const ordered = reorderPluginBookmarks(spots, msg.ids);
+      let error = !ordered;
+      try { if (ordered) await saveJumpbackSpots(ordered); }
+      catch (_) { error = true; }
+      sendToUI({ type:'jb-render-spots', data:error ? spots : ordered, requestId:msg.requestId, error });
       break;
     }
 
@@ -7077,3 +7091,5 @@ function parseVariantName(name: string): Record<string, string> {
   });
   return result;
 }
+
+installPluginBookmarkQueue(mg.ui);

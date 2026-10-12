@@ -4835,6 +4835,18 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 <!-- shared-shell-style:start -->
 <style>
 :root {
@@ -4878,7 +4890,7 @@ html, body { width:100%; height:100%; overflow:hidden; overscroll-behavior:none;
 .nav-dot { display:none; }
 body.mini-mode .sidebar { flex-basis:var(--sidebar-w-mini); }
 body.mini-mode .nav-scroll { padding:6px 4px; gap:1px; }
-body.mini-mode .nav-item { min-height:29px; padding:5px 0; }
+body.mini-mode .nav-item { min-height:27px; padding:4px 0; }
 body.mini-mode .nav-icon-slot { width:18px; height:18px; }
 body.mini-mode .sidebar-footer { padding:4px; }
 body.mini-mode .footer-btn { padding:4px 0; min-height:27px; }
@@ -4949,12 +4961,55 @@ button:focus-visible, [role="button"]:focus-visible, .nav-item:focus-visible,
 body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; font-size:12px; line-height:18px; }
 .sidebar { position:relative; flex:0 0 var(--sidebar-w); background:var(--bg-rail); border:0; box-shadow:none; transition:width 140ms ease,flex-basis 140ms ease; }
 .nav-scroll { min-height:0; padding:8px 5px; gap:2px; overflow-x:hidden; overscroll-behavior:contain; }
-.nav-item { position:relative; flex:0 0 auto; min-height:30px; padding:6px; gap:6px; border:0; transition:background-color 120ms ease,color 120ms ease; }
+.nav-item { position:relative; flex:0 0 auto; min-height:28px; padding:5px 6px; gap:6px; border:0; transition:background-color 120ms ease,color 120ms ease; }
 .nav-text { font-size:11px; line-height:16px; font-weight:500; white-space:normal; }
 .nav-item.active { background:var(--primary-light); color:var(--primary); box-shadow:none; }
 .nav-item.active .nav-text { font-weight:600; }
 .nav-item.active::before, .nav-section-label { display:none; }
 .sidebar-footer { flex-shrink:0; padding:5px; gap:2px; border:0; background:var(--bg-rail); }
+.nav-group { display:flex; flex-direction:column; flex-shrink:0; gap:1px; margin:0; padding:0; }
+.nav-group-label { font-size:9px; line-height:12px; font-weight:600; color:var(--text-tertiary); padding:6px 6px 2px; }
+.nav-group:first-child .nav-group-label { padding-top:0; }
+body.mini-mode .nav-group { gap:1px; }
+body.mini-mode .nav-group-label { font-size:0; line-height:0; height:6px; padding:0; margin:2px 6px; border-top:1px solid var(--border); }
+body.mini-mode .nav-group:first-child .nav-group-label { display:none; }
+.window-actions { display:flex; align-items:center; gap:2px; }
+.window-actions .footer-btn { flex:1; min-width:0; }
+.window-move { width:24px; height:28px; padding:3px; display:flex; align-items:center; justify-content:center; border:0; background:transparent; color:var(--text-tertiary); border-radius:4px; cursor:grab; touch-action:none; }
+.window-move:hover { color:var(--primary); background:var(--bg-hover); }
+.window-move.is-dragging { cursor:grabbing; }
+body.mini-mode .window-actions { flex-direction:column; }
+body.mini-mode .window-actions .footer-btn { width:100%; }
+body.mini-mode .window-move { display:none; }
+.window-actions .footer-btn { touch-action:none; }
+#pluginBubble { display:none; }
+body.bubble-mode > * { display:none !important; }
+body.bubble-mode > #pluginBubble { display:flex !important; position:fixed; inset:0; width:100%; height:100%; padding:4px; margin:0; border:0; background:var(--bg-body); align-items:center; justify-content:center; cursor:grab; touch-action:none; border-radius:0; }
+.bubble-logo { width:40px; height:40px; padding:10px; display:grid; grid-template-columns:1fr 1fr; gap:3px; border-radius:50%; background:#7135db; box-shadow:0 2px 5px #7135db28; }
+.bubble-logo i { display:block; border-radius:2px; background:#fff; }
+.bubble-logo i:nth-child(2),.bubble-logo i:nth-child(3) { opacity:.65; }
+#pluginBubble:hover .bubble-logo { background:#6125c6; }
+#pluginBubble.is-dragging { cursor:grabbing; }
+#pluginBubble:focus-visible { outline:2px solid var(--primary); outline-offset:-3px; }
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.bookmark-sort-hint { margin-top:7px; color:var(--text-tertiary); font-size:10px; line-height:15px; }
+.bookmark-status { font-size:10px; line-height:15px; color:var(--primary); }
+.bookmark-status:empty { display:none; }
+.jumpback-list { padding:8px 10px; gap:4px; }
+.spot-item { display:flex; flex-direction:row; align-items:center; gap:6px; padding:6px 0; border:0; border-bottom:1px solid var(--border); background:transparent; box-shadow:none; border-radius:0; flex-shrink:0; animation:none; transition:background-color 120ms ease; }
+.spot-item:hover { transform:none; box-shadow:none; border-bottom-color:var(--border); }
+.spot-item.is-sorting { background:var(--primary-light); border-bottom-color:var(--primary); }
+.bookmark-content { flex:1; min-width:0; }
+.spot-page-title { font-size:10px; line-height:14px; color:var(--text-tertiary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin:0; text-transform:none; letter-spacing:0; }
+.spot-name-input { width:100%; padding:3px 0; margin:0; height:26px; font-size:12px; line-height:18px; border:0 !important; background:transparent !important; }
+.bookmark-icon { display:flex; align-items:center; justify-content:center; width:26px; height:28px; padding:4px; border:0; border-radius:4px; background:transparent; color:var(--text-secondary); flex-shrink:0; }
+.bookmark-icon:hover { background:var(--bg-hover); color:var(--primary); }
+.bookmark-handle { width:22px; cursor:grab; touch-action:none; color:var(--text-tertiary); }
+.bookmark-handle:disabled,.bookmark-handle[aria-disabled="true"] { opacity:.35; cursor:default; }
+.bookmark-handle:active { cursor:grabbing; }
+.spot-actions { display:flex; gap:1px; flex-shrink:0; margin:0; }
+.spot-actions .btn-spot-del { width:26px; height:28px; padding:4px; }
+#spotList .spot-name-input { min-height:26px; height:26px; padding:3px 0; }
 .footer-btn { min-height:28px; padding:6px; gap:6px; border:0; background:transparent; justify-content:flex-start; font-size:11px; font-weight:500; }
 
 /* Direct-access collection: three columns, no toolbar or decorative card shell. */
@@ -5922,7 +5977,7 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
               </svg>
               <span data-key="wb_btn_save_spot">保存当前位置</span>
             </button>
-            <div class="jumpback-tip" data-key="wb_note_max">最多保存 5 个位置，数据随文件永久保存</div>
+            <div class="jumpback-tip" data-key="wb_note_max">每个文件最多保存 5 个位置</div>
           </div>
 
           <!-- 锚点列表区 -->
@@ -7364,7 +7419,7 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
         wb_hero_title: "时空信标",
         wb_hero_desc: "保存画布视角，一键传送回归",
         wb_btn_save_spot: "保存当前位置",
-        wb_note_max: "最多保存 5 个位置，数据随文件永久保存",
+        wb_note_max: "每个文件最多保存 5 个位置",
         wb_empty_title: "暂无信标",
         wb_empty_desc: "点击上方按钮保存当前画布的视角和位置，以后可以快速跳转回来",
         wb_btn_jump: "传送到这里",
@@ -8091,7 +8146,7 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
         wb_hero_title: "Warp Beacon",
         wb_hero_desc: "Save viewport, warp back instantly",
         wb_btn_save_spot: "Save Current Spot",
-        wb_note_max: "Max 5 spots, saved permanently with file",
+        wb_note_max: "Up to 5 saved spots per file",
         wb_empty_title: "No Beacons Yet",
         wb_empty_desc: "Click the button above to save your current viewport and position, then quickly jump back later",
         wb_btn_jump: "Warp Here",
@@ -13493,67 +13548,10 @@ function closeTheoryDetail() { return window.TheoryWorkspace.closeDetail(); }
       const msg = event.data.pluginMessage;
       if (!msg) return;
 
-      // 渲染锚点列表
+      // Shared renderer escapes document names and owns sorting behavior.
       if (msg.type === 'jb-render-spots') {
-        const spots = msg.data ||[];
-        const listDiv = document.getElementById('spotList');
-        const saveBtn = document.getElementById('btnSaveSpot');
-
-        if (listDiv) listDiv.innerHTML = ''; // 清空
-
-        // 限制 5 个
-        const t = i18n[curLang];
-        if (spots.length >= 5) {
-          if (saveBtn) {
-            saveBtn.disabled = true;
-            saveBtn.innerHTML = `<span data-key="wb_slot_full">${t.wb_slot_full}</span>`;
-            saveBtn.style.opacity = '0.5';
-          }
-        } else {
-          if (saveBtn) {
-            saveBtn.disabled = false;
-            saveBtn.innerHTML = `
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                <polyline points="7 3 7 8 15 8"></polyline>
-              </svg>
-              <span data-key="wb_btn_save_spot">${t.wb_btn_save_spot}</span>
-            `;
-            saveBtn.style.opacity = '1';
-          }
-        }
-
-        if (spots.length === 0) {
-           if (listDiv) listDiv.innerHTML = `
-             <div class="jumpback-empty">
-               <div class="jumpback-empty-icon">📍</div>
-               <div class="jumpback-empty-title" data-key="wb_empty_title">${t.wb_empty_title}</div>
-               <div class="jumpback-empty-desc" data-key="wb_empty_desc">${t.wb_empty_desc}</div>
-             </div>
-           `;
-           return;
-        }
-
-        spots.forEach(spot => {
-          const item = document.createElement('div');
-          item.className = 'spot-item';
-          item.innerHTML = `
-            <div class="spot-page-title">${spot.pageName}</div>
-            <input type="text" class="spot-name-input" value="${spot.name}" onchange="jbRename('${spot.id}', this.value)" title="${t.wb_rename}">
-            <div class="spot-actions">
-              <button class="btn-spot-jump" onclick="jbJump('${spot.id}')">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <polygon points="10 8 16 12 10 16 10 8"></polygon>
-                </svg>
-                <span data-key="wb_btn_jump">${t.wb_btn_jump}</span>
-              </button>
-              <button class="btn-spot-del" onclick="jbDelete('${spot.id}')" title="${t.wb_delete}">🗑️</button>
-            </div>
-          `;
-          listDiv.appendChild(item);
-        });
+        window.__bookmarkInitial = msg;
+        window.PluginBookmarks?.render(msg.data || [], msg);
       }
     };
 
@@ -16266,11 +16264,23 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 <!-- shared-shell-script:start -->
 <script>
 /* Tabler Icons (MIT), embedded offline by scripts/sync-ui-shell.mjs. */
 (() => {
-  const icons = {"bolt":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M13 3v7h6l-8 11v-7H5z\"/>","search":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 10a7 7 0 1 0 14 0a7 7 0 1 0-14 0m18 11l-6-6\"/>","replace":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1zm12 12a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1zm6-5V8a2 2 0 0 0-2-2h-6l3 3m0-6l-3 3M3 13v3a2 2 0 0 0 2 2h6l-3-3m0 6l3-3\"/>","forms":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3M6 3a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3m7-14h7a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-7M5 7H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h1m12-5h.01M13 12h.01\"/>","map-pin":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M9 11a3 3 0 1 0 6 0a3 3 0 0 0-6 0\"/><path d=\"M17.657 16.657L13.414 20.9a2 2 0 0 1-2.827 0l-4.244-4.243a8 8 0 1 1 11.314 0\"/></g>","diamond":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M6 5h12l3 5l-8.5 9.5a.7.7 0 0 1-1 0L3 10z\"/><path d=\"M10 12L8 9.8l.6-1\"/></g>","transform":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 6a3 3 0 1 0 6 0a3 3 0 0 0-6 0m18 5V8a2 2 0 0 0-2-2h-6l3 3m0-6l-3 3M3 13v3a2 2 0 0 0 2 2h6l-3-3m0 6l3-3m4 0a3 3 0 1 0 6 0a3 3 0 0 0-6 0\"/>","ruler-measure-2":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 19.875c0 .621-.512 1.125-1.143 1.125H5.143A1.134 1.134 0 0 1 4 19.875V4a1 1 0 0 1 1-1h5.857C11.488 3 12 3.504 12 4.125zM12 9h-2m2-3H9m3 6H9m3 6H9m3-3h-2M21 3h-4m2 0v18m2 0h-4\"/>","copy":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M7 9.667A2.667 2.667 0 0 1 9.667 7h8.666A2.667 2.667 0 0 1 21 9.667v8.666A2.667 2.667 0 0 1 18.333 21H9.667A2.667 2.667 0 0 1 7 18.333z\"/><path d=\"M4.012 16.737A2 2 0 0 1 3 15V5c0-1.1.9-2 2-2h10c.75 0 1.158.385 1.5 1\"/></g>","presentation":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M3 4h18M4 4v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4m-8 12v4m-3 0h6\"/><path d=\"m8 12l3-3l2 2l3-3\"/></g>","language":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M9 6.371C9 10.789 6.761 13 4 13m0-6.629h7\"/><path d=\"M5 9c0 2.144 2.252 3.908 6 4m1 7l4-9l4 9m-.9-2h-6.2M6.694 3l.793.582\"/></g>","components":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m3 12l3 3l3-3l-3-3zm12 0l3 3l3-3l-3-3zM9 6l3 3l3-3l-3-3zm0 12l3 3l3-3l-3-3z\"/>","palette":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M12 21a9 9 0 0 1 0-18c4.97 0 9 3.582 9 8c0 1.06-.474 2.078-1.318 2.828S17.693 15 16.5 15H14a2 2 0 0 0-1 3.75A1.3 1.3 0 0 1 12 21\"/><path d=\"M7.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0-2 0m4-3a1 1 0 1 0 2 0a1 1 0 1 0-2 0m4 3a1 1 0 1 0 2 0a1 1 0 1 0-2 0\"/></g>","book":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0M3 6v13m9-13v13m9-13v13\"/>","settings":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37c1 .608 2.296.07 2.572-1.065\"/><path d=\"M9 12a3 3 0 1 0 6 0a3 3 0 0 0-6 0\"/></g>","layout-sidebar-left-collapse":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm5-2v16\"/><path d=\"m15 10l-2 2l2 2\"/></g>","frame":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 7h16M4 17h16M7 4v16M17 4v16\"/>","square":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/>","scissors":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 7a3 3 0 1 0 6 0a3 3 0 1 0-6 0m0 10a3 3 0 1 0 6 0a3 3 0 1 0-6 0m5.6-8.4L19 19M8.6 15.4L19 5\"/>","link":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m9 15l6-6m-4-3l.463-.536a5 5 0 0 1 7.071 7.072L18 13m-5 5l-.397.534a5.07 5.07 0 0 1-7.127 0a4.97 4.97 0 0 1 0-7.071L6 11\"/>","layout-off":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 4a2 2 0 0 1 2 2M8.838 8.816A2 2 0 0 1 8 9H6a2 2 0 0 1-2-2V6c0-.549.221-1.046.58-1.407M4 15a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm10-5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-.595 3.423A2 2 0 0 1 18 20h-2a2 2 0 0 1-2-2v-4M3 3l18 18\"/>","layout-grid":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1zm10 0a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1zM4 15a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1zm10 0a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1z\"/>","arrow-up":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 5v14m6-8l-6-6m-6 6l6-6\"/>","arrows-up":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M17 3v18M4 6l3-3l3 3m10 0l-3-3l-3 3M7 3v18\"/>","lock-open":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M5 13a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z\"/><path d=\"M11 16a1 1 0 1 0 2 0a1 1 0 1 0-2 0m-3-5V6a4 4 0 0 1 8 0\"/></g>","arrows-exchange":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M7 10h14l-4-4m0 8H3l4 4\"/>","aspect-ratio":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/><path d=\"M7 12V9h3m7 3v3h-3\"/></g>","eye":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M10 12a2 2 0 1 0 4 0a2 2 0 0 0-4 0\"/><path d=\"M21 12q-3.6 6-9 6t-9-6q3.6-6 9-6t9 6\"/></g>","sort-ascending-letters":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M15 10V5c0-1.38.62-2 2-2s2 .62 2 2v5m0-3h-4m4 14h-4l4-7h-4M4 15l3 3l3-3M7 6v12\"/>","tag":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0-2 0\"/><path d=\"M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592-5.592a2.41 2.41 0 0 0 0-3.408l-7.71-7.71A2 2 0 0 0 11.172 3H6a3 3 0 0 0-3 3\"/></g>","unlink":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M17 22v-2m-8-5l6-6m-4-3l.463-.536a5 5 0 0 1 7.071 7.072L18 13m-5 5l-.397.534a5.07 5.07 0 0 1-7.127 0a4.97 4.97 0 0 1 0-7.071L6 11m14 6h2M2 7h2m3-5v2\"/>","eye-off":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M10.585 10.587a2 2 0 0 0 2.829 2.828\"/><path d=\"M16.681 16.673A8.7 8.7 0 0 1 12 18q-5.4 0-9-6q1.908-3.18 4.32-4.674m2.86-1.146A9 9 0 0 1 12 6q5.4 0 9 6q-1 1.665-2.138 2.87M3 3l18 18\"/></g>","focus-2":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path fill=\"currentColor\" d=\"M11.5 12a.5.5 0 1 0 1 0a.5.5 0 1 0-1 0\"/><path d=\"M5 12a7 7 0 1 0 14 0a7 7 0 1 0-14 0m7-9v2m-9 7h2m7 7v2m7-9h2\"/></g>","arrows-shuffle":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"m18 4l3 3l-3 3m0 10l3-3l-3-3\"/><path d=\"M3 7h3a5 5 0 0 1 5 5a5 5 0 0 0 5 5h5m0-10h-5a4.98 4.98 0 0 0-3 1m-4 8a5 5 0 0 1-3 1H3\"/></g>","sparkles":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2-2a2 2 0 0 1-2-2a2 2 0 0 1-2 2m0-12a2 2 0 0 1 2 2a2 2 0 0 1 2-2a2 2 0 0 1-2-2a2 2 0 0 1-2 2M9 18a6 6 0 0 1 6-6a6 6 0 0 1-6-6a6 6 0 0 1-6 6a6 6 0 0 1 6 6\"/>","color-swatch":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M19 3h-4a2 2 0 0 0-2 2v12a4 4 0 0 0 8 0V5a2 2 0 0 0-2-2\"/><path d=\"m13 7.35l-2-2a2 2 0 0 0-2.828 0L5.344 8.178a2 2 0 0 0 0 2.828l9 9\"/><path d=\"M7.3 13H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h12m0-4v.01\"/></g>","check":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m5 12l5 5L20 7\"/>","alert-circle":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 12a9 9 0 1 0 18 0a9 9 0 0 0-18 0m9-4v4m0 4h.01\"/>","x":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M18 6L6 18M6 6l12 12\"/>","trash":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 7h16m-10 4v6m4-6v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3\"/>","download":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M7 11l5 5l5-5m-5-7v12\"/>","upload":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M7 9l5-5l5 5m-5-5v12\"/>","device-floppy":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M6 4h10l4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2\"/><path d=\"M10 14a2 2 0 1 0 4 0a2 2 0 1 0-4 0m4-10v4H8V4\"/></g>","pencil":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 20h4L18.5 9.5a2.828 2.828 0 1 0-4-4L4 16zm9.5-13.5l4 4\"/>","chevron-left":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m15 6l-6 6l6 6\"/>","chevron-right":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m9 6l6 6l-6 6\"/>","chevron-down":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m6 9l6 6l6-6\"/>","plus":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 5v14m-7-7h14\"/>","refresh":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M20 11A8.1 8.1 0 0 0 4.5 9M4 5v4h4m-4 4a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4\"/>","loader":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 6V3m4.25 4.75L18.4 5.6M18 12h3m-4.75 4.25l2.15 2.15M12 18v3m-4.25-4.75L5.6 18.4M6 12H3m4.75-4.25L5.6 5.6\"/>","info-circle":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 0 0-18 0m9-3h.01\"/><path d=\"M11 12h1v4h1\"/></g>","bulb":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 12h1m8-9v1m8 8h1M5.6 5.6l.7.7m12.1-.7l-.7.7M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0-1 3a2 2 0 0 1-4 0a3.5 3.5 0 0 0-1-3m.7 1h4.6\"/>","robot":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2zm6-4v2m-3 8v9m6-9v9M5 16l4-2m6 0l4 2M9 18h6M10 8v.01M14 8v.01\"/>","key":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m16.555 3.843l3.602 3.602a2.877 2.877 0 0 1 0 4.069l-2.643 2.643a2.877 2.877 0 0 1-4.069 0l-.301-.301l-6.558 6.558a2 2 0 0 1-1.239.578L5.172 21H4a1 1 0 0 1-.993-.883L3 20v-1.172a2 2 0 0 1 .467-1.284l.119-.13L4 17h2v-2h2v-2l2.144-2.144l-.301-.301a2.877 2.877 0 0 1 0-4.069l2.643-2.643a2.877 2.877 0 0 1 4.069 0M15 9h.01\"/>","photo":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M15 8h.01M3 6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z\"/><path d=\"m3 16l5-5c.928-.893 2.072-.893 3 0l5 5\"/><path d=\"m14 14l1-1c.928-.893 2.072-.893 3 0l3 3\"/></g>","message-circle":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m3 20l1.3-3.9C1.976 12.663 2.874 8.228 6.4 5.726c3.526-2.501 8.59-2.296 11.845.48c3.255 2.777 3.695 7.266 1.029 10.501S11.659 20.922 7.7 19z\"/>","box":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m12 3l8 4.5v9L12 21l-8-4.5v-9zm0 9l8-4.5M12 12v9m0-9L4 7.5\"/>","clipboard":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2\"/><path d=\"M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2\"/></g>","list":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9 6h11M9 12h11M9 18h11M5 6v.01M5 12v.01M5 18v.01\"/>","star":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m12 17.75l-6.172 3.245l1.179-6.873l-5-4.867l6.9-1l3.086-6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z\"/>","heart":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M19.5 12.572L12 20l-7.5-7.428A5 5 0 1 1 12 6.006a5 5 0 1 1 7.5 6.572\"/>","brain":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M15.5 13a3.5 3.5 0 0 0-3.5 3.5v1a3.5 3.5 0 0 0 7 0v-1.8M8.5 13a3.5 3.5 0 0 1 3.5 3.5v1a3.5 3.5 0 0 1-7 0v-1.8\"/><path d=\"M17.5 16a3.5 3.5 0 0 0 0-7H17\"/><path d=\"M19 9.3V6.5a3.5 3.5 0 0 0-7 0M6.5 16a3.5 3.5 0 0 1 0-7H7\"/><path d=\"M5 9.3V6.5a3.5 3.5 0 0 1 7 0v10\"/></g>","accessible":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0\"/><path d=\"m10 16.5l2-3l2 3m-2-3v-2l3-1m-6 0l3 1\"/><path fill=\"currentColor\" d=\"M11.5 7.5a.5.5 0 1 0 1 0a.5.5 0 1 0-1 0\"/></g>","number-10":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 20V4L3 9m13 11a4 4 0 0 0 4-4V8a4 4 0 1 0-8 0v8a4 4 0 0 0 4 4\"/>","microphone":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M9 5a3 3 0 0 1 3-3a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3a3 3 0 0 1-3-3z\"/><path d=\"M5 10a7 7 0 0 0 14 0M8 21h8m-4-4v4\"/></g>","device-vision-pro":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 7q1.715 0 3.275.104q1.526.101 2.798.42q1.22.304 2.119.909a3.9 3.9 0 0 1 1.328 1.531c.326.657.48 1.48.48 2.466q.002 1.51-.574 2.707q-.562 1.17-1.537 1.848a3.7 3.7 0 0 1-2.16.66q-.764.002-1.382-.21a6 6 0 0 1-1.17-.548a19 19 0 0 1-1.045-.695a9 9 0 0 0-1.001-.63a2.4 2.4 0 0 0-1.13-.301c-.373 0-.75.097-1.132.3q-.475.255-1 .63q-.482.345-1.047.695a5.8 5.8 0 0 1-1.168.548q-.62.212-1.378.21a3.7 3.7 0 0 1-2.165-.659q-.976-.68-1.537-1.848q-.576-1.196-.574-2.709c-.004-.98.15-1.802.477-2.46a3.9 3.9 0 0 1 1.33-1.531q.9-.604 2.12-.907a16 16 0 0 1 2.8-.423Q10.287 7 12 7\"/>","atom":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M12 12v.01m7.071-7.081c-1.562-1.562-6 .337-9.9 4.243c-3.905 3.905-5.804 8.337-4.242 9.9c1.562 1.561 6-.338 9.9-4.244c3.905-3.905 5.804-8.337 4.242-9.9\"/><path d=\"M4.929 4.929c-1.562 1.562.337 6 4.243 9.9c3.905 3.905 8.337 5.804 9.9 4.242c1.561-1.562-.338-6-4.244-9.9c-3.905-3.905-8.337-5.804-9.9-4.242\"/></g>","mountain":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M3 20h18L14.079 5.388a2.3 2.3 0 0 0-4.158 0z\"/><path d=\"m7.5 11l2 2.5L12 11l2 3l2.5-2\"/></g>","hand-stop":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M8 13V5.5a1.5 1.5 0 0 1 3 0V12m0-6.5v-2a1.5 1.5 0 1 1 3 0V12m0-6.5a1.5 1.5 0 0 1 3 0V12\"/><path d=\"M17 7.5a1.5 1.5 0 0 1 3 0V16a6 6 0 0 1-6 6h-2h.208a6 6 0 0 1-5.012-2.7L7 19q-.468-.718-3.286-5.728a1.5 1.5 0 0 1 .536-2.022a1.87 1.87 0 0 1 2.28.28L8 13\"/></g>","moon":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 3h.393a7.5 7.5 0 0 0 7.92 12.446A9 9 0 1 1 12 2.992z\"/>","sun":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 12a4 4 0 1 0 8 0a4 4 0 1 0-8 0m-5 0h1m8-9v1m8 8h1m-9 8v1M5.6 5.6l.7.7m12.1-.7l-.7.7m0 11.4l.7.7m-12.1-.7l-.7.7\"/>","coffee":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M3 14c.83.642 2.077 1.017 3.5 1c1.423.017 2.67-.358 3.5-1s2.077-1.017 3.5-1c1.423-.017 2.67.358 3.5 1M8 3a2.4 2.4 0 0 0-1 2a2.4 2.4 0 0 0 1 2m4-4a2.4 2.4 0 0 0-1 2a2.4 2.4 0 0 0 1 2\"/><path d=\"M3 10h14v5a6 6 0 0 1-6 6H9a6 6 0 0 1-6-6z\"/><path d=\"M16.746 16.726a3 3 0 1 0 .252-5.555\"/></g>","adjustments-horizontal":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 6a2 2 0 1 0 4 0a2 2 0 1 0-4 0M4 6h8m4 0h4M6 12a2 2 0 1 0 4 0a2 2 0 1 0-4 0m-2 0h2m4 0h10m-5 6a2 2 0 1 0 4 0a2 2 0 1 0-4 0M4 18h11m4 0h1\"/>","circle":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0\"/>","player-play":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M7 4v16l13-8z\"/>","lock":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M5 13a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z\"/><path d=\"M11 16a1 1 0 1 0 2 0a1 1 0 0 0-2 0m-3-5V7a4 4 0 1 1 8 0v4\"/></g>","help":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0m9 5v.01\"/><path d=\"M12 13.5a1.5 1.5 0 0 1 1-1.5a2.6 2.6 0 1 0-3-4\"/></g>","arrow-down":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 5v14m6-6l-6 6m-6-6l6 6\"/>","arrows-left-right":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M21 17H3m3-7L3 7l3-3M3 7h18m-3 13l3-3l-3-3\"/>","checklist":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9.615 20H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8m-3 5l2 2l4-4M9 8h4m-4 4h2\"/>"};
+  const icons = {"grip-vertical":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 5a1 1 0 1 0 2 0a1 1 0 1 0-2 0m0 7a1 1 0 1 0 2 0a1 1 0 1 0-2 0m0 7a1 1 0 1 0 2 0a1 1 0 1 0-2 0m6-14a1 1 0 1 0 2 0a1 1 0 1 0-2 0m0 7a1 1 0 1 0 2 0a1 1 0 1 0-2 0m0 7a1 1 0 1 0 2 0a1 1 0 1 0-2 0\"/>","arrows-move":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m18 9l3 3l-3 3m-3-3h6M6 9l-3 3l3 3m-3-3h6m0 6l3 3l3-3m-3-3v6m3-15l-3-3l-3 3m3-3v6\"/>","bolt":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M13 3v7h6l-8 11v-7H5z\"/>","search":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 10a7 7 0 1 0 14 0a7 7 0 1 0-14 0m18 11l-6-6\"/>","replace":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1zm12 12a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1zm6-5V8a2 2 0 0 0-2-2h-6l3 3m0-6l-3 3M3 13v3a2 2 0 0 0 2 2h6l-3-3m0 6l3-3\"/>","forms":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3M6 3a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3m7-14h7a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-7M5 7H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h1m12-5h.01M13 12h.01\"/>","map-pin":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M9 11a3 3 0 1 0 6 0a3 3 0 0 0-6 0\"/><path d=\"M17.657 16.657L13.414 20.9a2 2 0 0 1-2.827 0l-4.244-4.243a8 8 0 1 1 11.314 0\"/></g>","diamond":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M6 5h12l3 5l-8.5 9.5a.7.7 0 0 1-1 0L3 10z\"/><path d=\"M10 12L8 9.8l.6-1\"/></g>","transform":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 6a3 3 0 1 0 6 0a3 3 0 0 0-6 0m18 5V8a2 2 0 0 0-2-2h-6l3 3m0-6l-3 3M3 13v3a2 2 0 0 0 2 2h6l-3-3m0 6l3-3m4 0a3 3 0 1 0 6 0a3 3 0 0 0-6 0\"/>","ruler-measure-2":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 19.875c0 .621-.512 1.125-1.143 1.125H5.143A1.134 1.134 0 0 1 4 19.875V4a1 1 0 0 1 1-1h5.857C11.488 3 12 3.504 12 4.125zM12 9h-2m2-3H9m3 6H9m3 6H9m3-3h-2M21 3h-4m2 0v18m2 0h-4\"/>","copy":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M7 9.667A2.667 2.667 0 0 1 9.667 7h8.666A2.667 2.667 0 0 1 21 9.667v8.666A2.667 2.667 0 0 1 18.333 21H9.667A2.667 2.667 0 0 1 7 18.333z\"/><path d=\"M4.012 16.737A2 2 0 0 1 3 15V5c0-1.1.9-2 2-2h10c.75 0 1.158.385 1.5 1\"/></g>","presentation":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M3 4h18M4 4v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4m-8 12v4m-3 0h6\"/><path d=\"m8 12l3-3l2 2l3-3\"/></g>","language":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M9 6.371C9 10.789 6.761 13 4 13m0-6.629h7\"/><path d=\"M5 9c0 2.144 2.252 3.908 6 4m1 7l4-9l4 9m-.9-2h-6.2M6.694 3l.793.582\"/></g>","components":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m3 12l3 3l3-3l-3-3zm12 0l3 3l3-3l-3-3zM9 6l3 3l3-3l-3-3zm0 12l3 3l3-3l-3-3z\"/>","palette":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M12 21a9 9 0 0 1 0-18c4.97 0 9 3.582 9 8c0 1.06-.474 2.078-1.318 2.828S17.693 15 16.5 15H14a2 2 0 0 0-1 3.75A1.3 1.3 0 0 1 12 21\"/><path d=\"M7.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0-2 0m4-3a1 1 0 1 0 2 0a1 1 0 1 0-2 0m4 3a1 1 0 1 0 2 0a1 1 0 1 0-2 0\"/></g>","book":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0M3 6v13m9-13v13m9-13v13\"/>","settings":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37c1 .608 2.296.07 2.572-1.065\"/><path d=\"M9 12a3 3 0 1 0 6 0a3 3 0 0 0-6 0\"/></g>","layout-sidebar-left-collapse":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm5-2v16\"/><path d=\"m15 10l-2 2l2 2\"/></g>","frame":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 7h16M4 17h16M7 4v16M17 4v16\"/>","square":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/>","scissors":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 7a3 3 0 1 0 6 0a3 3 0 1 0-6 0m0 10a3 3 0 1 0 6 0a3 3 0 1 0-6 0m5.6-8.4L19 19M8.6 15.4L19 5\"/>","link":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m9 15l6-6m-4-3l.463-.536a5 5 0 0 1 7.071 7.072L18 13m-5 5l-.397.534a5.07 5.07 0 0 1-7.127 0a4.97 4.97 0 0 1 0-7.071L6 11\"/>","layout-off":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 4a2 2 0 0 1 2 2M8.838 8.816A2 2 0 0 1 8 9H6a2 2 0 0 1-2-2V6c0-.549.221-1.046.58-1.407M4 15a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm10-5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-.595 3.423A2 2 0 0 1 18 20h-2a2 2 0 0 1-2-2v-4M3 3l18 18\"/>","layout-grid":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1zm10 0a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1zM4 15a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1zm10 0a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1z\"/>","arrow-up":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 5v14m6-8l-6-6m-6 6l6-6\"/>","arrows-up":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M17 3v18M4 6l3-3l3 3m10 0l-3-3l-3 3M7 3v18\"/>","lock-open":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M5 13a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z\"/><path d=\"M11 16a1 1 0 1 0 2 0a1 1 0 1 0-2 0m-3-5V6a4 4 0 0 1 8 0\"/></g>","arrows-exchange":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M7 10h14l-4-4m0 8H3l4 4\"/>","aspect-ratio":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/><path d=\"M7 12V9h3m7 3v3h-3\"/></g>","eye":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M10 12a2 2 0 1 0 4 0a2 2 0 0 0-4 0\"/><path d=\"M21 12q-3.6 6-9 6t-9-6q3.6-6 9-6t9 6\"/></g>","sort-ascending-letters":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M15 10V5c0-1.38.62-2 2-2s2 .62 2 2v5m0-3h-4m4 14h-4l4-7h-4M4 15l3 3l3-3M7 6v12\"/>","tag":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0-2 0\"/><path d=\"M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592-5.592a2.41 2.41 0 0 0 0-3.408l-7.71-7.71A2 2 0 0 0 11.172 3H6a3 3 0 0 0-3 3\"/></g>","unlink":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M17 22v-2m-8-5l6-6m-4-3l.463-.536a5 5 0 0 1 7.071 7.072L18 13m-5 5l-.397.534a5.07 5.07 0 0 1-7.127 0a4.97 4.97 0 0 1 0-7.071L6 11m14 6h2M2 7h2m3-5v2\"/>","eye-off":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M10.585 10.587a2 2 0 0 0 2.829 2.828\"/><path d=\"M16.681 16.673A8.7 8.7 0 0 1 12 18q-5.4 0-9-6q1.908-3.18 4.32-4.674m2.86-1.146A9 9 0 0 1 12 6q5.4 0 9 6q-1 1.665-2.138 2.87M3 3l18 18\"/></g>","focus-2":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path fill=\"currentColor\" d=\"M11.5 12a.5.5 0 1 0 1 0a.5.5 0 1 0-1 0\"/><path d=\"M5 12a7 7 0 1 0 14 0a7 7 0 1 0-14 0m7-9v2m-9 7h2m7 7v2m7-9h2\"/></g>","arrows-shuffle":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"m18 4l3 3l-3 3m0 10l3-3l-3-3\"/><path d=\"M3 7h3a5 5 0 0 1 5 5a5 5 0 0 0 5 5h5m0-10h-5a4.98 4.98 0 0 0-3 1m-4 8a5 5 0 0 1-3 1H3\"/></g>","sparkles":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2-2a2 2 0 0 1-2-2a2 2 0 0 1-2 2m0-12a2 2 0 0 1 2 2a2 2 0 0 1 2-2a2 2 0 0 1-2-2a2 2 0 0 1-2 2M9 18a6 6 0 0 1 6-6a6 6 0 0 1-6-6a6 6 0 0 1-6 6a6 6 0 0 1 6 6\"/>","color-swatch":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M19 3h-4a2 2 0 0 0-2 2v12a4 4 0 0 0 8 0V5a2 2 0 0 0-2-2\"/><path d=\"m13 7.35l-2-2a2 2 0 0 0-2.828 0L5.344 8.178a2 2 0 0 0 0 2.828l9 9\"/><path d=\"M7.3 13H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h12m0-4v.01\"/></g>","check":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m5 12l5 5L20 7\"/>","alert-circle":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 12a9 9 0 1 0 18 0a9 9 0 0 0-18 0m9-4v4m0 4h.01\"/>","x":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M18 6L6 18M6 6l12 12\"/>","trash":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 7h16m-10 4v6m4-6v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3\"/>","download":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M7 11l5 5l5-5m-5-7v12\"/>","upload":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M7 9l5-5l5 5m-5-5v12\"/>","device-floppy":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M6 4h10l4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2\"/><path d=\"M10 14a2 2 0 1 0 4 0a2 2 0 1 0-4 0m4-10v4H8V4\"/></g>","pencil":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 20h4L18.5 9.5a2.828 2.828 0 1 0-4-4L4 16zm9.5-13.5l4 4\"/>","chevron-left":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m15 6l-6 6l6 6\"/>","chevron-right":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m9 6l6 6l-6 6\"/>","chevron-down":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m6 9l6 6l6-6\"/>","plus":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 5v14m-7-7h14\"/>","refresh":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M20 11A8.1 8.1 0 0 0 4.5 9M4 5v4h4m-4 4a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4\"/>","loader":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 6V3m4.25 4.75L18.4 5.6M18 12h3m-4.75 4.25l2.15 2.15M12 18v3m-4.25-4.75L5.6 18.4M6 12H3m4.75-4.25L5.6 5.6\"/>","info-circle":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 0 0-18 0m9-3h.01\"/><path d=\"M11 12h1v4h1\"/></g>","bulb":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 12h1m8-9v1m8 8h1M5.6 5.6l.7.7m12.1-.7l-.7.7M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0-1 3a2 2 0 0 1-4 0a3.5 3.5 0 0 0-1-3m.7 1h4.6\"/>","robot":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2zm6-4v2m-3 8v9m6-9v9M5 16l4-2m6 0l4 2M9 18h6M10 8v.01M14 8v.01\"/>","key":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m16.555 3.843l3.602 3.602a2.877 2.877 0 0 1 0 4.069l-2.643 2.643a2.877 2.877 0 0 1-4.069 0l-.301-.301l-6.558 6.558a2 2 0 0 1-1.239.578L5.172 21H4a1 1 0 0 1-.993-.883L3 20v-1.172a2 2 0 0 1 .467-1.284l.119-.13L4 17h2v-2h2v-2l2.144-2.144l-.301-.301a2.877 2.877 0 0 1 0-4.069l2.643-2.643a2.877 2.877 0 0 1 4.069 0M15 9h.01\"/>","photo":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M15 8h.01M3 6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z\"/><path d=\"m3 16l5-5c.928-.893 2.072-.893 3 0l5 5\"/><path d=\"m14 14l1-1c.928-.893 2.072-.893 3 0l3 3\"/></g>","message-circle":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m3 20l1.3-3.9C1.976 12.663 2.874 8.228 6.4 5.726c3.526-2.501 8.59-2.296 11.845.48c3.255 2.777 3.695 7.266 1.029 10.501S11.659 20.922 7.7 19z\"/>","box":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m12 3l8 4.5v9L12 21l-8-4.5v-9zm0 9l8-4.5M12 12v9m0-9L4 7.5\"/>","clipboard":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2\"/><path d=\"M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2\"/></g>","list":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9 6h11M9 12h11M9 18h11M5 6v.01M5 12v.01M5 18v.01\"/>","star":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m12 17.75l-6.172 3.245l1.179-6.873l-5-4.867l6.9-1l3.086-6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z\"/>","heart":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M19.5 12.572L12 20l-7.5-7.428A5 5 0 1 1 12 6.006a5 5 0 1 1 7.5 6.572\"/>","brain":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M15.5 13a3.5 3.5 0 0 0-3.5 3.5v1a3.5 3.5 0 0 0 7 0v-1.8M8.5 13a3.5 3.5 0 0 1 3.5 3.5v1a3.5 3.5 0 0 1-7 0v-1.8\"/><path d=\"M17.5 16a3.5 3.5 0 0 0 0-7H17\"/><path d=\"M19 9.3V6.5a3.5 3.5 0 0 0-7 0M6.5 16a3.5 3.5 0 0 1 0-7H7\"/><path d=\"M5 9.3V6.5a3.5 3.5 0 0 1 7 0v10\"/></g>","accessible":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0\"/><path d=\"m10 16.5l2-3l2 3m-2-3v-2l3-1m-6 0l3 1\"/><path fill=\"currentColor\" d=\"M11.5 7.5a.5.5 0 1 0 1 0a.5.5 0 1 0-1 0\"/></g>","number-10":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 20V4L3 9m13 11a4 4 0 0 0 4-4V8a4 4 0 1 0-8 0v8a4 4 0 0 0 4 4\"/>","microphone":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M9 5a3 3 0 0 1 3-3a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3a3 3 0 0 1-3-3z\"/><path d=\"M5 10a7 7 0 0 0 14 0M8 21h8m-4-4v4\"/></g>","device-vision-pro":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 7q1.715 0 3.275.104q1.526.101 2.798.42q1.22.304 2.119.909a3.9 3.9 0 0 1 1.328 1.531c.326.657.48 1.48.48 2.466q.002 1.51-.574 2.707q-.562 1.17-1.537 1.848a3.7 3.7 0 0 1-2.16.66q-.764.002-1.382-.21a6 6 0 0 1-1.17-.548a19 19 0 0 1-1.045-.695a9 9 0 0 0-1.001-.63a2.4 2.4 0 0 0-1.13-.301c-.373 0-.75.097-1.132.3q-.475.255-1 .63q-.482.345-1.047.695a5.8 5.8 0 0 1-1.168.548q-.62.212-1.378.21a3.7 3.7 0 0 1-2.165-.659q-.976-.68-1.537-1.848q-.576-1.196-.574-2.709c-.004-.98.15-1.802.477-2.46a3.9 3.9 0 0 1 1.33-1.531q.9-.604 2.12-.907a16 16 0 0 1 2.8-.423Q10.287 7 12 7\"/>","atom":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M12 12v.01m7.071-7.081c-1.562-1.562-6 .337-9.9 4.243c-3.905 3.905-5.804 8.337-4.242 9.9c1.562 1.561 6-.338 9.9-4.244c3.905-3.905 5.804-8.337 4.242-9.9\"/><path d=\"M4.929 4.929c-1.562 1.562.337 6 4.243 9.9c3.905 3.905 8.337 5.804 9.9 4.242c1.561-1.562-.338-6-4.244-9.9c-3.905-3.905-8.337-5.804-9.9-4.242\"/></g>","mountain":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M3 20h18L14.079 5.388a2.3 2.3 0 0 0-4.158 0z\"/><path d=\"m7.5 11l2 2.5L12 11l2 3l2.5-2\"/></g>","hand-stop":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M8 13V5.5a1.5 1.5 0 0 1 3 0V12m0-6.5v-2a1.5 1.5 0 1 1 3 0V12m0-6.5a1.5 1.5 0 0 1 3 0V12\"/><path d=\"M17 7.5a1.5 1.5 0 0 1 3 0V16a6 6 0 0 1-6 6h-2h.208a6 6 0 0 1-5.012-2.7L7 19q-.468-.718-3.286-5.728a1.5 1.5 0 0 1 .536-2.022a1.87 1.87 0 0 1 2.28.28L8 13\"/></g>","moon":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 3h.393a7.5 7.5 0 0 0 7.92 12.446A9 9 0 1 1 12 2.992z\"/>","sun":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 12a4 4 0 1 0 8 0a4 4 0 1 0-8 0m-5 0h1m8-9v1m8 8h1m-9 8v1M5.6 5.6l.7.7m12.1-.7l-.7.7m0 11.4l.7.7m-12.1-.7l-.7.7\"/>","coffee":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M3 14c.83.642 2.077 1.017 3.5 1c1.423.017 2.67-.358 3.5-1s2.077-1.017 3.5-1c1.423-.017 2.67.358 3.5 1M8 3a2.4 2.4 0 0 0-1 2a2.4 2.4 0 0 0 1 2m4-4a2.4 2.4 0 0 0-1 2a2.4 2.4 0 0 0 1 2\"/><path d=\"M3 10h14v5a6 6 0 0 1-6 6H9a6 6 0 0 1-6-6z\"/><path d=\"M16.746 16.726a3 3 0 1 0 .252-5.555\"/></g>","adjustments-horizontal":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 6a2 2 0 1 0 4 0a2 2 0 1 0-4 0M4 6h8m4 0h4M6 12a2 2 0 1 0 4 0a2 2 0 1 0-4 0m-2 0h2m4 0h10m-5 6a2 2 0 1 0 4 0a2 2 0 1 0-4 0M4 18h11m4 0h1\"/>","circle":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0\"/>","player-play":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M7 4v16l13-8z\"/>","lock":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M5 13a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z\"/><path d=\"M11 16a1 1 0 1 0 2 0a1 1 0 0 0-2 0m-3-5V7a4 4 0 1 1 8 0v4\"/></g>","help":"<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0m9 5v.01\"/><path d=\"M12 13.5a1.5 1.5 0 0 1 1-1.5a2.6 2.6 0 1 0-3-4\"/></g>","arrow-down":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 5v14m6-6l-6 6m-6-6l6 6\"/>","arrows-left-right":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M21 17H3m3-7L3 7l3-3M3 7h18m-3 13l3-3l-3-3\"/>","checklist":"<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9.615 20H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8m-3 5l2 2l4-4M9 8h4m-4 4h2\"/>"};
   const navIcons = { simple:'bolt', select:'search', text:'replace', smartFill:'forms', jumpback:'map-pin', refiner:'diamond', skew:'transform', size:'ruler-measure-2', duplicate:'copy', ppt:'presentation', i18n:'language', componentBuilder:'components', compkit:'palette', theory:'book' };
   const toolIcons = { reverse_component:'components', to_frame:'frame', to_rect:'square', split_text:'scissors', join_text:'link', remove_al:'layout-off', add_al_wrapper:'layout-grid', up_one:'arrow-up', up_all:'arrows-up', ungroup_all:'box', unlock_all:'lock-open', swap_fs:'arrows-exchange', reset_image:'aspect-ratio', sort_layers:'eye', sort_by_name:'sort-ascending-letters', rename_content:'tag', detach_all:'unlink', remove_hidden:'eye-off', pixel_perfect:'focus-2', swap_positions:'arrows-shuffle', create_styles:'sparkles', match_styles:'color-swatch' };
   const glyphIcons = {
@@ -16300,7 +16310,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   };
   window.PluginIcons = Object.freeze({ put: putIcon });
   const controls = '[data-smart-icon],.ppt-icon,.compkit-empty-icon,.nav-icon-slot,.tc-icon,.btn-icon,.es-icon,.success-icon,.success-emoji,.section-title,.settings-section-title,.settings-item-label-icon,.builder-mode-symbol,.smart-setting-btn,.jumpback-hero-icon,.btn-clear-input,.btn-back-sub,.sub-header,.card-icon,.theory-icon,.theory-capsule-icon,.size-hero-title,[data-key],button,#dashGreeting,#testConnectionIcon,#errorToast';
-  const protectedContent = 'script,style,svg,textarea,input,select,option,pre,code,[contenteditable],#dashGreeting,#aiResultArea,#i18nTransList,.text-preview-main,.smart-label,.tc-tooltip,.toast-message';
+  const protectedContent = 'script,style,svg,textarea,input,select,option,pre,code,[contenteditable],[data-user-content],#dashGreeting,#aiResultArea,#i18nTransList,.text-preview-main,.smart-label,.tc-tooltip,.toast-message';
   function decorate(element) {
     if (!(element instanceof Element) || element.closest(protectedContent)) return;
     if (element.matches('[data-smart-icon]')) {
@@ -18034,6 +18044,315 @@ const theoryDB = [
   refresh();
 })();
 
+/* Keep the iframe alive while collapsed: drafts, results and scroll stay intact. */
+(() => {
+  const l = (zh, en) => curLang === 'en' ? en : zh;
+  let collapsed = false, moving = null, frame = 0, suppressClick = false, previousFocus = null, canMove = true, hasError = false;
+  const row = document.createElement('div');
+  row.className = 'window-actions';
+  row.innerHTML = '<button id="collapseWindow" class="footer-btn"><span class="btn-icon" data-smart-icon="circle"></span><span class="btn-text"></span></button><button id="moveWindow" class="window-move"><span data-smart-icon="arrows-move"></span></button>';
+  document.querySelector('.sidebar-footer').append(row);
+  const collapseButton = row.querySelector('#collapseWindow');
+  const moveButton = row.querySelector('#moveWindow');
+  const bubble = document.createElement('button');
+  bubble.id = 'pluginBubble';
+  // Reuse the original purple four-tile identity, not a new icon or emoji.
+  bubble.innerHTML = '<span class="bubble-logo" aria-hidden="true"><i></i><i></i><i></i><i></i></span>';
+  document.body.append(bubble);
+  const status = document.createElement('span');
+  status.id = 'windowStatus'; status.className = 'sr-only'; status.setAttribute('aria-live','polite');
+  row.append(status);
+  const send = (type, data = {}) => postMsg(type, data);
+  const fullSize = () => ({ width:innerWidth, height:innerHeight });
+  let scrollSnapshot = [];
+  function rememberScroll() {
+    if (collapsed) return;
+    scrollSnapshot = [...document.querySelectorAll('.app-container *')].filter(el => el.clientHeight > 0 && el.scrollHeight > el.clientHeight).map(el => [el,el.scrollTop,el.scrollLeft]);
+  }
+  function restoreScroll() {
+    requestAnimationFrame(() => {
+      if (collapsed || innerWidth <= 70) return;
+      for (const [el,top,left] of scrollSnapshot) { el.scrollTop = top; el.scrollLeft = left; }
+      scrollSnapshot = [];
+    });
+  }
+  window.addEventListener('resize',restoreScroll);
+  function refresh() {
+    status.textContent = hasError ? l('窗口移动不可用，可使用宿主标题栏拖动。', 'Window movement is unavailable. Drag the host title bar instead.') : '';
+    collapseButton.querySelector('.btn-text').textContent = l('收起', 'Collapse');
+    for (const [button, label] of [
+      [collapseButton, l('点击收起为贴边气泡；拖拽移动面板', 'Click to collapse to an edge bubble; drag to move the panel.')],
+      [moveButton, l('拖拽移动面板，靠近左右边缘时收起；方向键移动', 'Drag panel to move; release near an edge to collapse. Arrow keys move it.')],
+      [bubble, canMove ? l('点击展开，拖拽移动气泡；方向键移动', 'Click to expand; drag to move the bubble. Arrow keys move it.') : l('点击展开；使用宿主标题栏拖动', 'Click to expand; drag the host title bar to move.')]
+    ]) { button.title = label; button.setAttribute('aria-label',label); }
+    bubble.setAttribute('aria-expanded', String(!collapsed));
+    collapseButton.setAttribute('aria-expanded', String(!collapsed));
+  }
+  collapseButton.onclick = () => {
+    if (suppressClick) { suppressClick = false; return; }
+    rememberScroll();
+    send('window-collapse', fullSize());
+  };
+  bubble.onclick = () => { if (suppressClick) { suppressClick = false; return; } send('window-expand'); };
+  function down(e) {
+    if (e.button !== 0 || moving || !canMove) return;
+    suppressClick = false;
+    moving = { el:e.currentTarget, id:e.pointerId, x:e.screenX, y:e.screenY, dx:0, dy:0, started:false };
+    moving.el.setPointerCapture(e.pointerId);
+  }
+  function move(e) {
+    if (!moving || moving.id !== e.pointerId) return;
+    moving.dx = e.screenX - moving.x; moving.dy = e.screenY - moving.y;
+    if (!moving.started && Math.hypot(moving.dx, moving.dy) < 5) return;
+    if (!moving.started) {
+      moving.started = true;
+      moving.el.classList.add('is-dragging');
+      send('window-drag-start', fullSize());
+    }
+    e.preventDefault();
+    if (!frame) frame = requestAnimationFrame(() => {
+      frame = 0;
+      if (moving) send('window-drag-move', { dx:moving.dx, dy:moving.dy });
+    });
+  }
+  function finish(e) {
+    if (!moving || moving.id !== e.pointerId) return;
+    cancelAnimationFrame(frame); frame = 0;
+    const old = moving; moving = null;
+    old.el.classList.remove('is-dragging');
+    if (old.el.hasPointerCapture(old.id)) old.el.releasePointerCapture(old.id);
+    if (old.started) {
+      if (!collapsed) rememberScroll();
+      suppressClick = e.type !== 'pointercancel' && old.el !== moveButton;
+      if (suppressClick) setTimeout(() => { suppressClick = false; },0);
+      send(e.type === 'pointercancel' ? 'window-drag-cancel' : 'window-drag-end', { dx:e.screenX - old.x, dy:e.screenY - old.y });
+    }
+  }
+  for (const el of [bubble, moveButton, collapseButton]) {
+    el.addEventListener('pointerdown',down);
+    el.addEventListener('pointermove',move);
+    el.addEventListener('pointerup',finish);
+    el.addEventListener('pointercancel',finish);
+    el.addEventListener('keydown',e => {
+      const directions = { ArrowLeft:[-16,0], ArrowRight:[16,0], ArrowUp:[0,-16], ArrowDown:[0,16] };
+      if (directions[e.key]) {
+        e.preventDefault();
+        const [dx,dy] = directions[e.key];
+        send('window-nudge', { dx, dy });
+      }
+      if (e.key === 'Escape' && moving) {
+        finish({ type:'pointercancel', pointerId:moving.id, screenX:moving.x, screenY:moving.y });
+      }
+    });
+  }
+  window.addEventListener('message',event => {
+    const msg = event.data.pluginMessage;
+    if (msg?.type !== 'window-state') return;
+    const wasCollapsed = collapsed;
+    collapsed = Boolean(msg.collapsed);
+    if (!collapsed && !wasCollapsed) scrollSnapshot = [];
+    if (!wasCollapsed && collapsed) previousFocus = document.activeElement;
+    document.body.classList.toggle('bubble-mode',collapsed);
+    document.body.dataset.bubbleEdge = msg.edge === 'left' ? 'left' : 'right';
+    canMove = Boolean(msg.canMove);
+    hasError = Boolean(msg.error);
+    moveButton.disabled = !canMove;
+    if (collapsed && !wasCollapsed) bubble.focus({ preventScroll:true });
+    if (!collapsed && wasCollapsed) {
+      (previousFocus?.isConnected ? previousFocus : collapseButton).focus({ preventScroll:true });
+      restoreScroll();
+    }
+    refresh();
+  });
+  window.PluginWindow = { refresh };
+  refresh();
+  send('window-init');
+})();
+
+/* Safe bookmark rendering, pointer sorting and keyboard sorting share one commit
+   path. Only IDs are sent; the host owns saved locations and their metadata. */
+(() => {
+  const list = document.getElementById('spotList');
+  const save = document.getElementById('btnSaveSpot');
+  const l = (zh, en) => curLang === 'en' ? en : zh;
+  let spots = [], drag = null, pending = false, requestId = 0, scrollFrame = 0, statusKey = '';
+  const hint = document.createElement('div');
+  hint.className = 'bookmark-sort-hint';
+  document.querySelector('.jumpback-header').append(hint);
+  const status = document.createElement('div');
+  status.className = 'bookmark-status'; status.setAttribute('aria-live','polite');
+  document.querySelector('.jumpback-header').append(status);
+  function setStatus(key) {
+    statusKey = key;
+    const copy = { saving:['正在保存顺序…','Saving order…'], timeout:['顺序未保存，请重试。','Order was not saved. Try again.'], changed:['列表已变化，已恢复最新顺序，请重试。','The list changed. Latest order restored; try again.'], saved:['顺序已保存','Order saved'] };
+    status.textContent = copy[key] ? l(...copy[key]) : '';
+  }
+  const ids = () => [...list.querySelectorAll('.spot-item')].map(el => el.dataset.spotId);
+  function button(icon, title, action) {
+    const el = document.createElement('button');
+    el.type = 'button'; el.className = 'bookmark-icon';
+    el.title = title; el.setAttribute('aria-label',title);
+    el.dataset.action = action;
+    PluginIcons.put(el, icon);
+    return el;
+  }
+  function draw(focusId, action = 'sort') {
+    list.replaceChildren();
+    const t = i18n[curLang];
+    save.disabled = spots.length >= 5;
+    save.style.opacity = save.disabled ? '0.5' : '1';
+    save.replaceChildren();
+    const icon = document.createElement('span'); PluginIcons.put(icon, 'device-floppy');
+    const text = document.createElement('span'); text.dataset.key = save.disabled ? 'wb_slot_full' : 'wb_btn_save_spot'; text.textContent = t[text.dataset.key];
+    save.append(icon,text);
+    hint.textContent = l('拖拽左侧手柄排序；聚焦手柄后按 ↑ ↓ 调整', 'Drag a handle to sort, or focus it and press ↑ / ↓.');
+    if (!spots.length) {
+      const empty = document.createElement('div'); empty.className = 'jumpback-empty';
+      const title = document.createElement('div'); title.className = 'jumpback-empty-title'; title.textContent = t.wb_empty_title;
+      const desc = document.createElement('div'); desc.className = 'jumpback-empty-desc'; desc.textContent = t.wb_empty_desc;
+      empty.append(title,desc); list.append(empty);
+    }
+    spots.forEach(spot => {
+      const item = document.createElement('div'); item.className = 'spot-item'; item.dataset.spotId = spot.id;
+      const handle = button('grip-vertical',l('排序：方向键上下移动，Home / End 移到首尾', 'Sort: Up / Down to move; Home / End for first / last.'),'sort');
+      handle.classList.add('bookmark-handle'); handle.disabled = spots.length < 2;
+      handle.setAttribute('aria-disabled',String(pending || spots.length < 2));
+      const content = document.createElement('div'); content.className = 'bookmark-content';
+      const page = document.createElement('div'); page.className = 'spot-page-title'; page.dataset.userContent = ''; page.textContent = String(spot.pageName || '');
+      const name = document.createElement('input'); name.className = 'spot-name-input'; name.value = String(spot.name || ''); name.maxLength = 20;
+      name.title = t.wb_rename; name.setAttribute('aria-label',t.wb_rename); name.dataset.action = 'rename';
+      name.addEventListener('change', () => {
+        if (name.value.trim()) spot.name = name.value.substring(0,20);
+        jbRename(spot.id,name.value);
+      });
+      content.append(page,name);
+      const actions = document.createElement('div'); actions.className = 'spot-actions';
+      const jump = button('player-play',t.wb_btn_jump,'jump'); jump.addEventListener('click', () => jbJump(spot.id));
+      const remove = button('trash',t.wb_delete,'delete'); remove.classList.add('btn-spot-del'); remove.addEventListener('click', () => jbDelete(spot.id));
+      actions.append(jump,remove);
+      item.append(handle,content,actions); list.append(item);
+      handle.addEventListener('pointerdown', e => start(e,item));
+      handle.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && drag) { cancel(e); return; }
+        if (pending || !['ArrowUp','ArrowDown','Home','End'].includes(e.key)) return;
+        e.preventDefault();
+        const order = ids(), index = order.indexOf(spot.id);
+        const target = e.key === 'Home' ? 0 : e.key === 'End' ? order.length - 1 : Math.max(0,Math.min(order.length - 1,index + (e.key === 'ArrowUp' ? -1 : 1)));
+        if (target === index) return;
+        order.splice(index,1); order.splice(target,0,spot.id);
+        commit(order,spot.id);
+      });
+    });
+    if (focusId) [...list.querySelectorAll('.spot-item')].find(el => el.dataset.spotId === focusId)?.querySelector(`[data-action="${action}"]`)?.focus({ preventScroll:true });
+  }
+  function commit(order, focusId) {
+    if (pending || JSON.stringify(order) === JSON.stringify(spots.map(s => s.id))) return;
+    pending = true;
+    const byId = new Map(spots.map(s => [s.id,s]));
+    const previous = spots;
+    spots = order.map(id => byId.get(id));
+    draw(focusId);
+    setStatus('saving');
+    const req = ++requestId;
+    postMsg('jb-reorder', { ids:order, requestId:req });
+    // Do not strand the list if an older host does not acknowledge this message.
+    setTimeout(() => {
+      if (pending && requestId === req) {
+        pending = false; spots = previous; draw(focusId);
+        setStatus('timeout');
+        postMsg('jb-init');
+      }
+    },5000);
+  }
+  function start(e,item) {
+    if (e.button !== 0 || pending || spots.length < 2) return;
+    e.preventDefault();
+    e.currentTarget.focus({ preventScroll:true });
+    e.currentTarget.setPointerCapture(e.pointerId);
+    drag = { item, handle:e.currentTarget, id:e.pointerId, y:e.clientY, active:false, before:ids() };
+  }
+  function reorderAt(y) {
+    if (!drag?.active) return;
+    const other = [...list.querySelectorAll('.spot-item')].filter(el => el !== drag.item);
+    const target = other.find(el => { const b = el.getBoundingClientRect(); return y < b.top + b.height / 2; });
+    if (target && drag.item.nextElementSibling !== target) list.insertBefore(drag.item,target);
+    else if (!target && list.lastElementChild !== drag.item) list.append(drag.item);
+    // Reparenting may release capture in Chromium; re-acquire after the DOM move.
+    if (drag.handle.isConnected) drag.handle.setPointerCapture(drag.id);
+  }
+  function autoScroll() {
+    scrollFrame = 0;
+    if (!drag?.active) return;
+    const b = list.getBoundingClientRect();
+    const dy = drag.y < b.top + 28 ? -5 : drag.y > b.bottom - 28 ? 5 : 0;
+    if (dy) { list.scrollTop += dy; reorderAt(drag.y); }
+    scrollFrame = requestAnimationFrame(autoScroll);
+  }
+  function move(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    if (!drag.active && Math.abs(e.clientY - drag.y) < 4) return;
+    drag.active = true; drag.y = e.clientY;
+    drag.item.classList.add('is-sorting');
+    e.preventDefault(); reorderAt(e.clientY);
+    if (!scrollFrame) scrollFrame = requestAnimationFrame(autoScroll);
+  }
+  function release() {
+    cancelAnimationFrame(scrollFrame); scrollFrame = 0;
+    const old = drag; drag = null;
+    if (old) {
+      old.item.classList.remove('is-sorting');
+      if (old.handle.hasPointerCapture(old.id)) old.handle.releasePointerCapture(old.id);
+    }
+    return old;
+  }
+  function end(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    const old = release();
+    if (old.active) commit(ids(),old.item.dataset.spotId);
+  }
+  function cancel() {
+    const old = release();
+    if (old) draw(old.item.dataset.spotId);
+  }
+  window.addEventListener('pointermove',move);
+  window.addEventListener('pointerup',end);
+  window.addEventListener('pointercancel',() => { if (drag) cancel(); });
+  window.addEventListener('keydown',e => {
+    if (e.key === 'Escape' && drag) { e.preventDefault(); cancel(); }
+  });
+  function render(data, message = {}) {
+    if (message.requestId && message.requestId < requestId) return;
+    const active = document.activeElement?.closest('.spot-item');
+    const focusId = active?.dataset.spotId, action = document.activeElement?.dataset.action;
+    if (drag) release();
+    spots = Array.isArray(data) ? data : [];
+    if (message.requestId === requestId) {
+      pending = false;
+      setStatus(message.error ? 'changed' : 'saved');
+    }
+    draw(focusId,action);
+  }
+  function refresh() {
+    setStatus(statusKey);
+    const t = i18n[curLang];
+    hint.textContent = l('拖拽左侧手柄排序；聚焦手柄后按 ↑ ↓ 调整', 'Drag a handle to sort, or focus it and press ↑ / ↓.');
+    const saveLabel = save.querySelector('[data-key]');
+    if (saveLabel) saveLabel.textContent = t[saveLabel.dataset.key];
+    for (const input of list.querySelectorAll('.spot-name-input')) { input.title = t.wb_rename; input.setAttribute('aria-label',t.wb_rename); }
+    for (const el of list.querySelectorAll('[data-action]:not(input)')) {
+      const title = el.dataset.action === 'jump' ? t.wb_btn_jump : el.dataset.action === 'delete' ? t.wb_delete : l('排序：方向键上下移动，Home / End 移到首尾', 'Sort: Up / Down to move; Home / End for first / last.');
+      el.title = title; el.setAttribute('aria-label',title);
+    }
+    const title = list.querySelector('.jumpback-empty-title'), desc = list.querySelector('.jumpback-empty-desc');
+    if (title) title.textContent = t.wb_empty_title;
+    if (desc) desc.textContent = t.wb_empty_desc;
+  }
+  window.PluginBookmarks = { render, refresh };
+  const initial = window.__bookmarkInitial;
+  render(initial?.data || [],initial || {});
+  postMsg('jb-init');
+})();
+
 /* Shared workspace navigation. Keep tools directly visible; no duplicate shell controls. */
 (() => {
   const $ = id => document.getElementById(id);
@@ -18108,12 +18427,26 @@ const theoryDB = [
     for (const [el, top] of scrollPositions.get(key) || []) if (el.isConnected) el.scrollTop = top;
   }
 
-  // One stable list of tools; preserve the original handlers and translations.
+  // All tools remain directly accessible; headings separate tasks without folding.
   const navScroll = document.querySelector('.nav-scroll');
   navScroll.setAttribute('role', 'navigation');
   navScroll.setAttribute('aria-label', 'All in One');
   navScroll.querySelectorAll('.nav-section-label').forEach(el => el.remove());
-  Object.keys(routes).forEach(key => navScroll.append(nav(key)));
+  const navGroups = [
+    ['效率工具', 'Productivity', ['simple','select','text','smartFill','size','jumpback']],
+    ['组件与图层', 'Components & Layers', ['refiner','componentBuilder','duplicate','compkit']],
+    ['设计拓展', 'Design Extras', ['i18n','skew','ppt','theory']]
+  ].map(([zh, en, keys], index) => {
+    const group = document.createElement('section');
+    group.className = 'nav-group';
+    const heading = document.createElement('div');
+    heading.id = `navGroup${index}`;
+    heading.className = 'nav-group-label';
+    group.setAttribute('aria-labelledby', heading.id);
+    group.append(heading, ...keys.map(nav));
+    navScroll.append(group);
+    return { heading, zh, en };
+  });
 
   // Target dimensions precede the potentially long preset catalogue.
   const sizeCards = document.querySelectorAll('#sizePanel .size-card');
@@ -18182,6 +18515,9 @@ const theoryDB = [
   }
 
   function refresh() {
+    navGroups.forEach(({ heading, zh, en }) => { heading.textContent = l(zh, en); });
+    window.PluginWindow?.refresh();
+    window.PluginBookmarks?.refresh();
     document.documentElement.lang = english() ? 'en' : 'zh-CN';
     i18nUpdateModeDesc();
     document.querySelector('#sfPrefix + span').textContent = l('前缀', 'Prefix');
