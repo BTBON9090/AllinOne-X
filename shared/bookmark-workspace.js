@@ -34,7 +34,7 @@
     const icon = document.createElement('span'); PluginIcons.put(icon, 'device-floppy');
     const text = document.createElement('span'); text.dataset.key = save.disabled ? 'wb_slot_full' : 'wb_btn_save_spot'; text.textContent = t[text.dataset.key];
     save.append(icon,text);
-    hint.textContent = l('拖拽卡片右上角手柄排序；聚焦手柄后按 ↑ ↓ 调整', 'Drag the handle at the top right of a card to sort, or focus it and press ↑ / ↓.');
+    hint.textContent = l('点击卡片传送，点击名称编辑；拖拽左侧手柄或按 ↑ ↓ 排序', 'Click a card to jump or its name to edit. Drag the left handle or press ↑ / ↓ to sort.');
     if (!spots.length) {
       const empty = document.createElement('div'); empty.className = 'jumpback-empty';
       const title = document.createElement('div'); title.className = 'jumpback-empty-title'; title.textContent = t.wb_empty_title;
@@ -55,15 +55,15 @@
         jbRename(spot.id,name.value);
       });
       const heading = document.createElement('div'); heading.className = 'bookmark-card-heading';
-      heading.append(page,handle);
+      heading.append(page);
       content.append(heading,name);
       const actions = document.createElement('div'); actions.className = 'spot-actions';
-      const jump = button('player-play',t.wb_btn_jump,'jump'); jump.addEventListener('click', () => jbJump(spot.id));
-      jump.className = 'btn-spot-jump';
-      const jumpLabel = document.createElement('span'); jumpLabel.dataset.key = 'wb_btn_jump'; jumpLabel.textContent = t.wb_btn_jump; jump.append(jumpLabel);
       const remove = button('trash',t.wb_delete,'delete'); remove.className = 'btn-spot-del'; remove.addEventListener('click', () => jbDelete(spot.id));
-      actions.append(jump,remove);
-      item.append(content,actions); list.append(item);
+      actions.append(remove);
+      item.append(handle,content,actions); list.append(item);
+      item.tabIndex = 0; item.setAttribute('role','button'); item.setAttribute('aria-label', `${t.wb_btn_jump}：${spot.name}`);
+      item.addEventListener('click', e => { if (!e.target.closest('button,input') && !drag) jbJump(spot.id); });
+      item.addEventListener('keydown', e => { if (e.target === item && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); jbJump(spot.id); } });
       handle.addEventListener('pointerdown', e => start(e,item));
       handle.addEventListener('keydown', e => {
         if (e.key === 'Escape' && drag) { cancel(e); return; }
@@ -168,7 +168,7 @@
   function refresh() {
     setStatus(statusKey);
     const t = i18n[curLang];
-    hint.textContent = l('拖拽卡片右上角手柄排序；聚焦手柄后按 ↑ ↓ 调整', 'Drag the handle at the top right of a card to sort, or focus it and press ↑ / ↓.');
+    hint.textContent = l('点击卡片传送，点击名称编辑；拖拽左侧手柄或按 ↑ ↓ 排序', 'Click a card to jump or its name to edit. Drag the left handle or press ↑ / ↓ to sort.');
     const saveLabel = save.querySelector('[data-key]');
     if (saveLabel) saveLabel.textContent = t[saveLabel.dataset.key];
     for (const input of list.querySelectorAll('.spot-name-input')) { input.title = t.wb_rename; input.setAttribute('aria-label',t.wb_rename); }

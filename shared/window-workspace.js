@@ -8,6 +8,7 @@
   document.querySelector('.sidebar-footer').append(row);
   const collapseButton = row.querySelector('#collapseWindow');
   const moveButton = row.querySelector('#moveWindow');
+  moveButton.remove();
   const bubble = document.createElement('button');
   bubble.id = 'pluginBubble';
   // Reuse the original purple four-tile identity, not a new icon or emoji.

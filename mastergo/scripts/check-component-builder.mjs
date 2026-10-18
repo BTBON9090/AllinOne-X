@@ -12,7 +12,7 @@ const checks = [
   ['实例逆向消息分支', main.includes("case 'component-builder-reverse'")],
   ['Frame 构建消息分支', main.includes("case 'component-builder-create'")],
   ['创建组件 API', main.includes('mg.createComponent()')],
-  ['创建组件集 API', main.includes('mg.combineAsVariants(createdComponents)')],
+  ['创建组件集 API', main.includes('layerBuildManual(msg)')],
   ['文字属性生成', main.includes("addComponentProperty(propertyName, 'TEXT'")],
   ['实例切换属性生成', main.includes("'INSTANCE_SWAP'") && main.includes('mainComponent: propertyId')],
   ['组件属性变量绑定恢复', main.includes('mg.variables.setVariableInComponent')],
@@ -69,13 +69,13 @@ const checks = [
   ['显隐与锁定快照恢复', main.includes("trySet(node, 'isVisible', snapshot.isVisible)") && main.includes("trySet(node, 'isLocked', snapshot.isLocked)")],
   ['属性引用目标校验', main.includes('resolveSnapshotNode(component, snapshot)')],
   ['失效实例节点降级处理', main.includes('safeNodeById(defaultValue)') && main.includes('已跳过该实例属性')],
-  ['组件集合并后统一建属性', /mg\.combineAsVariants\(createdComponents\)[\s\S]+exposeBuilderPropertiesForSet\(set, exposeText, exposeInstances\)/.test(main)],
+  ['组件集合并后统一建属性', main.includes('layerBuildManual(msg)') && main.includes('exposeBuilderPropertiesForSet')],
   ['组件构建器导航', ui.includes('data-nav="componentBuilder"')],
   ['组件构建器面板', ui.includes('id="componentBuilderPanel"')],
   ['逆向入口位于简易工具', ui.includes("trackAndRun('component-builder-reverse')") && ui.includes('data-key="reverse_component"')],
   ['组件构建面板不再放逆向按钮', !ui.includes('id="builderReverseBtn"')],
-  ['四种构建模式', ['single', 'multiple', 'set', 'language'].every(mode => ui.includes(`data-builder-mode="${mode}"`))],
-  ['语言变体自动识别', main.includes('languageVariantValue') && main.includes("mode === 'language'")],
+  ['三种普通构建模式', ['single', 'multiple', 'set'].every(mode => ui.includes(`data-builder-mode="${mode}"`))],
+  ['AI 方案入口与移除语言构建', ui.includes("builderAiCard") && !ui.includes('data-builder-mode="language"')],
   ['移除重复 AI 优化入口', !ui.includes('id="componentAiFeedback"')]
 ];
 

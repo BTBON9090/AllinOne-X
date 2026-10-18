@@ -41,8 +41,7 @@ for (const [platform, ui, main] of [
 ]) {
   check(`${platform} 超级选择读取真实范围`, ui.includes("#scopeGroup .seg-btn.active")
     && !ui.includes("#scopeGroup .filter-tag.active"));
-  check(`${platform} 子孙范围递归`, main.includes("if ('findAll' in node)")
-    && main.includes('searchTargets.push(...children)'));
+  check(`${platform} 子孙范围递归`, main.includes('LayerRules.pool('));
   check(`${platform} 自定义字段随机入口`, ui.includes("runCustomFill(index, 'random', event)"));
   check(`${platform} 自定义随机模式传递`, ui.includes("beginSmartFill({ type: 'custom', dataList: [...item.list], distribution })")
     && ui.includes("distribution: task.distribution || 'order'"));
@@ -53,8 +52,7 @@ for (const [platform, ui, main] of [
   check(`${platform} 查重结果持久化`, ui.includes("PersistentCache.set('dup_last_result'")
     && ui.includes("PersistentCache.get('dup_last_result')"));
   check(`${platform} 查重左右等分布局`, ui.includes('grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr)'));
-  check(`${platform} 矩阵精确边距间距`, main.includes('padding * 2 + xArray.length * maxWidth + Math.max(0, xArray.length - 1) * gapX')
-    && main.includes('(maxWidth - v.width) / 2'));
+  check(`${platform} 矩阵精确边距间距`, main.includes('LayerRules.matrix(variants, msg)'));
   check(`${platform} 说明书内置预设`, ui.includes('compactLight:')
     && ui.includes('compactDark:')
     && ui.includes('landscapeMinimal:')
@@ -82,9 +80,8 @@ for (const [platform, ui, main] of [
   check(`${platform} 语言 Mode 规范化复用`, main.includes('normalizeI18nModeName')
     && main.includes("case 'i18n-load-config'")
     && main.includes('stableI18nVariableName'));
-  check(`${platform} 组件构建语言模式`, ui.includes('data-builder-mode="language"')
-    && !ui.includes('id="componentAiFeedback"')
-    && main.includes('languageVariantValue'));
+  check(`${platform} AI 组件方案替代语言构建`, !ui.includes('data-builder-mode="language"')
+    && ui.includes('builderAiCard') && main.includes('layerBuildManual(msg)'));
 }
 
 let failed = false;

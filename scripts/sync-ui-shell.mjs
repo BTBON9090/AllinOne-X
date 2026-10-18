@@ -16,6 +16,8 @@ const js = fs.readFileSync(path.join(root, 'shared/ui-shell.js'), 'utf8').replac
   + '\n' + fs.readFileSync(path.join(root, 'shared/theory-workspace.js'), 'utf8')
   + '\n' + fs.readFileSync(path.join(root, 'shared/window-workspace.js'), 'utf8')
   + '\n' + fs.readFileSync(path.join(root, 'shared/bookmark-workspace.js'), 'utf8')
+  + '\n' + fs.readFileSync(path.join(root, 'shared/layer-locales.js'), 'utf8')
+  + '\n' + fs.readFileSync(path.join(root, 'shared/layer-workspace.js'), 'utf8')
   + '\n' + fs.readFileSync(path.join(root, 'shared/workspace.js'), 'utf8');
 for (const platform of ['figma', 'mastergo']) {
   const file = path.join(root, platform, 'ui.html');

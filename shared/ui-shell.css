@@ -346,3 +346,41 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
 .theory-chat-message { padding:7px 8px; font-size:12px; line-height:19px; border-radius:4px; white-space:pre-wrap; overflow-wrap:anywhere; }
 .theory-chat-message.user { background:var(--primary-light); color:var(--text-primary); }
 .theory-chat-message.ai { max-width:100%; padding:0 0 8px; border:0; background:transparent; color:var(--text-primary); }
+/* Dense location rows: all five locations fit in the regular 440 × 600 window. */
+#spotList { gap:6px; padding:8px 10px; }
+#spotList .spot-item { display:flex; flex-direction:row; align-items:center; gap:6px; min-height:62px; padding:7px 8px; margin:0; cursor:pointer; }
+#spotList .bookmark-content { display:flex; flex-direction:column; flex:1; min-width:0; gap:2px; }
+#spotList .spot-page-title { font-size:10px; line-height:14px; margin:0; }
+#spotList .spot-name-input { width:100%; min-width:0; height:25px; padding:3px 0; margin:0; font-size:12px; font-weight:600; background:transparent; border:1px solid transparent; }
+#spotList .spot-name-input:focus { border-color:var(--primary); background:var(--bg-surface); padding:3px 5px; }
+#spotList .spot-actions { display:flex; width:auto; margin:0; padding:0; border:0; }
+#spotList .btn-spot-del { width:26px; height:30px; padding:4px; background:transparent; color:var(--text-tertiary); border:0; }
+#spotList .spot-item:hover { border-color:var(--primary); background:var(--bg-hover); }
+#spotList .spot-item:focus-visible { outline:2px solid var(--primary); outline-offset:-2px; }
+.window-actions #collapseWindow { width:100%; min-height:36px; justify-content:center; font-size:12px; background:var(--primary-light); color:var(--primary); }
+.layer-panel { display:flex; flex-direction:column; overflow-y:auto !important; padding:10px; gap:10px; }
+.layer-ai-card { padding:10px; border:1px solid var(--border); border-radius:4px; margin-bottom:10px; background:var(--bg-surface); min-width:0; }
+.layer-title { font-size:12px; line-height:18px; margin:0 0 6px; color:var(--text-primary); font-weight:600; }
+.layer-help { display:block; font-size:11px; line-height:17px; color:var(--text-secondary); margin:0 0 8px; }
+.layer-switch-row { display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:11px; line-height:18px; padding:6px 0; cursor:pointer; }
+.layer-switch-row input { appearance:none; flex:none; position:relative; width:28px; height:16px; border-radius:10px; border:0; background:var(--border-control); cursor:pointer; }
+.layer-switch-row input::after { content:''; position:absolute; width:12px; height:12px; border-radius:50%; background:white; top:2px; left:2px; transition:transform 120ms; }
+.layer-switch-row input:checked { background:#7135db; }
+.layer-switch-row input:checked::after { transform:translateX(12px); }
+.layer-switch-row input:focus-visible { outline:2px solid var(--primary); outline-offset:2px; }
+.layer-feedback { white-space:pre-wrap; font-size:11px; line-height:17px; color:var(--text-secondary); overflow-wrap:anywhere; max-height:260px; overflow-y:auto; margin:6px 0; }
+.layer-feedback:empty { display:none; }
+.layer-feedback.has-error { color:var(--danger); }
+.layer-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.layer-ai-card button { font-size:11px; line-height:16px; min-height:28px; border-radius:4px; margin:3px 4px 3px 0; }
+.layer-ai-card input:not([type="checkbox"]), .layer-ai-card select { box-sizing:border-box; min-width:0; width:100%; border:1px solid var(--border-control); border-radius:4px; background:var(--bg-surface); color:var(--text-primary); padding:6px; font-size:11px; }
+.layer-name-row { display:flex; align-items:center; gap:6px; padding:6px 0; border-bottom:1px solid var(--border); }
+.layer-name-row > span { flex:1; min-width:0; }
+.layer-name-row .layer-help { overflow-wrap:anywhere; margin-bottom:3px; }
+.layer-name-preview { max-height:300px; overflow-y:auto; }
+.matrix-axis-row { display:grid; grid-template-columns:minmax(0,1fr) 85px; align-items:center; gap:8px; margin:5px 0; font-size:11px; }
+.matrix-axis-row span { overflow-wrap:anywhere; }
+.builder-modes { grid-template-columns:repeat(3,minmax(0,1fr)); }
+#tabCompKitMatrix { display:none !important; }
+#tabCompKitShowcase { display:block; }
+#matrixDocumentation { flex-shrink:0; }

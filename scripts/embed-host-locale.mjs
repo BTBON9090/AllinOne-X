@@ -8,6 +8,7 @@ const target = path.join(root, platform, platform === 'figma' ? 'code.js' : 'mai
 const code = fs.readFileSync(target, 'utf8').replace(/^\/\/ shared-host-locale:start[\s\S]*?\/\/ shared-host-locale:end\n/, '');
 const core = fs.readFileSync(path.join(root,'shared/localization-core.js'),'utf8');
 const adapter = fs.readFileSync(path.join(root,'shared/localization-host.js'),'utf8').replaceAll('__PLUGIN_HOST__', platform === 'figma' ? 'figma' : 'mg');
+const layers = ['layer-core.js', 'layer-host.js'].map(file => fs.readFileSync(path.join(root,'shared',file),'utf8')).join('\n').replaceAll('__PLUGIN_HOST__', platform === 'figma' ? 'figma' : 'mg').replaceAll('__PLUGIN_PLATFORM__', JSON.stringify(platform));
 const windowHost = fs.readFileSync(path.join(root,'shared/window-host.js'),'utf8');
 const windowAdapter = fs.readFileSync(path.join(root,'shared/window-adapters.js'),'utf8').replaceAll('__PLUGIN_PLATFORM__', JSON.stringify(platform));
-fs.writeFileSync(target, '// shared-host-locale:start\n' + core + '\n' + adapter + '\n' + windowHost + '\n' + windowAdapter + '\n// shared-host-locale:end\n' + code);
+fs.writeFileSync(target, '// shared-host-locale:start\n' + core + '\n' + adapter + '\n' + windowHost + '\n' + windowAdapter + '\n' + layers + '\n// shared-host-locale:end\n' + code);

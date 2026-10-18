@@ -23,7 +23,7 @@ fs.mkdirSync(output, { recursive:true });
       await page.waitForFunction(() => window.PluginWorkspace && document.querySelectorAll('#smartBasicList .smart-fill-trigger').length > 0);
       await screenshot({ path:path.join(output, `${platform}-tools.png`) });
       const routes = await page.locator('.nav-item').evaluateAll(items => items.map(item => item.dataset.nav));
-      assert.equal(routes.length, 14);
+      assert.equal(routes.length, 15);
       for (const mode of ['normal','compact','small-english-dark']) {
         await page.setViewportSize(mode === 'normal' ? { width:440,height:600 } : mode === 'compact' ? { width:360,height:520 } : { width:340,height:440 });
         await page.evaluate(mode => {
@@ -192,7 +192,7 @@ fs.mkdirSync(output, { recursive:true });
       await page.locator('#sfPrefix').check();
       await page.locator('[data-fill-type="number"] .smart-fill-trigger').click();
       await page.locator('#sfSuffix').check();
-      assert(!(await page.locator('#sfPrefix').isChecked()), 'Affix modes remain exclusive');
+      assert(await page.locator('#sfPrefix').isChecked(), 'Prefix and suffix can both remain enabled');
       const basicAffix = await replyCount();
       assert.equal(basicAffix.mode, 'prefix', 'Fill mode is captured at click time');
       assert.deepEqual(basicAffix.dataList, ['2','2']);
@@ -201,7 +201,7 @@ fs.mkdirSync(output, { recursive:true });
       assert(await page.locator('#smartAffixBar').isVisible());
       await page.locator('[onclick="applyAiFill(\'random\')"]').click();
       const aiAffix = await replyCount();
-      assert.equal(aiAffix.mode, 'suffix');
+      assert.equal(aiAffix.mode, 'both');
       assert.equal(aiAffix.distribution, 'random');
       assert.deepEqual(aiAffix.nodeIds, ['first','second']);
       assert.deepEqual(aiAffix.dataList, ['甲','乙']);
@@ -212,6 +212,7 @@ fs.mkdirSync(output, { recursive:true });
       });
       assert.equal(await page.locator('#smartCustomList .smart-custom-count, #smartCustomList .smart-fill-trigger').count(), 0);
       await page.locator('#sfPrefix').check();
+      await page.locator('#sfSuffix').uncheck();
       await page.locator('.smart-custom-fill').first().click();
       await page.evaluate(() => { customDataLists[0].list[0] = '已变更'; });
       const customAffix = await replyCount();
@@ -275,6 +276,7 @@ fs.mkdirSync(output, { recursive:true });
       }
       await page.locator('#pageAddCustom .btn-back-sub').click();
       await page.locator('#sfSuffix').check();
+      await page.locator('#sfPrefix').uncheck();
       await page.locator('#sfAffixText').fill('， ');
       await page.locator('#sfAffixText').press('Enter');
       const chars = await replyCount();
@@ -313,7 +315,7 @@ fs.mkdirSync(output, { recursive:true });
       await page.evaluate(() => changeLanguage('zh'));
       assert((await page.locator('#i18nModeDesc').innerText()).startsWith('更新 Mode：'), 'Changing UI language preserves the current action explanation');
       assert.deepEqual(errors, [], `${platform}: browser errors`);
-      console.log(`${platform}: 14 routes × 3 sizes, shared affixes (basic/AI/custom/characters), dense layouts, greeting cache/fallback, keyboard, scrolling, size actions, fill preview and safe titles passed.`);
+      console.log(`${platform}: 15 routes × 3 sizes, shared affixes (basic/AI/custom/characters), dense layouts, greeting cache/fallback, keyboard, scrolling, size actions, fill preview and safe titles passed.`);
       await page.close();
     }
   } finally { await browser.close(); }

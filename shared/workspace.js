@@ -7,10 +7,11 @@
     text: ['textPanel', 'efficiency', '查找后勾选结果再替换。默认仅处理选中图层；替换前可在画布定位。', 'Find text, select matches, then replace. The default scope is the selection.'],
     smartFill: ['smartFillPanel', 'efficiency', '先选择文本或画板，点击字段名称填充。标签和设置只调整规则。', 'Select text or frames, then click a field name to fill. Tags and settings only change the rules.'],
     size: ['sizePanel', 'efficiency', '编辑目标尺寸或选择预设，再应用到选中画板或矩形。设计视口用于界面，原生分辨率用于像素对照。', 'Edit dimensions or pick a preset, then apply to selected frames or rectangles. Design viewport and native resolution serve different purposes.'],
-    refiner: ['refinerPanel', 'components', '扫描组件问题，再按需清洗或生成组件说明书。', 'Scan component issues, then clean them or generate a component showcase.'],
-    componentBuilder: ['componentBuilderPanel', 'components', '选择 Frame，再选择组件、组件集或语言变体的构建方式。', 'Select frames, then create components, component sets or language variants.'],
+    refiner: ['refinerPanel', 'components', '检查组件与属性名称的格式，查找替换名称，或用 AI 翻译成英文；先预览后修改。', 'Check and replace component/property names, or translate names with AI. Preview before applying.'],
+    componentBuilder: ['componentBuilderPanel', 'components', 'AI 读取 Frame 的图层结构与截图，建议组件分组、属性和命名；预览后构建。也支持普通构建。', 'Analyze Frame structure and screenshots, preview AI suggestions, then build components. Manual creation remains available.'],
+    layerNaming: ['layerNamingPanel', 'components', 'AI 识图建议图层名称与图标含义；预览后批量命名，也支持普通编号命名。', 'Preview AI names from layer screenshots, or use ordinary numbered names.'],
     duplicate: ['duplicatePanel', 'components', '选择两个画板，对比重复元素并定位结果。', 'Select two frames to compare repeated elements and locate matches.'],
-    compkit: ['compkitPanel', 'components', '读取本地组件库并按需生成预览和布局。', 'Read local components and generate previews and layouts.'],
+    compkit: ['compkitPanel', 'components', '将所选组件集按多个属性排列成行、列和分组，可用 AI 建议维度；开启底部开关生成说明书。', 'Arrange selected component sets by rows, columns and groups. AI can suggest dimensions; enable documentation at the bottom to add a showcase.'],
     i18n: ['i18nPanel', 'extensions', '先确认范围和源语言。直接替换会修改文本；Mode 用于保存可切换的语言版本。', 'Confirm scope and source language. Replace changes text; modes preserve switchable language versions.'],
     skew: ['skewPanel', 'extensions', '预览倾斜与等轴效果，再应用到选中图层。', 'Preview skew and isometric transforms, then apply to selected layers.'],
     ppt: ['pptPanel', 'extensions', '建议先复制页面；按步骤预处理后导出。首次使用请查看面板内的导出说明。', 'Duplicate the page first. Follow the preparation steps and review the export notes.'],
@@ -68,6 +69,7 @@
     refreshLocation();
     window.PluginLocalization?.refresh();
     if (key === 'settings') initSettingsPanel();
+    if (key === 'compkit') { requestCompKitProps(); window.LayerWorkspace?.refreshAxes(); }
     if (key === 'componentBuilder') requestComponentBuilderSelection();
     if (key === 'size') { initSizeAssistant(); updateSizeSummary(); postMsg('size-assistant-inspect'); }
     for (const [el, top] of scrollPositions.get(key) || []) if (el.isConnected) el.scrollTop = top;
@@ -80,7 +82,7 @@
   navScroll.querySelectorAll('.nav-section-label').forEach(el => el.remove());
   const navGroups = [
     ['效率工具', 'Productivity', ['simple','select','text','smartFill','size','jumpback']],
-    ['组件与图层', 'Components & Layers', ['refiner','componentBuilder','duplicate','compkit']],
+    ['组件与图层', 'Components & Layers', ['refiner','componentBuilder','layerNaming','duplicate','compkit']],
     ['设计拓展', 'Design Extras', ['i18n','skew','ppt','theory']]
   ].map(([zh, en, keys], index) => {
     const group = document.createElement('section');
@@ -190,6 +192,7 @@
     refreshLocation();
     window.PluginLocalization?.refresh();
     window.TheoryWorkspace?.refresh();
+    window.LayerWorkspace?.refresh();
     if (sizeAssistantState.initialized) {
       renderSizePresets();
       const preset = SIZE_ASSISTANT_PRESETS.find(item => item.id === sizeAssistantState.selectedId);

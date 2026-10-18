@@ -27,7 +27,7 @@
     ref_chip_pname_title:'Component name', ref_chip_prop_key_title:'Property name',
     ref_chip_prop_val_title:'Property value', lbl_case:'Naming style', opt_keep_orig:'Keep original',
     opt_unmark:'Remove hidden-name prefix (. / _)', opt_mark_hidden:'Add hidden-name prefix (.)',
-    opt_id:'Remove internal ID (#21:3)', lbl_opt:'Cleanup options',
+    opt_id:'Clean ID suffixes from names', lbl_opt:'Cleanup options',
     empty_perfect_title:'All clear', btn_reset:'Reset Settings', ref_btn_find_preview:'Preview Matches',
     ref_success_title:'Changes applied', ref_success_btn:'Continue with Remaining Items',
     cb_subtitle:'Create reusable components from one or more frames.',

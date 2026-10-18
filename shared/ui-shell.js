@@ -135,11 +135,6 @@
       target.click();
     }
   });
-  for (const [id, other] of [['sfPrefix','sfSuffix'], ['sfSuffix','sfPrefix']]) {
-    document.getElementById(id)?.addEventListener('change', event => {
-      if (event.target.checked) document.getElementById(other).checked = false;
-    });
-  }
   // Observe just changed subtrees; avoid reprocessing the whole panel while AI streams.
   const pending = new Set();
   let scheduled = false;
@@ -159,5 +154,7 @@
       });
     }
   }).observe(document.body, { childList: true, subtree: true, characterData: true });
-  if (PersistentCache.get('compact_mode') === true) setCompactMode(true);
+  if (PersistentCache.get('compact_mode') === true) setCompactMode(false);
+  document.body.classList.remove('mini-mode');
+  document.querySelectorAll('#modeBtn, [onclick*="toggleCompactMode"], [onclick*="setCompactMode"]').forEach(el => el.remove());
 })();

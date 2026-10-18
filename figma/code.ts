@@ -1,4 +1,7 @@
 // @ts-nocheck
+declare const LayerRules: any;
+declare function handleLayerToolsMessage(message: any): Promise<boolean>;
+declare function installLayerTools(): void;
 declare const __html__: string;
 declare let pluginUiLanguage: string;
 declare function notifyInUiLanguage(message: string, options?: any): any;
@@ -72,6 +75,8 @@ const convertNameAdvanced = (str: string, format: string, sepMode: string, casin
     return { changed: newVal !== str, val: newVal };
 };
 figma.showUI(__html__, { width: 440, height: 600, themeColors: true });
+installLayerTools();
+
 
 // Smart Fill: one deduplicated, visible selection for both count and write.
 const collectSmartFillTextNodes = (roots: readonly any[]): TextNode[] => {
@@ -1130,6 +1135,7 @@ figma.ui.onmessage = async (msg) => {
   if (msg.uiLanguage === 'en' || msg.uiLanguage === 'zh') pluginUiLanguage = msg.uiLanguage;
   if (msg.type === 'ui-language-changed') { pluginUiLanguage = msg.language === 'en' ? 'en' : 'zh'; return; }
   if (handlePluginWindowMessage(msg)) return;
+  if (await handleLayerToolsMessage(msg)) return;
   // 新增：专治跨域不服！拦截 'do-fetch' 指令，由后台沙箱代发请求
   // =======================================================
   if (msg.type === 'do-fetch') {
@@ -1200,7 +1206,9 @@ figma.ui.onmessage = async (msg) => {
           const value = String(dataList[distribution === 'random'
             ? Math.floor(Math.random() * dataList.length) : (snapshotOrder.get(node.id) ?? i) % dataList.length] ?? '');
           // Inserting at the edges retains mixed text styles in prefix/suffix mode.
-          if (mode === 'prefix') {
+          if (mode === 'both') {
+            if (value) { node.insertCharacters(node.characters.length, value); node.insertCharacters(0, value); }
+          } else if (mode === 'prefix') {
             if (value) node.insertCharacters(0, value);
           } else if (mode === 'suffix') {
             if (value) node.insertCharacters(node.characters.length, value);
@@ -1769,88 +1777,12 @@ figma.ui.onmessage = async (msg) => {
 
     case 'find-and-select': {
         const f = msg.filters;
-        const sel = figma.currentPage.selection;
-
-        console.log(`=== 开始查找 (v3修复版) ===`);
-        console.log(`Scope: ${f.scope} | 选中图层: ${sel.length}`);
-
-        // 🔥 1. 使用全新变量名，防止作用域冲突
-        let searchTargets = [];
-
-        // =========================================================
-        // A. 构建查找池 (Pool Construction)
-        // =========================================================
-        if (f.scope === 'inside') {
-            // 模式：内在元素 (不包含选中项本身)
-            if (sel.length === 0) {
-                notifyInUiLanguage("⚠️ 请先选择一个容器(Frame/Group)");
-                return;
-            }
-            for (const node of sel) {
-                if ('findAll' in node) {
-                    // 使用 push(...) 而不是 concat，确保修改的是原数组
-                    const children = node.findAll(() => true);
-                    searchTargets.push(...children);
-                }
-            }
+        // Keep the user's seed selection while switching filters after selecting results.
+        const sel = layerSearchRoots();
+        if (f.scope !== 'page' && !sel.length) {
+            notifyInUiLanguage('请先选择查找范围的起点图层');
         }
-        else if (f.scope === 'children') {
-            // 模式：仅直系子级
-            if (sel.length === 0) {
-                notifyInUiLanguage("⚠️ 请先选择一个容器(Frame/Group)");
-                return;
-            }
-            for (const node of sel) {
-                if ('children' in node) {
-                    searchTargets.push(...node.children);
-                }
-            }
-        }
-        else if (f.scope === 'sibling') {
-            // 模式：同级
-            if (sel.length > 0 && sel[0].parent) {
-                const siblings = sel[0].parent.children.filter(n => !sel.includes(n));
-                searchTargets.push(...siblings);
-            } else {
-                notifyInUiLanguage("⚠️ 请先选择一个图层");
-                return;
-            }
-        }
-        else if (f.scope === 'page') {
-            // 模式：全页 - 直接查找当前页面所有图层，忽略选中状态
-            console.log(">> 策略: 全页面查找");
-            const allPageNodes = figma.currentPage.findAll(() => true);
-            searchTargets.push(...allPageNodes);
-        }
-        else {
-            // 模式：子孙元素 (descendants) - 默认模式
-            // 逻辑：如果选了图层，只查其子孙（不包含选中容器本身）；如果没选，查“全页”
-
-            if (sel.length > 0) {
-                console.log(">> 策略: 查找选中项及其后代");
-
-                for (const node of sel) {
-                    if ('findAll' in node) {
-                        const children = node.findAll(() => true);
-                        searchTargets.push(...children);
-                    }
-                }
-            } else {
-                console.log(">> 策略: 全页面查找");
-                const allPageNodes = figma.currentPage.findAll(() => true);
-                searchTargets.push(...allPageNodes);
-            }
-        }
-
-        // =========================================================
-        // B. 去重 (Deduplication) - 使用 Map ID 去重最稳健
-        // =========================================================
-        const uniqueMap = new Map();
-        searchTargets.forEach(node => uniqueMap.set(node.id, node));
-        const finalPool = Array.from(uniqueMap.values());
-
-        console.log(`🔍 待筛选池最终大小: ${finalPool.length}`);
-
+        const finalPool = LayerRules.pool(figma.currentPage, sel, f.scope);
         const colorToHex = (color: any) => {
             if (!color) return undefined;
             const part = (value: number) => Math.round(Math.max(0, Math.min(1, value || 0)) * 255).toString(16).padStart(2, '0');
@@ -1859,7 +1791,8 @@ figma.ui.onmessage = async (msg) => {
         const firstVisiblePaint = (paints: any) => Array.isArray(paints)
             ? paints.find((paint: any) => paint && paint.visible !== false)
             : undefined;
-        const getAdvancedPropertyValue = (node: any, key: string): any => {
+        const getAdvancedPropertyValue = async (node: any, key: string): Promise<any> => {
+            if (key === 'mainComponentId') return node.type === 'INSTANCE' ? (await node.getMainComponentAsync())?.id : undefined;
             const fill = firstVisiblePaint(node.fills);
             const stroke = firstVisiblePaint(node.strokes);
             const effect = Array.isArray(node.effects) ? node.effects.find((item: any) => item && item.visible !== false) : undefined;
@@ -1947,7 +1880,7 @@ figma.ui.onmessage = async (msg) => {
                 paragraphSpacing: node.paragraphSpacing,
                 textStyleId: node.textStyleId,
                 description: node.description,
-                mainComponentId: node.mainComponent?.id,
+
                 componentPropertyCount: node.componentProperties ? Object.keys(node.componentProperties).length : undefined,
                 variantPropertyCount: node.componentPropertyDefinitions ? Object.keys(node.componentPropertyDefinitions).length : undefined,
                 reactionCount: Array.isArray(node.reactions) ? node.reactions.length : undefined,
@@ -1978,66 +1911,21 @@ figma.ui.onmessage = async (msg) => {
                 if (!n.includes(q)) match = false;
             }
 
-            // 2. 类型匹配
-            if (match && f.types && f.types.vals.length > 0) {
-                const t = node.type;
-                const ts = f.types.vals;
-                let isType = false;
-
-                if (ts.includes(t)) isType = true;
-                if (ts.includes('AUTOLAYOUT') && t === 'FRAME' && node.layoutMode !== 'NONE') isType = true;
-                if (ts.includes('IMAGE') && 'fills' in node && node.fills !== figma.mixed && Array.isArray(node.fills)) {
-                    if (node.fills.some(p => p.type === 'IMAGE' && p.visible !== false)) isType = true;
-                }
-                if (ts.includes('COMPONENT_SET') && t === 'COMPONENT_SET') isType = true;
-                if (ts.includes('SECTION') && t === 'SECTION') isType = true;
-
-                if (f.types.logic === 'include') {
-                    if (!isType) match = false;
-                } else {
-                    if (isType) match = false;
-                }
-            }
-
-            // 3. 状态匹配
-            if (match && f.states && f.states.vals.length > 0) {
-                let isState = false;
-                const s = f.states.vals;
-
-                if (s.includes('hidden') && !node.visible) isState = true;
-                if (s.includes('locked') && node.locked) isState = true;
-                if (s.includes('mask') && node.isMask) isState = true;
-                if (s.includes('export') && node.exportSettings && node.exportSettings.length > 0) isState = true;
-
-                if (s.includes('no-fill') && 'fills' in node && node.fills !== figma.mixed) {
-                    if (Array.isArray(node.fills) && node.fills.length === 0) isState = true;
-                }
-                if (s.includes('no-stroke') && 'strokes' in node && node.strokes !== figma.mixed) {
-                    if (Array.isArray(node.strokes) && node.strokes.length === 0) isState = true;
-                }
-                if (s.includes('clip') && 'clipsContent' in node && node.clipsContent) isState = true;
-                if (s.includes('no-children') && 'children' in node) {
-                    if (node.children.length === 0) isState = true;
-                }
-
-                if (f.states.logic === 'include') {
-                    if (!isState) match = false;
-                } else {
-                    if (isState) match = false;
-                }
-            }
+            // Within each group: OR. Between type/state/name/property groups: AND.
+            if (match && !LayerRules.matches(node, f.types, f.states)) match = false;
 
             // 4. 属性匹配 (Props) - 加强容错
             if (match && f.props && f.props.length > 0) {
                 for (const p of f.props) {
                     let val = undefined;
-                    try { val = getAdvancedPropertyValue(node, p.key); } catch(e) {}
+                    try { val = await getAdvancedPropertyValue(node, p.key); } catch(e) {}
 
                     if (val === undefined) {
                         match = false; break;
                     }
 
                     const tgt = p.val;
+                    if (['>','<','>=','<='].includes(p.op) && (!Number.isFinite(Number(val)) || !Number.isFinite(Number(tgt)))) { match = false; break; }
                     // 数字比较 vs 字符串比较
                     if (p.op === '=') { if (val != tgt) match = false; }
                     else if (p.op === '!=') { if (val == tgt) match = false; }
@@ -2059,8 +1947,8 @@ figma.ui.onmessage = async (msg) => {
         console.log(`✅ 最终匹配: ${results.length}`);
 
         if (results.length > 0) {
-            figma.currentPage.selection = results;
-            figma.viewport.scrollAndZoomIntoView(results);
+            layerSelectSearch(results);
+            try { figma.viewport.scrollAndZoomIntoView(results); } catch (_) { /* Hidden results can have no viewport bounds. */ }
             notifyInUiLanguage(`✅ 已选中 ${results.length} 个图层`);
 
             // 🔥 新增：将结果回传给 UI
@@ -2071,7 +1959,8 @@ figma.ui.onmessage = async (msg) => {
             });
 
         } else {
-            notifyInUiLanguage("⚠️ 未找到图层，请检查 Console的筛选池大小");
+            layerSelectSearch([]);
+            notifyInUiLanguage("未找到符合条件的图层，请调整范围或筛选条件");
             figma.ui.postMessage({ type: 'found-layers-result', count: 0, layers: [] });
         }
         break;
@@ -3481,137 +3370,7 @@ figma.ui.onmessage = async (msg) => {
     }
 
     case 'component-builder-create': {
-      const frames = selection.filter(node => node.type === 'FRAME') as FrameNode[];
-      if (selection.length === 0 || frames.length !== selection.length) {
-        const message = '请选择一个或多个 Frame；当前选择中不能混入其他图层类型';
-        notifyInUiLanguage(message);
-        figma.ui.postMessage({ type: 'component-builder-result', ok: false, message });
-        break;
-      }
-      const connectorFrames = frames.filter(frame => {
-        try { return frame.attachedConnectors.length > 0; } catch (_) { return false; }
-      });
-      if (connectorFrames.length > 0) {
-        const message = `有 ${connectorFrames.length} 个 Frame 连接了原型连线；为避免连接目标丢失，本次未转换`;
-        notifyInUiLanguage(message);
-        figma.ui.postMessage({ type: 'component-builder-result', ok: false, message });
-        break;
-      }
-
-      const mode = ['single', 'multiple', 'set', 'language'].includes(msg.mode) ? msg.mode : 'multiple';
-      const exposeText = msg.exposeText === true;
-      const exposeInstances = msg.exposeInstances === true;
-      const requestedName = String(msg.componentName || '').trim();
-      const originalNames = frames.map(frame => frame.name);
-
-      if ((mode === 'single' && frames.length > 1) || mode === 'set' || mode === 'language') {
-        const sameParent = frames.every(frame => frame.parent === frames[0].parent);
-        if (!sameParent) {
-          const message = mode === 'set' || mode === 'language'
-            ? '创建组件集时，所选 Frame 必须位于同一父级'
-            : '合并为单个组件时，所选 Frame 必须位于同一父级';
-          notifyInUiLanguage(message);
-          figma.ui.postMessage({ type: 'component-builder-result', ok: false, message });
-          break;
-        }
-      }
-
-      try {
-        const created: ComponentNode[] = [];
-        const warnings: string[] = [];
-        let targets: SceneNode[] = [];
-
-        if (mode === 'single') {
-          const component = frames.length === 1
-            ? figma.createComponentFromNode(frames[0])
-            : wrapFramesAsOneComponent(frames, requestedName || commonNamePrefix(originalNames));
-          component.name = requestedName || component.name;
-          created.push(component);
-          const exposed = await exposeBuilderProperties(
-            component,
-            [component],
-            exposeText,
-            exposeInstances
-          );
-          warnings.push(...exposed.warnings);
-          targets = [component];
-        } else {
-          for (const frame of frames) {
-            const component = figma.createComponentFromNode(frame);
-            created.push(component);
-          }
-
-          if (mode === 'set' || mode === 'language') {
-            const variantProperty = String(msg.variantProperty || (mode === 'language' ? 'Language' : 'Variant'))
-              .replace(/[,=]/g, ' ')
-              .replace(/\s+/g, ' ')
-              .trim() || (mode === 'language' ? 'Language' : 'Variant');
-            const usedValues = new Set<string>();
-            created.forEach((component, index) => {
-              const base = mode === 'language'
-                ? languageVariantValue(originalNames[index], index)
-                : safeVariantValue(originalNames[index], index);
-              let value = base;
-              let suffix = 2;
-              while (usedValues.has(value.toLocaleLowerCase())) value = `${base} ${suffix++}`;
-              usedValues.add(value.toLocaleLowerCase());
-              component.name = `${variantProperty}=${value}`;
-            });
-            const parent = frames[0].parent && 'children' in frames[0].parent
-              ? frames[0].parent as BaseNode & ChildrenMixin
-              : figma.currentPage;
-            const set = figma.combineAsVariants(created, parent);
-            set.name = requestedName || commonNamePrefix(originalNames);
-            const exposed = await exposeBuilderProperties(
-              set,
-              set.children.filter(node => node.type === 'COMPONENT') as ComponentNode[],
-              exposeText,
-              exposeInstances
-            );
-            warnings.push(...exposed.warnings);
-            targets = [set];
-          } else {
-            if (requestedName) {
-              created.forEach((component, index) => {
-                component.name = created.length === 1
-                  ? requestedName
-                  : `${requestedName}/${originalNames[index]}`;
-              });
-            }
-            for (const component of created) {
-              const exposed = await exposeBuilderProperties(
-                component,
-                [component],
-                exposeText,
-                exposeInstances
-              );
-              warnings.push(...exposed.warnings);
-            }
-            targets = created;
-          }
-        }
-
-        figma.currentPage.selection = targets;
-        figma.viewport.scrollAndZoomIntoView(targets);
-        figma.commitUndo();
-        const typeLabel = mode === 'language' ? '语言组件集' : (mode === 'set' ? '组件集' : (mode === 'single' ? '单个组件' : '多个组件'));
-        const exposedLabel = [exposeText ? '文字属性' : '', exposeInstances ? '实例属性' : '']
-          .filter(Boolean)
-          .join('、');
-        const message = `已创建${typeLabel}${exposedLabel ? `，并生成${exposedLabel}` : ''}${warnings.length ? `；${warnings.length} 项已跳过` : ''}`;
-        notifyInUiLanguage(message);
-        figma.ui.postMessage({
-          type: 'component-builder-result',
-          ok: true,
-          message,
-          warnings: [...new Set(warnings)],
-          created: targets.length
-        });
-      } catch (error) {
-        const message = `创建失败：${String((error as any)?.message || error)}`;
-        notifyInUiLanguage(message);
-        figma.ui.postMessage({ type: 'component-builder-result', ok: false, message });
-      }
+      await layerBuildManual(msg);
       break;
     }
 
@@ -3696,98 +3455,10 @@ figma.ui.onmessage = async (msg) => {
 
     // 矩阵排列（简化版）- 支持单属性（1D）和多属性（2D）
     case 'run-compkit': {
-      const { gapX, gapY, padding } = msg;
-      const selection = figma.currentPage.selection;
-
-      // 1. 检查是否只选中了一个节点，且必须是 Component Set
-      if (selection.length !== 1 || selection[0].type !== 'COMPONENT_SET') {
-        notifyInUiLanguage("请选中一个 Component Set (组件集)！", { error: true });
-        break;
-      }
-
-      const componentSet = selection[0] as ComponentSetNode;
-      const variants = componentSet.children as ComponentNode[];
-      if (variants.length === 0) {
-        notifyInUiLanguage("组件集为空", { error: true });
-        break;
-      }
-
-      // 2. 解析变体属性
-      const sampleName = variants[0].name;
-      const properties = sampleName.split(',').map(p => p.split('=')[0].trim());
-
-      const propX = properties[0];
-      const hasY = properties.length >= 2; // 有第二个属性才做二维矩阵
-      const propY = hasY ? properties[1] : '';
-
-      // 分组属性：除 X/Y 轴外的其他属性
-      const groupProps = hasY ? properties.filter(p => p !== propX && p !== propY) : properties.filter(p => p !== propX);
-
-      // 3. 收集所有的属性值
-      const xValues = new Set<string>();
-      const yValues = new Set<string>();
-      const groupValues = new Set<string>();
-
-      variants.forEach(v => {
-        const props = parseVariantName(v.name);
-        if (props[propX]) xValues.add(props[propX]);
-        if (hasY && props[propY]) yValues.add(props[propY]);
-        else if (!hasY) yValues.add('default'); // 1D 时伪造一个 Y 值
-        const gSign = groupProps.map(p => `${p}=${props[p]}`).join(', ');
-        groupValues.add(gSign || 'Default');
-      });
-
-      const xArray = Array.from(xValues);
-      const yArray = hasY ? Array.from(yValues) : ['default'];
-      const groups = Array.from(groupValues);
-
-      // 4. 计算最大宽高
-      let maxWidth = 0; let maxHeight = 0;
-      variants.forEach(v => { if (v.width > maxWidth) maxWidth = v.width; if (v.height > maxHeight) maxHeight = v.height; });
-
-      // 5. 设定间距和单元格尺寸
-      const cellWidth = maxWidth + gapX;
-      const cellHeight = hasY ? maxHeight + gapY : 0;
-      const singleGroupHeight = hasY
-        ? yArray.length * maxHeight + Math.max(0, yArray.length - 1) * gapY
-        : maxHeight;
-
-      // 6. 关闭 Component Set 的自动布局
-      componentSet.layoutMode = "NONE";
-
-      // 7. 开始重排绝对坐标
-      variants.forEach(v => {
-        const props = parseVariantName(v.name);
-        const xVal = props[propX];
-        const colIndex = xArray.indexOf(xVal);
-        const rowIndex = hasY ? yArray.indexOf(props[propY]) : 0;
-        const gSign = groupProps.map(p => `${p}=${props[p]}`).join(', ') || 'Default';
-        const groupIndex = groups.indexOf(gSign);
-
-        if (colIndex !== -1 && rowIndex !== -1 && groupIndex !== -1) {
-          const groupOffsetY = groupIndex * (singleGroupHeight + (hasY ? gapY : 0));
-          v.x = padding + colIndex * cellWidth + (maxWidth - v.width) / 2;
-          v.y = hasY
-            ? padding + groupOffsetY + rowIndex * cellHeight + (maxHeight - v.height) / 2
-            : padding + (maxHeight - v.height) / 2; // 1D 垂直居中
-        }
-      });
-
-      // 8. 重置 Component Set 的总宽高
-      const totalWidth = padding * 2 + xArray.length * maxWidth + Math.max(0, xArray.length - 1) * gapX;
-      const totalHeight = hasY
-        ? padding * 2 + groups.length * singleGroupHeight + Math.max(0, groups.length - 1) * gapY
-        : padding * 2 + maxHeight;
-      componentSet.resize(totalWidth, totalHeight);
-
-      let resultMsg = hasY
-        ? `✨ 矩阵重排完成！${xArray.length} x ${yArray.length}${groups.length > 1 ? `，共 ${groups.length} 个分组` : ''}`
-        : `✨ 单维度排列完成！${xArray.length} 个变体水平排列`;
-      notifyInUiLanguage(resultMsg);
+      await handleLayerToolsMessage({ ...msg, type:'layer-matrix' });
       break;
     }
 
-    // 批量排布：多个组件集统一排列
     case 'generate-batch-showcase': {
       const gapX = msg.gapX !== undefined ? msg.gapX : 16;
       const gapY = msg.gapY !== undefined ? msg.gapY : 16;
@@ -3818,6 +3489,15 @@ figma.ui.onmessage = async (msg) => {
       await figma.loadFontAsync({ family: "Inter", style: "Semi Bold" });
       await figma.loadFontAsync({ family: "Inter", style: "Bold" });
 
+      const layouts = new Map(compSets.map(componentSet => {
+        const variants = componentSet.children as ComponentNode[];
+        const properties = [...new Set(variants.flatMap(v => Object.keys(parseVariantName(v.name))))];
+        const axesX = Array.isArray(msg.axesX) ? msg.axesX.filter(p => properties.includes(p)) : [];
+        const axesY = Array.isArray(msg.axesY) ? msg.axesY.filter(p => properties.includes(p) && !axesX.includes(p)) : [properties[1]].filter(Boolean);
+        return [componentSet.id, LayerRules.matrix(variants, { ...msg, axesX: axesX.length ? axesX : [properties[0]], axesY, groupGap: msg.groupGap ?? setSpacing })];
+      }));
+      const oldBoards = new Set<any>();
+
       // 收集所有组件集的中心位置
       let centerX = 0, centerY = 0;
       compSets.forEach(cs => { centerX += cs.x + cs.width / 2; centerY += cs.y + cs.height / 2; });
@@ -3832,8 +3512,8 @@ figma.ui.onmessage = async (msg) => {
       container.primaryAxisSizingMode = "AUTO";
       container.counterAxisSizingMode = "AUTO";
       container.itemSpacing = setSpacing;
-      container.paddingLeft = 32; container.paddingRight = 32;
-      container.paddingTop = 32; container.paddingBottom = 32;
+      container.paddingLeft = msg.boardPaddingX ?? 48; container.paddingRight = msg.boardPaddingX ?? 48;
+      container.paddingTop = msg.boardPaddingY ?? 56; container.paddingBottom = msg.boardPaddingY ?? 56;
       container.fills = [{ type: 'SOLID', color: isDark
         ? { r: 17/255, g: 24/255, b: 39/255 }
         : { r: 249/255, g: 250/255, b: 251/255 } }];
@@ -3858,62 +3538,18 @@ figma.ui.onmessage = async (msg) => {
           ancestor = ancestor.parent;
         }
         figma.currentPage.appendChild(componentSet);
-        if (oldBoard) oldBoard.remove();
+        if (oldBoard) oldBoards.add(oldBoard);
 
-        // 自动推断属性：第一个属性→X轴，第二个属性（不同）→Y轴
-        const sampleName = variants[0].name;
-        const properties = sampleName.split(',').map(p => p.split('=')[0].trim());
-        const localPropX = properties[0] || '';
-        const localPropY = properties.length >= 2 && properties[1] !== localPropX ? properties[1] : '';
-        const localHasY = !!localPropY;
-        const groupProps = localHasY ? properties.filter(p => p !== localPropX && p !== localPropY) : properties.filter(p => p !== localPropX);
-
-        // 收集属性值
-        const xValues = new Set<string>();
-        const yValues = new Set<string>();
-        const groupValues = new Set<string>();
-
-        variants.forEach(v => {
-          const props = parseVariantName(v.name);
-          if (props[localPropX]) xValues.add(props[localPropX]);
-          if (localHasY && props[localPropY]) yValues.add(props[localPropY]);
-          else if (!localHasY) yValues.add('default');
-          const gSign = groupProps.map(p => `${p}=${props[p]}`).join(', ');
-          groupValues.add(gSign || 'Default');
-        });
-
-        const xArray = Array.from(xValues);
-        const yArray = localHasY ? Array.from(yValues) : ['default'];
-        const groups = Array.from(groupValues);
-
-        // 最大尺寸
-        let maxW = 0, maxH = 0;
-        variants.forEach(v => { if (v.width > maxW) maxW = v.width; if (v.height > maxH) maxH = v.height; });
-
-        const cellW = maxW + gapX;
-        const cellH = localHasY ? maxH + gapY : 0;
-        const groupH = localHasY
-          ? yArray.length * maxH + Math.max(0, yArray.length - 1) * gapY
-          : maxH;
-
-        // 排列变体
-        componentSet.layoutMode = "NONE";
-        variants.forEach(v => {
-          const props = parseVariantName(v.name);
-          const colIndex = xArray.indexOf(props[localPropX]);
-          const rowIndex = localHasY ? yArray.indexOf(props[localPropY]) : 0;
-          const gSign = groupProps.map(p => `${p}=${props[p]}`).join(', ') || 'Default';
-          const groupIndex = groups.indexOf(gSign);
-
-          if (colIndex !== -1 && rowIndex !== -1 && groupIndex !== -1) {
-            const offY = groupIndex * (groupH + (localHasY ? gapY : 0));
-            v.x = padding + colIndex * cellW + (maxW - v.width) / 2;
-            v.y = localHasY ? padding + offY + rowIndex * cellH + (maxH - v.height) / 2 : padding + (maxH - v.height) / 2;
-          }
-        });
-
-        const csWidth = padding * 2 + xArray.length * maxW + Math.max(0, xArray.length - 1) * gapX;
-        const csHeight = localHasY ? padding * 2 + groups.length * groupH + Math.max(0, groups.length - 1) * gapY : padding * 2 + maxH;
+        const layout = layouts.get(componentSet.id);
+        const localPropX = layout.x.join(' / '), localPropY = layout.y.join(' / '), localHasY = layout.y.length > 0;
+        const groupProps = layout.group;
+        const xArray = layout.xs.map(key => JSON.parse(key).join(' / '));
+        const yArray = layout.ys.map(key => JSON.parse(key).join(' / '));
+        const groups = layout.groups.map(key => JSON.parse(key).map((v,i) => `${groupProps[i]}=${v}`).join(', ') || 'Default');
+        const maxW = layout.maxW, maxH = layout.maxH, cellW = maxW + gapX, cellH = maxH + gapY, groupH = layout.groupH;
+        componentSet.layoutMode = 'NONE';
+        layout.placements.forEach(p => { p.node.x = p.x; p.node.y = p.y; });
+        const csWidth = layout.width, csHeight = layout.height;
         componentSet.resize(csWidth, csHeight);
 
         if (csWidth > maxSetWidth) maxSetWidth = csWidth;
@@ -3963,14 +3599,14 @@ figma.ui.onmessage = async (msg) => {
             label.characters = `${localPropX}: ${xVal}`.toUpperCase();
             label.fontSize = 12; label.fontName = { family: "Inter", style: "Semi Bold" };
             label.fills = [{ type: 'SOLID', color: { r: 107/255, g: 114/255, b: 128/255 } }];
-            label.x = componentSet.x + padding + index * cellW + maxW / 2 - label.width / 2;
+            label.x = componentSet.x + padding + layout.columnOffsets[index] + layout.columnWidths[index] / 2 - label.width / 2;
             label.y = componentSet.y - 32;
             innerBlock.appendChild(label); decorationNodes.push(label);
           });
         }
 
         groups.forEach((gSign, gIndex) => {
-          const gAbsY = componentSet.y + padding + gIndex * (groupH + (localHasY ? gapY : 0));
+          const gAbsY = componentSet.y + padding + gIndex * (groupH + layout.groupGap);
 
           // Y 轴标签（仅二维）
           if (localHasY && drawLabels) {
@@ -3980,7 +3616,7 @@ figma.ui.onmessage = async (msg) => {
               label.fontSize = 12; label.fontName = { family: "Inter", style: "Semi Bold" };
               label.fills = [{ type: 'SOLID', color: { r: 156/255, g: 163/255, b: 175/255 } }];
               label.x = componentSet.x - label.width - 16;
-              label.y = gAbsY + rowIndex * cellH + maxH / 2 - label.height / 2;
+              label.y = gAbsY + layout.rowOffsets[rowIndex] + layout.rowHeights[rowIndex] / 2 - label.height / 2;
               innerBlock.appendChild(label); decorationNodes.push(label);
             });
           }
@@ -3989,17 +3625,17 @@ figma.ui.onmessage = async (msg) => {
           if (drawGrid) {
             if (localHasY) {
               for (let r = 1; r < yArray.length; r++) {
-                const line = figma.createLine(); line.resize(xArray.length * cellW, 0);
-                line.x = componentSet.x + padding; line.y = gAbsY + r * cellH - gapY / 2;
+                const line = figma.createLine(); line.resize(csWidth - padding * 2, 0);
+                line.x = componentSet.x + padding; line.y = gAbsY + layout.rowOffsets[r] - gapY / 2;
                 line.dashPattern = [4, 4]; line.strokeWeight = 1;
                 line.strokes = [{ type: 'SOLID', color: { r: 0.9, g: 0.92, b: 0.94 } }];
                 innerBlock.appendChild(line); decorationNodes.push(line);
               }
             }
             for (let c = 1; c < xArray.length; c++) {
-              const lineH = localHasY ? groupH : csHeight - padding * 2;
+              const lineH = groupH;
               const line = figma.createLine(); line.resize(lineH, 0); line.rotation = -90;
-              line.x = componentSet.x + padding + c * cellW - gapX / 2; line.y = gAbsY + (localHasY ? 0 : padding);
+              line.x = componentSet.x + padding + layout.columnOffsets[c] - gapX / 2; line.y = gAbsY;
               line.dashPattern = [4, 4]; line.strokeWeight = 1;
               line.strokes = [{ type: 'SOLID', color: { r: 0.9, g: 0.92, b: 0.94 } }];
               innerBlock.appendChild(line); decorationNodes.push(line);
@@ -4038,6 +3674,7 @@ figma.ui.onmessage = async (msg) => {
         });
       }
       figma.currentPage.selection = [container];
+      oldBoards.forEach(board => { if (!board.removed && !LayerRules.walk(board.children).some(n => n.type === 'COMPONENT_SET')) board.remove(); });
       figma.viewport.scrollAndZoomIntoView([container]);
 
       notifyInUiLanguage(`✅ 批量排布完成！共 ${compSets.length} 个组件集`);
@@ -4098,6 +3735,21 @@ figma.ui.onmessage = async (msg) => {
       const variants = componentSet.children as ComponentNode[];
       if (variants.length === 0) break;
 
+      const layout = LayerRules.matrix(variants, msg);
+      const properties = [...new Set(variants.flatMap(v => Object.keys(parseVariantName(v.name))))];
+      const hasY = layout.y.length > 0;
+      const groupProps = layout.group;
+      const xArray = layout.xs.map(key => JSON.parse(key).join(' / '));
+      const yArray = layout.ys.map(key => JSON.parse(key).join(' / '));
+      const groups = layout.groups.map(key => JSON.parse(key).map((value,index) => `${groupProps[index]}=${value}`).join(', ') || 'Default');
+      const maxWidth = layout.maxW, maxHeight = layout.maxH;
+      const cellWidth = maxWidth + gapX, cellHeight = maxHeight + gapY;
+      const singleGroupHeight = layout.groupH;
+      await figma.loadFontAsync({ family: "Inter", style: "Regular" });
+      await figma.loadFontAsync({ family: "Inter", style: "Medium" });
+      await figma.loadFontAsync({ family: "Inter", style: "Semi Bold" });
+      await figma.loadFontAsync({ family: "Inter", style: "Bold" });
+
       // ====== 【核心修复】二次编辑重写与销毁旧画板的递归追溯算法 ======
       let baseX = componentSet.x;
       let baseY = componentSet.y;
@@ -4118,80 +3770,17 @@ figma.ui.onmessage = async (msg) => {
         baseY = oldBoard.y;
         isReedit = true;
         figma.currentPage.appendChild(componentSet); // 提取组件集到当前页面根目录
-        oldBoard.remove(); // 销毁老旧的外层大画板
+        // Old board is cleaned only after new documentation succeeds.
       }
 
-      const sampleName = variants[0].name;
-      const properties = sampleName.split(',').map(p => p.split('=')[0].trim());
-      const hasY = !!propY && propY !== propX; // 是否有有效的 Y 轴（二维布局）
-      const groupProps = hasY ? properties.filter(p => p !== propX && p !== propY) : properties.filter(p => p !== propX);
-
-      const xValues = new Set<string>(); const yValues = new Set<string>(); const groupValues = new Set<string>();
-
-      variants.forEach(v => {
-        const props = parseVariantName(v.name);
-        if (props[propX]) xValues.add(props[propX]);
-        if (hasY && props[propY]) yValues.add(props[propY]);
-        else if (!hasY) yValues.add('default'); // 单维时伪造一个 Y 值
-        const gSign = groupProps.map(p => `${p}=${props[p]}`).join(', ');
-        groupValues.add(gSign || 'Default');
-      });
-
-      const xArray = Array.from(xValues); const yArray = hasY ? Array.from(yValues) : ['default']; const groups = Array.from(groupValues);
-
-      await figma.loadFontAsync({ family: "Inter", style: "Regular" });
-      await figma.loadFontAsync({ family: "Inter", style: "Medium" });
-      await figma.loadFontAsync({ family: "Inter", style: "Semi Bold" });
-      await figma.loadFontAsync({ family: "Inter", style: "Bold" });
-
-      let maxWidth = 0, maxHeight = 0;
-      variants.forEach(v => {
-        if (v.width > maxWidth) maxWidth = v.width;
-        if (v.height > maxHeight) maxHeight = v.height;
-      });
-
-      const cellWidth = maxWidth + gapX; const cellHeight = hasY ? maxHeight + gapY : 0;
-      const singleGroupHeight = hasY
-        ? yArray.length * maxHeight + Math.max(0, yArray.length - 1) * gapY
-        : maxHeight;
-
-      // 调整内部定位
       componentSet.layoutMode = "NONE";
-      if (compRadius > 0) safeCornerRadius(componentSet, compRadius);
-
-      // 直接应用描边至组件集本身
+      safeCornerRadius(componentSet, compRadius);
       try {
-        if (compStroke > 0) {
-          componentSet.strokes = [{ type: 'SOLID', color: compStrokeColor }];
-          componentSet.strokeWeight = compStroke;
-          componentSet.dashPattern = [6, 4];
-        } else {
-          componentSet.strokes = [];
-        }
-      } catch (e) {
-        console.warn("ComponentSetNode 描边受限，跳过直接修改", e);
-      }
-
-      variants.forEach(v => {
-        const props = parseVariantName(v.name);
-        const colIndex = xArray.indexOf(props[propX]);
-        const rowIndex = hasY ? yArray.indexOf(props[propY]) : 0; // 单属性时行索引始终为 0
-        const gSign = groupProps.map(p => `${p}=${props[p]}`).join(', ') || 'Default';
-        const groupIndex = groups.indexOf(gSign);
-
-        if (colIndex !== -1 && rowIndex !== -1 && groupIndex !== -1) {
-          const groupOffsetY = groupIndex * (singleGroupHeight + groupGap);
-          v.x = padding + colIndex * cellWidth + (maxWidth - v.width) / 2;
-          v.y = hasY
-            ? padding + groupOffsetY + rowIndex * cellHeight + (maxHeight - v.height) / 2
-            : padding + (maxHeight - v.height) / 2; // 单属性：垂直居中
-        }
-      });
-
-      const compSetWidth = padding * 2 + xArray.length * maxWidth + Math.max(0, xArray.length - 1) * gapX;
-      const compSetHeight = hasY
-        ? padding * 2 + groups.length * singleGroupHeight + Math.max(0, groups.length - 1) * groupGap
-        : padding * 2 + maxHeight;
+        componentSet.strokes = compStroke > 0 ? [{ type:'SOLID', color:compStrokeColor }] : [];
+        if (compStroke > 0) { componentSet.strokeWeight = compStroke; componentSet.dashPattern = [6,4]; }
+      } catch (_) {}
+      layout.placements.forEach(p => { p.node.x = p.x; p.node.y = p.y; });
+      const compSetWidth = layout.width, compSetHeight = layout.height;
       componentSet.resize(compSetWidth, compSetHeight);
 
       // ================= 视觉绘制层 =================
@@ -4333,7 +3922,7 @@ figma.ui.onmessage = async (msg) => {
       const nameVal = aiDesc?.componentName ? aiDesc.componentName : (language === 'zh' ? `${titleText} / ${englishTitle}` : `${englishTitle} / ${titleText}`);
       createDescriptionText(language === 'zh' ? `组件名称：${nameVal}` : `Component: ${nameVal}`, true);
 
-      const usageVal = aiDesc?.usage ? aiDesc.usage : (language === 'zh' ? `该组件适用于需要用户交互的界面场景，如表单提交、对话框确认、导航跳转等。不建议在纯展示型页面中过度使用。` : `This component is suitable for interactive UI scenarios such as form submissions, dialog confirmations, and navigation.`);
+      const usageVal = aiDesc?.usage ? aiDesc.usage : (language === 'zh' ? `请根据组件的实际用途补充使用场景；未使用 AI 生成说明。` : `Add usage guidance for this component. No AI description was generated.`);
       createDescriptionText(language === 'zh' ? `适用场景：${usageVal}` : `Usage: ${usageVal}`);
 
       const propsVal = aiDesc?.properties ? aiDesc.properties : (language === 'zh' ? `包含 ${properties.length} 个可配置属性（${properties.join('、')}），每个属性控制组件的不同视觉状态或功能变体。` : `Contains ${properties.length} configurable properties (${properties.join(', ')}).`);
@@ -4390,11 +3979,11 @@ figma.ui.onmessage = async (msg) => {
       const matrixStage = figma.createFrame();
       matrixStage.name = "Matrix Stage";
       matrixStage.layoutMode = "VERTICAL";
-      matrixStage.paddingLeft = 24; matrixStage.paddingRight = 24; matrixStage.paddingTop = 24; matrixStage.paddingBottom = 24;
+      matrixStage.paddingLeft = 0; matrixStage.paddingRight = 0; matrixStage.paddingTop = 0; matrixStage.paddingBottom = 0;
       safeCornerRadius(matrixStage, 12);
       matrixStage.fills = [{ type: 'SOLID', color: themeSurface }];
       matrixStage.strokes = [{ type: 'SOLID', color: themeBorder }];
-      matrixStage.counterAxisAlignItems = "CENTER";
+      matrixStage.counterAxisAlignItems = "MIN";
       boardFrame.appendChild(matrixStage);
       matrixStage.layoutSizingHorizontal = "FILL";
       matrixStage.layoutSizingVertical = "HUG";
@@ -4424,10 +4013,10 @@ figma.ui.onmessage = async (msg) => {
         xArray.forEach((xVal, index) => {
           const label = figma.createText();
           label.name = "X Axis Label";
-          label.characters = `${propX}: ${xVal}`.toUpperCase();
+          label.characters = `${layout.x.join(" / ")}: ${xVal}`.toUpperCase();
           label.fontSize = 12; label.fontName = { family: "Inter", style: "Semi Bold" };
           label.fills = [{ type: 'SOLID', color: { r: 107/255, g: 114/255, b: 128/255 } }];
-          label.x = componentSet.x + padding + index * cellWidth + maxWidth / 2 - label.width / 2;
+          label.x = componentSet.x + padding + layout.columnOffsets[index] + layout.columnWidths[index] / 2 - label.width / 2;
           label.y = componentSet.y - 32;
           componentArea.appendChild(label); matrixNodes.push(label);
         });
@@ -4452,11 +4041,11 @@ figma.ui.onmessage = async (msg) => {
           yArray.forEach((yVal, rowIndex) => {
             const label = figma.createText();
             label.name = "Y Axis Label";
-            label.characters = `${propY}: ${yVal}`.toUpperCase();
+            label.characters = `${layout.y.join(" / ")}: ${yVal}`.toUpperCase();
             label.fontSize = 12; label.fontName = { family: "Inter", style: "Semi Bold" };
             label.fills = [{ type: 'SOLID', color: { r: 156/255, g: 163/255, b: 175/255 } }];
             label.x = componentSet.x - label.width - 24;
-            label.y = groupAbsoluteY + rowIndex * cellHeight + maxHeight / 2 - label.height / 2;
+            label.y = groupAbsoluteY + layout.rowOffsets[rowIndex] + layout.rowHeights[rowIndex] / 2 - label.height / 2;
             componentArea.appendChild(label); matrixNodes.push(label);
           });
         }
@@ -4465,17 +4054,17 @@ figma.ui.onmessage = async (msg) => {
           // 水平网格线（仅在二维布局时绘制）
           if (hasY) {
             for (let r = 1; r < yArray.length; r++) {
-              const line = figma.createLine(); line.resize(xArray.length * cellWidth, 0);
-              line.x = componentSet.x + padding; line.y = groupAbsoluteY + r * cellHeight - gapY / 2;
+              const line = figma.createLine(); line.resize(compSetWidth - padding * 2, 0);
+              line.x = componentSet.x + padding; line.y = groupAbsoluteY + layout.rowOffsets[r] - gapY / 2;
               line.dashPattern = [4, 4]; line.strokeWeight = gridLineWidth; line.strokes = [{ type: 'SOLID', color: gridLineColor }];
               componentArea.appendChild(line); matrixNodes.push(line);
             }
           }
           // 垂直网格线
           for (let c = 1; c < xArray.length; c++) {
-            const lineHeight = hasY ? singleGroupHeight : compSetHeight - padding * 2;
+            const lineHeight = singleGroupHeight;
             const line = figma.createLine(); line.resize(lineHeight, 0); line.rotation = -90;
-            line.x = componentSet.x + padding + c * cellWidth - gapX / 2; line.y = groupAbsoluteY + (hasY ? 0 : padding);
+            line.x = componentSet.x + padding + layout.columnOffsets[c] - gapX / 2; line.y = groupAbsoluteY;
             line.dashPattern = [4, 4]; line.strokeWeight = gridLineWidth; line.strokes = [{ type: 'SOLID', color: gridLineColor }];
             componentArea.appendChild(line); matrixNodes.push(line);
           }
@@ -4746,6 +4335,7 @@ figma.ui.onmessage = async (msg) => {
         componentSet.y = componentBounds.y - boardBounds.y;
       }
       figma.currentPage.selection = [boardFrame];
+      if (oldBoard && !oldBoard.removed && !LayerRules.walk(oldBoard.children).some(n => n.type === 'COMPONENT_SET')) oldBoard.remove();
       figma.viewport.scrollAndZoomIntoView([boardFrame]);
 
       notifyInUiLanguage("✅ 说明书生成完毕！");

@@ -2,6 +2,8 @@
    content are never passed through this catalogue by the UI binding layer. */
 (() => {
   const phrases = [
+    ['请先选择查找范围的起点图层','Select the starting layers for this search scope.'],
+    ['未找到符合条件的图层，请调整范围或筛选条件','No layers matched. Adjust the scope or filters.'],
     ['全页','Whole page'], ['选中图层','Selected layers'], ['当前页面','Current page'],
     ['查找配置','Find settings'], ['查找内容','Find text'], ['替换为','Replace with'],
     ['还原','Restore'], ['重置','Reset'], ['开始查找','Find'], ['返回','Back'],

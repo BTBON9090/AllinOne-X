@@ -3,6 +3,8 @@
    content are never passed through this catalogue by the UI binding layer. */
 (() => {
   const phrases = [
+    ['请先选择查找范围的起点图层','Select the starting layers for this search scope.'],
+    ['未找到符合条件的图层，请调整范围或筛选条件','No layers matched. Adjust the scope or filters.'],
     ['全页','Whole page'], ['选中图层','Selected layers'], ['当前页面','Current page'],
     ['查找配置','Find settings'], ['查找内容','Find text'], ['替换为','Replace with'],
     ['还原','Restore'], ['重置','Reset'], ['开始查找','Find'], ['返回','Back'],
@@ -484,6 +486,340 @@ const handlePluginWindowMessage = createPluginWindowController("mastergo" === 'f
   send:msg => mg.ui.postMessage(msg)
 });
 
+/* Pure layer rules shared by both hosts and behavioral regression tests. */
+const LayerRules = (() => {
+  function walk(roots, includeRoots = true) {
+    const result = [], seen = new Set(), stack = [...roots].reverse();
+    const rootIds = new Set(roots.map(n => n.id));
+    while (stack.length) {
+      const node = stack.pop();
+      if (!node || node.removed || seen.has(node.id)) continue;
+      seen.add(node.id);
+      if (includeRoots || !rootIds.has(node.id)) result.push(node);
+      if ('children' in node) for (let i = node.children.length - 1; i >= 0; i--) stack.push(node.children[i]);
+    }
+    return result;
+  }
+  function pool(page, selection, scope) {
+    let nodes;
+    if (scope === 'page') nodes = walk(page.children);
+    else if (!selection.length) nodes = [];
+    else if (scope === 'inside') nodes = walk(selection, false);
+    else if (scope === 'descendants') nodes = walk(selection, true);
+    else if (scope === 'children') nodes = selection.flatMap(n => n.children || []);
+    else if (scope === 'sibling') {
+      const ids = new Set(selection.map(n => n.id));
+      nodes = selection.flatMap(n => n.parent?.children || []).filter(n => !ids.has(n.id));
+    } else nodes = [];
+    return [...new Map(nodes.filter(n => n && !n.removed).map(n => [n.id, n])).values()];
+  }
+  function inherited(node, key, value) {
+    for (let n = node; n && n.type !== 'PAGE' && n.type !== 'DOCUMENT'; n = n.parent) if ((n[key] ?? n[{visible:'isVisible',locked:'isLocked'}[key]]) === value) return true;
+    return false;
+  }
+  function matches(node, types, states) {
+    const visiblePaint = paints => Array.isArray(paints) && paints.some(p => p.visible !== false && p.isVisible !== false && p.opacity !== 0);
+    const typeHit = value => value === node.type
+      || (value === 'SLOT' && Boolean(node.componentPropertyReferences?.slotContentId))
+      || (value === 'AUTOLAYOUT' && typeof (node.layoutMode ?? node.flexMode) === 'string' && (node.layoutMode ?? node.flexMode) !== 'NONE')
+      || (value === 'IMAGE' && Array.isArray(node.fills) && node.fills.some(p => p.type === 'IMAGE' && p.visible !== false));
+    const stateHit = value => ({
+      hidden: () => inherited(node, 'visible', false), locked: () => inherited(node, 'locked', true),
+      mask: () => node.isMask === true, export: () => Boolean(node.exportSettings?.length),
+      'no-fill': () => Array.isArray(node.fills) && !visiblePaint(node.fills),
+      'no-stroke': () => Array.isArray(node.strokes) && !visiblePaint(node.strokes),
+      clip: () => node.clipsContent === true, 'no-children': () => Array.isArray(node.children) && node.children.length === 0
+    }[value]?.() || false);
+    const group = (filter, test) => !filter?.vals?.length || (filter.logic === 'exclude' ? !filter.vals.some(test) : filter.vals.some(test));
+    return group(types, typeHit) && group(states, stateHit);
+  }
+  const props = name => Object.fromEntries(String(name).split(',').flatMap(part => {
+    const eq = part.indexOf('='); return eq > 0 ? [[part.slice(0, eq).trim(), part.slice(eq + 1).trim()]] : [];
+  }));
+  function matrix(nodes, config = {}) {
+    if (!nodes.length) throw new Error('组件集为空');
+    const dimensions = [...new Set(nodes.flatMap(n => Object.keys(props(n.name))))];
+    const x = Array.isArray(config.axesX) && config.axesX.length ? config.axesX : [config.propX || dimensions[0]].filter(Boolean);
+    const y = Array.isArray(config.axesY) ? config.axesY : [config.propY || ''].filter(Boolean);
+    if (!x.length || [...x,...y].some(p => !dimensions.includes(p)) || new Set([...x,...y]).size !== x.length + y.length) throw new Error('行列属性无效或重复，请重新读取组件集');
+    const group = dimensions.filter(p => !x.includes(p) && !y.includes(p));
+    const key = (p, keys) => JSON.stringify(keys.map(k => p[k] ?? '—'));
+    const values = nodes.map(n => props(n.name));
+    const xs = [...new Set(values.map(p => key(p,x)))], ys = [...new Set(values.map(p => key(p,y)))], groups = [...new Set(values.map(p => key(p,group)))];
+    const num = (key, fallback) => Number.isFinite(Number(config[key])) ? Math.max(0, Math.min(4096, Number(config[key]))) : fallback;
+    const gapX = num('gapX',16), gapY = num('gapY',16), padding = num('padding',20), groupGap = num('groupGap',32);
+    const maxW = Math.max(...nodes.map(n => n.width)), maxH = Math.max(...nodes.map(n => n.height));
+    const occupancy = new Map();
+    values.forEach(p => { const k = key(p,[...x,...y,...group]); occupancy.set(k,(occupancy.get(k)||0)+1); });
+    const lanes = Math.max(...occupancy.values()); // Duplicate variant tuples get separate lanes, never overlap.
+    const columnWidths = xs.map(k => Math.max(...nodes.filter((n,i)=>key(values[i],x)===k).map(n=>n.width)));
+    const rowHeights = ys.map(k => Math.max(...nodes.filter((n,i)=>key(values[i],y)===k).map(n=>n.height)));
+    const columnOffsets = columnWidths.map((w,i)=>columnWidths.slice(0,i).reduce((a,b)=>a+b,0)+i*gapX);
+    const rowOffsets = rowHeights.map((h,i)=>rowHeights.slice(0,i).reduce((a,b)=>a+lanes*b+(lanes-1)*gapY,0)+i*gapY);
+    const groupH = rowHeights.reduce((a,h)=>a+lanes*h,0)+(ys.length*lanes-1)*gapY;
+    const used = new Map();
+    const placements = nodes.map((node,i) => {
+      const p=values[i], k=key(p,[...x,...y,...group]), lane=used.get(k)||0; used.set(k,lane+1);
+      const col=xs.indexOf(key(p,x)),row=ys.indexOf(key(p,y));
+      return { node, x:padding+columnOffsets[col], y:padding+groups.indexOf(key(p,group))*(groupH+groupGap)+rowOffsets[row]+lane*(rowHeights[row]+gapY) };
+    });
+    return { placements, width:padding*2+columnWidths.reduce((a,b)=>a+b,0)+(xs.length-1)*gapX, height:padding*2+groups.length*groupH+(groups.length-1)*groupGap, xs, ys, groups, group, x, y, maxW,maxH,gapX,gapY,padding,groupGap,groupH,lanes,columnWidths,columnOffsets,rowHeights,rowOffsets };
+  }
+  return { walk, pool, matches, props, matrix };
+})();
+
+/* Host adapter: snapshot reads and transactional component construction. */
+const layerHost = mg;
+const layerPlatform = "mastergo";
+const layerPage = () => layerPlatform === 'figma' ? layerHost.currentPage : layerHost.document.currentPage;
+const layerSend = message => layerHost.ui.postMessage(layerPlatform === 'figma' ? message : { pluginMessage: message });
+const layerGet = id => layerPlatform === 'figma' ? layerHost.getNodeByIdAsync(id) : Promise.resolve(layerHost.getNodeById(id));
+let layerSeed = [], layerResultIds = '', layerSeedPage = '', layerBusy = false, layerSearchWriting = false;
+const layerSnapshots = new Map();
+const layerCancelled = new Set();
+const layerIds = nodes => nodes.map(n => n.id).sort().join('|');
+function layerSearchRoots() {
+  const page = layerPage(), selected = [...page.selection];
+  if (page.id !== layerSeedPage || layerIds(selected) !== layerResultIds) { layerSeed = selected; layerSeedPage = page.id; }
+  return layerSeed.filter(n => !n.removed);
+}
+function layerRememberSearch(nodes) { layerResultIds = layerIds(nodes); }
+function layerSelectSearch(nodes) {
+  layerSearchWriting=true;
+  try { layerPage().selection=nodes; layerResultIds=layerIds([...layerPage().selection]); }
+  finally { layerSearchWriting=false; }
+}
+function installLayerTools() {
+  if (layerPlatform === 'figma') layerHost.skipInvisibleInstanceChildren = false;
+  layerHost.on('selectionchange', () => {
+    const nodes = [...layerPage().selection], valid = nodes.filter(n => ['FRAME','RECTANGLE'].includes(n.type));
+    if (!layerSearchWriting && layerIds(nodes) !== layerResultIds) { layerSeed=nodes; layerSeedPage=layerPage().id; }
+    layerSend({ type:'size-assistant-selection', validCount:valid.length, invalidCount:nodes.length-valid.length, width:valid.length===1?valid[0].width:0, height:valid.length===1?valid[0].height:0 });
+  });
+}
+function layerRead(root) {
+  const layers=[], stack=[{node:root,path:[]}];
+  while (stack.length) {
+    const {node,path}=stack.pop();
+    if (layers.length >= 5000) throw new Error('图层树超过 5,000 层，请拆分后分析；本次未截断读取');
+    const record={id:node.id,path,name:node.name,type:node.type,width:node.width,height:node.height,visible:node.visible ?? node.isVisible,locked:node.locked ?? node.isLocked};
+    for (const key of ['x','y','opacity','characters','layoutMode','itemSpacing','cornerRadius','fills','strokes','effects','componentPropertyReferences','componentProperties','componentPropertyDefinitions','vectorPaths','fontName','fontSize','flexMode']) {
+      try { const value=node[key]; if (value!==undefined && typeof value!=='symbol') record[key]=value; } catch (_) {}
+    }
+    try { if (node.type==='INSTANCE') record.mainComponentId=node.mainComponent?.id || node.componentId; } catch (_) {}
+    layers.push(record);
+    if ('children' in node) for (let i=node.children.length-1;i>=0;i--) stack.push({node:node.children[i],path:[...path,i]});
+  }
+  return {id:root.id,name:root.name,type:root.type,layers};
+}
+function layerStamp(roots) { return JSON.stringify(roots.map(layerRead)); }
+function layerAt(root,path) {
+  if (!Array.isArray(path) || path.length>100 || path.some(i=>!Number.isInteger(i)||i<0)) throw new Error('AI 返回无效图层路径');
+  let node=root;
+  for (const index of path) { node=node?.children?.[index]; if (!node) throw new Error('图层结构已变化，请重新分析'); }
+  return node;
+}
+function layerBase64(bytes) {
+  const alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/', parts=[];
+  for(let i=0;i<bytes.length;i+=3){const a=bytes[i],b=bytes[i+1],c=bytes[i+2];parts.push(alphabet[a>>2]+alphabet[((a&3)<<4)|((b||0)>>4)]+(i+1<bytes.length?alphabet[((b&15)<<2)|((c||0)>>6)]:'=')+(i+2<bytes.length?alphabet[c&63]:'='));}
+  return parts.join('');
+}
+function layerClean(value) { return String(value||'').replace(/[,=\n\r]/g,' ').trim().slice(0,100); }
+async function layerSnapshot(msg) {
+  const selected=[...layerPage().selection];
+  let roots=selected, limit=50; const sides=new Map();
+  if (msg.purpose==='build') { limit=30; if (roots.some(n=>n.type!=='FRAME')) throw new Error('请选择 Frame，再分析组件结构'); }
+  if (msg.purpose==='translate') {
+    roots=LayerRules.walk(selected).filter(n=>n.type==='COMPONENT_SET'||(n.type==='COMPONENT'&&n.parent?.type!=='COMPONENT_SET'));
+  }
+  if (msg.purpose==='duplicate') {
+    if (selected.length!==2 || selected.some(n=>!('children' in n))) throw new Error('请选择两个画板或容器');
+    for(let p=selected[0].parent;p;p=p.parent)if(p.id===selected[1].id)throw new Error('请选择两个互不嵌套的容器');
+    for(let p=selected[1].parent;p;p=p.parent)if(p.id===selected[0].id)throw new Error('请选择两个互不嵌套的容器');
+    const excluded=new Set((msg.exclude||[]).map(s=>String(s).toLowerCase()));
+    // Generic words are removed from names; unnamed/generic layers still have useful visuals.
+    roots=[];
+    for (const parent of selected) for (const node of LayerRules.walk(parent.children)) {
+      if ((node.visible ?? node.isVisible)===false || node.width<=0 || node.height<=0 || !node.exportAsync) continue;
+      const tokens=String(node.name).toLowerCase().split(/[\s/_\-]+/).filter(t=>!excluded.has(t)&&!(excluded.has('number')&&/^\d+$/.test(t)));
+      if (tokens.length) { roots.push(node); sides.set(node.id,selected.indexOf(parent)); if(roots.length>60)throw new Error('可比较图层超过 60 个，请缩小两个容器的范围后重试，或使用普通名称查重'); }
+    }
+    limit=60;
+  }
+  if (!roots.length) throw new Error('请先选择需要处理的图层');
+  if (roots.length>limit) throw new Error(`本次有 ${roots.length} 个对象，单次上限 ${limit} 个，请缩小选区后重试。普通功能仍可使用`);
+  const context=[]; let total=0,imageBytes=0;
+  for (let i=0;i<roots.length;i++) {
+    if (layerCancelled.has(msg.requestId)) throw new Error('已取消');
+    const root=roots[i], record=layerRead(root); total+=record.layers.length;
+    if (total>5000) throw new Error('总图层数超过 5,000，请拆分选区后分析');
+    if (msg.purpose==='duplicate') record.side=sides.get(root.id);
+    if (msg.images===true) {
+      try {
+        const bytes=await root.exportAsync({format:'PNG',constraint:{type:'SCALE',value:Math.min(1,384/Math.max(root.width,root.height,1))}});
+        if (bytes.length>600000) throw new Error('预览图片过大');
+        imageBytes+=bytes.length;record.image='data:image/png;base64,'+layerBase64(bytes);
+      } catch (error) { record.imageError=String(error.message||error); }
+    }
+    if(imageBytes>6*1024*1024)throw new Error('图片总量超过 6 MB，请缩小选区后重试');
+    context.push(record);
+    layerSend({type:'layer-ai-progress',requestId:msg.requestId,done:i+1,total:roots.length,layers:total});
+    await new Promise(resolve=>setTimeout(resolve,0));
+  }
+  const token=msg.requestId;
+  if(layerStamp(roots).length>1500000)throw new Error('图层数据超过 1.5 MB，请缩小选区后重试');
+  layerSnapshots.set(token,{roots:roots.map(n=>n.id),page:layerPage().id,stamp:layerStamp(roots),purpose:msg.purpose});
+  while (layerSnapshots.size>8) layerSnapshots.delete(layerSnapshots.keys().next().value);
+  return {token,targets:context,totalLayers:total};
+}
+async function layerResolveSnapshot(token,purpose) {
+  const snapshot=layerSnapshots.get(token);
+  if (!snapshot || snapshot.purpose!==purpose || snapshot.page!==layerPage().id) throw new Error('读取记录已失效，请重新分析');
+  const roots=await Promise.all(snapshot.roots.map(layerGet));
+  if (roots.some(n=>!n||n.removed) || layerStamp(roots)!==snapshot.stamp) throw new Error('图层在分析后发生变化，请重新读取，避免套用旧方案');
+  return roots;
+}
+function layerValidatePlan(plan,frames) {
+  if (!Array.isArray(plan?.groups)||!plan.groups.length||plan.groups.length>frames.length) throw new Error('AI 未返回有效构建分组');
+  const byId=new Map(frames.map(n=>[n.id,n])), used=new Set();
+  for (const frame of frames) for (let parent=frame.parent;parent&&parent.type!=='PAGE';parent=parent.parent) if(byId.has(parent.id)) throw new Error('所选 Frame 存在父子嵌套，请只选择需要构建的独立 Frame');
+  for (const group of plan.groups) {
+    if (!layerClean(group.name) || !Array.isArray(group.variants)||!group.variants.length) throw new Error('构建分组缺少名称或 Frame');
+    let keys=null; const tuples=new Set();
+    for (const variant of group.variants) {
+      if (!byId.has(variant.id)||used.has(variant.id)) throw new Error('AI 返回了未知或重复的 Frame');
+      used.add(variant.id);
+      if ((group.variants.length>1 || group.kind==='set') && group.kind!=='single') {
+        const entries=Object.entries(variant.values||{});
+        if (!entries.length || entries.length>12 || entries.some(([k,v])=>!layerClean(k)||!layerClean(v))) throw new Error('变体属性和值不能为空');
+        const current=entries.map(([k])=>layerClean(k)).sort().join('|');
+        if (keys!==null && keys!==current) throw new Error('同组变体的属性不一致，请重新分析'); keys=current;
+        const tuple=entries.map(([k,v])=>[layerClean(k),layerClean(v)]).sort().map(p=>p.join('=')).join(',');
+        if (tuples.has(tuple)) throw new Error('AI 给出了重复的变体组合，请重新分析'); tuples.add(tuple);
+      }
+    }
+    const groupFrames=group.variants.map(v=>byId.get(v.id));
+    if (groupFrames.length>1 && groupFrames.some(n=>n.parent!==groupFrames[0].parent)) throw new Error('同组 Frame 必须位于同一父级');
+    const propertyNames=new Set(),propertyBindings=new Set();
+    if(!Array.isArray(group.properties||[]))throw new Error('属性列表无效');
+    for (const property of group.properties||[]) {
+      if (!['TEXT','BOOLEAN','INSTANCE_SWAP','SLOT'].includes(property.type)||!layerClean(property.name)) throw new Error('AI 属性类型或名称无效');
+      const propertyKey=layerClean(property.name).toLowerCase();if(propertyNames.has(propertyKey))throw new Error('AI 返回了重复的属性名');propertyNames.add(propertyKey);
+      if (!Array.isArray(property.bindings)||!property.bindings.length) throw new Error('AI 属性缺少图层绑定');
+      for (const binding of property.bindings) {
+        if (!group.variants.some(v=>v.id===binding.frameId)) throw new Error('属性绑定不属于当前分组');
+        const bindingKey=binding.frameId+'|'+JSON.stringify(binding.path)+'|'+property.type; if(propertyBindings.has(bindingKey))throw new Error('同一图层字段被重复绑定');propertyBindings.add(bindingKey);
+        const n=layerAt(byId.get(binding.frameId),binding.path);
+        if (!binding.path.length) throw new Error('属性必须绑定内部图层');
+        if (property.type==='TEXT'&&n.type!=='TEXT'||property.type==='INSTANCE_SWAP'&&n.type!=='INSTANCE'||property.type==='SLOT'&&!['FRAME','SLOT'].includes(n.type)) throw new Error('AI 属性与目标图层类型不匹配');
+      }
+    }
+  }
+  if (used.size!==frames.length) throw new Error('AI 方案未覆盖全部 Frame，请重新分析');
+}
+async function layerConstruct(plan,frames,manual) {
+  layerValidatePlan(plan,frames);
+  if (frames.some(n=>{try{return n.attachedConnectors?.length>0}catch(_){return false}})) throw new Error('选中 Frame 连接了连线，请先移除连接后构建');
+  const byId=new Map(frames.map(n=>[n.id,n])), trash=[], targets=[], warnings=[];
+  try {
+    for (const group of plan.groups) {
+      const originals=group.variants.map(v=>byId.get(v.id));
+      const parent=originals[0].parent; // Capture before conversion invalidates the Frame handle.
+      const index=parent.children.indexOf(originals[0]);
+      const clones=originals.map(frame=>{const clone=frame.clone();trash.push(clone);return clone;});
+      const convert=frame=>layerPlatform==='figma'?layerHost.createComponentFromNode(frame):transferFrameToComponent(frame,frame.name,warnings);
+      let components, owner;
+      if (group.kind==='single'&&clones.length>1) { owner=wrapFramesAsOneComponent(clones,group.name);trash.push(owner);components=[owner]; }
+      else {
+        components=clones.map((clone,i)=>{const c=convert(clone);trash.push(c);const v=group.variants[i];c.name=(originals.length>1||group.kind==='set')?Object.entries(v.values).map(([k,val])=>`${layerClean(k)}=${layerClean(val)}`).join(', '):group.name;return c;});
+        owner=(components.length>1||group.kind==='set')?(layerPlatform==='figma'?layerHost.combineAsVariants(components,parent):layerHost.combineAsVariants(components)):components[0];
+        trash.push(owner);
+      }
+      owner.name=String(group.name).trim().slice(0,120); parent.insertChild(index,owner);
+      if (owner.type==='COMPONENT_SET') {
+        const columns=Math.ceil(Math.sqrt(components.length)), w=Math.max(...components.map(n=>n.width)),h=Math.max(...components.map(n=>n.height));
+        owner[layerPlatform==='figma'?'layoutMode':'flexMode']='NONE';components.forEach((n,i)=>{n.x=24+(i%columns)*(w+24);n.y=24+Math.floor(i/columns)*(h+24);});owner.resize(48+columns*w+(columns-1)*24,48+Math.ceil(components.length/columns)*h+(Math.ceil(components.length/columns)-1)*24);
+      }
+      if (manual) {
+        const exposed=layerPlatform==='figma'?await exposeBuilderProperties(owner,components,manual.exposeText,manual.exposeInstances)
+          :owner.type==='COMPONENT_SET'?exposeBuilderPropertiesForSet(owner,manual.exposeText,manual.exposeInstances):exposeBuilderProperties(owner,manual.exposeText,manual.exposeInstances);
+        warnings.push(...exposed.warnings);
+      }
+      const mapped=new Map(group.variants.map((v,i)=>[v.id,components[i]]));
+      for (const property of group.properties||[]) {
+        const nodes=property.bindings.map(b=>layerAt(mapped.get(b.frameId),b.path));
+        const first=nodes[0];
+        if (typeof owner.addComponentProperty!=='function') { warnings.push(`${property.name}：宿主未提供原生属性 API`);continue; }
+        if (property.type==='SLOT' && layerPlatform!=='figma') {warnings.push(`${property.name}：当前宿主不支持原生 Slot，已保留容器`);continue;}
+        let value=property.type==='TEXT'?first.characters:property.type==='BOOLEAN'?(first.visible ?? first.isVisible):property.type==='SLOT'?'':null;
+        if (property.type==='INSTANCE_SWAP') { const main=first.getMainComponentAsync?await first.getMainComponentAsync():first.mainComponent; value=main?.id||first.componentId; if(!value)throw new Error('无法读取实例主组件'); }
+        const key={TEXT:'characters',BOOLEAN:layerPlatform==='figma'?'visible':'isVisible',INSTANCE_SWAP:'mainComponent',SLOT:'slotContentId'}[property.type];
+        let id;
+        try {
+          id=owner.addComponentProperty(layerClean(property.name),property.type,value);
+          nodes.forEach(n=>{n.componentPropertyReferences={...(n.componentPropertyReferences||{}),[key]:id};});
+        } catch(error) {
+          // An unsupported property must not leave a half-bound definition.
+          for (const n of nodes) {try {const refs={...n.componentPropertyReferences};delete refs[key];n.componentPropertyReferences=refs;}catch(_){}}
+          if(id)try{owner.deleteComponentProperty(id)}catch(_){}
+          warnings.push(`${property.name} (${property.type})：未创建，${String(error.message||error)}`);
+        }
+      }
+      targets.push(owner);
+    }
+    // Commit only after every group exists. Failures above leave original Frames intact.
+    frames.forEach(frame=>frame.remove());
+  } catch(error) {
+    for(const node of trash.reverse())try{if(!node.removed)node.remove()}catch(_){}
+    throw error;
+  }
+  layerPage().selection=targets;
+  layerHost.viewport.scrollAndZoomIntoView(targets);
+  try{layerHost.commitUndo()}catch(_){}
+  return {created:targets.length,warnings,message:`已构建 ${targets.length} 组组件${warnings.length?'；'+warnings.join('；'):''}`};
+}
+async function layerBuildManual(msg) {
+  if(layerBusy){layerSend({type:'component-builder-result',ok:false,message:'正在构建，请稍候'});return;}
+  layerBusy=true;
+  try {
+    const frames=[...layerPage().selection];
+    if(!frames.length||frames.some(n=>n.type!=='FRAME'))throw new Error('请选择一个或多个 Frame');
+    const mode=['single','set'].includes(msg.mode)?msg.mode:'multiple', name=String(msg.componentName||'').trim();
+    const groups=mode==='multiple'?frames.map(n=>({name:name?(frames.length===1?name:`${name}/${n.name}`):n.name,variants:[{id:n.id}]})):
+      [{name:name||commonNamePrefix(frames.map(n=>n.name)),kind:mode,variants:frames.map((n,i)=>({id:n.id,values:{[layerClean(msg.variantProperty)||'Variant']:`${layerClean(n.name)} ${i+1}`}}))}];
+    layerSend({type:'component-builder-result',ok:true,...await layerConstruct({groups},frames,msg)});
+  }catch(error){layerSend({type:'component-builder-result',ok:false,message:`创建失败，原 Frame 已保留：${String(error.message||error)}`});}
+  finally{layerBusy=false;}
+}
+async function handleLayerToolsMessage(msg) {
+  if(msg.type==='layer-ai-cancel'){layerCancelled.add(msg.requestId);if(layerCancelled.size>100)layerCancelled.delete(layerCancelled.values().next().value);return true;}
+  if(!['layer-ai-read','layer-ai-rename','layer-ai-build','layer-matrix'].includes(msg.type))return false;
+  const reply={type:'layer-ai-response',requestId:msg.requestId};
+  try {
+    if(msg.type==='layer-ai-read') layerSend({...reply,ok:true,context:await layerSnapshot(msg)});
+    else if(msg.type==='layer-ai-rename') {
+      const roots=await layerResolveSnapshot(msg.token,msg.purpose), allowed=new Map(roots.map(n=>[n.id,n]));
+      const names=msg.names;
+      if(!Array.isArray(names)||names.length>50||new Set(names.map(n=>n.id)).size!==names.length||names.some(n=>!allowed.has(n.id)||!String(n.name||'').trim())) throw new Error('命名结果无效，请重新分析');
+      const previous=names.map(n=>({node:allowed.get(n.id),name:allowed.get(n.id).name}));
+      try{names.forEach(n=>{allowed.get(n.id).name=String(n.name).trim().slice(0,180);});}catch(error){previous.forEach(n=>{try{n.node.name=n.name}catch(_){}});throw error;}
+      layerSnapshots.delete(msg.token);try{layerHost.commitUndo()}catch(_){}
+      layerSend({...reply,ok:true,message:`已命名 ${names.length} 个图层`});
+    }else if(msg.type==='layer-ai-build') {
+      if(layerBusy)throw new Error('正在构建，请稍候');layerBusy=true;
+      try{const frames=await layerResolveSnapshot(msg.token,'build');const result=await layerConstruct(msg.plan,frames);layerSnapshots.delete(msg.token);layerSend({...reply,ok:true,...result});}finally{layerBusy=false;}
+    }else if(msg.type==='layer-matrix') {
+      const selection=[...layerPage().selection];
+      const sets=selection.flatMap(n=>n.type==='COMPONENT_SET'?[n]:n.type==='FRAME'&&n.getPluginData('isShowcaseBoard')==='true'?LayerRules.walk(n.children).filter(c=>c.type==='COMPONENT_SET'):[]);
+      if(!sets.length)throw new Error('请选择组件集');
+      const plans=sets.map(set=>({set,layout:LayerRules.matrix(set.children.filter(n=>n.type==='COMPONENT'),msg)}));
+      plans.forEach(({set,layout})=>{set[layerPlatform==='figma'?'layoutMode':'flexMode']='NONE';layout.placements.forEach(p=>{p.node.x=p.x;p.node.y=p.y;});set.resize(layout.width,layout.height);});
+      try{layerHost.commitUndo()}catch(_){}layerSend({...reply,ok:true,message:`已排列 ${plans.length} 个组件集；剩余属性自动分组`});
+    }
+  }catch(error){layerSend({...reply,ok:false,message:String(error.message||error)});}
+  return true;
+}
+
 // shared-host-locale:end
 // -------------------------------------------------------------
 // 【更新】高级命名转换函数 (支持清除隐藏标记)
@@ -550,6 +886,7 @@ const convertNameAdvanced = (str, format, sepMode, casing, keepEmoji, removeId, 
     return { changed: newVal !== str, val: newVal };
 };
 mg.showUI(__html__, { width: 440, height: 600 });
+installLayerTools();
 // Smart Fill: one deduplicated, visible selection for both count and write.
 const collectSmartFillTextNodes = (roots) => {
     const nodes = [];
@@ -3032,7 +3369,7 @@ mg.on('selectionchange', () => {
     }
 });
 mg.ui.onmessage = async (rawMessage) => {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
     const msg = (rawMessage === null || rawMessage === void 0 ? void 0 : rawMessage.pluginMessage) || rawMessage;
     if (!msg || !msg.type)
         return;
@@ -3043,6 +3380,8 @@ mg.ui.onmessage = async (rawMessage) => {
         return;
     }
     if (handlePluginWindowMessage(msg))
+        return;
+    if (await handleLayerToolsMessage(msg))
         return;
     if (msg.type === 'mg-image-size-result') {
         const resolve = imageSizeWaiters.get(msg.reqId);
@@ -3116,7 +3455,13 @@ mg.ui.onmessage = async (rawMessage) => {
                     const value = String((_b = dataList[distribution === 'random'
                         ? Math.floor(Math.random() * dataList.length) : ((_a = snapshotOrder.get(node.id)) !== null && _a !== void 0 ? _a : i) % dataList.length]) !== null && _b !== void 0 ? _b : '');
                     // Inserting at the edges retains mixed text styles in prefix/suffix mode.
-                    if (mode === 'prefix') {
+                    if (mode === 'both') {
+                        if (value) {
+                            node.insertCharacters(node.characters.length, value);
+                            node.insertCharacters(0, value);
+                        }
+                    }
+                    else if (mode === 'prefix') {
                         if (value)
                             node.insertCharacters(0, value);
                     }
@@ -3814,82 +4159,12 @@ mg.ui.onmessage = async (rawMessage) => {
         }
         case 'find-and-select': {
             const f = msg.filters;
-            const sel = mg.document.currentPage.selection;
-            console.log(`=== 开始查找 (v3修复版) ===`);
-            console.log(`Scope: ${f.scope} | 选中图层: ${sel.length}`);
-            // 🔥 1. 使用全新变量名，防止作用域冲突
-            let searchTargets = [];
-            // =========================================================
-            // A. 构建查找池 (Pool Construction)
-            // =========================================================
-            if (f.scope === 'inside') {
-                // 模式：内在元素 (不包含选中项本身)
-                if (sel.length === 0) {
-                    notifyInUiLanguage("⚠️ 请先选择一个容器(Frame/Group)");
-                    return;
-                }
-                for (const node of sel) {
-                    if ('findAll' in node) {
-                        // 使用 push(...) 而不是 concat，确保修改的是原数组
-                        const children = node.findAll(() => true);
-                        searchTargets.push(...children);
-                    }
-                }
+            // Keep the user's seed selection while switching filters after selecting results.
+            const sel = layerSearchRoots();
+            if (f.scope !== 'page' && !sel.length) {
+                notifyInUiLanguage('请先选择查找范围的起点图层');
             }
-            else if (f.scope === 'children') {
-                // 模式：仅直系子级
-                if (sel.length === 0) {
-                    notifyInUiLanguage("⚠️ 请先选择一个容器(Frame/Group)");
-                    return;
-                }
-                for (const node of sel) {
-                    if ('children' in node) {
-                        searchTargets.push(...node.children);
-                    }
-                }
-            }
-            else if (f.scope === 'sibling') {
-                // 模式：同级
-                if (sel.length > 0 && sel[0].parent) {
-                    const siblings = sel[0].parent.children.filter(n => !sel.includes(n));
-                    searchTargets.push(...siblings);
-                }
-                else {
-                    notifyInUiLanguage("⚠️ 请先选择一个图层");
-                    return;
-                }
-            }
-            else if (f.scope === 'page') {
-                // 模式：全页 - 直接查找当前页面所有图层，忽略选中状态
-                console.log(">> 策略: 全页面查找");
-                const allPageNodes = mg.document.currentPage.findAll(() => true);
-                searchTargets.push(...allPageNodes);
-            }
-            else {
-                // 模式：子孙元素 (descendants) - 默认模式
-                // 逻辑：如果选了图层，只查其子孙（不包含选中容器本身）；如果没选，查“全页”
-                if (sel.length > 0) {
-                    console.log(">> 策略: 查找选中项及其后代");
-                    for (const node of sel) {
-                        if ('findAll' in node) {
-                            const children = node.findAll(() => true);
-                            searchTargets.push(...children);
-                        }
-                    }
-                }
-                else {
-                    console.log(">> 策略: 全页面查找");
-                    const allPageNodes = mg.document.currentPage.findAll(() => true);
-                    searchTargets.push(...allPageNodes);
-                }
-            }
-            // =========================================================
-            // B. 去重 (Deduplication) - 使用 Map ID 去重最稳健
-            // =========================================================
-            const uniqueMap = new Map();
-            searchTargets.forEach(node => uniqueMap.set(node.id, node));
-            const finalPool = Array.from(uniqueMap.values());
-            console.log(`🔍 待筛选池最终大小: ${finalPool.length}`);
+            const finalPool = LayerRules.pool(mg.document.currentPage, sel, f.scope);
             const colorToHex = (color) => {
                 if (!color)
                     return undefined;
@@ -3899,8 +4174,10 @@ mg.ui.onmessage = async (rawMessage) => {
             const firstVisiblePaint = (paints) => Array.isArray(paints)
                 ? paints.find((paint) => { var _a; return paint && ((_a = paint.isVisible) !== null && _a !== void 0 ? _a : paint.visible) !== false; })
                 : undefined;
-            const getAdvancedPropertyValue = (node, key) => {
-                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+            const getAdvancedPropertyValue = async (node, key) => {
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+                if (key === 'mainComponentId')
+                    return node.type === 'INSTANCE' ? safeMainComponentId(node) : undefined;
                 const fill = firstVisiblePaint(node.fills);
                 const stroke = firstVisiblePaint(node.strokes);
                 const effect = Array.isArray(node.effects) ? node.effects.find((item) => { var _a; return item && ((_a = item.isVisible) !== null && _a !== void 0 ? _a : item.visible) !== false; }) : undefined;
@@ -3988,7 +4265,6 @@ mg.ui.onmessage = async (rawMessage) => {
                     paragraphSpacing: node.paragraphSpacing,
                     textStyleId: node.textStyleId,
                     description: node.description,
-                    mainComponentId: (_l = node.mainComponent) === null || _l === void 0 ? void 0 : _l.id,
                     componentPropertyCount: node.componentProperties ? Object.keys(node.componentProperties).length : undefined,
                     variantPropertyCount: node.componentPropertyDefinitions ? Object.keys(node.componentPropertyDefinitions).length : undefined,
                     reactionCount: Array.isArray(node.reactions) ? node.reactions.length : undefined,
@@ -4016,73 +4292,15 @@ mg.ui.onmessage = async (rawMessage) => {
                     if (!n.includes(q))
                         match = false;
                 }
-                // 2. 类型匹配
-                if (match && f.types && f.types.vals.length > 0) {
-                    const t = node.type;
-                    const ts = f.types.vals.map((value) => value === 'VECTOR' ? 'PEN' : value);
-                    let isType = false;
-                    if (ts.includes(t))
-                        isType = true;
-                    if (ts.includes('AUTOLAYOUT') && t === 'FRAME' && node.flexMode !== 'NONE')
-                        isType = true;
-                    if (ts.includes('IMAGE') && 'fills' in node && node.fills !== mg.mixed && Array.isArray(node.fills)) {
-                        if (node.fills.some(p => p.type === 'IMAGE' && p.isVisible !== false))
-                            isType = true;
-                    }
-                    if (ts.includes('COMPONENT_SET') && t === 'COMPONENT_SET')
-                        isType = true;
-                    if (ts.includes('SECTION') && t === 'SECTION')
-                        isType = true;
-                    if (f.types.logic === 'include') {
-                        if (!isType)
-                            match = false;
-                    }
-                    else {
-                        if (isType)
-                            match = false;
-                    }
-                }
-                // 3. 状态匹配
-                if (match && f.states && f.states.vals.length > 0) {
-                    let isState = false;
-                    const s = f.states.vals;
-                    if (s.includes('hidden') && !node.isVisible)
-                        isState = true;
-                    if (s.includes('locked') && node.isLocked)
-                        isState = true;
-                    if (s.includes('mask') && node.isMask)
-                        isState = true;
-                    if (s.includes('export') && node.exportSettings && node.exportSettings.length > 0)
-                        isState = true;
-                    if (s.includes('no-fill') && 'fills' in node && node.fills !== mg.mixed) {
-                        if (Array.isArray(node.fills) && node.fills.length === 0)
-                            isState = true;
-                    }
-                    if (s.includes('no-stroke') && 'strokes' in node && node.strokes !== mg.mixed) {
-                        if (Array.isArray(node.strokes) && node.strokes.length === 0)
-                            isState = true;
-                    }
-                    if (s.includes('clip') && 'clipsContent' in node && node.clipsContent)
-                        isState = true;
-                    if (s.includes('no-children') && 'children' in node) {
-                        if (node.children.length === 0)
-                            isState = true;
-                    }
-                    if (f.states.logic === 'include') {
-                        if (!isState)
-                            match = false;
-                    }
-                    else {
-                        if (isState)
-                            match = false;
-                    }
-                }
+                // Within each group: OR. Between type/state/name/property groups: AND.
+                if (match && !LayerRules.matches(node, f.types, f.states))
+                    match = false;
                 // 4. 属性匹配 (Props) - 加强容错
                 if (match && f.props && f.props.length > 0) {
                     for (const p of f.props) {
                         let val = undefined;
                         try {
-                            val = getAdvancedPropertyValue(node, p.key);
+                            val = await getAdvancedPropertyValue(node, p.key);
                         }
                         catch (e) { }
                         if (val === undefined) {
@@ -4090,6 +4308,10 @@ mg.ui.onmessage = async (rawMessage) => {
                             break;
                         }
                         const tgt = p.val;
+                        if (['>', '<', '>=', '<='].includes(p.op) && (!Number.isFinite(Number(val)) || !Number.isFinite(Number(tgt)))) {
+                            match = false;
+                            break;
+                        }
                         // 数字比较 vs 字符串比较
                         if (p.op === '=') {
                             if (val != tgt)
@@ -4135,8 +4357,11 @@ mg.ui.onmessage = async (rawMessage) => {
             }
             console.log(`✅ 最终匹配: ${results.length}`);
             if (results.length > 0) {
-                mg.document.currentPage.selection = results;
-                mg.viewport.scrollAndZoomIntoView(results);
+                layerSelectSearch(results);
+                try {
+                    mg.viewport.scrollAndZoomIntoView(results);
+                }
+                catch (_) { /* Hidden results can have no viewport bounds. */ }
                 notifyInUiLanguage(`✅ 已选中 ${results.length} 个图层`);
                 // 🔥 新增：将结果回传给 UI
                 sendToUI({
@@ -4146,7 +4371,8 @@ mg.ui.onmessage = async (rawMessage) => {
                 });
             }
             else {
-                notifyInUiLanguage("⚠️ 未找到图层，请检查 Console的筛选池大小");
+                layerSelectSearch([]);
+                notifyInUiLanguage("未找到符合条件的图层，请调整范围或筛选条件");
                 sendToUI({ type: 'found-layers-result', count: 0, layers: [] });
             }
             break;
@@ -5489,116 +5715,7 @@ mg.ui.onmessage = async (rawMessage) => {
             break;
         }
         case 'component-builder-create': {
-            const frames = selection.filter(node => node.type === 'FRAME');
-            if (selection.length === 0 || frames.length !== selection.length) {
-                const message = '请选择一个或多个 Frame；当前选择中不能混入其他图层类型';
-                notifyInUiLanguage(message, { type: 'warning' });
-                sendToUI({ type: 'component-builder-result', ok: false, message });
-                break;
-            }
-            const connectorFrames = frames.filter(frame => frame.attachedConnectors.length > 0);
-            if (connectorFrames.length > 0) {
-                const message = `有 ${connectorFrames.length} 个 Frame 连接了原型连线；为避免连接目标丢失，本次未转换`;
-                notifyInUiLanguage(message, { type: 'warning' });
-                sendToUI({ type: 'component-builder-result', ok: false, message });
-                break;
-            }
-            const mode = ['single', 'multiple', 'set', 'language'].includes(msg.mode) ? msg.mode : 'multiple';
-            const exposeText = msg.exposeText === true;
-            const exposeInstances = msg.exposeInstances === true;
-            const requestedName = String(msg.componentName || '').trim();
-            const originalNames = frames.map(frame => frame.name);
-            const createdComponents = [];
-            const warnings = [];
-            if ((mode === 'single' && frames.length > 1) || mode === 'set' || mode === 'language') {
-                const sameParent = frames.every(frame => frame.parent === frames[0].parent);
-                if (!sameParent) {
-                    const message = mode === 'set' || mode === 'language'
-                        ? '创建组件集时，所选 Frame 必须位于同一父级'
-                        : '合并为单个组件时，所选 Frame 必须位于同一父级';
-                    notifyInUiLanguage(message, { type: 'warning' });
-                    sendToUI({ type: 'component-builder-result', ok: false, message });
-                    break;
-                }
-            }
-            try {
-                let targets = [];
-                if (mode === 'single') {
-                    const component = frames.length === 1
-                        ? transferFrameToComponent(frames[0], requestedName || frames[0].name, warnings)
-                        : wrapFramesAsOneComponent(frames, requestedName || commonNamePrefix(originalNames));
-                    createdComponents.push(component);
-                    const exposed = exposeBuilderProperties(component, exposeText, exposeInstances);
-                    warnings.push(...exposed.warnings);
-                    targets = [component];
-                }
-                else {
-                    for (let index = 0; index < frames.length; index++) {
-                        const frame = frames[index];
-                        const component = transferFrameToComponent(frame, frame.name, warnings);
-                        createdComponents.push(component);
-                        if (mode !== 'set' && mode !== 'language') {
-                            const exposed = exposeBuilderProperties(component, exposeText, exposeInstances);
-                            warnings.push(...exposed.warnings);
-                        }
-                    }
-                    if (mode === 'set' || mode === 'language') {
-                        const variantProperty = String(msg.variantProperty || (mode === 'language' ? 'Language' : 'Variant'))
-                            .replace(/[,=]/g, ' ')
-                            .replace(/\s+/g, ' ')
-                            .trim() || (mode === 'language' ? 'Language' : 'Variant');
-                        const usedVariantValues = new Set();
-                        createdComponents.forEach((component, index) => {
-                            const baseValue = mode === 'language'
-                                ? languageVariantValue(originalNames[index], index)
-                                : safeVariantValue(originalNames[index], index);
-                            let value = baseValue;
-                            let suffix = 2;
-                            while (usedVariantValues.has(value.toLocaleLowerCase()))
-                                value = `${baseValue} ${suffix++}`;
-                            usedVariantValues.add(value.toLocaleLowerCase());
-                            component.name = `${variantProperty}=${value}`;
-                        });
-                        const set = mg.combineAsVariants(createdComponents);
-                        set.name = requestedName || commonNamePrefix(originalNames);
-                        const exposed = exposeBuilderPropertiesForSet(set, exposeText, exposeInstances);
-                        warnings.push(...exposed.warnings);
-                        targets = [set];
-                    }
-                    else {
-                        if (requestedName) {
-                            createdComponents.forEach((component, index) => {
-                                component.name = createdComponents.length === 1
-                                    ? requestedName
-                                    : `${requestedName}/${originalNames[index]}`;
-                            });
-                        }
-                        targets = createdComponents;
-                    }
-                }
-                mg.document.currentPage.selection = targets;
-                mg.viewport.scrollAndZoomIntoView(targets);
-                mg.commitUndo();
-                const typeLabel = mode === 'language' ? '语言组件集' : (mode === 'set' ? '组件集' : (mode === 'single' ? '单个组件' : '多个组件'));
-                const exposedLabel = [
-                    exposeText ? '文字属性' : '',
-                    exposeInstances ? '实例属性' : ''
-                ].filter(Boolean).join('、');
-                const message = `已创建${typeLabel}${exposedLabel ? `，并生成${exposedLabel}` : ''}${warnings.length ? `；${warnings.length} 项已跳过` : ''}`;
-                notifyInUiLanguage(message, { type: warnings.length > 0 ? 'warning' : 'success' });
-                sendToUI({
-                    type: 'component-builder-result',
-                    ok: true,
-                    message,
-                    warnings,
-                    created: targets.length
-                });
-            }
-            catch (error) {
-                const message = `创建失败：${String((error === null || error === void 0 ? void 0 : error.message) || error)}`;
-                notifyInUiLanguage(message, { type: 'error' });
-                sendToUI({ type: 'component-builder-result', ok: false, message });
-            }
+            await layerBuildManual(msg);
             break;
         }
         // ===========================
@@ -5677,88 +5794,9 @@ mg.ui.onmessage = async (rawMessage) => {
         }
         // 矩阵排列（简化版）- 支持单属性（1D）和多属性（2D）
         case 'run-compkit': {
-            const { gapX, gapY, padding } = msg;
-            const selection = mg.document.currentPage.selection;
-            // 1. 检查是否只选中了一个节点，且必须是 Component Set
-            if (selection.length !== 1 || selection[0].type !== 'COMPONENT_SET') {
-                notifyInUiLanguage("请选中一个 Component Set (组件集)！", { type: 'error' });
-                break;
-            }
-            const componentSet = selection[0];
-            const variants = componentSet.children;
-            if (variants.length === 0) {
-                notifyInUiLanguage("组件集为空", { type: 'error' });
-                break;
-            }
-            // 2. 解析变体属性
-            const sampleName = variants[0].name;
-            const properties = sampleName.split(',').map(p => p.split('=')[0].trim());
-            const propX = properties[0];
-            const hasY = properties.length >= 2; // 有第二个属性才做二维矩阵
-            const propY = hasY ? properties[1] : '';
-            // 分组属性：除 X/Y 轴外的其他属性
-            const groupProps = hasY ? properties.filter(p => p !== propX && p !== propY) : properties.filter(p => p !== propX);
-            // 3. 收集所有的属性值
-            const xValues = new Set();
-            const yValues = new Set();
-            const groupValues = new Set();
-            variants.forEach(v => {
-                const props = parseVariantName(v.name);
-                if (props[propX])
-                    xValues.add(props[propX]);
-                if (hasY && props[propY])
-                    yValues.add(props[propY]);
-                else if (!hasY)
-                    yValues.add('default'); // 1D 时伪造一个 Y 值
-                const gSign = groupProps.map(p => `${p}=${props[p]}`).join(', ');
-                groupValues.add(gSign || 'Default');
-            });
-            const xArray = Array.from(xValues);
-            const yArray = hasY ? Array.from(yValues) : ['default'];
-            const groups = Array.from(groupValues);
-            // 4. 计算最大宽高
-            let maxWidth = 0;
-            let maxHeight = 0;
-            variants.forEach(v => { if (v.width > maxWidth)
-                maxWidth = v.width; if (v.height > maxHeight)
-                maxHeight = v.height; });
-            // 5. 设定间距和单元格尺寸
-            const cellWidth = maxWidth + gapX;
-            const cellHeight = hasY ? maxHeight + gapY : 0;
-            const singleGroupHeight = hasY
-                ? yArray.length * maxHeight + Math.max(0, yArray.length - 1) * gapY
-                : maxHeight;
-            // 6. 关闭 Component Set 的自动布局
-            componentSet.flexMode = "NONE";
-            // 7. 开始重排绝对坐标
-            variants.forEach(v => {
-                const props = parseVariantName(v.name);
-                const xVal = props[propX];
-                const colIndex = xArray.indexOf(xVal);
-                const rowIndex = hasY ? yArray.indexOf(props[propY]) : 0;
-                const gSign = groupProps.map(p => `${p}=${props[p]}`).join(', ') || 'Default';
-                const groupIndex = groups.indexOf(gSign);
-                if (colIndex !== -1 && rowIndex !== -1 && groupIndex !== -1) {
-                    const groupOffsetY = groupIndex * (singleGroupHeight + (hasY ? gapY : 0));
-                    v.x = padding + colIndex * cellWidth + (maxWidth - v.width) / 2;
-                    v.y = hasY
-                        ? padding + groupOffsetY + rowIndex * cellHeight + (maxHeight - v.height) / 2
-                        : padding + (maxHeight - v.height) / 2; // 1D 垂直居中
-                }
-            });
-            // 8. 重置 Component Set 的总宽高
-            const totalWidth = padding * 2 + xArray.length * maxWidth + Math.max(0, xArray.length - 1) * gapX;
-            const totalHeight = hasY
-                ? padding * 2 + groups.length * singleGroupHeight + Math.max(0, groups.length - 1) * gapY
-                : padding * 2 + maxHeight;
-            componentSet.resize(totalWidth, totalHeight);
-            let resultMsg = hasY
-                ? `✨ 矩阵重排完成！${xArray.length} x ${yArray.length}${groups.length > 1 ? `，共 ${groups.length} 个分组` : ''}`
-                : `✨ 单维度排列完成！${xArray.length} 个变体水平排列`;
-            notifyInUiLanguage(resultMsg);
+            await handleLayerToolsMessage(Object.assign(Object.assign({}, msg), { type: 'layer-matrix' }));
             break;
         }
-        // 批量排布：多个组件集统一排列
         case 'generate-batch-showcase': {
             const gapX = msg.gapX !== undefined ? msg.gapX : 16;
             const gapY = msg.gapY !== undefined ? msg.gapY : 16;
@@ -5791,6 +5829,15 @@ mg.ui.onmessage = async (rawMessage) => {
             await mg.loadFontAsync({ family: "Inter", style: "Regular" });
             await mg.loadFontAsync({ family: "Inter", style: "Semi Bold" });
             await mg.loadFontAsync({ family: "Inter", style: "Bold" });
+            const layouts = new Map(compSets.map(componentSet => {
+                var _a;
+                const variants = componentSet.children;
+                const properties = [...new Set(variants.flatMap(v => Object.keys(parseVariantName(v.name))))];
+                const axesX = Array.isArray(msg.axesX) ? msg.axesX.filter(p => properties.includes(p)) : [];
+                const axesY = Array.isArray(msg.axesY) ? msg.axesY.filter(p => properties.includes(p) && !axesX.includes(p)) : [properties[1]].filter(Boolean);
+                return [componentSet.id, LayerRules.matrix(variants, Object.assign(Object.assign({}, msg), { axesX: axesX.length ? axesX : [properties[0]], axesY, groupGap: (_a = msg.groupGap) !== null && _a !== void 0 ? _a : setSpacing }))];
+            }));
+            const oldBoards = new Set();
             // 收集所有组件集的中心位置
             let centerX = 0, centerY = 0;
             compSets.forEach(cs => { centerX += cs.x + cs.width / 2; centerY += cs.y + cs.height / 2; });
@@ -5804,10 +5851,10 @@ mg.ui.onmessage = async (rawMessage) => {
             container.mainAxisSizingMode = "AUTO";
             container.crossAxisSizingMode = "AUTO";
             container.itemSpacing = setSpacing;
-            container.paddingLeft = 32;
-            container.paddingRight = 32;
-            container.paddingTop = 32;
-            container.paddingBottom = 32;
+            container.paddingLeft = (_f = msg.boardPaddingX) !== null && _f !== void 0 ? _f : 48;
+            container.paddingRight = (_g = msg.boardPaddingX) !== null && _g !== void 0 ? _g : 48;
+            container.paddingTop = (_h = msg.boardPaddingY) !== null && _h !== void 0 ? _h : 56;
+            container.paddingBottom = (_j = msg.boardPaddingY) !== null && _j !== void 0 ? _j : 56;
             container.fills = [solidPaint(boardFill)];
             let maxSetWidth = 0;
             const directPlacements = [];
@@ -5830,58 +5877,17 @@ mg.ui.onmessage = async (rawMessage) => {
                 }
                 mg.document.currentPage.appendChild(componentSet);
                 if (oldBoard)
-                    oldBoard.remove();
-                // 自动推断属性：第一个属性→X轴，第二个属性（不同）→Y轴
-                const sampleName = variants[0].name;
-                const properties = sampleName.split(',').map(p => p.split('=')[0].trim());
-                const localPropX = properties[0] || '';
-                const localPropY = properties.length >= 2 && properties[1] !== localPropX ? properties[1] : '';
-                const localHasY = !!localPropY;
-                const groupProps = localHasY ? properties.filter(p => p !== localPropX && p !== localPropY) : properties.filter(p => p !== localPropX);
-                // 收集属性值
-                const xValues = new Set();
-                const yValues = new Set();
-                const groupValues = new Set();
-                variants.forEach(v => {
-                    const props = parseVariantName(v.name);
-                    if (props[localPropX])
-                        xValues.add(props[localPropX]);
-                    if (localHasY && props[localPropY])
-                        yValues.add(props[localPropY]);
-                    else if (!localHasY)
-                        yValues.add('default');
-                    const gSign = groupProps.map(p => `${p}=${props[p]}`).join(', ');
-                    groupValues.add(gSign || 'Default');
-                });
-                const xArray = Array.from(xValues);
-                const yArray = localHasY ? Array.from(yValues) : ['default'];
-                const groups = Array.from(groupValues);
-                // 最大尺寸
-                let maxW = 0, maxH = 0;
-                variants.forEach(v => { if (v.width > maxW)
-                    maxW = v.width; if (v.height > maxH)
-                    maxH = v.height; });
-                const cellW = maxW + gapX;
-                const cellH = localHasY ? maxH + gapY : 0;
-                const groupH = localHasY
-                    ? yArray.length * maxH + Math.max(0, yArray.length - 1) * gapY
-                    : maxH;
-                // 排列变体
-                componentSet.flexMode = "NONE";
-                variants.forEach(v => {
-                    const props = parseVariantName(v.name);
-                    const colIndex = xArray.indexOf(props[localPropX]);
-                    const rowIndex = localHasY ? yArray.indexOf(props[localPropY]) : 0;
-                    const gSign = groupProps.map(p => `${p}=${props[p]}`).join(', ') || 'Default';
-                    const groupIndex = groups.indexOf(gSign);
-                    if (colIndex !== -1 && rowIndex !== -1 && groupIndex !== -1) {
-                        const offY = groupIndex * (groupH + (localHasY ? gapY : 0));
-                        v.x = padding + colIndex * cellW + (maxW - v.width) / 2;
-                        v.y = localHasY ? padding + offY + rowIndex * cellH + (maxH - v.height) / 2 : padding + (maxH - v.height) / 2;
-                    }
-                });
-                const csWidth = padding * 2 + xArray.length * maxW + Math.max(0, xArray.length - 1) * gapX;
-                const csHeight = localHasY ? padding * 2 + groups.length * groupH + Math.max(0, groups.length - 1) * gapY : padding * 2 + maxH;
+                    oldBoards.add(oldBoard);
+                const layout = layouts.get(componentSet.id);
+                const localPropX = layout.x.join(' / '), localPropY = layout.y.join(' / '), localHasY = layout.y.length > 0;
+                const groupProps = layout.group;
+                const xArray = layout.xs.map(key => JSON.parse(key).join(' / '));
+                const yArray = layout.ys.map(key => JSON.parse(key).join(' / '));
+                const groups = layout.groups.map(key => JSON.parse(key).map((v, i) => `${groupProps[i]}=${v}`).join(', ') || 'Default');
+                const maxW = layout.maxW, maxH = layout.maxH, cellW = maxW + gapX, cellH = maxH + gapY, groupH = layout.groupH;
+                componentSet.flexMode = 'NONE';
+                layout.placements.forEach(p => { p.node.x = p.x; p.node.y = p.y; });
+                const csWidth = layout.width, csHeight = layout.height;
                 componentSet.resize(csWidth, csHeight);
                 if (csWidth > maxSetWidth)
                     maxSetWidth = csWidth;
@@ -5924,14 +5930,14 @@ mg.ui.onmessage = async (rawMessage) => {
                         setTextFontSize(label, 12);
                         setTextFontName(label, { family: "Inter", style: "Semi Bold" });
                         label.fills = [solidPaint({ r: 107 / 255, g: 114 / 255, b: 128 / 255 })];
-                        label.x = componentSet.x + padding + index * cellW + maxW / 2 - label.width / 2;
+                        label.x = componentSet.x + padding + layout.columnOffsets[index] + layout.columnWidths[index] / 2 - label.width / 2;
                         label.y = componentSet.y - 32;
                         innerBlock.appendChild(label);
                         decorationNodes.push(label);
                     });
                 }
                 groups.forEach((gSign, gIndex) => {
-                    const gAbsY = componentSet.y + padding + gIndex * (groupH + (localHasY ? gapY : 0));
+                    const gAbsY = componentSet.y + padding + gIndex * (groupH + layout.groupGap);
                     // Y 轴标签（仅二维）
                     if (localHasY && drawLabels) {
                         yArray.forEach((yVal, rowIndex) => {
@@ -5941,7 +5947,7 @@ mg.ui.onmessage = async (rawMessage) => {
                             setTextFontName(label, { family: "Inter", style: "Semi Bold" });
                             label.fills = [solidPaint({ r: 156 / 255, g: 163 / 255, b: 175 / 255 })];
                             label.x = componentSet.x - label.width - 16;
-                            label.y = gAbsY + rowIndex * cellH + maxH / 2 - label.height / 2;
+                            label.y = gAbsY + layout.rowOffsets[rowIndex] + layout.rowHeights[rowIndex] / 2 - label.height / 2;
                             innerBlock.appendChild(label);
                             decorationNodes.push(label);
                         });
@@ -5951,9 +5957,9 @@ mg.ui.onmessage = async (rawMessage) => {
                         if (localHasY) {
                             for (let r = 1; r < yArray.length; r++) {
                                 const line = mg.createLine();
-                                line.resize(xArray.length * cellW, 0);
+                                line.resize(csWidth - padding * 2, 0);
                                 line.x = componentSet.x + padding;
-                                line.y = gAbsY + r * cellH - gapY / 2;
+                                line.y = gAbsY + layout.rowOffsets[r] - gapY / 2;
                                 line.strokeDashes = [4, 4];
                                 line.strokeWeight = 1;
                                 line.strokes = [solidPaint({ r: 0.9, g: 0.92, b: 0.94 })];
@@ -5962,12 +5968,12 @@ mg.ui.onmessage = async (rawMessage) => {
                             }
                         }
                         for (let c = 1; c < xArray.length; c++) {
-                            const lineH = localHasY ? groupH : csHeight - padding * 2;
+                            const lineH = groupH;
                             const line = mg.createLine();
                             line.resize(lineH, 0);
                             line.rotation = -90;
-                            line.x = componentSet.x + padding + c * cellW - gapX / 2;
-                            line.y = gAbsY + (localHasY ? 0 : padding);
+                            line.x = componentSet.x + padding + layout.columnOffsets[c] - gapX / 2;
+                            line.y = gAbsY;
                             line.strokeDashes = [4, 4];
                             line.strokeWeight = 1;
                             line.strokes = [solidPaint({ r: 0.9, g: 0.92, b: 0.94 })];
@@ -6001,6 +6007,8 @@ mg.ui.onmessage = async (rawMessage) => {
                 });
             }
             mg.document.currentPage.selection = [container];
+            oldBoards.forEach(board => { if (!board.removed && !LayerRules.walk(board.children).some(n => n.type === 'COMPONENT_SET'))
+                board.remove(); });
             mg.viewport.scrollAndZoomIntoView([container]);
             notifyInUiLanguage(`✅ 批量排布完成！共 ${compSets.length} 个组件集`);
             break;
@@ -6055,6 +6063,20 @@ mg.ui.onmessage = async (rawMessage) => {
             const variants = componentSet.children;
             if (variants.length === 0)
                 break;
+            const layout = LayerRules.matrix(variants, msg);
+            const properties = [...new Set(variants.flatMap(v => Object.keys(parseVariantName(v.name))))];
+            const hasY = layout.y.length > 0;
+            const groupProps = layout.group;
+            const xArray = layout.xs.map(key => JSON.parse(key).join(' / '));
+            const yArray = layout.ys.map(key => JSON.parse(key).join(' / '));
+            const groups = layout.groups.map(key => JSON.parse(key).map((value, index) => `${groupProps[index]}=${value}`).join(', ') || 'Default');
+            const maxWidth = layout.maxW, maxHeight = layout.maxH;
+            const cellWidth = maxWidth + gapX, cellHeight = maxHeight + gapY;
+            const singleGroupHeight = layout.groupH;
+            await mg.loadFontAsync({ family: "Inter", style: "Regular" });
+            await mg.loadFontAsync({ family: "Inter", style: "Medium" });
+            await mg.loadFontAsync({ family: "Inter", style: "Semi Bold" });
+            await mg.loadFontAsync({ family: "Inter", style: "Bold" });
             // ====== 【核心修复】二次编辑重写与销毁旧画板的递归追溯算法 ======
             let baseX = componentSet.x;
             let baseY = componentSet.y;
@@ -6073,81 +6095,20 @@ mg.ui.onmessage = async (rawMessage) => {
                 baseY = oldBoard.y;
                 isReedit = true;
                 mg.document.currentPage.appendChild(componentSet); // 提取组件集到当前页面根目录
-                oldBoard.remove(); // 销毁老旧的外层大画板
+                // Old board is cleaned only after new documentation succeeds.
             }
-            const sampleName = variants[0].name;
-            const properties = sampleName.split(',').map(p => p.split('=')[0].trim());
-            const hasY = !!propY && propY !== propX; // 是否有有效的 Y 轴（二维布局）
-            const groupProps = hasY ? properties.filter(p => p !== propX && p !== propY) : properties.filter(p => p !== propX);
-            const xValues = new Set();
-            const yValues = new Set();
-            const groupValues = new Set();
-            variants.forEach(v => {
-                const props = parseVariantName(v.name);
-                if (props[propX])
-                    xValues.add(props[propX]);
-                if (hasY && props[propY])
-                    yValues.add(props[propY]);
-                else if (!hasY)
-                    yValues.add('default'); // 单维时伪造一个 Y 值
-                const gSign = groupProps.map(p => `${p}=${props[p]}`).join(', ');
-                groupValues.add(gSign || 'Default');
-            });
-            const xArray = Array.from(xValues);
-            const yArray = hasY ? Array.from(yValues) : ['default'];
-            const groups = Array.from(groupValues);
-            await mg.loadFontAsync({ family: "Inter", style: "Regular" });
-            await mg.loadFontAsync({ family: "Inter", style: "Medium" });
-            await mg.loadFontAsync({ family: "Inter", style: "Semi Bold" });
-            await mg.loadFontAsync({ family: "Inter", style: "Bold" });
-            let maxWidth = 0, maxHeight = 0;
-            variants.forEach(v => {
-                if (v.width > maxWidth)
-                    maxWidth = v.width;
-                if (v.height > maxHeight)
-                    maxHeight = v.height;
-            });
-            const cellWidth = maxWidth + gapX;
-            const cellHeight = hasY ? maxHeight + gapY : 0;
-            const singleGroupHeight = hasY
-                ? yArray.length * maxHeight + Math.max(0, yArray.length - 1) * gapY
-                : maxHeight;
-            // 调整内部定位
             componentSet.flexMode = "NONE";
-            if (compRadius > 0)
-                safeCornerRadius(componentSet, compRadius);
-            // 直接应用描边至组件集本身
+            safeCornerRadius(componentSet, compRadius);
             try {
+                componentSet.strokes = compStroke > 0 ? [solidPaint(compStrokeColor)] : [];
                 if (compStroke > 0) {
-                    componentSet.strokes = [solidPaint(compStrokeColor)];
                     componentSet.strokeWeight = compStroke;
                     componentSet.strokeDashes = [6, 4];
                 }
-                else {
-                    componentSet.strokes = [];
-                }
             }
-            catch (e) {
-                console.warn("ComponentSetNode 描边受限，跳过直接修改", e);
-            }
-            variants.forEach(v => {
-                const props = parseVariantName(v.name);
-                const colIndex = xArray.indexOf(props[propX]);
-                const rowIndex = hasY ? yArray.indexOf(props[propY]) : 0; // 单属性时行索引始终为 0
-                const gSign = groupProps.map(p => `${p}=${props[p]}`).join(', ') || 'Default';
-                const groupIndex = groups.indexOf(gSign);
-                if (colIndex !== -1 && rowIndex !== -1 && groupIndex !== -1) {
-                    const groupOffsetY = groupIndex * (singleGroupHeight + groupGap);
-                    v.x = padding + colIndex * cellWidth + (maxWidth - v.width) / 2;
-                    v.y = hasY
-                        ? padding + groupOffsetY + rowIndex * cellHeight + (maxHeight - v.height) / 2
-                        : padding + (maxHeight - v.height) / 2; // 单属性：垂直居中
-                }
-            });
-            const compSetWidth = padding * 2 + xArray.length * maxWidth + Math.max(0, xArray.length - 1) * gapX;
-            const compSetHeight = hasY
-                ? padding * 2 + groups.length * singleGroupHeight + Math.max(0, groups.length - 1) * groupGap
-                : padding * 2 + maxHeight;
+            catch (_) { }
+            layout.placements.forEach(p => { p.node.x = p.x; p.node.y = p.y; });
+            const compSetWidth = layout.width, compSetHeight = layout.height;
             componentSet.resize(compSetWidth, compSetHeight);
             // ================= 视觉绘制层 =================
             // 计算自适应宽度，为两旁留出呼吸空间
@@ -6282,7 +6243,7 @@ mg.ui.onmessage = async (rawMessage) => {
             const englishTitle = formatTitle(componentSet.name, 'en');
             const nameVal = (aiDesc === null || aiDesc === void 0 ? void 0 : aiDesc.componentName) ? aiDesc.componentName : (language === 'zh' ? `${titleText} / ${englishTitle}` : `${englishTitle} / ${titleText}`);
             createDescriptionText(language === 'zh' ? `组件名称：${nameVal}` : `Component: ${nameVal}`, true);
-            const usageVal = (aiDesc === null || aiDesc === void 0 ? void 0 : aiDesc.usage) ? aiDesc.usage : (language === 'zh' ? `该组件适用于需要用户交互的界面场景，如表单提交、对话框确认、导航跳转等。不建议在纯展示型页面中过度使用。` : `This component is suitable for interactive UI scenarios such as form submissions, dialog confirmations, and navigation.`);
+            const usageVal = (aiDesc === null || aiDesc === void 0 ? void 0 : aiDesc.usage) ? aiDesc.usage : (language === 'zh' ? `请根据组件的实际用途补充使用场景；未使用 AI 生成说明。` : `Add usage guidance for this component. No AI description was generated.`);
             createDescriptionText(language === 'zh' ? `适用场景：${usageVal}` : `Usage: ${usageVal}`);
             const propsVal = (aiDesc === null || aiDesc === void 0 ? void 0 : aiDesc.properties) ? aiDesc.properties : (language === 'zh' ? `包含 ${properties.length} 个可配置属性（${properties.join('、')}），每个属性控制组件的不同视觉状态或功能变体。` : `Contains ${properties.length} configurable properties (${properties.join(', ')}).`);
             createDescriptionText(language === 'zh' ? `属性说明：${propsVal}` : `Properties: ${propsVal}`);
@@ -6337,14 +6298,14 @@ mg.ui.onmessage = async (rawMessage) => {
             const matrixStage = mg.createFrame();
             matrixStage.name = "Matrix Stage";
             matrixStage.flexMode = "VERTICAL";
-            matrixStage.paddingLeft = 24;
-            matrixStage.paddingRight = 24;
-            matrixStage.paddingTop = 24;
-            matrixStage.paddingBottom = 24;
+            matrixStage.paddingLeft = 0;
+            matrixStage.paddingRight = 0;
+            matrixStage.paddingTop = 0;
+            matrixStage.paddingBottom = 0;
             safeCornerRadius(matrixStage, 12);
             matrixStage.fills = [solidPaint(themeSurface)];
             matrixStage.strokes = [solidPaint(themeBorder)];
-            matrixStage.crossAxisAlignItems = "CENTER";
+            matrixStage.crossAxisAlignItems = "FLEX_START";
             boardFrame.appendChild(matrixStage);
             setHorizontalSizing(matrixStage, 'FILL');
             setVerticalSizing(matrixStage, 'HUG');
@@ -6369,11 +6330,11 @@ mg.ui.onmessage = async (rawMessage) => {
                 xArray.forEach((xVal, index) => {
                     const label = mg.createText();
                     label.name = "X Axis Label";
-                    label.characters = `${propX}: ${xVal}`.toUpperCase();
+                    label.characters = `${layout.x.join(" / ")}: ${xVal}`.toUpperCase();
                     setTextFontSize(label, 12);
                     setTextFontName(label, { family: "Inter", style: "Semi Bold" });
                     label.fills = [solidPaint({ r: 107 / 255, g: 114 / 255, b: 128 / 255 })];
-                    label.x = componentSet.x + padding + index * cellWidth + maxWidth / 2 - label.width / 2;
+                    label.x = componentSet.x + padding + layout.columnOffsets[index] + layout.columnWidths[index] / 2 - label.width / 2;
                     label.y = componentSet.y - 32;
                     componentArea.appendChild(label);
                     matrixNodes.push(label);
@@ -6399,12 +6360,12 @@ mg.ui.onmessage = async (rawMessage) => {
                     yArray.forEach((yVal, rowIndex) => {
                         const label = mg.createText();
                         label.name = "Y Axis Label";
-                        label.characters = `${propY}: ${yVal}`.toUpperCase();
+                        label.characters = `${layout.y.join(" / ")}: ${yVal}`.toUpperCase();
                         setTextFontSize(label, 12);
                         setTextFontName(label, { family: "Inter", style: "Semi Bold" });
                         label.fills = [solidPaint({ r: 156 / 255, g: 163 / 255, b: 175 / 255 })];
                         label.x = componentSet.x - label.width - 24;
-                        label.y = groupAbsoluteY + rowIndex * cellHeight + maxHeight / 2 - label.height / 2;
+                        label.y = groupAbsoluteY + layout.rowOffsets[rowIndex] + layout.rowHeights[rowIndex] / 2 - label.height / 2;
                         componentArea.appendChild(label);
                         matrixNodes.push(label);
                     });
@@ -6414,9 +6375,9 @@ mg.ui.onmessage = async (rawMessage) => {
                     if (hasY) {
                         for (let r = 1; r < yArray.length; r++) {
                             const line = mg.createLine();
-                            line.resize(xArray.length * cellWidth, 0);
+                            line.resize(compSetWidth - padding * 2, 0);
                             line.x = componentSet.x + padding;
-                            line.y = groupAbsoluteY + r * cellHeight - gapY / 2;
+                            line.y = groupAbsoluteY + layout.rowOffsets[r] - gapY / 2;
                             line.strokeDashes = [4, 4];
                             line.strokeWeight = gridLineWidth;
                             line.strokes = [solidPaint(gridLineColor)];
@@ -6426,12 +6387,12 @@ mg.ui.onmessage = async (rawMessage) => {
                     }
                     // 垂直网格线
                     for (let c = 1; c < xArray.length; c++) {
-                        const lineHeight = hasY ? singleGroupHeight : compSetHeight - padding * 2;
+                        const lineHeight = singleGroupHeight;
                         const line = mg.createLine();
                         line.resize(lineHeight, 0);
                         line.rotation = -90;
-                        line.x = componentSet.x + padding + c * cellWidth - gapX / 2;
-                        line.y = groupAbsoluteY + (hasY ? 0 : padding);
+                        line.x = componentSet.x + padding + layout.columnOffsets[c] - gapX / 2;
+                        line.y = groupAbsoluteY;
                         line.strokeDashes = [4, 4];
                         line.strokeWeight = gridLineWidth;
                         line.strokes = [solidPaint(gridLineColor)];
@@ -6695,6 +6656,8 @@ mg.ui.onmessage = async (rawMessage) => {
                 componentSet.y = componentBounds.y - boardBounds.y;
             }
             mg.document.currentPage.selection = [boardFrame];
+            if (oldBoard && !oldBoard.removed && !LayerRules.walk(oldBoard.children).some(n => n.type === 'COMPONENT_SET'))
+                oldBoard.remove();
             mg.viewport.scrollAndZoomIntoView([boardFrame]);
             notifyInUiLanguage("✅ 说明书生成完毕！");
             mg.commitUndo();
