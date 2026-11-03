@@ -1,6 +1,6 @@
 {
   "name": "allinonex",
-  "version": "4.4.0",
+  "version": "4.4.6",
   "private": true,
   "description": "All in One dual-platform plugin monorepo for Figma and MasterGo",
   "scripts": {
@@ -18,8 +18,13 @@
     "check:workspace-ui": "node scripts/check-workspace-ui.cjs",
     "check:window-bookmarks": "node scripts/check-window-bookmarks.mjs",
     "check:window-bookmarks-ui": "node scripts/check-window-bookmarks-ui.cjs",
-    "verify": "npm run sync:ui && npm run verify:figma && npm run verify:mastergo && npm run check:parity && npm run check:smart-fill && npm run check:fill-generators && npm run check:chinese-names && npm run check:localization && npm run check:window-bookmarks && npm run check:layer-workflows",
+    "verify": "npm run sync:ui && npm run verify:figma && npm run verify:mastergo && npm run check:parity && npm run check:smart-fill && npm run check:fill-generators && npm run check:chinese-names && npm run check:localization && npm run check:window-bookmarks && npm run check:layer-workflows && npm run check:ai-contracts && npm run check:component-families",
     "check:layer-workflows": "node scripts/check-layer-workflows.mjs",
-    "check:layer-ui": "node scripts/check-layer-workspace-ui.cjs"
+    "check:layer-ui": "node scripts/check-layer-workspace-ui.cjs",
+    "check:ai-contracts": "node scripts/check-ai-contracts.mjs",
+    "check:ai-recovery-ui": "node scripts/check-ai-recovery-ui.cjs",
+    "check:component-conflicts-ui": "node scripts/check-component-conflicts-ui.cjs",
+    "check:component-families": "node scripts/check-component-families.mjs",
+    "check:component-families-ui": "node scripts/check-component-families-ui.cjs"
   }
 }

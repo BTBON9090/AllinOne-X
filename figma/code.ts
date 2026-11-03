@@ -1,4 +1,5 @@
 // @ts-nocheck
+declare function createAITransport(send: (message: any) => void, fetcher: any): any;
 declare const LayerRules: any;
 declare function handleLayerToolsMessage(message: any): Promise<boolean>;
 declare function installLayerTools(): void;
@@ -74,6 +75,7 @@ const convertNameAdvanced = (str: string, format: string, sepMode: string, casin
 
     return { changed: newVal !== str, val: newVal };
 };
+const pluginAITransport = createAITransport(message => figma.ui.postMessage(message), fetch);
 figma.showUI(__html__, { width: 440, height: 600, themeColors: true });
 installLayerTools();
 
@@ -846,10 +848,10 @@ const buildComponentAiContext = (language = 'zh') => {
   const selectedComponents = selection.filter(node => node.type === 'COMPONENT') as ComponentNode[];
   const selectedSets = selection.filter(node => node.type === 'COMPONENT_SET') as ComponentSetNode[];
   const valid = (selection.length === 1 && selectedSets.length === 1)
-    || (selection.length >= 1 && selection.length <= 10 && selectedComponents.length === selection.length);
+    || (selection.length >= 1 && selection.length <= 800 && selectedComponents.length === selection.length);
   if (!valid) throw new Error(language === 'en'
-    ? 'Select one component set or 1–10 standalone components.'
-    : '请选择 1 个组件集，或 1–10 个独立组件。');
+    ? 'Select one component set or 1–800 standalone components.'
+    : '请选择 1 个组件集，或 1–800 个独立组件。');
 
   const owners: Array<ComponentNode | ComponentSetNode> = selectedSets.length ? selectedSets : selectedComponents;
   const issues: Array<{ code: string; severity: 'warning' | 'info'; targetId: string; message: string }> = [];
@@ -859,6 +861,7 @@ const buildComponentAiContext = (language = 'zh') => {
     selectedNameCounts.set(key, (selectedNameCounts.get(key) || 0) + 1);
   });
 
+  if(owners.reduce((count,owner)=>count+(owner.type==='COMPONENT_SET'?owner.children.filter(n=>n.type==='COMPONENT').length:1),0)>800)throw new Error('单次最多分析 800 个组件或变体');
   const targets = owners.map(owner => {
     const variants = owner.type === 'COMPONENT_SET'
       ? owner.children.filter(node => node.type === 'COMPONENT') as ComponentNode[]
@@ -922,7 +925,7 @@ const buildComponentAiContext = (language = 'zh') => {
       defaultValue: 'defaultValue' in definition ? String(definition.defaultValue) : ''
     }));
     const propertyValues = Object.fromEntries(
-      Object.entries(values).map(([key, set]) => [key, Array.from(set).slice(0, 24)])
+      Object.entries(values).map(([key, set]) => [key, Array.from(set)])
     );
     return {
       id: owner.id,
@@ -932,8 +935,8 @@ const buildComponentAiContext = (language = 'zh') => {
       propertyDefinitions,
       propertyValues,
       variantCount: variants.length,
-      variantNames: variants.slice(0, 40).map(variant => variant.name),
-      variantsTruncated: Math.max(0, variants.length - 40)
+      variantNames: variants.map(variant => variant.name),
+      variantsTruncated: 0
     };
   });
 
@@ -946,12 +949,12 @@ const applyComponentAiPlan = async (plan: any) => {
   const selectedComponents = selection.filter(node => node.type === 'COMPONENT');
   const selectedSets = selection.filter(node => node.type === 'COMPONENT_SET');
   const valid = (selection.length === 1 && selectedSets.length === 1)
-    || (selection.length >= 1 && selection.length <= 10 && selectedComponents.length === selection.length);
+    || (selection.length >= 1 && selection.length <= 800 && selectedComponents.length === selection.length);
   if (!valid) throw new Error('当前选择已变化，请重新分析后再应用');
 
   let changed = 0;
   const warnings: string[] = [];
-  const targetPlans = Array.isArray(plan?.targets) ? plan.targets.slice(0, 10) : [];
+  const targetPlans = Array.isArray(plan?.targets) ? plan.targets.slice(0, 800) : [];
   const desiredNameCounts = new Map<string, number>();
   targetPlans.forEach((targetPlan: any) => {
     const key = String(targetPlan?.name || '').trim().toLocaleLowerCase();
@@ -974,7 +977,7 @@ const applyComponentAiPlan = async (plan: any) => {
     }
 
     if (owner.type === 'COMPONENT_SET') {
-      const valueRenames = Array.isArray(targetPlan.valueRenames) ? targetPlan.valueRenames.slice(0, 120) : [];
+      const valueRenames = Array.isArray(targetPlan.valueRenames) ? targetPlan.valueRenames.slice(0, 800) : [];
       for (const rename of valueRenames) {
         const property = String(rename?.property || '').trim();
         const from = String(rename?.from || '').trim();
@@ -1006,7 +1009,7 @@ const applyComponentAiPlan = async (plan: any) => {
       }
     }
 
-    const propertyRenames = Array.isArray(targetPlan.propertyRenames) ? targetPlan.propertyRenames.slice(0, 40) : [];
+    const propertyRenames = Array.isArray(targetPlan.propertyRenames) ? targetPlan.propertyRenames.slice(0, 800) : [];
     for (const rename of propertyRenames) {
       const from = String(rename?.from || '').trim();
       const to = String(rename?.to || '').trim().replace(/[,=]/g, ' ').slice(0, 80);
@@ -1030,7 +1033,7 @@ const sendComponentBuilderSelection = () => {
   const components = selection.filter(node => node.type === 'COMPONENT');
   const componentSets = selection.filter(node => node.type === 'COMPONENT_SET');
   const canOptimize = (selection.length === 1 && componentSets.length === 1)
-    || (selection.length >= 1 && selection.length <= 10 && components.length === selection.length);
+    || (selection.length >= 1 && selection.length <= 800 && components.length === selection.length);
   figma.ui.postMessage({
     type: 'component-builder-selection',
     total: selection.length,
@@ -1040,6 +1043,7 @@ const sendComponentBuilderSelection = () => {
     componentSets: componentSets.length,
     canOptimize,
     canReverse: selection.length === 1 && instances.length === 1,
+    canAnalyzeBuild: selection.length > 0 && frames.length + components.length + componentSets.length === selection.length,
     canBuild: selection.length > 0 && frames.length === selection.length,
     sameParent: selection.length > 0 && selection.every(node => node.parent === selection[0].parent),
     selectionIds: selection.map(node => node.id),
@@ -1047,12 +1051,13 @@ const sendComponentBuilderSelection = () => {
   });
 };
 
-figma.on('selectionchange', sendComponentBuilderSelection);
+figma.on('selectionchange', () => {try{sendComponentBuilderSelection()}catch(error){console.warn('Selection refresh deferred:',String(error));}});
 let componentReverseRunning = false;
 
 // 监听选择变化，主动推送 CompKit 属性更新
 let lastCompKitTargetId: string | null = null;
 figma.on('selectionchange', () => {
+  try {
   const selection = figma.currentPage.selection;
   let targetId: string | null = null;
   let properties: string[] = [];
@@ -1128,6 +1133,7 @@ figma.on('selectionchange', () => {
       variantsCount
     });
   }
+  } catch(error) { console.warn('Component property refresh deferred:',String(error)); }
 });
 
 figma.ui.onmessage = async (msg) => {
@@ -1138,16 +1144,8 @@ figma.ui.onmessage = async (msg) => {
   if (await handleLayerToolsMessage(msg)) return;
   // 新增：专治跨域不服！拦截 'do-fetch' 指令，由后台沙箱代发请求
   // =======================================================
-  if (msg.type === 'do-fetch') {
-      try {
-          const res = await fetch(msg.url, msg.options);
-          const json = await res.json();
-          figma.ui.postMessage({ type: 'api-response', reqId: msg.reqId, data: json });
-      } catch (e: any) {
-          figma.ui.postMessage({ type: 'api-response', reqId: msg.reqId, error: e.message || String(e) });
-      }
-      return;
-  }
+  if (msg.type === 'do-fetch') { void pluginAITransport.request(msg); return; }
+  if (msg.type === 'cancel-fetch') { pluginAITransport.cancel(msg.reqId); return; }
 
   console.log("【2】后端：收到了消息 ->", msg.type);
   const selection = figma.currentPage.selection;

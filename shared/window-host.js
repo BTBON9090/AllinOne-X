@@ -56,7 +56,9 @@ function createPluginWindowController(adapter) {
   function handle(msg) {
     if (msg.type === 'resize-window' || msg.type === 'resize-drag') {
       if (collapsed) return true; // Never replace the saved dimensions with bubble dimensions.
-      size = dimensions(msg);
+      const next=dimensions(msg);
+      if(next.width===size.width&&next.height===size.height)return true;
+      size = next;msg.width=next.width;msg.height=next.height;
       fullSize = { ...size };
       return false; // Keep existing resize/cache behavior.
     }

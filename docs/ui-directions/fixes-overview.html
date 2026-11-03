@@ -1,0 +1,14 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+*{box-sizing:border-box}body{margin:0;background:#ece6dd;color:#201b16;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif}
+.wrap{width:1320px;padding:34px 40px 38px}
+.head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px;border-bottom:1px solid #cfc2b2;padding-bottom:18px}
+h1{font-family:"Iowan Old Style","Songti SC",Georgia,serif;font-size:34px;line-height:1.1;margin:0;font-weight:600;letter-spacing:-.02em}
+.sub{font-size:13px;line-height:1.5;color:#77685a;margin:7px 0 0}
+.badge{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9a5a3c;border:1px solid #d8bfa9;border-radius:999px;padding:6px 10px;background:#f6eadf}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;align-items:start}
+.card{background:#fbf7f0;border:1px solid #cfc2b2;border-radius:16px;padding:10px;box-shadow:0 8px 24px -20px rgba(0,0,0,.3)}
+.card img{display:block;width:100%;height:auto;border-radius:9px;border:1px solid #e5d8c8;background:#fff}
+.meta{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:10px 3px 2px}
+.meta b{font-size:14px;font-weight:650}.meta span{font-size:11px;color:#77685a}
+.tag{font-size:10.5px;color:#6d5b4b;margin:3px 3px 0;line-height:1.4}
+</style></head><body><div class="wrap"><div class="head"><div><h1>这一轮修掉的具体问题</h1><div class="sub">选择/查重的卡片间距、知识文章版式、设置按钮、清洗卡边距、形变预览、暗轨按钮</div></div><div class="badge">FIXES</div></div><div class="grid"><div class="card"><img src="screens/implemented/select-cards.png"><div class="meta"><b>选择 / 查重 · 卡片间距</b><span>6px</span></div><div class="tag">卡片不再被 16px 外层 gap 推开；查重面板同规则</div></div><div class="card"><img src="screens/implemented/theory-cards.png"><div class="meta"><b>知识文章 · 阅读版式</b><span>单列 · 无内嵌色块</span></div><div class="tag">编号、导语、案例/价值三层；去掉了重复底色块</div></div><div class="card"><img src="screens/implemented/settings-ai-cards.png"><div class="meta"><b>设置 · 模型测试</b><span>8px</span></div><div class="tag">检查按钮与模型输入框之间留出间距</div></div><div class="card"><img src="screens/implemented/refiner-cards.png"><div class="meta"><b>组件清洗 · 卡片边距</b><span>四周 12px</span></div><div class="tag">卡片不再压住面板边界；内层格式保持平面</div></div><div class="card"><img src="screens/implemented/skew-porcelain.png"><div class="meta"><b>白瓷 · 形变预览</b><span>浅底 + 网格</span></div><div class="tag">预览方块、方向和坐标线都能看清</div></div><div class="card"><img src="screens/implemented/darkrail-simple-dark.png"><div class="meta"><b>暗轨 · 简易工具</b><span>卡片底色</span></div><div class="tag">按钮与背景分开，不再整片融在一起</div></div></div></body></html>

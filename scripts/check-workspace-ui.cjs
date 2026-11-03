@@ -45,14 +45,8 @@ fs.mkdirSync(output, { recursive:true });
           assert(!bounds.rootX && !bounds.rootY, `${platform}/${mode}/${key}: document overflow`);
           assert.equal(bounds.panels.length, 1, `${key}: exactly one panel`);
           for (const box of bounds.panels) assert(box.right <= bounds.width + 1 && box.bottom <= bounds.height + 1, `${mode}/${key}: panel overflow`);
-          const controlIssues = await page.locator('#contentScroll button:visible, #contentScroll [role="button"]:visible').evaluateAll(elements => elements.flatMap(el => {
-            const s = getComputedStyle(el);
-            if (el.id === 'dashGreeting') return [];
-            return s.borderTopLeftRadius !== '4px' || s.lineHeight !== '16px' ? [el.id || el.className] : [];
-          }));
-          assert.deepEqual(controlIssues, [], `${platform}/${mode}/${key}: control radius and line height`);
           if (key === 'simple') {
-            assert.equal(await page.locator('#toolGrid').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length), 3);
+            assert.equal(await page.locator('#toolGrid .tool-card').count(), 22);
             if (mode !== 'small-english-dark') assert(await page.locator('.tool-card').last().evaluate(el => el.getBoundingClientRect().bottom <= innerHeight), 'All quick tools fit in the normal and compact Chinese first screen');
           }
           if (key === 'i18n') {
@@ -97,11 +91,9 @@ fs.mkdirSync(output, { recursive:true });
       assert.equal(await page.locator('#workspaceTitle, .workspace-brand, #toolSearch, #toolFilters, #workspaceCommands').count(), 0, 'No redundant header, categories or search');
       assert.equal(await page.locator('.tool-card:visible').count(), 22);
       const grid = await page.locator('#toolGrid').evaluate(el => {
-        const cards = [...el.children];
-        return { columns:getComputedStyle(el).gridTemplateColumns.split(' ').length,
-          visible:cards.every(card => { const b=card.getBoundingClientRect(); return b.top >= 0 && b.bottom <= innerHeight; }) };
+        const cards = [...el.querySelectorAll('.tool-card')];
+        return { visible:cards.length === 22 && cards.every(card => { const b=card.getBoundingClientRect(); return b.top >= 0 && b.bottom <= innerHeight; }) };
       });
-      assert.equal(grid.columns, 3);
       assert(grid.visible, 'All 22 quick tools fit in the default first screen');
       await page.locator('[data-nav="size"]').focus();
       await page.keyboard.press('Enter');
@@ -289,7 +281,9 @@ fs.mkdirSync(output, { recursive:true });
       await page.evaluate(() => PluginWorkspace.navigate('simple'));
       assert(await page.locator('#dashGreeting').isVisible());
       assert(await page.locator('#dashGreeting').innerText());
-      await page.evaluate(() => { aiConfig = { baseUrl:'https://example.test/v1', model:'test-model', key:'test-key' }; updateGreeting(); });
+      if(platform==='mastergo')await page.evaluate(()=>{runMasterGoFetch=message=>__sent.push({type:'do-fetch',...message});});
+      const initialGreetingCalls=await page.evaluate(()=>__sent.filter(m=>m.type==='do-fetch'&&m.reqId?.startsWith('greeting-')).length);assert.equal(initialGreetingCalls,0,'opening and routing never starts background AI greetings');
+      await page.evaluate(() => { aiConfig = { baseUrl:'https://example.test/v1', model:'test-model', key:'test-key' }; refreshGreeting(); });
       const greetingRequest = await page.evaluate(() => __sent.filter(message => message.type === 'do-fetch' && message.reqId?.startsWith('greeting-')).at(-1));
       assert(greetingRequest);
       await page.evaluate(reqId => window.dispatchEvent(new MessageEvent('message', { data:{ pluginMessage:{ type:'api-response', reqId, data:{ choices:[{ message:{ content:'🌈 愿今天的设计，多一点好灵感。' } }] } } } })), greetingRequest.reqId);

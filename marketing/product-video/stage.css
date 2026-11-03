@@ -1,0 +1,46 @@
+/* Product demo stage: real plugin UI, camera, cursor, exploded views. */
+html,body{overflow:hidden!important;background:#0c0a08!important}
+#demo-stage{position:fixed;inset:0;z-index:999999;background:radial-gradient(ellipse at 72% 12%,rgba(215,109,70,.15),transparent 44%),radial-gradient(ellipse at 12% 84%,rgba(217,242,122,.05),transparent 42%),linear-gradient(180deg,#0f0c09,#080706);color:#f3eadf;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;overflow:hidden}
+#demo-stage *{box-sizing:border-box}
+#demo-stage::after{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:90px 90px;mask-image:linear-gradient(180deg,transparent,#000 16%,#000 84%,transparent);pointer-events:none}
+.demo-top{position:absolute;top:46px;left:64px;right:64px;display:flex;justify-content:space-between;align-items:center;font-size:16px;letter-spacing:.08em;color:#9b8d7e;z-index:6}
+.demo-brand{display:flex;align-items:center;gap:12px;color:#f3eadf;font-weight:600}
+.demo-logo{width:26px;height:26px;display:grid;grid-template-columns:1fr 1fr;gap:3px}.demo-logo i{background:#f3eadf;border-radius:2px}.demo-logo i:nth-child(2){background:#d76d46}
+.demo-meta{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.08em;color:#6f6256;display:flex;gap:20px}
+.demo-head{position:absolute;top:112px;left:64px;right:64px;z-index:5;pointer-events:none}
+.demo-kicker{display:flex;align-items:center;gap:10px;font-family:"SF Mono",monospace;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:#b9a998}
+.demo-kicker::before{content:"";width:7px;height:7px;border-radius:50%;background:#d76d46}
+#demo-title{font-family:"Iowan Old Style","Songti SC","Noto Serif SC",Georgia,serif;font-size:58px;line-height:1.08;font-weight:600;letter-spacing:-.02em;margin-top:10px;color:#f3eadf}
+#demo-sub{font-size:19px;line-height:1.55;color:#a99b8b;margin-top:10px}
+.demo-camera{position:absolute;left:50%;top:55%;transform:translate(-50%,-50%) scale(1.65);transform-origin:center;transition:transform 1s cubic-bezier(.22,.8,.24,1);z-index:3;will-change:transform}
+.demo-window{width:440px;height:634px;border-radius:16px;overflow:hidden;background:#17130f;box-shadow:0 90px 160px -70px rgba(0,0,0,.95),0 0 0 1px #3a3027,0 0 0 7px rgba(255,255,255,.03);display:flex;flex-direction:column}
+.demo-titlebar{height:34px;background:#12100d;border-bottom:1px solid #2d251f;display:flex;align-items:center;gap:8px;padding:0 12px;flex:none;color:#8e7f70;font-size:11px;letter-spacing:.03em}
+.demo-titlebar i{width:8px;height:8px;border-radius:50%;background:#3d342c;display:block}.demo-titlebar i:first-child{background:#6b4a3c}.demo-titlebar span{margin-left:8px}
+.demo-window .app-container{width:440px!important;height:600px!important;min-height:600px!important;flex:1;position:relative!important;overflow:hidden!important;border-radius:0!important}
+.demo-window #pluginBubble,.demo-window #resizeHandle,.demo-window #windowStatus,.demo-window .window-actions,.demo-window .sidebar-footer .footer-btn[onclick*="Mini"]{display:none!important}
+.demo-window .app-container .main-content{min-width:0}
+#demo-vignette{position:absolute;inset:0;z-index:4;pointer-events:none;background:radial-gradient(ellipse at 50% 48%,transparent 45%,rgba(0,0,0,.55) 100%)}
+#demo-cursor{position:fixed;z-index:20;width:26px;height:30px;pointer-events:none;transform:translate(-3px,-2px);filter:drop-shadow(0 4px 8px rgba(0,0,0,.5));transition:left .55s cubic-bezier(.3,.8,.3,1),top .55s cubic-bezier(.3,.8,.3,1)}
+#demo-cursor svg{width:26px;height:30px;display:block}
+#demo-cursor .click{position:absolute;left:-12px;top:-12px;width:50px;height:50px;border:2px solid #d76d46;border-radius:50%;opacity:0;transform:scale(.3)}
+#demo-cursor.clicking .click{animation:demo-click .5s ease-out}
+@keyframes demo-click{0%{opacity:.9;transform:scale(.3)}100%{opacity:0;transform:scale(1.4)}}
+#demo-results{position:absolute;left:50%;bottom:178px;transform:translateX(-50%);z-index:15;display:flex;flex-direction:column;gap:8px;align-items:center}
+.demo-result{background:#f3eadf;color:#16120e;border-radius:999px;padding:10px 18px;font-size:17px;font-weight:600;box-shadow:0 20px 40px -20px rgba(0,0,0,.8);display:flex;align-items:center;gap:9px;opacity:0;transform:translateY(8px);transition:all .35s ease}
+.demo-result.on{opacity:1;transform:none}.demo-result::before{content:"";width:8px;height:8px;border-radius:50%;background:#4d9b6a}
+#demo-steps{position:absolute;left:64px;right:64px;bottom:94px;display:flex;align-items:center;justify-content:space-between;z-index:8;font-size:14px;color:#7f7163;font-family:"SF Mono",monospace;letter-spacing:.04em}
+.demo-progress{display:flex;gap:6px;align-items:center}.demo-progress i{width:64px;height:2px;background:#2c251f;display:block;overflow:hidden;position:relative}.demo-progress i::after{content:"";position:absolute;inset:0;background:#e7dccd;transform:scaleX(0);transform-origin:left;transition:transform .2s linear}
+.demo-progress i.done::after{transform:scaleX(1)}.demo-progress i.active::after{transform:scaleX(.55)}
+#demo-explode{position:fixed;inset:0;z-index:14;pointer-events:none}
+.demo-piece{position:fixed;border-radius:10px;overflow:hidden;background:#fff;box-shadow:0 20px 40px -24px rgba(0,0,0,.8);transition:transform .8s cubic-bezier(.2,.8,.2,1),opacity .4s}
+.demo-piece .inner{position:absolute;left:0;top:0;width:100%;height:100%}
+.demo-lbl{position:fixed;z-index:16;background:#17130f;border:1px solid #4a3a2e;color:#f3eadf;border-radius:8px;padding:5px 9px;font-size:12px;font-family:"SF Mono",monospace;letter-spacing:.02em;opacity:0;transform:translateY(4px);transition:all .35s ease}
+.demo-lbl.on{opacity:1;transform:none}.demo-lbl::before{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:#d76d46;margin-right:7px;vertical-align:1px}
+#demo-flash{position:fixed;inset:0;z-index:13;pointer-events:none;background:#d76d46;opacity:0;transition:opacity .3s}
+#demo-flash.on{opacity:.08}
+.demo-end{position:absolute;inset:0;z-index:30;background:#0c0a08;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;opacity:0;visibility:hidden;transition:opacity .6s,visibility .6s}
+.demo-end.on{opacity:1;visibility:visible}
+.demo-end h2{font-family:"Iowan Old Style","Songti SC",Georgia,serif;font-size:92px;line-height:1.02;font-weight:600;letter-spacing:-.03em}
+.demo-end p{font-size:24px;color:#a99b8b;margin-top:20px}
+.demo-end .contacts{display:flex;gap:22px;margin-top:28px;font-family:"SF Mono",monospace;font-size:15px;color:#8e7f70}
+.demo-end .contacts b{color:#f3eadf}

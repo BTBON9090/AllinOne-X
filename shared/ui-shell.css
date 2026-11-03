@@ -384,3 +384,46 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
 #tabCompKitMatrix { display:none !important; }
 #tabCompKitShowcase { display:block; }
 #matrixDocumentation { flex-shrink:0; }
+/* Compact AI workbench: explicitly reset inherited full-width action styles. */
+.layer-ai-card { padding:8px; margin-bottom:8px; }
+.layer-ai-card .primary-btn, .layer-ai-card .secondary-btn, .layer-capability button,
+.layer-feedback button, .layer-feedback + button {
+  display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto;
+  width:auto; min-width:0; height:28px; min-height:28px; max-height:28px;
+  padding:4px 9px; margin:0; font-size:11px; font-weight:500; line-height:18px;
+  border-radius:4px; box-shadow:none; gap:4px;
+}
+.layer-actions { gap:6px; align-items:center; }
+.layer-ai-card > button { margin:4px 5px 0 0; }
+.layer-ai-card select, .layer-ai-card input:not([type=checkbox]) { height:28px; min-height:28px; padding:4px 6px; }
+.layer-ai-card .layer-switch-row { min-height:26px; padding:3px 0; }
+.layer-title { margin-bottom:4px; font-size:12px; line-height:18px; }
+.layer-help { font-size:11px; line-height:16px; margin-bottom:6px; }
+.layer-feedback { max-height:220px; line-height:17px; }
+.layer-job-banner { font-size:11px; line-height:17px; padding:6px 8px; margin:6px 0; border-left:2px solid var(--primary); background:var(--primary-light); color:var(--text-primary); }
+.layer-completion { position:fixed; bottom:12px; left:12px; right:12px; z-index:10000; display:flex; gap:8px; align-items:center; padding:8px 10px; border:1px solid var(--border-control); border-radius:5px; background:var(--bg-surface); color:var(--text-primary); box-shadow:0 3px 16px #0002; font-size:11px; line-height:17px; }
+.layer-completion span { flex:1; max-height:80px; overflow:auto; }
+.layer-completion button { width:auto; padding:3px 6px; min-height:26px; border:0; background:var(--bg-muted); color:var(--text-primary); font-size:11px; }
+.layer-feedback .layer-actions { margin:0 0 6px; }
+.layer-feedback button[aria-pressed=true] { background:var(--primary-light); color:var(--primary); border-color:var(--primary); }
+#componentBuilderPanel .builder-mode { padding:7px 4px; min-height:48px; gap:4px; }
+#componentBuilderPanel .builder-mode svg { width:17px; height:17px; }
+#componentBuilderPanel .builder-mode-title { font-size:11px; line-height:16px; }
+#componentBuilderPanel .builder-selection-state { padding:8px; margin-bottom:8px; }
+#componentBuilderPanel .builder-card { padding:10px; margin-bottom:8px; }
+#componentBuilderPanel button, #compkitPanel button, #refinerTranslation button { min-height:28px; padding-top:5px; padding-bottom:5px; font-size:11px; }
+
+/* Dense, actionable AI previews. Long names wrap without expanding the panel. */
+.layer-plan-results { max-height: 240px; overflow: auto; }
+.layer-plan-group { padding: 6px 0; border-bottom: 1px solid var(--border-color); }
+.layer-plan-group strong { display: block; font-size: 11px; margin-bottom: 3px; }
+.layer-locate { display: block; width: 100%; padding: 3px 0; border: 0; background: transparent; color: var(--text-secondary); font: inherit; font-size: 11px; line-height: 1.45; text-align: left; cursor: pointer; white-space: normal; overflow-wrap: anywhere; }
+.layer-locate:hover { color: var(--primary); text-decoration: underline; }
+.layer-locate:focus-visible { outline: 1px solid var(--primary); outline-offset: 1px; }
+.layer-actions { flex-wrap: wrap; }
+.layer-actions [hidden], .layer-ai-card [hidden], #duplicateContinue[hidden] { display: none !important; }
+
+.layer-dup-progress { flex: 0 0 auto; min-width: 0; }
+.layer-dup-progress .layer-feedback { max-height: 90px; }
+.layer-dup-progress > button { min-height: 28px; padding: 4px 9px; font-size: 11px; margin: 0 12px 6px; }
+.layer-dup-progress ~ #dupConfigView, .layer-dup-progress ~ #dupResultView { flex: 1; min-height: 0; height: auto !important; }

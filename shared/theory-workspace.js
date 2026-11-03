@@ -57,15 +57,16 @@
       const title = displayTitle(sub.title.replace(/^\d+\.\s*/, ''));
       const section = node('section', 'theory-principle');
       section.id = 'theory-principle-' + index;
-      const heading = node('h2', 'theory-principle-title');
-      heading.append(node('span', 'theory-principle-number', String(index + 1).padStart(2,'0')), node('span','',title));
+      const heading = node('div', 'theory-principle-head');
+      heading.append(node('span', 'theory-principle-number', String(index + 1).padStart(2,'0')), node('h2','theory-principle-title',title));
       section.append(heading);
+      if (sub.core) section.append(node('p', 'theory-principle-lead', sub.core));
       for (const [key, caption] of [
-        ['core', l('核心释义','Key idea')], ['case', l('应用案例','In practice')], ['val', l('理论价值','Why it matters')]
+        ['case', l('案例','Example')], ['val', l('价值','Why it matters')]
       ]) {
-        const block = node('div', 'theory-principle-block theory-principle-' + key);
-        block.append(node('h3', 'theory-block-label', caption), node('p', 'theory-block-copy', sub[key]));
-        section.append(block);
+        const row = node('div', 'theory-principle-row theory-principle-' + key);
+        row.append(node('span', 'theory-row-label', caption), node('p', 'theory-row-copy', sub[key]));
+        section.append(row);
       }
       container.append(section);
       const option = node('option', '', (index + 1) + ' · ' + title); option.value = String(index); select.append(option);

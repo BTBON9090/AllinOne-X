@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>All in One · 六套皮肤 · product film</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0d0b09;--panel:#17130f;--ink:#f3eadf;--muted:#a99b8b;--faint:#6f6256;--line:#302821;--accent:#d76d46;--lime:#d9f27a;--coral:#ff8a5b;--blue:#1f6bff}
+html,body{width:1080px;height:1920px;overflow:hidden;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at 70% 12%,rgba(215,109,70,.16),transparent 44%),radial-gradient(ellipse at 10% 84%,rgba(217,242,122,.05),transparent 40%),linear-gradient(180deg,#0e0c0a,#090807);z-index:0}
+body::after{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:90px 90px;mask-image:linear-gradient(180deg,transparent,#000 18%,#000 82%,transparent);z-index:0;pointer-events:none}
+.frame{position:fixed;inset:0;z-index:5;padding:54px 68px;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
+.topbar{display:flex;align-items:center;justify-content:space-between;font-size:20px;letter-spacing:.02em;color:var(--muted)}
+.brand{display:flex;align-items:center;gap:13px;color:var(--ink);font-weight:600;letter-spacing:.01em}
+.logo{width:28px;height:28px;display:grid;grid-template-columns:1fr 1fr;gap:3px}
+.logo i{background:var(--ink);border-radius:2px;display:block}
+.logo i:nth-child(2){background:var(--accent)}
+.film-meta{display:flex;gap:22px;align-items:center;font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:14px;letter-spacing:.1em;color:var(--faint)}
+.progress{display:flex;gap:8px;align-items:center}
+.progress__seg{width:96px;height:2px;background:#2c251f;position:relative;overflow:hidden}
+.progress__seg i{position:absolute;inset:0;background:var(--ink);transform:scaleX(0);transform-origin:left;transition:transform .2s linear}
+.progress__num{font-family:"SF Mono",monospace;font-size:12px;color:var(--faint);margin-left:10px}
+.scene{position:absolute;inset:0;z-index:2;padding:120px 68px 150px;display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:opacity .65s ease,visibility .65s}
+.scene.on{opacity:1;visibility:visible}
+.scene.past{opacity:0;visibility:hidden}
+.eyebrow{display:flex;align-items:center;gap:12px;font-size:17px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent)}
+h1,h2,h3{font-family:"Iowan Old Style","Songti SC","Noto Serif SC",Georgia,serif;font-weight:600;letter-spacing:-.025em}
+h1{font-size:118px;line-height:1.06;margin-top:22px}
+h2{font-size:76px;line-height:1.1;margin-top:18px}
+.accent{color:var(--accent)}.lime{color:var(--lime)}.coral{color:var(--coral)}
+.sub{font-size:30px;line-height:1.55;color:var(--muted);font-weight:400;margin-top:22px;max-width:780px}
+.small{font-size:19px;line-height:1.5;color:var(--faint);font-family:"SF Mono",ui-monospace,Menlo,monospace;letter-spacing:.02em}
+.shotcard{background:var(--panel);border:1px solid var(--line);border-radius:26px;padding:12px;box-shadow:0 50px 100px -50px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.03) inset;overflow:hidden}
+.chrome{display:flex;align-items:center;gap:9px;padding:9px 12px 14px}
+.chrome i{width:9px;height:9px;border-radius:50%;background:#3d342c;display:block}
+.chrome span{font-family:"SF Mono",monospace;font-size:12px;color:var(--faint);margin-left:8px}
+.shotcard img{display:block;width:100%;border-radius:16px;border:1px solid #2d251f;object-fit:cover;object-position:top center}
+.hero{display:flex;flex-direction:column;gap:18px;flex:1;min-height:0}
+.hero__window{width:900px;height:1070px;margin:20px auto 0;flex:none}
+.hero__window img{height:1000px}
+.film-note{display:flex;align-items:center;justify-content:space-between;margin-top:18px;color:var(--faint);font-size:16px;font-family:"SF Mono",monospace;letter-spacing:.04em}
+.grid6{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:28px}
+.grid6 figure{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:8px;overflow:hidden}
+.grid6 img{width:100%;height:245px;object-fit:cover;object-position:top center;border-radius:11px;border:1px solid #2d251f}
+.grid6 figcaption{display:flex;justify-content:space-between;align-items:baseline;padding:12px 4px 5px;font-size:19px}
+.grid6 figcaption b{font-weight:600;color:var(--ink)}.grid6 figcaption span{font-size:15px;color:var(--faint)}
+.grid6 .pick{border-color:var(--accent);box-shadow:0 0 0 1px rgba(215,109,70,.28)}
+.split{display:grid;grid-template-columns:1.35fr .9fr;gap:28px;margin-top:28px;align-items:start}
+.stack{display:flex;flex-direction:column;gap:18px}
+.mini{font-size:18px;line-height:1.55;color:var(--muted)}
+.kicker{font-family:"SF Mono",monospace;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+.panel{border:1px solid var(--line);border-radius:20px;background:rgba(23,19,15,.7);padding:22px}
+.panel__title{font-size:26px;font-weight:600;margin-bottom:8px}
+.metrics{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.pill{border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-family:"SF Mono",monospace;font-size:14px;color:var(--muted)}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:28px}
+.duo figure{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:9px;overflow:hidden}
+.duo img{width:100%;height:600px;object-fit:cover;object-position:top center;border-radius:13px;border:1px solid #2d251f}
+.duo figcaption{display:flex;justify-content:space-between;padding:12px 3px 4px;font-size:18px;color:var(--muted)}
+.scene--cta{background:var(--bg)}
+.cta{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;flex:1;gap:0}
+.cta h1{font-size:126px;line-height:1.02}
+.cta .sub{max-width:760px}
+.dots{display:flex;gap:11px;margin:30px 0}
+.dots i{width:42px;height:42px;border-radius:50%;border:1px solid #3a3027;display:block}
+.contact{display:flex;gap:28px;margin-top:26px;font-family:"SF Mono",monospace;font-size:16px;color:var(--muted);letter-spacing:.02em}
+.contact b{color:var(--ink);font-weight:500}
+.endmark{display:flex;align-items:center;gap:12px;margin-top:30px;font-family:"SF Mono",monospace;font-size:13px;letter-spacing:.16em;color:var(--faint)}
+.endmark::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--lime)}
+.scene__footer{position:absolute;left:68px;right:68px;bottom:100px;display:flex;justify-content:space-between;align-items:flex-end;font-size:15px;color:var(--faint);font-family:"SF Mono",monospace;letter-spacing:.03em}
+.hairline{height:1px;background:var(--line);margin:18px 0 14px}
+.tool-scene .shotcard img{height:720px}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:24px}
+.trio figure{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:8px;overflow:hidden}
+.trio img{width:100%;height:400px;object-fit:cover;object-position:top center;border-radius:11px;border:1px solid #2d251f}
+.trio figcaption{padding:12px 4px 5px;font-size:20px;color:var(--muted)}
+.trio figcaption b{color:var(--ink);font-weight:600;display:block;font-size:24px;margin-bottom:2px}
+.quad{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px}
+.quad figure{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:8px;overflow:hidden}
+.quad img{width:100%;height:330px;object-fit:cover;object-position:top center;border-radius:11px;border:1px solid #2d251f}
+.quad figcaption{padding:10px 4px 4px;font-size:18px;color:var(--muted);display:flex;justify-content:space-between}
+.quad figcaption b{color:var(--ink);font-weight:600;font-size:22px}
+.tool-shot{display:grid;grid-template-columns:1.15fr .85fr;gap:26px;margin-top:24px;align-items:start}
+.tool-shot .shotcard img{height:760px}
+.tool-list{display:flex;flex-direction:column;gap:0;border:1px solid var(--line);border-radius:20px;background:rgba(23,19,15,.7);overflow:hidden}
+.tool-list span{display:flex;justify-content:space-between;align-items:center;padding:20px 22px;border-bottom:1px solid var(--line);font-size:23px;color:var(--muted)}
+.tool-list span:last-child{border-bottom:0}
+.tool-list b{font-weight:600;color:var(--ink);font-size:24px}
+.tool-list em{font-style:normal;font-family:"SF Mono",monospace;font-size:14px;color:var(--faint)}
+
+</style>
+</head>
+<body>
+<div class="frame"><div class="topbar"><div class="brand"><span class="logo"><i></i><i></i><i></i><i></i></span>All in One</div><div class="film-meta"><span>22 TOOLS / 2026</span><span>FIGMA · MASTERGO</span></div></div><div class="progress" id="progress"></div></div>
+
+<section class="scene tool-scene" data-start="0" data-end="6">
+  <div class="eyebrow">效率工具 / Figma + MasterGo</div>
+  <h1>设计做到最后<br><span class="accent">最烦重复操作</span></h1>
+  <p class="sub">选图层、填内容、清组件、导 PPT。这些事，一个面板可以一次做完。</p>
+  <div class="shotcard hero__window"><div class="chrome"><i></i><i></i><i></i><span>All in One · plugin</span></div><img src="shots/home-cards.png"></div>
+  <div class="film-note"><span>01 / 07 · 重复操作</span><span>15 入口 · 22 工具</span></div>
+</section>
+
+<section class="scene" data-start="6" data-end="12.5">
+  <div class="eyebrow">工具地图</div>
+  <h2>22 个工具<br><span class="lime">一个面板</span></h2>
+  <p class="sub">效率、组件、设计拓展，三组导航，直接打开。</p>
+  <div class="tool-shot">
+    <div class="shotcard"><div class="chrome"><i></i><i></i><i></i><span>All in One</span></div><img src="shots/home-cards.png"></div>
+    <div class="tool-list">
+      <span><b>超级选择</b><em>找图层</em></span>
+      <span><b>智能填充</b><em>填内容</em></span>
+      <span><b>组件清洗</b><em>改名字</em></span>
+      <span><b>图层查重</b><em>查重复</em></span>
+      <span><b>导出 PPT</b><em>交付</em></span>
+      <span><b>设计理论</b><em>查依据</em></span>
+    </div>
+  </div>
+  <div class="film-note"><span>02 / 07 · 工具地图</span><span>15 ENTRY · 22 TOOLS</span></div>
+</section>
+
+<section class="scene" data-start="12.5" data-end="19.5">
+  <div class="eyebrow">智能填充</div>
+  <h2>一行字<br><span class="accent">填满整页</span></h2>
+  <p class="sub">AI 生成或自定义数据，按字段批量铺进设计稿。</p>
+  <div class="tool-shot">
+    <div class="shotcard"><div class="chrome"><i></i><i></i><i></i><span>智能填充 · 基础字段</span></div><img src="shots/smartfill-cards.png"></div>
+    <div class="stack">
+      <div class="panel"><div class="kicker">内容</div><div class="panel__title">姓名 / 地址 / 电话</div><p class="mini">公司名、身份证、银行卡号、日期与时间。</p></div>
+      <div class="panel"><div class="kicker">来源</div><div class="panel__title">AI 或自定义</div><p class="mini">也可以用自己的列表，按顺序或随机填。</p></div>
+      <div class="panel" style="border-color:#5b3d2e"><div class="kicker">方式</div><div class="panel__title">按文本 / 形状 / 图片</div><p class="mini">选中后点字段，一次铺满。</p></div>
+    </div>
+  </div>
+  <div class="film-note"><span>03 / 07 · 智能填充</span><span>REAL CONTENT · ONE CLICK</span></div>
+</section>
+
+<section class="scene" data-start="19.5" data-end="26">
+  <div class="eyebrow">超级选择</div>
+  <h2>按名字、类型<br><span class="accent">状态找图层</span></h2>
+  <p class="sub">14 种类型、8 种状态，组合筛选后一次选中。</p>
+  <div class="tool-shot">
+    <div class="shotcard"><div class="chrome"><i></i><i></i><i></i><span>超级选择</span></div><img src="shots/select-cards.png"></div>
+    <div class="stack">
+      <div class="panel"><div class="kicker">名称</div><div class="panel__title">包含 / 排除</div><p class="mini">支持精确匹配，也可以只搜某个前缀。</p></div>
+      <div class="panel"><div class="kicker">类型</div><div class="panel__title">14 种图层</div><p class="mini">画板、组、组件、文本、图片、矢量…</p></div>
+      <div class="panel"><div class="kicker">状态</div><div class="panel__title">隐藏 / 锁定 / 可导出</div><p class="mini">多个条件同时满足才命中。</p></div>
+    </div>
+  </div>
+  <div class="film-note"><span>04 / 07 · 超级选择</span><span>NAME · TYPE · STATE</span></div>
+</section>
+
+<section class="scene" data-start="26" data-end="33">
+  <div class="eyebrow">组件与图层</div>
+  <h2>改名、查重<br><span class="lime">翻译三件套</span></h2>
+  <p class="sub">批量处理，不用一个个点。</p>
+  <div class="trio">
+    <figure><img src="shots/refiner-cards.png"><figcaption><b>组件清洗</b>大小写 / 分隔符 / 空格</figcaption></figure>
+    <figure><img src="shots/layer-cards.png"><figcaption><b>图层命名</b>AI 识图命名 / 顺序编号</figcaption></figure>
+    <figure><img src="shots/duplicate-cards.png"><figcaption><b>图层查重</b>对比两个画板找重复</figcaption></figure>
+  </div>
+  <div class="film-note"><span>05 / 07 · 组件清理</span><span>RENAME · DUPLICATE · TRANSLATE</span></div>
+</section>
+
+<section class="scene" data-start="33" data-end="39">
+  <div class="eyebrow">从设计到交付</div>
+  <h2>最后四步<br><span class="accent">也在面板里</span></h2>
+  <p class="sub">尺寸、PPT、多语言、设计理论。</p>
+  <div class="quad">
+    <figure><img src="shots/size-cards.png"><figcaption><b>尺寸助手</b><span>设备预设</span></figcaption></figure>
+    <figure><img src="shots/ppt-cards.png"><figcaption><b>导出 PPT</b><span>可编辑页</span></figcaption></figure>
+    <figure><img src="shots/i18n-cards.png"><figcaption><b>语言切换</b><span>变量合集</span></figcaption></figure>
+    <figure><img src="shots/theory-cards.png"><figcaption><b>设计理论</b><span>18 篇</span></figcaption></figure>
+  </div>
+  <div class="film-note"><span>06 / 07 · 交付</span><span>DESIGN → DELIVERY</span></div>
+</section>
+
+<section class="scene scene--cta" data-start="39" data-end="48">
+  <div class="cta">
+    <div class="eyebrow" style="justify-content:center">All in One</div>
+    <h1>15 个入口<br><span class="accent">22 个工具</span></h1>
+    <p class="sub">Figma / MasterGo，装上就能用。本地运行，不上传设计稿。</p>
+
+    <div class="contact"><span>QQ <b>376556413</b></span><span><b>www.btbon.cn</b></span><span>小红书 <b>@All in One</b></span></div>
+    <div class="endmark">15 ENTRIES · 22 TOOLS · FIGMA + MASTERGO · LOCAL</div>
+  </div>
+  <div class="film-note"><span>07 / 07 · 一个面板</span><span>NO UPLOAD · LOCAL</span></div>
+</section>
+
+<script>
+const scenes=[...document.querySelectorAll('.scene')];
+const progress=document.getElementById('progress');
+scenes.forEach((_,i)=>{const s=document.createElement('span');s.className='progress__seg';s.innerHTML='<i></i>';progress.append(s)});
+progress.insertAdjacentHTML('beforeend','<span class="progress__num" id="pnum">01 / 07</span>');
+const bars=[...progress.querySelectorAll('.progress__seg i')];
+const num=document.getElementById('pnum');
+let last=-1;
+function tick(){
+  const t=performance.now()/1000;
+  let active=scenes.length-1;
+  for(let i=0;i<scenes.length;i++){const s=Number(scenes[i].dataset.start),e=Number(scenes[i].dataset.end);if(t>=s&&t<e){active=i;break;}}
+  scenes.forEach((s,i)=>{s.classList.toggle('on',i===active);s.classList.toggle('past',i<active)});
+  if(active!==last){last=active;num.textContent=String(active+1).padStart(2,'0')+' / 07';}
+  for(let i=0;i<bars.length;i++){const s=Number(scenes[i].dataset.start),e=Number(scenes[i].dataset.end);const p=Math.max(0,Math.min(1,(t-s)/(e-s)));bars[i].style.transform='scaleX('+(i<active?1:i===active?p:0)+')';}
+  if(t<48.2)requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
