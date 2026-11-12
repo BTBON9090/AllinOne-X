@@ -1,0 +1,85 @@
+<style>
+  body {
+    font-family: Inter, sans-serif;
+    padding: 20px;
+    margin: 0;
+    color: var(--figma-color-text);
+    background: var(--figma-color-bg);
+  }
+  h3 { margin-top: 0; font-size: 14px; margin-bottom: 16px; }
+  .form-group { margin-bottom: 16px; }
+  label { display: block; font-size: 12px; margin-bottom: 6px; font-weight: 500; }
+  select {
+    width: 100%;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid var(--figma-color-border);
+    background: var(--figma-color-bg-secondary);
+    color: var(--figma-color-text);
+    font-size: 12px;
+  }
+  button {
+    width: 100%;
+    padding: 10px;
+    background: var(--figma-color-bg-brand);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  button:hover { background: var(--figma-color-bg-brand-hover); }
+</style>
+
+<h3>设置二维排版维度</h3>
+
+<div class="form-group">
+  <label>X 轴属性 (列)</label>
+  <select id="x-select"></select>
+</div>
+
+<div class="form-group">
+  <label>Y 轴属性 (行)</label>
+  <select id="y-select"></select>
+</div>
+
+<button id="btn-generate">生成说明书</button>
+
+<script>
+  // 接收后端发来的属性列表并渲染下拉框
+  window.onmessage = async (event) => {
+    const msg = event.data.pluginMessage;
+    
+    // 【修复：添加 msg 非空判断，过滤 Figma 系统的无关消息】
+    if (msg && msg.type === 'init') {
+      const { properties } = msg;
+      const xSelect = document.getElementById('x-select');
+      const ySelect = document.getElementById('y-select');
+      
+      // 清空旧选项，防止重复生成
+      xSelect.innerHTML = '';
+      ySelect.innerHTML = '';
+      
+      properties.forEach((prop, index) => {
+        xSelect.options.add(new Option(prop, prop, false, index === 0));
+        ySelect.options.add(new Option(prop, prop, false, index === 1 || index === 0));
+      });
+    }
+  };
+
+  // 点击按钮，将选择的属性发给后端
+  document.getElementById('btn-generate').onclick = () => {
+    const propX = document.getElementById('x-select').value;
+    const propY = document.getElementById('y-select').value;
+    
+    if (propX === propY) {
+      alert("X轴和Y轴不能选择相同的属性！");
+      return;
+    }
+    
+    // 显示加载状态
+    document.getElementById('btn-generate').innerText = "生成中...";
+    parent.postMessage({ pluginMessage: { type: 'generate', propX, propY } }, '*');
+  };
+</script>
