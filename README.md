@@ -143,7 +143,7 @@ npm run verify
 
 分别加载：
 
-- Figma：`figma/manifest.json`
+- Figma：`figma/manifest.json`。旧版安装使用的根目录 `manifest.json` 也会加载同一份 Figma 构建。
 - MasterGo：`mastergo/manifest.json`
 
 双平台同步规则见 [`docs/DUAL_PLATFORM_MAINTENANCE.md`](docs/DUAL_PLATFORM_MAINTENANCE.md)，源版本基线见 [`SOURCE_BASELINES.md`](SOURCE_BASELINES.md)。

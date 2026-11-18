@@ -11,8 +11,8 @@
   moveButton.remove();
   const bubble = document.createElement('button');
   bubble.id = 'pluginBubble';
-  // Reuse the original purple four-tile identity, not a new icon or emoji.
-  bubble.innerHTML = '<span class="bubble-logo" aria-hidden="true"><i></i><i></i><i></i><i></i></span>';
+  bubble.innerHTML = '<img class="bubble-logo" alt="" draggable="false">';
+  bubble.firstElementChild.src = pluginLogoUrl;
   document.body.append(bubble);
   const status = document.createElement('span');
   status.id = 'windowStatus'; status.className = 'sr-only'; status.setAttribute('aria-live','polite');

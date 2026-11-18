@@ -3,12 +3,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const logo = fs.readFileSync(path.join(root, 'mastergo/assets/all-in-one-logo.png')).toString('base64');
 const css = ['ui-shell.css', 'panel-system.css', 'workbench.css', 'tool-layouts.css', 'tool-home.css']
   .map(file => fs.readFileSync(path.join(root, 'shared', file), 'utf8')).join('\n');
 const catalog = JSON.parse(fs.readFileSync(path.join(root, 'shared/tabler-icons.json'), 'utf8'));
 const icons = Object.fromEntries(Object.entries(catalog.icons).map(([name, data]) => [name, data.body]));
 const componentSkill = fs.readFileSync(path.join(root, 'shared/skills/component-family-synthesis/SKILL.md'), 'utf8');
-const js = fs.readFileSync(path.join(root, 'shared/ui-shell.js'), 'utf8').replace('__TABLER_ICONS__', () => JSON.stringify(icons))
+const js = 'const pluginLogoUrl = "data:image/png;base64,' + logo + '";\n'
+  + fs.readFileSync(path.join(root, 'shared/ui-shell.js'), 'utf8').replace('__TABLER_ICONS__', () => JSON.stringify(icons))
   + '\n' + fs.readFileSync(path.join(root, 'shared/fill-generators.js'), 'utf8')
   + '\n' + fs.readFileSync(path.join(root, 'shared/chinese-names.js'), 'utf8')
   + '\n' + fs.readFileSync(path.join(root, 'shared/theory-data.js'), 'utf8')
@@ -38,4 +40,8 @@ for (const platform of ['figma', 'mastergo']) {
   html = html.replace('</body>', () => '\n<!-- shared-shell-script:start -->\n<script>\n' + js + '\n</script>\n<!-- shared-shell-script:end -->\n</body>');
   fs.writeFileSync(file, html);
 }
+// Existing Figma development installs may point at the original root manifest.
+const figmaManifest = JSON.parse(fs.readFileSync(path.join(root, 'figma/manifest.json'), 'utf8'));
+const rootManifest = { ...figmaManifest, main: 'figma/' + figmaManifest.main, ui: 'figma/' + figmaManifest.ui };
+fs.writeFileSync(path.join(root, 'manifest.json'), JSON.stringify(rootManifest, null, 2) + '\n');
 console.log('Synced shared workbench and offline Tabler icons to both platforms.');

@@ -45,7 +45,8 @@
   const sidebar = $('sidebar');
   const brand = document.createElement('div');
   brand.className = 'workbench-brand';
-  brand.innerHTML = '<span class="workbench-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><strong>All in One</strong>';
+  brand.innerHTML = '<img class="workbench-mark" alt="All in One" draggable="false"><strong aria-hidden="true">All in One</strong>';
+  brand.querySelector('img').src = pluginLogoUrl;
   sidebar.prepend(brand);
   const heading = document.createElement('header');
   heading.className = 'workbench-heading';

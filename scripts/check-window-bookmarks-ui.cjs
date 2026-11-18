@@ -6,6 +6,43 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright')
 const root = path.resolve(__dirname,'..');
 const output = process.env.UI_REVIEW_DIR || fs.mkdtempSync(path.join(require('node:os').tmpdir(),'allinone-window-'));
 fs.mkdirSync(output,{ recursive:true });
+const logoFile = path.join(root, 'mastergo', 'assets', 'all-in-one-logo.png');
+const originalLogo = 'data:image/png;base64,' + fs.readFileSync(logoFile).toString('base64');
+
+async function checkBrandImage(locator) {
+  assert(await locator.isVisible(), 'Brand artwork is visible');
+  const result = await locator.evaluate(async (image, referenceSource) => {
+    const reference = new Image();
+    reference.src = referenceSource;
+    await Promise.all([image.decode(), reference.decode()]);
+    const canvas = document.createElement('canvas');
+    canvas.width = reference.naturalWidth;
+    canvas.height = reference.naturalHeight;
+    const context = canvas.getContext('2d', {willReadFrequently:true});
+    function rgba(source) {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(source, 0, 0, canvas.width, canvas.height);
+      return context.getImageData(0, 0, canvas.width, canvas.height).data;
+    }
+    const source = rgba(reference), displayed = rgba(image);
+    const box = image.getBoundingClientRect();
+    const style = getComputedStyle(image);
+    return {
+      samePixels:source.every((value, i) => value === displayed[i]),
+      cornerAlpha:displayed[3], square:box.width === box.height && box.width > 0,
+      background:style.backgroundColor, filter:style.filter, transform:style.transform, clipPath:style.clipPath,
+      padded:['paddingTop','paddingRight','paddingBottom','paddingLeft'].some(key => parseFloat(style[key]) !== 0)
+    };
+  }, originalLogo);
+  assert(result.samePixels, 'Displayed RGBA pixels match the original logo, including white tiles and transparent corners');
+  assert.equal(result.cornerAlpha, 0);
+  assert(result.square && !result.padded, 'Logo keeps its square proportions without inset padding');
+  assert.equal(result.filter, 'none');
+  assert.equal(result.transform, 'none', 'Original artwork stays upright');
+  assert.equal(result.clipPath, 'none');
+  assert.equal(result.background, 'rgba(0, 0, 0, 0)', 'No extra background behind the logo');
+}
+
 (async () => {
   const browser = await chromium.launch({ headless:true, ...(process.env.PLAYWRIGHT_EXECUTABLE_PATH ? { executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH } : {}) });
   try {
@@ -18,6 +55,21 @@ fs.mkdirSync(output,{ recursive:true });
       await page.goto(pathToFileURL(path.join(root,platform,'ui.html')).href);
       await page.waitForFunction(() => window.PluginWindow && window.PluginBookmarks && window.PluginWorkspace);
       const emit = msg => page.evaluate(msg => window.dispatchEvent(new MessageEvent('message',{ data:{ pluginMessage:msg } })),msg);
+      await page.evaluate(() => changeTheme('light'));
+      const mark = page.locator('.workbench-brand img.workbench-mark');
+      await checkBrandImage(mark);
+      const markSource = await mark.getAttribute('src');
+      assert.match(markSource, /^data:image\/png;base64,/, 'Logo is available offline');
+      const colors = await page.evaluate(() => {
+        const color = selector => getComputedStyle(document.querySelector(selector)).backgroundColor;
+        const swatch = document.createElement('span');
+        swatch.style.color = 'var(--primary)';
+        document.body.append(swatch);
+        const primary = getComputedStyle(swatch).color;
+        swatch.remove();
+        return {sidebar:color('.sidebar'), main:color('.main-content'), primary};
+      });
+      assert.deepEqual(colors, {sidebar:'rgb(255, 255, 255)', main:'rgb(255, 255, 255)', primary:'rgb(94, 0, 194)'});
       assert.equal(await page.locator('.nav-group').count(),3);
       assert.equal(await page.locator('.nav-item').count(),16);
       assert(await page.locator('.nav-item').last().evaluate(el => {
@@ -74,6 +126,12 @@ fs.mkdirSync(output,{ recursive:true });
       assert.equal(await page.locator('.app-container').isVisible(),false);
       assert.equal(await page.locator('#pluginBubble').isVisible(),true);
       assert.equal(await page.evaluate(() => document.activeElement.id),'pluginBubble');
+      const bubble = page.locator('#pluginBubble img.bubble-logo');
+      await checkBrandImage(bubble);
+      assert.equal(await bubble.getAttribute('src'), markSource, 'Expanded and collapsed windows share the same artwork');
+      // The body fades its background when the expanded panel collapses.
+      await page.waitForFunction(() => [document.documentElement, document.body, document.getElementById('pluginBubble')]
+        .every(node => getComputedStyle(node).backgroundColor === 'rgba(0, 0, 0, 0)'), null, {timeout:2000});
       await page.screenshot({ path:path.join(output,`${platform}-bubble.png`),animations:'disabled' });
       await page.mouse.move(35,24); await page.mouse.down(); await page.mouse.move(60,35,{ steps:6 }); await page.mouse.up();
       assert.equal(await page.evaluate(() => __sent.at(-1).type),'window-drag-end','Dragging does not expand');
@@ -87,6 +145,7 @@ fs.mkdirSync(output,{ recursive:true });
       assert.deepEqual(await page.evaluate(() => { const m = __sent.at(-1); return [m.type,m.dx,m.dy]; }),['window-nudge',-16,0]);
       await page.evaluate(() => { setCompactMode(true); changeLanguage('en'); changeTheme('dark'); });
       await page.setViewportSize({ width:360,height:520 });
+      await checkBrandImage(mark);
       assert(await page.locator('.nav-item').last().evaluate(el => el.getBoundingClientRect().bottom <= el.closest('.nav-scroll').getBoundingClientRect().bottom),'All compact icons fit at 360 × 520');
       await page.screenshot({ path:path.join(output,`${platform}-groups-compact.png`),animations:'disabled' });
       assert.equal(await page.locator('#collapseWindow').isVisible(),true);

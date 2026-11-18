@@ -133,11 +133,9 @@ body.mini-mode .window-move { display:none; }
 .window-actions .footer-btn { touch-action:none; }
 #pluginBubble { display:none; }
 body.bubble-mode > * { display:none !important; }
-body.bubble-mode > #pluginBubble { display:flex !important; position:fixed; inset:0; width:100%; height:100%; padding:4px; margin:0; border:0; background:var(--bg-body); align-items:center; justify-content:center; cursor:grab; touch-action:none; border-radius:0; }
-.bubble-logo { width:40px; height:40px; padding:10px; display:grid; grid-template-columns:1fr 1fr; gap:3px; border-radius:50%; background:#7135db; box-shadow:0 2px 5px #7135db28; }
-.bubble-logo i { display:block; border-radius:2px; background:#fff; }
-.bubble-logo i:nth-child(2),.bubble-logo i:nth-child(3) { opacity:.65; }
-#pluginBubble:hover .bubble-logo { background:#6125c6; }
+html:has(> body.bubble-mode), body.bubble-mode { background:transparent; }
+body.bubble-mode > #pluginBubble { display:flex !important; position:fixed; inset:0; width:100%; height:100%; padding:4px; margin:0; border:0; background:transparent; align-items:center; justify-content:center; cursor:grab; touch-action:none; border-radius:0; }
+.bubble-logo { display:block; width:40px; height:40px; object-fit:contain; pointer-events:none; }
 #pluginBubble.is-dragging { cursor:grabbing; }
 #pluginBubble:focus-visible { outline:2px solid var(--primary); outline-offset:-3px; }
 /* Manual narrow windows retain usable controls without changing compact-mode preferences. */

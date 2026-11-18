@@ -31,39 +31,7 @@
   padding:6px 14px 12px;
   gap:10px;
 }
-.tool-home-section {
-  min-width:0;
-  --home-icon:#236e66;
-  --home-tile:#e0f1e9;
-}
-.tool-home-section[data-group="layers"] {
-  --home-icon:#426181;
-  --home-tile:#e7eff5;
-}
-.tool-home-section[data-group="objects"] {
-  --home-icon:#745789;
-  --home-tile:#f1eaf4;
-}
-.tool-home-section[data-group="styles"] {
-  --home-icon:#8a6437;
-  --home-tile:#f6eddc;
-}
-html[data-theme="dark"] .tool-home-section {
-  --home-icon:#9adbd1;
-  --home-tile:#243e3b;
-}
-html[data-theme="dark"] .tool-home-section[data-group="layers"] {
-  --home-icon:#a9c9e4;
-  --home-tile:#293947;
-}
-html[data-theme="dark"] .tool-home-section[data-group="objects"] {
-  --home-icon:#d0b5dd;
-  --home-tile:#3b3241;
-}
-html[data-theme="dark"] .tool-home-section[data-group="styles"] {
-  --home-icon:#e6c496;
-  --home-tile:#443a2b;
-}
+.tool-home-section { min-width:0; }
 #toolGrid .tool-home-heading {
   display:flex;
   align-items:center;
@@ -81,7 +49,7 @@ html[data-theme="dark"] .tool-home-section[data-group="styles"] {
   content:"";
   height:1px;
   flex:1;
-  background:var(--bench-line,var(--border));
+  background:var(--border);
 }
 .tool-home-commands {
   display:grid;
@@ -118,8 +86,9 @@ html[data-theme="dark"] .tool-home-section[data-group="styles"] {
   width:24px;
   height:24px;
   border-radius:6px;
-  color:var(--home-icon);
-  background:var(--home-tile);
+  color:var(--primary);
+  background:var(--bg-surface);
+  box-shadow:inset 0 0 0 1px var(--border);
 }
 #toolGrid .tc-icon .ui-icon { width:15px; height:15px; flex:none; }
 #toolGrid .tool-card .tc-title {
