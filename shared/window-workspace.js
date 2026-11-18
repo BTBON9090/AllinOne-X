@@ -4,7 +4,7 @@
   let collapsed = false, moving = null, frame = 0, suppressClick = false, previousFocus = null, canMove = true, hasError = false;
   const row = document.createElement('div');
   row.className = 'window-actions';
-  row.innerHTML = '<button id="collapseWindow" class="footer-btn"><span class="btn-icon" data-smart-icon="circle"></span><span class="btn-text"></span></button><button id="moveWindow" class="window-move"><span data-smart-icon="arrows-move"></span></button>';
+  row.innerHTML = '<button id="collapseWindow" class="footer-btn"><span class="btn-icon" data-smart-icon="layout-sidebar-left-collapse"></span><span class="btn-text"></span></button><button id="moveWindow" class="window-move"><span data-smart-icon="arrows-move"></span></button>';
   document.querySelector('.sidebar-footer').append(row);
   const collapseButton = row.querySelector('#collapseWindow');
   const moveButton = row.querySelector('#moveWindow');

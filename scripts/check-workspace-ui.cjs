@@ -88,7 +88,9 @@ fs.mkdirSync(output, { recursive:true });
       }
       await page.setViewportSize({ width:440,height:600 });
       await page.evaluate(() => { setCompactMode(false); changeLanguage('zh'); changeTheme('light'); PluginWorkspace.navigate('simple'); });
-      assert.equal(await page.locator('#workspaceTitle, .workspace-brand, #toolSearch, #toolFilters, #workspaceCommands').count(), 0, 'No redundant header, categories or search');
+      assert.equal(await page.locator('.workbench-location h1').innerText(), '简易工具');
+      assert.equal(await page.locator('#toolGrid .tool-home-section').count(), 4);
+      assert.equal(await page.locator('[data-skin-option], .skin-section').count(), 0);
       assert.equal(await page.locator('.tool-card:visible').count(), 22);
       const grid = await page.locator('#toolGrid').evaluate(el => {
         const cards = [...el.querySelectorAll('.tool-card')];
@@ -115,9 +117,9 @@ fs.mkdirSync(output, { recursive:true });
       await page.locator('.size-preset').first().click();
       assert.equal(await page.locator('#sizeWidth').inputValue(), '2064');
       await page.evaluate(() => openSettings());
-      assert(await page.locator('#settingsPanel > .sub-header').isVisible(), 'Settings keeps its local back action');
+      assert(await page.locator('.workbench-back').isVisible(), 'Settings exposes a back action in the workspace header');
       await screenshot({ path:path.join(output, `${platform}-settings.png`) });
-      await page.locator('#settingsPanel .btn-back-sub').click();
+      await page.locator('.workbench-back').click();
       assert(await page.locator('#sizePanel').isVisible(), 'Settings returns to the prior task');
       await page.evaluate(() => { PluginWorkspace.navigate('compkit'); switchCompKitTab('showcase'); PluginWorkspace.navigate('refiner'); switchRefinerTab('find'); PluginWorkspace.navigate('compkit'); });
       assert(await page.locator('#tabCompKitShowcase').isVisible(), 'Refiner tabs must not hide CompKit tabs');

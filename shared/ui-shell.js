@@ -1,7 +1,7 @@
 /* Tabler Icons (MIT), embedded offline by scripts/sync-ui-shell.mjs. */
 (() => {
   const icons = __TABLER_ICONS__;
-  const navIcons = { iconfont:'pencil', simple:'bolt', select:'search', text:'replace', smartFill:'forms', jumpback:'map-pin', refiner:'diamond', skew:'transform', size:'ruler-measure-2', duplicate:'copy', ppt:'presentation', i18n:'language', componentBuilder:'components', compkit:'palette', theory:'book' };
+  const navIcons = { layerNaming:'tag', iconfont:'pencil', simple:'bolt', select:'search', text:'replace', smartFill:'forms', jumpback:'map-pin', refiner:'diamond', skew:'transform', size:'ruler-measure-2', duplicate:'copy', ppt:'presentation', i18n:'language', componentBuilder:'components', compkit:'palette', theory:'book' };
   const toolIcons = { reverse_component:'components', to_frame:'frame', to_rect:'square', split_text:'scissors', join_text:'link', remove_al:'layout-off', add_al_wrapper:'layout-grid', up_one:'arrow-up', up_all:'arrows-up', ungroup_all:'box', unlock_all:'lock-open', swap_fs:'arrows-exchange', reset_image:'aspect-ratio', sort_layers:'eye', sort_by_name:'sort-ascending-letters', rename_content:'tag', detach_all:'unlink', remove_hidden:'eye-off', pixel_perfect:'focus-2', swap_positions:'arrows-shuffle', create_styles:'sparkles', match_styles:'color-swatch' };
   const glyphIcons = {
     '🔒':'lock','⚠':'alert-circle','⚡':'bolt','🔍':'search','📝':'replace','🧠':'brain','📍':'map-pin',

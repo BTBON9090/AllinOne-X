@@ -42,7 +42,54 @@
     scrollPositions.set(current, [panel, ...panel.querySelectorAll('*')].filter(el => el.scrollHeight > el.clientHeight && el.clientHeight > 0).map(el => [el, el.scrollTop]));
   };
 
+  const sidebar = $('sidebar');
+  const brand = document.createElement('div');
+  brand.className = 'workbench-brand';
+  brand.innerHTML = '<span class="workbench-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><strong>All in One</strong>';
+  sidebar.prepend(brand);
+  const heading = document.createElement('header');
+  heading.className = 'workbench-heading';
+  heading.innerHTML = '<button type="button" class="workbench-menu" aria-controls="sidebar" aria-expanded="false"><span data-smart-icon="layout-sidebar-left-collapse"></span></button><div class="workbench-location"><span></span><h1></h1></div><button type="button" class="workbench-back" hidden><span data-smart-icon="chevron-left"></span><span class="back-label"></span></button>';
+  $('contentScroll').before(heading);
+  const menu = heading.querySelector('.workbench-menu');
+  const back = heading.querySelector('.workbench-back');
+  back.onclick = () => navigate(previous);
+  $('settingsPanel').querySelector(':scope > .sub-header')?.remove();
+  const scrim = document.createElement('button');
+  scrim.className = 'workbench-scrim';
+  scrim.type = 'button';
+  scrim.tabIndex = -1;
+  sidebar.after(scrim);
+  function setDirectory(open, restoreFocus = false) {
+    document.body.classList.toggle('directory-open', open);
+    menu.setAttribute('aria-expanded', String(open));
+    if (open) (nav(current) || sidebar.querySelector('button')).focus({preventScroll:true});
+    else if (restoreFocus) menu.focus({preventScroll:true});
+  }
+  menu.onclick = () => setDirectory(true);
+  scrim.onclick = () => setDirectory(false, true);
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && document.body.classList.contains('directory-open')) {
+      event.preventDefault();
+      setDirectory(false, true);
+    }
+  });
+  document.addEventListener('focusin', event => {
+    if (document.body.classList.contains('directory-open') && !sidebar.contains(event.target)) setDirectory(false);
+  });
+  window.addEventListener('resize', () => {
+    if (document.body.classList.contains('directory-open') && getComputedStyle(menu).display === 'none') setDirectory(false);
+  });
+
   function refreshLocation() {
+    const group = current === 'settings' ? '' : nav(current).closest('.nav-group')?.querySelector('.nav-group-label').textContent;
+    heading.querySelector('.workbench-location > span').textContent = group || '';
+    heading.querySelector('h1').textContent = label(current);
+    back.hidden = current !== 'settings';
+    back.querySelector('.back-label').textContent = l('返回', 'Back');
+    menu.title = l('展开工具目录', 'Open tool directory');
+    menu.setAttribute('aria-label', menu.title);
+    scrim.setAttribute('aria-label', l('关闭工具目录', 'Close tool directory'));
     currentPanel().setAttribute('role', 'region');
     currentPanel().setAttribute('aria-label', label(current));
     Object.entries(routes).forEach(([key, route]) => {
@@ -52,6 +99,7 @@
 
   function navigate(key) {
     if (key !== 'settings' && !routes[key]) return;
+    setDirectory(false, document.body.classList.contains('directory-open'));
     rememberScroll();
     if (key === 'settings' && current !== 'settings') previous = current;
     current = key;
@@ -167,6 +215,7 @@
   function refresh() {
     navGroups.forEach(({ heading, zh, en }) => { heading.textContent = l(zh, en); });
     IconfontWorkspace.refresh();
+    window.ToolHome?.refresh();
     window.PluginWindow?.refresh();
     window.PluginBookmarks?.refresh();
     document.documentElement.lang = english() ? 'en' : 'zh-CN';

@@ -1,6 +1,6 @@
 # All in One · UI 视觉方向
 
-这里保留两轮视觉方向提案；已实现的六套皮肤在真实插件里；社区发布状态请以插件商店为准。
+这里归档两轮视觉方向提案和旧版插件截图。当前实现见[插件面板](../PLUGIN_PANEL.md)。
 
 ## 打开方式
 
@@ -37,11 +37,11 @@
 - 主信号色是方向建议值；实际实现由各皮肤 `--ui-accent` 控制，不依赖旧品牌紫。
 
 
-## 已实现：当前插件界面
+## 旧版插件截图
 
 默认「卡片」。六套皮肤：卡片（赤陶）、暗轨（电蓝）、白瓷（墨黑）、索引（朱红，全方角）、石墨（橄榄/柠檬，高对比）、暮色（珊瑚/深蓝，高对比）。原「区块」「柔光」因对比度不足已删除。
 
-功能入口 15 个、工具 22 个，覆盖超级选择、智能填充、组件清洗、图层命名、图层查重、尺寸助手、导出 PPT、语言切换、设计理论等。界面说明和审计见 [../SKINS.md](../SKINS.md)。
+当时的版本有 15 个功能入口、22 个简易工具，覆盖超级选择、智能填充、组件清洗、图层命名、图层查重、尺寸助手、导出 PPT、语言切换、设计理论等。
 
 - [skins-overview.png](screens/implemented/skins-overview.png) · [settings-overview.png](screens/implemented/settings-overview.png) · [skins-overview-dark.png](screens/implemented/skins-overview-dark.png)
 - [home-cards.png](screens/implemented/home-cards.png) · [home-shade.png](screens/implemented/home-shade.png) · [home-dusk.png](screens/implemented/home-dusk.png)
@@ -58,5 +58,3 @@
 
 - [XHS 7 页轮播](../../marketing/xhs-carousel/总览.png) · [发布文案](../../marketing/xhs-carousel/post.md)
 - [产品介绍视频 47.4s](../../marketing/product-video/all-in-one-features.mp4) · [视频封面](../../marketing/product-video/poster-features.png)
-
-边界：入口、工具数量、消息协议、快捷键和宿主行为不变；所有改动尚未提交或推送。

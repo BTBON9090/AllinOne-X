@@ -3,8 +3,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const css = fs.readFileSync(path.join(root, 'shared/ui-shell.css'), 'utf8');
-const skinCss = fs.readFileSync(path.join(root, 'shared/skins.css'), 'utf8');
+const css = ['ui-shell.css', 'panel-system.css', 'workbench.css', 'tool-layouts.css', 'tool-home.css']
+  .map(file => fs.readFileSync(path.join(root, 'shared', file), 'utf8')).join('\n');
 const catalog = JSON.parse(fs.readFileSync(path.join(root, 'shared/tabler-icons.json'), 'utf8'));
 const icons = Object.fromEntries(Object.entries(catalog.icons).map(([name, data]) => [name, data.body]));
 const componentSkill = fs.readFileSync(path.join(root, 'shared/skills/component-family-synthesis/SKILL.md'), 'utf8');
@@ -25,16 +25,17 @@ const js = fs.readFileSync(path.join(root, 'shared/ui-shell.js'), 'utf8').replac
   + '\n' + fs.readFileSync(path.join(root, 'shared/layer-workspace.js'), 'utf8')
   + '\n' + fs.readFileSync(path.join(root, 'shared/iconfont-workspace.js'), 'utf8')
   + '\n' + fs.readFileSync(path.join(root, 'shared/workspace.js'), 'utf8')
-  + '\n' + fs.readFileSync(path.join(root, 'shared/skins.js'), 'utf8');
+  + '\n' + fs.readFileSync(path.join(root, 'shared/tool-layouts.js'), 'utf8')
+  + '\n' + fs.readFileSync(path.join(root, 'shared/tool-home.js'), 'utf8');
 for (const platform of ['figma', 'mastergo']) {
   const file = path.join(root, platform, 'ui.html');
   let html = fs.readFileSync(file, 'utf8');
-  html = html.replace(/\n<!-- shared-shell-style:start -->[\s\S]*?<!-- shared-shell-style:end -->/g, '');
-  html = html.replace(/\n<!-- shared-shell-script:start -->[\s\S]*?<!-- shared-shell-script:end -->/g, '');
+  html = html.replace(/\n<!-- shared-shell-style:start -->[\s\S]*?<!-- shared-shell-style:end -->\n?/g, '');
+  html = html.replace(/\n<!-- shared-shell-script:start -->[\s\S]*?<!-- shared-shell-script:end -->\n?/g, '');
   html = html.replace(/^[ \t]*<!-- workspace-header:start -->[\s\S]*?<!-- workspace-header:end -->/gm, '');
   html = html.replace(/^[ \t]*<!-- workspace-home:start -->[\s\S]*?<!-- workspace-home:end -->/gm, '');
-  html = html.replace('</head>', () => '\n<!-- shared-shell-style:start -->\n<style>\n' + css + '\n' + skinCss + '</style>\n<!-- shared-shell-style:end -->\n</head>');
+  html = html.replace('</head>', () => '\n<!-- shared-shell-style:start -->\n<style>\n' + css + '</style>\n<!-- shared-shell-style:end -->\n</head>');
   html = html.replace('</body>', () => '\n<!-- shared-shell-script:start -->\n<script>\n' + js + '\n</script>\n<!-- shared-shell-script:end -->\n</body>');
   fs.writeFileSync(file, html);
 }
-console.log('Synced offline UI shell, skins and Tabler icons to both platforms.');
+console.log('Synced shared workbench and offline Tabler icons to both platforms.');

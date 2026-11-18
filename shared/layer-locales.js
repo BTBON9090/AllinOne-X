@@ -5,7 +5,8 @@ PluginLocale.addPairs([
   ['每批最多 20 张，全部批次统筹完成后选择布局；中断可继续，请保持插件打开。','Up to 20 images per batch. Choose a layout after all batches are synthesized; resume interruptions and keep the plugin open.'],
   ['每批最多 20 张，自动逐批分析并统筹；中断可继续，请保持插件打开。','Up to 20 images per batch, followed by automatic synthesis. Resume interruptions and keep the plugin open.'],
   ['最多 800 个对象，每批最多 20 张截图。逐批暂存，再由 AI 统筹全部结果；完成后预览并构建。中断可继续，请保持插件打开。','Up to 800 objects, at most 20 images per batch. Results are saved, then synthesized by AI. Review and build when complete; resume interruptions and keep the plugin open.'],
-  ['按含义或功能命名，不加入颜色或风格词。最多 800 层，每批最多 20 张；逐批暂存，统筹完成后预览并应用。','Name by meaning or function, without color or style words. Up to 800 layers, at most 20 images per batch. Results are saved; preview and apply after synthesis.'],
+  ['按含义或功能命名，不加入颜色或风格词。最多 800 层。','Name up to 800 layers by meaning or function. Omit color and style terms.'],
+  ['每批最多 20 张；逐批暂存，统筹完成后预览并应用。','Analyze up to 20 images per batch. Review and apply names after all batches are combined.'],
   ['继续解析','Continue analysis'],['构建已识别项及独立组件','Build results + standalone components'],
 
   ['图层命名','Layer naming'], ['Slot 插槽','Slot'], ['组件或实例中的原生内容插槽','Native content slots in components and instances'],

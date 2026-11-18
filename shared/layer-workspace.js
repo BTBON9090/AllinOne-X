@@ -224,7 +224,7 @@
   // Naming has both AI vision and an ordinary prefix/number route.
   const nav=document.querySelector('[data-nav="layerNaming"]');PluginIcons.put(nav.querySelector('.nav-icon-slot'),'tag');
   const naming=el('div','layer-panel');naming.id='layerNamingPanel';naming.style.display='none';$('contentScroll').append(naming);
-  const namingCard=card('layerNamingCard','图层命名','按含义或功能命名，不加入颜色或风格词。最多 800 层。');naming.append(namingCard);
+  const namingCard=card('layerNamingCard','AI 识图命名','按含义或功能命名，不加入颜色或风格词。最多 800 层。');naming.append(namingCard);
   namingCard.append(toggle('layerMultiName','多含义命名'));
   namingCard.append(el('p','layer-help naming-batch-hint','每批最多 20 张；逐批暂存，统筹完成后预览并应用。'));
   const nameLanguage=el('select');nameLanguage.id='layerNameLanguage';nameLanguage.innerHTML='<option value="zh">中文名称</option><option value="en">English names</option>';namingCard.append(nameLanguage);

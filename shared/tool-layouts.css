@@ -1,0 +1,215 @@
+/* The shell owns navigation and titles. Each tool below arranges its real
+   controls, results and footer around the task performed in that panel. */
+#contentScroll :is(.selection-scroll-area,.builder-scroll,.size-scroll,.skew-content,.refiner-config,.i18n-view,.ppt-content-area,.compkit-main,.theory-capsule-container,.layer-panel) {
+  min-width:0; min-height:0; scrollbar-gutter:auto; overscroll-behavior:contain;
+}
+:is(#selectionPanel,#duplicatePanel,#compkitPanel) .selection-scroll-area,
+:is(#sizePanel .size-scroll,#componentBuilderPanel .builder-scroll,#skewPanel .skew-content,#refinerPanel .refiner-config,#i18nPanel .i18n-view,#theoryPanel .theory-capsule-container,#layerNamingPanel,#iconfontPanel) {
+  padding:12px 16px;
+}
+:is(#selectionPanel,#duplicatePanel,#compkitPanel) .selector-card,
+#refinerPanel .config-group, #sizePanel .size-card, #skewPanel .skew-card,
+#layerNamingPanel .layer-ai-card, #componentBuilderPanel :is(.builder-card,.layer-ai-card),
+#iconfontPanel .layer-ai-card, #i18nPanel .config-group {
+  min-width:0; border:none; border-radius:0; box-shadow:none; background:transparent;
+  margin:0; padding:0;
+}
+:is(#selectionPanel,#duplicatePanel,#compkitPanel) .selector-card + .selector-card,
+#refinerPanel .refiner-config > .config-group + .config-group,
+#sizePanel .size-card + .size-card, #skewPanel .skew-card + .skew-card,
+#layerNamingPanel .layer-ai-card + .layer-ai-card,
+#componentBuilderPanel .builder-scroll > :is(.builder-card,.layer-ai-card) + :is(.builder-card,.layer-ai-card),
+#i18nPanel .config-group + .config-group {
+  border-top:1px solid var(--border); margin-top:12px; padding-top:12px;
+}
+:is(#selectionPanel,#duplicatePanel,#compkitPanel) .section-header,
+#componentBuilderPanel .builder-card-head, #skewPanel .skew-card-header {
+  padding:0; margin:0 0 8px; border:0; align-items:center;
+}
+:is(#sizePanel .size-hero-title,#componentBuilderPanel .builder-hero,#iconfontTitle) { display:none; }
+:is(#componentBuilderPanel,#layerNamingPanel,#compkitPanel,#refinerPanel) .layer-actions {
+  display:flex; align-items:center; gap:4px 8px; flex-wrap:wrap; margin:8px 0 0;
+}
+:is(#componentBuilderPanel,#layerNamingPanel,#compkitPanel,#refinerPanel) .layer-actions > button { margin:0; }
+
+/* Selection is a rule editor. Align all type and state choices as checkable cells. */
+#selectionPanel .name-input-row { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:4px; }
+#selectionPanel :is(#typeGroup,#stateGroup) { display:grid; grid-template-columns:repeat(auto-fit,minmax(78px,1fr)); gap:4px; }
+#selectionPanel :is(#typeGroup,#stateGroup) .filter-tag { min-width:0; justify-content:flex-start; text-align:start; white-space:normal; }
+#selectionPanel :is(#typeGroup,#stateGroup) .filter-tag .ui-icon { flex:none; }
+#selectionPanel #propList { display:grid; gap:4px; }
+#selectionPanel .prop-row { align-items:center; margin:0; }
+
+/* Find and replace has a shared label column so inputs remain easy to compare. */
+#textPanel #textControlsContent:not(.collapsed) { padding:12px 16px; }
+#textPanel #txtScopeGroup { margin:0 0 12px !important; }
+#textPanel .text-input-group { display:grid; grid-template-columns:minmax(48px,22%) minmax(0,1fr); align-items:center; gap:8px; margin:0 0 8px; }
+#textPanel .text-input-group > .input-label { margin:0; line-height:16px; }
+#textPanel #textControlsContent > button { margin:4px 0 0; }
+#textPanel .result-header { flex-wrap:wrap; gap:4px 8px; }
+#textPanel .text-result-row { margin:0; border:0; border-bottom:1px solid var(--border); border-radius:0; padding:8px 0; }
+#textPanel #textResultList { padding:0 16px; }
+
+/* Data types are a single directory; options stay beside their field name. */
+#smartFillPanel #smartBasicList { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 12px; align-content:start; padding:0 12px; }
+#smartFillPanel .smart-basic-tile { border:0; box-shadow:none; background:transparent; border-radius:0; padding:4px 0; min-width:0; }
+#smartFillPanel .smart-basic-tile:nth-child(n+3) { box-shadow:inset 0 1px var(--border); }
+#smartFillPanel .smart-basic-heading { min-height:32px; display:flex; align-items:center; flex-wrap:wrap; gap:2px 4px; }
+#smartFillPanel .smart-basic-heading .smart-fill-trigger { min-width:0; }
+#smartFillPanel .smart-custom-row { border:0; border-radius:0; border-bottom:1px solid var(--border); box-shadow:none; }
+#smartFillPanel #smartAffixBar { align-items:center; flex-wrap:wrap; padding:8px 12px; gap:4px 8px; }
+#smartFillPanel #sfAffixText { flex:1 1 48px; min-width:36px; }
+
+/* Size editing is a numeric inspector above a compact preset catalogue. */
+#sizePanel .size-hero { padding:0; border:0; margin:0 0 8px; background:transparent; box-shadow:none; }
+#sizePanel .size-hero-desc { margin:0; }
+#sizePanel #sizeSelectionStatus { display:block; padding:4px 0; border:none; background:transparent; }
+#sizePanel .size-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 12px; }
+#sizePanel .size-field { min-width:0; }
+#sizePanel .size-field :is(input,select) { width:100%; min-width:0; }
+#sizePanel :is(#sizeWidth,#sizeHeight) { font-size:20px; font-weight:600; font-variant-numeric:tabular-nums; height:36px; }
+#sizePanel .size-options { display:flex; flex-wrap:wrap; gap:4px 12px; margin:8px 0; }
+#sizePanel #sizeCategoryTabs { display:flex; flex-wrap:wrap; }
+#sizePanel #sizePresetList { margin-top:8px; gap:0; }
+#sizePanel .size-preset { border:0; border-radius:0; border-bottom:1px solid var(--border); padding:8px; background:transparent; }
+#sizePanel .size-preset.active { background:var(--primary-light); box-shadow:inset 2px 0 var(--primary); }
+#sizePanel .size-preset-row { align-items:baseline; flex-wrap:wrap; }
+#sizePanel .size-preset-note { margin-top:2px; }
+#sizePanel #sizeTargetSummary { font-variant-numeric:tabular-nums; font-weight:600; }
+
+/* Bookmark names, page names and drag handles form one reorderable list. */
+#jumpbackPanel .jumpback-header { display:flex; flex-wrap:wrap; gap:4px 8px; align-items:center; padding:12px 16px; }
+#jumpbackPanel .jumpback-hero { display:none; }
+#jumpbackPanel .jumpback-tip { flex:1 1 130px; min-width:0; margin:0; }
+#jumpbackPanel #spotList { padding:0 12px 8px; }
+#jumpbackPanel .spot-item { display:flex; align-items:center; gap:8px; margin:0; padding:8px 4px; border:0; border-top:1px solid var(--border); border-radius:0; box-shadow:none; background:transparent; }
+#jumpbackPanel .bookmark-content { min-width:0; }
+#jumpbackPanel .spot-item:hover { background:var(--bg-hover); }
+
+/* Cleanup keeps rule groups and lint results in the same compact reading order. */
+#refinerPanel .config-label { margin:0 0 6px; }
+#refinerPanel .checkbox-grid-row { display:flex; flex-wrap:wrap; gap:4px; }
+#refinerPanel .checkbox-row { padding:4px 0; margin:0; align-items:center; }
+#refinerPanel #separatorOptions { gap:8px; }
+#refinerPanel :is(#lintList,#findList) { padding:0 12px; }
+#refinerPanel .res-row { margin:0; border-radius:0; border:0; border-bottom:1px solid var(--border); padding:8px 4px; }
+
+/* Component creation keeps source objects ahead of modes and proposed groups. */
+#componentBuilderPanel #builderSelectionState { align-items:center; padding:8px 12px; margin:0 0 12px; background:var(--primary-light); border:0; border-inline-start:2px solid var(--primary); border-radius:0; }
+#componentBuilderPanel .builder-modes { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; margin:8px 0; }
+#componentBuilderPanel .builder-mode { min-width:0; min-height:44px; height:auto; align-items:center; justify-content:center; gap:4px; }
+#componentBuilderPanel .builder-mode-title { white-space:normal; line-height:15px; }
+#componentBuilderPanel .layer-plan-group { padding:8px 0; }
+#componentBuilderPanel .layer-plan-results:not(:empty) { margin:8px 0; border-top:1px solid var(--border); }
+#componentBuilderPanel .builder-field label { margin-bottom:4px; }
+
+/* Naming has an editable mapping under its settings and a separate numbering form. */
+#layerNamingPanel .layer-title { margin:0 0 4px; }
+#layerNamingPanel #layerNameLanguage { width:100%; margin:4px 0; }
+#layerNamingPanel .layer-name-preview:not(:empty) { margin-top:8px; padding:0; border-top:1px solid var(--border); }
+#layerNamingPanel .layer-name-row { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); }
+#layerNamingPanel .layer-name-row > span { min-width:0; }
+#layerNamingPanel #manualLayerName { margin:4px 0; }
+#layerNamingPanel #manualLayerNaming button { margin:4px 4px 0 0; }
+
+/* Duplicate pairs use equal A/B tracks with a fixed relationship marker. */
+#duplicatePanel #dupModeGroup { margin:4px 0 0; }
+#duplicatePanel #dupExcludeGroup { display:flex; flex-wrap:wrap; gap:4px; }
+#duplicatePanel #dupSubHeader, #duplicatePanel .dup-pair-item { display:grid; grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr); gap:0; min-width:0; }
+#duplicatePanel #dupResultList { padding:0 12px; }
+#duplicatePanel .dup-pair-item { border:0; border-bottom:1px solid var(--border); border-radius:0; margin:0; box-shadow:none; }
+#duplicatePanel .dup-config-actions { display:flex; flex-wrap:wrap; gap:8px; }
+
+/* A repeated property→axis row links the layout settings to the output. */
+#compkitPanel .compkit-main { padding:12px 16px; }
+#compkitPanel #matrixAxes { box-shadow:none; padding:8px 0; margin:8px 0; border:none; border-block:1px solid var(--border); border-radius:0; background:transparent; }
+#compkitPanel .matrix-axis-rows { margin:8px 0; }
+#compkitPanel .matrix-axis-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(80px,40%); align-items:center; padding:4px 0; margin:0; gap:8px; }
+#compkitPanel .matrix-axis-row + .matrix-axis-row { border-top:1px solid var(--border); }
+#compkitPanel .matrix-axis-row select { width:100%; min-width:0; }
+#compkitPanel .compkit-action { margin-top:8px; }
+
+/* Repair scope, selection list, action pair and reports read as one transaction. */
+#iconfontPanel #iconfontMode { display:flex; flex-wrap:wrap; gap:0 12px; padding:0 0 8px; margin:8px 0 0; border-bottom:1px solid var(--border); }
+#iconfontPanel #iconfontTargets { margin:12px 0; }
+#iconfontPanel .iconfont-target-head { min-height:28px; padding:0 8px; background:var(--bg-muted); }
+#iconfontPanel #iconfontTargetList { padding:0 8px; }
+#iconfontPanel #iconfontTargetList label { border-bottom:1px solid var(--border); padding:4px 0; }
+#iconfontPanel .iconfont-actions { gap:8px; }
+#iconfontPanel #iconfontReport { margin:16px 0 0; padding-top:12px; border-top:1px solid var(--border); }
+#iconfontPanel .iconfont-results li { gap:8px; padding:8px 0; }
+#iconfontPanel .iconfont-results img { width:36px; height:36px; border:1px solid var(--border); }
+
+/* Keep translation scope and language controls above the review ledger. */
+#i18nPanel #i18nViewConfig { padding:12px 16px !important; }
+#i18nPanel #i18nModeDesc { border:0; border-inline-start:2px solid var(--primary); border-radius:0; padding:8px; margin:8px 0 0; background:var(--primary-light); }
+#i18nPanel :is(#i18nExtractTargetSection,#i18nTargetConfigSection) { padding-top:8px; }
+#i18nPanel #i18nConfigAction { gap:8px !important; }
+#i18nPanel #i18nConfigAction > div:first-child { border:none !important; border-radius:0 !important; background:var(--bg-muted) !important; }
+#i18nPanel :is(#i18nTotalNodes,#i18nBoundCount,#i18nNewCount) { font-variant-numeric:tabular-nums; }
+#i18nPanel #i18nTransList { padding:0 12px; }
+
+/* Skew reserves a reference plane beside the numeric controls on wider panels. */
+#skewPanel .skew-preview {
+  flex:none; height:clamp(108px,24vh,160px); min-height:0; background-color:var(--bg-muted);
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:16px 16px; border:0; border-bottom:1px solid var(--border);
+}
+#skewPanel .skew-preview::before { display:none; }
+#skewPanel .skew-preview-label { color:var(--text-secondary); letter-spacing:0; }
+#skewPanel .skew-proxy { box-shadow:none; border:1px solid var(--primary); background:var(--primary-light); }
+#skewPanel .skew-slider-row { display:grid; grid-template-columns:minmax(66px,27%) minmax(0,1fr); align-items:center; gap:8px; padding:4px 0; }
+#skewPanel .skew-slider-control { min-width:0; gap:8px; }
+#skewPanel .skew-value-input { flex:0 0 44px; width:44px; }
+#skewPanel .skew-range { min-width:24px; }
+#skewPanel .skew-presets { display:flex; align-items:stretch; gap:4px; flex-wrap:wrap; }
+#skewPanel .skew-preset-btn { flex:1 1 40px; min-width:0; }
+
+/* All stages remain visible as an ordered checklist. Only the active stage
+   exposes its controls, status and instructions. */
+#pptPanel .ppt-dashboard { padding:12px 16px 8px; background:var(--bg-surface); }
+#pptPanel .ppt-tips { padding:0; margin:0 0 8px; background:transparent; border:0; box-shadow:none; color:var(--text-secondary); }
+#pptPanel .ppt-dashboard:has(details[open]) { max-height:54%; overflow:auto; }
+#pptPanel .ppt-tips ul { display:block; margin:0; padding:0 0 0 16px; }
+#pptPanel .ppt-tips .ppt-prerequisite { list-style:none; padding:0; }
+#pptPanel .ppt-tips .ppt-prerequisite li { margin:0; }
+#pptPanel .ppt-tips details { margin-top:4px; }
+#pptPanel .ppt-tips summary { width:fit-content; padding:4px 0; cursor:pointer; color:var(--primary); }
+#pptPanel .ppt-tips summary b { display:inline; padding:0; }
+#pptPanel .ppt-tips details li { margin:0 0 4px; }
+#pptPanel .ppt-footer { flex:none; gap:8px; padding:8px 12px; }
+#pptPanel .ppt-footer button { height:auto; min-height:32px; margin:0; padding:4px 12px; }
+#pptPanel .ppt-content-area { align-items:stretch; padding:4px 16px 12px; gap:0; }
+#pptPanel .ppt-step { display:grid; grid-template-columns:20px minmax(0,1fr); gap:0 8px; align-items:center; text-align:start; padding:8px 4px; border:0; border-bottom:1px solid var(--border); border-radius:0; box-shadow:none; background:transparent; animation:none; }
+#pptPanel .ppt-step:not(.active) > :not(.ppt-icon,.ppt-title) { display:none; }
+#pptPanel .ppt-step.active { background:var(--primary-light); }
+#pptPanel .ppt-icon { width:20px; height:20px; margin:0; background:transparent; color:var(--text-tertiary); border:0; }
+#pptPanel .ppt-step.active .ppt-icon { color:var(--primary); }
+#pptPanel .ppt-title { font-size:12px; font-weight:600; line-height:18px; margin:0; }
+#pptPanel .ppt-step > :not(.ppt-title,.ppt-icon) { grid-column:2; margin:4px 0 0; justify-self:start; max-width:100%; }
+#pptPanel .ppt-status { font-variant-numeric:tabular-nums; }
+
+/* The topic catalogue and article share a reading column; topics are links
+   with consistent baselines rather than separately framed tiles. */
+#theoryPanel .theory-group { padding:0; margin:0 0 16px; }
+#theoryPanel .theory-group-title { padding-bottom:4px; margin:0 0 4px; border-bottom:1px solid var(--border); font-size:12px; line-height:18px; }
+#theoryPanel .theory-capsule-list { grid-template-columns:repeat(auto-fit,minmax(106px,1fr)); gap:0 8px; }
+#theoryPanel .theory-capsule { min-width:0; min-height:32px; border:0; border-radius:0; border-bottom:1px solid var(--border); padding:4px 0; background:transparent; justify-content:flex-start; text-align:start; }
+#theoryPanel .theory-capsule:hover { color:var(--primary); background:var(--bg-hover); }
+#theoryPanel .theory-article-scroll { padding:12px 16px 24px; }
+#theoryPanel .theory-article-scroll > * { max-width:68ch; margin-inline:auto; }
+#theoryPanel .theory-principle { padding:12px 0; }
+#theoryPanel .theory-composer { padding:4px; }
+
+@media (min-width:620px) {
+  #skewPanel { flex-direction:row !important; }
+  #skewPanel .skew-preview { flex:1; height:auto; border-bottom:0; border-inline-end:1px solid var(--border); }
+  #skewPanel .skew-content { flex:1; }
+  #smartFillPanel #smartBasicList { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
+@media (max-width:380px) {
+  :is(#selectionPanel,#duplicatePanel) .selection-scroll-area,
+  :is(#sizePanel .size-scroll,#componentBuilderPanel .builder-scroll,#skewPanel .skew-content,#refinerPanel .refiner-config,#i18nPanel .i18n-view,#theoryPanel .theory-capsule-container,#layerNamingPanel,#iconfontPanel) { padding-inline:8px; }
+  #smartFillPanel #smartBasicList { gap:0 8px; padding-inline:8px; }
+  #sizePanel :is(#sizeWidth,#sizeHeight) { font-size:17px; height:32px; }
+}

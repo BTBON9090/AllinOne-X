@@ -81,7 +81,7 @@
   i18n.en.up_all = ['Move to Page Root','Move out of nested containers','Move selected layers to the page’s root level.','Moved to page root.'];
   i18n.en.create_styles = ['Create Local Styles','Create reusable styles','Create local fill, text and effect styles from the selection, checking for existing names.','Style check complete.'];
   const stripIcon = text => text.replace(/[\p{Extended_Pictographic}\uFE0F]/gu, '').trim();
-  const pairs = [];
+  const pairs = [['打开主页', 'Open profile']];
   for (const [key, zh] of Object.entries(i18n.zh)) {
     const en = i18n.en[key];
     if (Array.isArray(zh) && Array.isArray(en)) zh.forEach((value, index) => pairs.push([value, en[index]]));
