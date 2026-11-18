@@ -9500,7 +9500,8 @@ async function iconfontApplyFigma(source, prepared, host) {
   const paintBindings = new Set();
   function inspect(node, contributes = true) {
     if (!direct && (node.locked || !visible(node) || ['INSTANCE', 'COMPONENT', 'COMPONENT_SET'].includes(node.type) ||
-        node.reactions?.length || node.annotations?.length || node.getPluginDataKeys?.().length || node.componentPropertyReferences ||
+        node.reactions?.length || node.annotations?.length || node.getPluginDataKeys?.().length ||
+        Object.keys(node.componentPropertyReferences || {}).length ||
         Object.keys(node.boundVariables || {}).some(k => k !== 'fills' && k !== 'strokes') ||
         (node !== source && node.exportSettings?.length) || Object.keys(node.explicitVariableModes || {}).length)) {
       reject('子图层带有锁定、隐藏、导出设置或组件关系，无法在保留结构的同时拼合');
@@ -9533,8 +9534,10 @@ async function iconfontApplyFigma(source, prepared, host) {
   for (let n = direct ? target : source; n && n.type !== 'PAGE'; n = n.parent) {
     if (container(n) || stacking(n.parent)) fixed.set(n, n.absoluteBoundingBox);
   }
-  const assertLayout = () => {
+  const assertLayout = (node, intended) => {
     for (const [n, box] of fixed) if (!iconfontCloseBox(box, n.absoluteBoundingBox)) throw layoutError();
+    const actual = node.absoluteTransform;
+    if (!intended.every((row, i) => row.every((v, j) => Math.abs(v - actual[i][j]) <= 0.01))) throw layoutError();
   };
 
   const basis = target.absoluteTransform;
@@ -9562,12 +9565,12 @@ async function iconfontApplyFigma(source, prepared, host) {
         // the editor to serialize and interpret the full path a second time.
         target.vectorPaths = iconfontTransformPaths(paths, iconfontInverseTransform(stage.relativeTransform));
         if (target.cornerRadius) target.cornerRadius = 0;
-        if (previous.strokes.length) target.strokes = [];
+        if (previous.strokes.some(visiblePaint)) target.strokes = previous.strokes.filter(p => !visiblePaint(p));
         // Keep a linked fill style attached unless the original was stroke-only.
         if (style && style !== target.fillStyleId) await target.setFillStyleIdAsync(style);
         else if (!style) target.fills = previous.fills.some(visiblePaint) ? previous.fills : [color];
         transformTo(target, placed);
-        assertLayout();
+        assertLayout(target, placed);
       } catch (error) {
         if (previous.network && target.setVectorNetworkAsync) await target.setVectorNetworkAsync(previous.network);
         else target.vectorPaths = previous.paths;
@@ -9596,7 +9599,7 @@ async function iconfontApplyFigma(source, prepared, host) {
       transformTo(stage, placed);
       if (affected[0].constraints && 'constraints' in stage) stage.constraints = affected[0].constraints;
       for (const {n} of originals) backup.appendChild(n);
-      assertLayout();
+      assertLayout(stage, placed);
       keepStage = true;
     } catch (error) {
       // Restore before removing the temporary vector: Figma deletes empty groups.
