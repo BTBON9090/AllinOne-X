@@ -4,6 +4,7 @@ import vm from 'node:vm';
 import ts from '../figma/node_modules/typescript/lib/typescript.js';
 const core = fs.readFileSync('shared/window-host.js','utf8');
 for (const platform of ['figma','mastergo']) {
+  const source = fs.readFileSync(platform === 'figma' ? 'figma/code.ts' : 'mastergo/main.ts','utf8');
   const position = { x:500,y:200 };
   const bounds = { x:-200,y:-100,width:2400,height:1800 };
   const messages = [], sizes = [];
@@ -14,10 +15,21 @@ for (const platform of ['figma','mastergo']) {
       reposition:(x,y) => { position.x = (x - bounds.x) * 0.5; position.y = (y - bounds.y) * 0.5; },
       get viewport() { return { ...position, width:440,height:600,headerHeight:32 }; },
       moveTo:(x,y) => Object.assign(position,{ x,y }),
-      resize:(...args) => sizes.push(args), postMessage:msg => messages.push(msg)
+      resize:(...args) => sizes.push(args),
+      postMessage(payload) {
+        // Figma supplies the envelope. MasterGo delivers the payload verbatim.
+        const data = platform === 'figma' ? { pluginMessage:payload } : payload;
+        assert(data.pluginMessage?.type, platform + ' must deliver event.data.pluginMessage to the iframe');
+        messages.push(data.pluginMessage);
+      }
     }
   };
   const context = vm.createContext({ figma:host,mg:host,console });
+  if (platform === 'mastergo') {
+    const sender = source.split('\n').find(line => line.startsWith('const sendToUI ='));
+    assert(sender, 'Use the production MasterGo iframe sender');
+    vm.runInContext(ts.transpileModule(sender, {}).outputText,context);
+  }
   vm.runInContext(core + '\n' + fs.readFileSync('shared/window-adapters.js','utf8').replaceAll('__PLUGIN_PLATFORM__',JSON.stringify(platform)),context);
   const handle = vm.runInContext('handlePluginWindowMessage',context);
   handle({ type:'window-init' }); assert.equal(messages.at(-1).canMove,true);
@@ -48,16 +60,20 @@ for (const platform of ['figma','mastergo']) {
   }
   delete host.ui.getPosition; delete host.ui.moveTo;
   handle({ type:'window-init' }); assert.equal(messages.at(-1).canMove,false);
-  handle({ type:'window-collapse',width:360,height:520 }); handle({ type:'window-expand' });
+  const previousPosition = { ...position };
+  handle({ type:'window-collapse',width:360,height:520 });
+  assert.equal(messages.at(-1).collapsed,true); assert.equal(messages.at(-1).error,false);
+  assert.deepEqual(sizes.at(-1).slice(0,2),[70,48]);
+  handle({ type:'window-expand' });
+  assert.equal(messages.at(-1).collapsed,false); assert.equal(messages.at(-1).canMove,false);
   assert.deepEqual(sizes.at(-1).slice(0,2),[360,520]);
+  assert.deepEqual(position,previousPosition);
 
   let stored = [{ id:'a',name:'中文 <svg>',zoom:0.25,selectionIds:['layer'],pageId:'one' },{ id:'b',name:'Other',centerX:42 }];
-  const source = fs.readFileSync(platform === 'figma' ? 'figma/code.ts' : 'mastergo/main.ts','utf8');
   const begin = source.indexOf("    case 'jb-reorder':"), end = source.indexOf("    case 'jb-save':",begin);
   host.root = { getPluginData:() => JSON.stringify(stored),setPluginData:(_,data) => { stored = JSON.parse(data); } };
   context.loadJumpbackSpots = async () => stored;
   context.saveJumpbackSpots = async data => { stored = data; };
-  context.sendToUI = msg => messages.push(msg);
   vm.runInContext(ts.transpileModule('async function reorderMessage(msg) { switch(msg.type) {\n' + source.slice(begin,end) + '\n} }', { compilerOptions:{ target:ts.ScriptTarget.ES2020 } }).outputText,context);
   const original = JSON.stringify(stored);
   await context.reorderMessage({ type:'jb-reorder',ids:['b','a'],requestId:7 });

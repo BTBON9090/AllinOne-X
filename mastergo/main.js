@@ -485,7 +485,7 @@ const handlePluginWindowMessage = createPluginWindowController("mastergo" === 'f
   },
   move:(x,y) => mg.ui.moveTo(x,y),
   resize:(w,h) => mg.ui.resize(w,h),
-  send:msg => mg.ui.postMessage(msg)
+  send:msg => sendToUI(msg)
 });
 
 // Clipper 6.4.2 by Angus Johnson, JavaScript translation by Timo

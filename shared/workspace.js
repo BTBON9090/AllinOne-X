@@ -46,16 +46,21 @@
   const brand = document.createElement('button');
   brand.type = 'button';
   brand.className = 'workbench-brand';
-  brand.setAttribute('aria-controls', 'sidebar');
   brand.innerHTML = '<img class="workbench-mark" alt="" draggable="false"><strong>AllinOne</strong>';
   brand.querySelector('img').src = pluginLogoUrl;
   sidebar.prepend(brand);
   const heading = document.createElement('header');
   heading.className = 'workbench-heading';
-  heading.innerHTML = '<button type="button" class="workbench-menu" aria-controls="sidebar"><img class="workbench-mark" alt="" draggable="false"></button><div class="workbench-location"><h1></h1></div><button type="button" class="workbench-back" hidden><span data-smart-icon="chevron-left"></span><span class="back-label"></span></button>';
+  heading.innerHTML = '<button type="button" class="workbench-menu" aria-controls="sidebar"><span data-smart-icon="list"></span></button><div class="workbench-location"><h1></h1></div><button type="button" class="workbench-back" hidden><span data-smart-icon="chevron-left"></span><span class="back-label"></span></button>';
   $('contentScroll').before(heading);
   const menu = heading.querySelector('.workbench-menu');
-  menu.firstElementChild.src = pluginLogoUrl;
+  const headerBrand = document.createElement('button');
+  headerBrand.type = 'button';
+  headerBrand.className = 'workbench-brand-header';
+  headerBrand.append(brand.firstElementChild.cloneNode(true));
+  heading.prepend(headerBrand);
+  PluginWindow.bindBrand(brand);
+  PluginWindow.bindBrand(headerBrand);
   const back = heading.querySelector('.workbench-back');
   back.onclick = () => navigate(previous);
   $('settingsPanel').querySelector(':scope > .sub-header')?.remove();
@@ -67,31 +72,18 @@
   const narrow = window.matchMedia('(max-width:399px)');
   const usesDrawer = () => narrow.matches || document.body.classList.contains('mini-mode');
   function refreshSidebar() {
-    const expanded = usesDrawer() ? document.body.classList.contains('directory-open') : !document.body.classList.contains('rail-collapsed');
-    const action = expanded ? l('收起侧栏', 'Collapse sidebar') : l('展开侧栏', 'Expand sidebar');
-    for (const button of [brand, menu]) {
-      button.setAttribute('aria-expanded', String(expanded));
-      button.setAttribute('aria-label', 'AllinOne · ' + action);
-      button.title = action + l('。Shift + 点击可收起为气泡。', '. Shift-click to minimize to a bubble.');
-    }
+    const open = document.body.classList.contains('directory-open');
+    menu.setAttribute('aria-expanded', String(open));
+    menu.title = open ? l('关闭工具目录', 'Close tool directory') : l('打开工具目录', 'Open tool directory');
+    menu.setAttribute('aria-label', menu.title);
   }
   function setDirectory(open, restoreFocus = false) {
     document.body.classList.toggle('directory-open', open);
     refreshSidebar();
     if (open) (nav(current) || sidebar.querySelector('.footer-btn')).focus({preventScroll:true});
-    else if (restoreFocus) (brand.getClientRects().length ? brand : menu).focus({preventScroll:true});
+    else if (restoreFocus) menu.focus({preventScroll:true});
   }
-  function toggleSidebar() {
-    if (usesDrawer()) {
-      const open = document.body.classList.contains('directory-open');
-      setDirectory(!open, open);
-    } else {
-      document.body.classList.toggle('rail-collapsed');
-      refreshSidebar();
-    }
-  }
-  PluginWindow.bindBrand(brand, toggleSidebar);
-  PluginWindow.bindBrand(menu, toggleSidebar);
+  menu.onclick = () => setDirectory(!document.body.classList.contains('directory-open'));
   scrim.onclick = () => setDirectory(false, true);
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && document.body.classList.contains('directory-open')) {
@@ -100,7 +92,7 @@
     }
   });
   document.addEventListener('focusin', event => {
-    if (document.body.classList.contains('directory-open') && !sidebar.contains(event.target)) setDirectory(false);
+    if (document.body.classList.contains('directory-open') && !sidebar.contains(event.target) && event.target !== menu) setDirectory(false);
   });
   window.addEventListener('resize', () => {
     if (document.body.classList.contains('directory-open') && !usesDrawer()) setDirectory(false);
@@ -108,6 +100,10 @@
   });
 
   function refreshLocation() {
+    for (const button of [brand, headerBrand]) {
+      button.title = l('将 AllinOne 收起为气泡', 'Minimize AllinOne to a bubble');
+      button.setAttribute('aria-label', button.title);
+    }
     heading.querySelector('h1').textContent = label(current);
     back.hidden = current !== 'settings';
     back.querySelector('.back-label').textContent = l('返回', 'Back');

@@ -2,12 +2,15 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
+const vm = require('node:vm');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
 const root = path.resolve(__dirname,'..');
 const output = process.env.UI_REVIEW_DIR || fs.mkdtempSync(path.join(require('node:os').tmpdir(),'allinone-window-'));
 fs.mkdirSync(output,{ recursive:true });
 const logoFile = path.join(root, 'mastergo', 'assets', 'all-in-one-logo.png');
 const originalLogo = 'data:image/png;base64,' + fs.readFileSync(logoFile).toString('base64');
+const hostSource = fs.readFileSync(path.join(root,'shared/window-host.js'),'utf8');
+const createWindowController = vm.runInNewContext(hostSource + '\ncreatePluginWindowController');
 
 async function checkBrandImage(locator) {
   assert(await locator.isVisible(), 'Brand artwork is visible');
@@ -56,8 +59,10 @@ async function checkBrandImage(locator) {
       await page.waitForFunction(() => window.PluginWindow && window.PluginBookmarks && window.PluginWorkspace);
       const emit = msg => page.evaluate(msg => window.dispatchEvent(new MessageEvent('message',{ data:{ pluginMessage:msg } })),msg);
       await page.evaluate(() => changeTheme('light'));
-      const mark = page.locator('.workbench-brand img.workbench-mark');
-      const brand = page.locator('button.workbench-brand');
+      const brand = page.locator('.sidebar button.workbench-brand');
+      const mark = brand.locator('img.workbench-mark');
+      const menu = page.locator('.workbench-menu');
+      assert(await menu.isHidden(), 'The full-width sidebar needs no directory launcher');
       await checkBrandImage(mark);
       assert.equal(await brand.innerText(), 'AllinOne');
       assert.equal(await page.locator('#collapseWindow, .workbench-location > span').count(), 0);
@@ -131,40 +136,71 @@ async function checkBrandImage(locator) {
       const input = page.locator('#textPanel input[type="text"]').first(); await input.fill('保留搜索草稿');
       await page.evaluate(() => { changeLanguage('en'); const nav = document.querySelector('.nav-scroll'); nav.scrollTop = 70; window.__navScroll = nav.scrollTop; });
       await emit({ type:'window-state',collapsed:false,canMove:true,edge:'right' });
-      await brand.locator('strong').click();
-      assert.equal(await brand.getAttribute('aria-expanded'),'false');
-      assert.equal(await page.locator('.nav-item.active .nav-text').isVisible(),false);
-      await page.waitForFunction(() => document.querySelector('.sidebar').offsetWidth === 44, null, {timeout:2000});
-      assert(await input.isVisible());
-      await brand.press('Enter');
-      await page.waitForFunction(() => document.querySelector('.sidebar').offsetWidth === 112, null, {timeout:2000});
-      assert.equal(await brand.getAttribute('aria-expanded'),'true');
-      assert(await page.locator('.nav-item.active .nav-text').isVisible());
-      assert.equal(await input.inputValue(),'保留搜索草稿');
-      assert.equal(await page.evaluate(() => __sent.filter(m=>m.type==='window-collapse').length),0);
-      await page.evaluate(() => { const nav = document.querySelector('.nav-scroll'); nav.scrollTop = 70; window.__navScroll = nav.scrollTop; });
-      await brand.click({modifiers:['Shift']});
-      assert.equal(await page.evaluate(() => __sent.at(-1).type),'window-collapse');
-      await emit({ type:'window-state',collapsed:true,canMove:true,edge:'right' }); await page.setViewportSize({ width:70,height:48 });
-      assert.equal(await page.locator('.app-container').isVisible(),false);
-      assert.equal(await page.locator('#pluginBubble').isVisible(),true);
-      assert.equal(await page.evaluate(() => document.activeElement.id),'pluginBubble');
-      const bubble = page.locator('#pluginBubble img.bubble-logo');
-      await checkBrandImage(bubble);
-      assert.equal(await bubble.getAttribute('src'), markSource, 'Expanded and collapsed windows share the same artwork');
-      // The body fades its background when the expanded panel collapses.
-      await page.waitForFunction(() => [document.documentElement, document.body, document.getElementById('pluginBubble')]
-        .every(node => getComputedStyle(node).backgroundColor === 'rgba(0, 0, 0, 0)'), null, {timeout:2000});
-      await page.screenshot({ path:path.join(output,`${platform}-bubble.png`),animations:'disabled' });
-      await page.mouse.move(35,24); await page.mouse.down(); await page.mouse.move(60,35,{ steps:6 }); await page.mouse.up();
-      assert.equal(await page.evaluate(() => __sent.at(-1).type),'window-drag-end','Dragging does not expand');
-      await page.locator('#pluginBubble').click();
-      assert.equal(await page.evaluate(() => __sent.at(-1).type),'window-expand');
-      await emit({ type:'window-state',collapsed:false,canMove:true,edge:'right' }); await page.setViewportSize({ width:440,height:600 });
-      await page.waitForFunction(() => document.querySelector('.nav-scroll').scrollTop === window.__navScroll, null, {timeout:3000});
-      await page.waitForFunction(() => document.activeElement === document.querySelector('.workbench-brand'), null, {timeout:2000});
-      assert.equal(await input.inputValue(),'保留搜索草稿');
-      assert.equal(await page.locator('.nav-item.active').getAttribute('data-nav'),'text');
+      // Drive the shared host controller with the real message from each user
+      // action. Its adapter resizes the browser viewport and replies to the UI.
+      let nextSize, nextState, resizeFirst = true;
+      const hostWindow = createWindowController({
+        canMove:() => true, metrics:() => ({x:800,y:240,width:1600,height:1000,header:32}),
+        move:() => {}, resize:(width,height) => { nextSize = {width,height}; },
+        send:state => { nextState = state; }
+      });
+      async function sendAndApply(activate, expectedType) {
+        const beforeCount = await page.evaluate(() => __sent.length);
+        await activate();
+        const requests = await page.evaluate(start => __sent.slice(start).filter(message =>
+          message.type === 'window-collapse' || message.type === 'window-expand'), beforeCount);
+        assert.deepEqual(requests.map(request => request.type), [expectedType], 'One window request per activation');
+        nextSize = null; nextState = null;
+        assert(hostWindow(requests[0]));
+        assert.equal(nextState.collapsed, expectedType === 'window-collapse');
+        // Viewport changes and window-state messages can reach the iframe in either order.
+        if (resizeFirst) await page.setViewportSize(nextSize);
+        await emit(nextState);
+        if (!resizeFirst) await page.setViewportSize(nextSize);
+        if (expectedType === 'window-expand') resizeFirst = !resizeFirst;
+      }
+      const bubbleButton = page.locator('#pluginBubble');
+      const bubble = bubbleButton.locator('img.bubble-logo');
+      async function checkCollapseRestore(activate, expectedFocus, inspectBubble = false) {
+        const expandedSize = page.viewportSize();
+        await sendAndApply(activate, 'window-collapse');
+        assert.deepEqual(page.viewportSize(), {width:70,height:48});
+        assert(await page.locator('.app-container').isHidden());
+        assert(await bubbleButton.isVisible());
+        assert.equal(await page.evaluate(() => document.activeElement.id), 'pluginBubble');
+        if (inspectBubble) {
+          await checkBrandImage(bubble);
+          assert.equal(await bubble.getAttribute('src'), markSource, 'Expanded and collapsed windows share the same artwork');
+          await page.waitForFunction(() => [document.documentElement, document.body, document.getElementById('pluginBubble')]
+            .every(node => getComputedStyle(node).backgroundColor === 'rgba(0, 0, 0, 0)'), null, {timeout:2000});
+          await page.screenshot({path:path.join(output, `${platform}-bubble.png`), animations:'disabled'});
+          const beforeDrag = await page.evaluate(() => __sent.length);
+          await page.mouse.move(35,24); await page.mouse.down(); await page.mouse.move(60,35,{steps:6}); await page.mouse.up();
+          assert.equal(await page.evaluate(() => __sent.at(-1).type), 'window-drag-end');
+          assert.equal(await page.evaluate(start => __sent.slice(start).some(m => m.type === 'window-expand'), beforeDrag), false,
+            'Dragging the bubble does not expand it');
+        }
+        await sendAndApply(() => bubbleButton.click(), 'window-expand');
+        assert.deepEqual(page.viewportSize(), expandedSize);
+        await page.waitForFunction(el => document.activeElement === el, await expectedFocus.elementHandle(), {timeout:2000});
+        assert(await page.locator('.app-container').isVisible());
+        assert(await bubbleButton.isHidden());
+      }
+      const brandBox = await brand.boundingBox();
+      const beforeDrag = await page.evaluate(() => __sent.length);
+      await page.mouse.move(brandBox.x+20, brandBox.y+12);
+      await page.mouse.down(); await page.mouse.move(brandBox.x+46, brandBox.y+18,{steps:6}); await page.mouse.up();
+      const dragMessages = await page.evaluate(start => __sent.slice(start).map(message => message.type), beforeDrag);
+      assert(dragMessages.includes('window-drag-start') && dragMessages.includes('window-drag-end'));
+      assert(!dragMessages.includes('window-collapse'), 'Dragging the expanded brand does not count as a click');
+      for (const [index, activate] of [
+        () => mark.click(), () => brand.locator('strong').click(), () => brand.press('Enter'), () => brand.press('Space')
+      ].entries()) {
+        await checkCollapseRestore(activate, brand, index === 0);
+        await page.waitForFunction(() => document.querySelector('.nav-scroll').scrollTop === window.__navScroll, null, {timeout:3000});
+        assert.equal(await input.inputValue(), '保留搜索草稿');
+        assert.equal(await page.locator('.nav-item.active').getAttribute('data-nav'), 'text');
+      }
       await brand.press('ArrowLeft');
       assert.deepEqual(await page.evaluate(() => { const m = __sent.at(-1); return [m.type,m.dx,m.dy]; }),['window-nudge',-16,0]);
       await page.evaluate(() => { setCompactMode(true); changeLanguage('en'); changeTheme('dark'); });
@@ -173,11 +209,20 @@ async function checkBrandImage(locator) {
       assert(await page.locator('.nav-item').last().evaluate(el => el.getBoundingClientRect().bottom <= el.closest('.nav-scroll').getBoundingClientRect().bottom),'All compact icons fit at 360 × 520');
       await page.screenshot({ path:path.join(output,`${platform}-groups-compact.png`),animations:'disabled' });
       assert(await brand.isVisible());
-      await brand.click();
-      assert.equal(await brand.getAttribute('aria-expanded'),'true');
+      const beforeDirectory = await page.evaluate(() => __sent.filter(m => m.type === 'window-collapse').length);
+      await menu.click();
+      assert.equal(await menu.getAttribute('aria-expanded'),'true');
       await page.keyboard.press('Escape');
-      assert.equal(await brand.getAttribute('aria-expanded'),'false');
-      assert(await brand.evaluate(el => document.activeElement === el));
+      assert.equal(await menu.getAttribute('aria-expanded'),'false');
+      assert(await menu.evaluate(el => document.activeElement === el));
+      assert.equal(await page.evaluate(() => __sent.filter(m => m.type === 'window-collapse').length), beforeDirectory);
+      await page.setViewportSize({width:440,height:520});
+      assert(await menu.isVisible(), 'Compact mode keeps an independent directory control at regular widths');
+      await page.evaluate(() => setCompactMode(false));
+      await page.setViewportSize({width:399,height:520});
+      assert(await menu.isVisible(), 'The narrow directory is available at the breakpoint in regular mode');
+      await page.setViewportSize({width:400,height:520});
+      assert(await menu.isHidden());
       assert.equal(await page.evaluate(() => document.documentElement.scrollHeight > innerHeight || document.documentElement.scrollWidth > innerWidth),false);
       for (const [compact,width] of [[false,210],[true,170]]) {
         await page.evaluate(compact => { setCompactMode(compact); PluginWorkspace.navigate('simple'); },compact);
@@ -188,7 +233,10 @@ async function checkBrandImage(locator) {
         const resize = await page.evaluate(() => __sent.filter(m => m.type === 'resize-drag').at(-1));
         assert.deepEqual([resize.width,resize.height],[width,400],'Corner drag uses the halved width floor and keeps the height floor');
         await page.setViewportSize({ width,height:520 });
-        assert(await page.locator('.workbench-menu').isVisible());
+        assert(await menu.isVisible());
+        const headerBrand = page.locator('button.workbench-brand-header');
+        await checkBrandImage(headerBrand.locator('img.workbench-mark'));
+        await checkCollapseRestore(() => headerBrand.click(), headerBrand);
         assert.equal(await page.locator('.tool-home-commands').first().evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length),1);
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),false);
         await page.screenshot({ path:path.join(output,`${platform}-narrow-${width}.png`),animations:'disabled' });

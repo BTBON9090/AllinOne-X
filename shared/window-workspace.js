@@ -24,7 +24,7 @@
       scrollSnapshot = [];
       if (previousFocus) {
         const brand = document.querySelector('.workbench-brand');
-        const fallback = brand?.getClientRects().length ? brand : document.querySelector('.workbench-menu');
+        const fallback = brand?.getClientRects().length ? brand : document.querySelector('.workbench-brand-header');
         const target = previousFocus !== document.body && previousFocus.getClientRects().length ? previousFocus : fallback;
         target?.focus({ preventScroll:true });
         previousFocus = null;
@@ -77,21 +77,15 @@
     }
   }
   function bindControl(el, activate) {
-    el.addEventListener('click', e => {
+    el.addEventListener('click', () => {
       if (suppressClick) { suppressClick = false; return; }
-      if (el !== bubble && e.shiftKey) minimize();
-      else activate();
+      activate();
     });
     el.addEventListener('pointerdown',down);
     el.addEventListener('pointermove',move);
     el.addEventListener('pointerup',finish);
     el.addEventListener('pointercancel',finish);
     el.addEventListener('keydown',e => {
-      if (el !== bubble && e.shiftKey && (e.key === 'Enter' || e.key === ' ')) {
-        e.preventDefault();
-        if (!e.repeat) minimize();
-        return;
-      }
       const directions = { ArrowLeft:[-16,0], ArrowRight:[16,0], ArrowUp:[0,-16], ArrowDown:[0,16] };
       if (directions[e.key]) {
         e.preventDefault();
@@ -119,7 +113,7 @@
     if (!collapsed && wasCollapsed) restoreScroll();
     refresh();
   });
-  window.PluginWindow = { refresh, bindBrand:bindControl };
+  window.PluginWindow = { refresh, bindBrand:button => bindControl(button, minimize) };
   refresh();
   send('window-init');
 })();

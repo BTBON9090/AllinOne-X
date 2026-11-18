@@ -20,5 +20,5 @@ const handlePluginWindowMessage = createPluginWindowController(__PLUGIN_PLATFORM
   },
   move:(x,y) => mg.ui.moveTo(x,y),
   resize:(w,h) => mg.ui.resize(w,h),
-  send:msg => mg.ui.postMessage(msg)
+  send:msg => sendToUI(msg)
 });

@@ -23,7 +23,7 @@
 }
 .workbench .workbench-brand:hover { background:var(--bg-hover); }
 .workbench .workbench-brand:focus-visible { outline:2px solid var(--primary); outline-offset:-2px; }
-.workbench :is(.workbench-brand,.workbench-menu) { touch-action:none; user-select:none; }
+.workbench :is(.workbench-brand,.workbench-brand-header) { touch-action:none; user-select:none; }
 .workbench-brand strong { font-size:14px; letter-spacing:-.65px; font-weight:700; }
 .workbench-mark { display:block; width:24px; height:24px; object-fit:contain; flex:none; }
 .workbench .main-content { border:0; border-radius:0; background:var(--bg-surface); box-shadow:none; }
@@ -60,24 +60,28 @@
   background:var(--bench-rail); box-shadow:none;
 }
 .workbench .sidebar-footer .footer-btn { width:100%; justify-content:flex-start; min-height:30px; }
-.workbench .workbench-menu, .workbench .workbench-scrim { display:none; }
-.workbench .workbench-menu {
+.workbench :is(.workbench-menu,.workbench-brand-header,.workbench-scrim) { display:none; }
+.workbench :is(.workbench-menu,.workbench-brand-header) {
   align-items:center; justify-content:center; width:27px; height:27px; padding:0; margin:0; flex:none;
   background:var(--bench-rail); color:var(--bench-ink); border:1px solid var(--bench-line); border-radius:5px;
 }
-.workbench-menu .workbench-mark { width:20px; height:20px; }
+.workbench-brand-header .workbench-mark { width:22px; height:22px; }
+.workbench-menu svg { display:block; width:16px; height:16px; }
+.workbench .workbench-brand-header { border:0; }
+.workbench body.mini-mode .workbench-menu { display:inline-flex; }
 .workbench .resize-handle::after { border-color:var(--bench-muted); opacity:.6; }
 
-.workbench body:is(.mini-mode,.rail-collapsed):not(.directory-open) .sidebar { width:44px; flex-basis:44px; }
-.workbench body:is(.mini-mode,.rail-collapsed):not(.directory-open) .workbench-brand { justify-content:center; padding:0; }
-.workbench body:is(.mini-mode,.rail-collapsed):not(.directory-open) .sidebar :is(.workbench-brand strong,.nav-text,.btn-text) { display:none; }
-.workbench body:is(.mini-mode,.rail-collapsed):not(.directory-open) .nav-scroll { padding:4px; gap:3px; }
-.workbench body:is(.mini-mode,.rail-collapsed):not(.directory-open) .sidebar :is(.nav-item,.footer-btn) { padding:2px; justify-content:center; min-height:24px; }
-.workbench body:is(.mini-mode,.rail-collapsed):not(.directory-open) .nav-group-label {
+.workbench body.mini-mode:not(.directory-open) .sidebar { width:44px; flex-basis:44px; }
+.workbench body.mini-mode:not(.directory-open) .workbench-brand { justify-content:center; padding:0; }
+.workbench body.mini-mode:not(.directory-open) .sidebar :is(.workbench-brand strong,.nav-text,.btn-text) { display:none; }
+.workbench body.mini-mode:not(.directory-open) .nav-scroll { padding:4px; gap:3px; }
+.workbench body.mini-mode:not(.directory-open) .sidebar :is(.nav-item,.footer-btn) { padding:2px; justify-content:center; min-height:24px; }
+.workbench body.mini-mode:not(.directory-open) .nav-group-label {
   font-size:0; height:3px; padding:0; margin:2px 5px; line-height:0; border-top:1px solid var(--bench-line);
 }
-.workbench body:is(.mini-mode,.rail-collapsed):not(.directory-open) .nav-group:first-child .nav-group-label { display:none; }
+.workbench body.mini-mode:not(.directory-open) .nav-group:first-child .nav-group-label { display:none; }
 @media(max-width:399px) {
+  .workbench .workbench-menu { display:inline-flex; }
   .workbench body:not(.directory-open) .sidebar { flex:0 0 44px; width:44px; }
   .workbench body:not(.directory-open) .workbench-brand { justify-content:center; padding:0; }
   .workbench body:not(.directory-open) .sidebar :is(.nav-text,.btn-text), .workbench body:not(.directory-open) .workbench-brand strong { display:none !important; }
@@ -88,8 +92,8 @@
 }
 @media(max-width:219px) {
   .workbench body:not(.directory-open) .sidebar { display:none; }
-  .workbench body:not(.directory-open) .workbench-menu { display:inline-flex; }
-  .workbench .workbench-heading { padding:0 7px; }
+  .workbench body:not(.directory-open) .workbench-brand-header { display:inline-flex; }
+  .workbench .workbench-heading { gap:4px; padding:0 5px; }
   .workbench-location h1 { font-size:14px; }
 }
 .workbench body.directory-open .sidebar {

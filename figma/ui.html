@@ -5871,7 +5871,7 @@ html #errorToast .toast-close { border-radius: 4px; background: var(--bg-muted);
 }
 .workbench .workbench-brand:hover { background:var(--bg-hover); }
 .workbench .workbench-brand:focus-visible { outline:2px solid var(--primary); outline-offset:-2px; }
-.workbench :is(.workbench-brand,.workbench-menu) { touch-action:none; user-select:none; }
+.workbench :is(.workbench-brand,.workbench-brand-header) { touch-action:none; user-select:none; }
 .workbench-brand strong { font-size:14px; letter-spacing:-.65px; font-weight:700; }
 .workbench-mark { display:block; width:24px; height:24px; object-fit:contain; flex:none; }
 .workbench .main-content { border:0; border-radius:0; background:var(--bg-surface); box-shadow:none; }
@@ -5908,24 +5908,28 @@ html #errorToast .toast-close { border-radius: 4px; background: var(--bg-muted);
   background:var(--bench-rail); box-shadow:none;
 }
 .workbench .sidebar-footer .footer-btn { width:100%; justify-content:flex-start; min-height:30px; }
-.workbench .workbench-menu, .workbench .workbench-scrim { display:none; }
-.workbench .workbench-menu {
+.workbench :is(.workbench-menu,.workbench-brand-header,.workbench-scrim) { display:none; }
+.workbench :is(.workbench-menu,.workbench-brand-header) {
   align-items:center; justify-content:center; width:27px; height:27px; padding:0; margin:0; flex:none;
   background:var(--bench-rail); color:var(--bench-ink); border:1px solid var(--bench-line); border-radius:5px;
 }
-.workbench-menu .workbench-mark { width:20px; height:20px; }
+.workbench-brand-header .workbench-mark { width:22px; height:22px; }
+.workbench-menu svg { display:block; width:16px; height:16px; }
+.workbench .workbench-brand-header { border:0; }
+.workbench body.mini-mode .workbench-menu { display:inline-flex; }
 .workbench .resize-handle::after { border-color:var(--bench-muted); opacity:.6; }
 
-.workbench body:is(.mini-mode,.rail-collapsed):not(.directory-open) .sidebar { width:44px; flex-basis:44px; }
-.workbench body:is(.mini-mode,.rail-collapsed):not(.directory-open) .workbench-brand { justify-content:center; padding:0; }
-.workbench body:is(.mini-mode,.rail-collapsed):not(.directory-open) .sidebar :is(.workbench-brand strong,.nav-text,.btn-text) { display:none; }
-.workbench body:is(.mini-mode,.rail-collapsed):not(.directory-open) .nav-scroll { padding:4px; gap:3px; }
-.workbench body:is(.mini-mode,.rail-collapsed):not(.directory-open) .sidebar :is(.nav-item,.footer-btn) { padding:2px; justify-content:center; min-height:24px; }
-.workbench body:is(.mini-mode,.rail-collapsed):not(.directory-open) .nav-group-label {
+.workbench body.mini-mode:not(.directory-open) .sidebar { width:44px; flex-basis:44px; }
+.workbench body.mini-mode:not(.directory-open) .workbench-brand { justify-content:center; padding:0; }
+.workbench body.mini-mode:not(.directory-open) .sidebar :is(.workbench-brand strong,.nav-text,.btn-text) { display:none; }
+.workbench body.mini-mode:not(.directory-open) .nav-scroll { padding:4px; gap:3px; }
+.workbench body.mini-mode:not(.directory-open) .sidebar :is(.nav-item,.footer-btn) { padding:2px; justify-content:center; min-height:24px; }
+.workbench body.mini-mode:not(.directory-open) .nav-group-label {
   font-size:0; height:3px; padding:0; margin:2px 5px; line-height:0; border-top:1px solid var(--bench-line);
 }
-.workbench body:is(.mini-mode,.rail-collapsed):not(.directory-open) .nav-group:first-child .nav-group-label { display:none; }
+.workbench body.mini-mode:not(.directory-open) .nav-group:first-child .nav-group-label { display:none; }
 @media(max-width:399px) {
+  .workbench .workbench-menu { display:inline-flex; }
   .workbench body:not(.directory-open) .sidebar { flex:0 0 44px; width:44px; }
   .workbench body:not(.directory-open) .workbench-brand { justify-content:center; padding:0; }
   .workbench body:not(.directory-open) .sidebar :is(.nav-text,.btn-text), .workbench body:not(.directory-open) .workbench-brand strong { display:none !important; }
@@ -5936,8 +5940,8 @@ html #errorToast .toast-close { border-radius: 4px; background: var(--bg-muted);
 }
 @media(max-width:219px) {
   .workbench body:not(.directory-open) .sidebar { display:none; }
-  .workbench body:not(.directory-open) .workbench-menu { display:inline-flex; }
-  .workbench .workbench-heading { padding:0 7px; }
+  .workbench body:not(.directory-open) .workbench-brand-header { display:inline-flex; }
+  .workbench .workbench-heading { gap:4px; padding:0 5px; }
   .workbench-location h1 { font-size:14px; }
 }
 .workbench body.directory-open .sidebar {
@@ -19337,7 +19341,7 @@ const theoryDB = [
       scrollSnapshot = [];
       if (previousFocus) {
         const brand = document.querySelector('.workbench-brand');
-        const fallback = brand?.getClientRects().length ? brand : document.querySelector('.workbench-menu');
+        const fallback = brand?.getClientRects().length ? brand : document.querySelector('.workbench-brand-header');
         const target = previousFocus !== document.body && previousFocus.getClientRects().length ? previousFocus : fallback;
         target?.focus({ preventScroll:true });
         previousFocus = null;
@@ -19390,21 +19394,15 @@ const theoryDB = [
     }
   }
   function bindControl(el, activate) {
-    el.addEventListener('click', e => {
+    el.addEventListener('click', () => {
       if (suppressClick) { suppressClick = false; return; }
-      if (el !== bubble && e.shiftKey) minimize();
-      else activate();
+      activate();
     });
     el.addEventListener('pointerdown',down);
     el.addEventListener('pointermove',move);
     el.addEventListener('pointerup',finish);
     el.addEventListener('pointercancel',finish);
     el.addEventListener('keydown',e => {
-      if (el !== bubble && e.shiftKey && (e.key === 'Enter' || e.key === ' ')) {
-        e.preventDefault();
-        if (!e.repeat) minimize();
-        return;
-      }
       const directions = { ArrowLeft:[-16,0], ArrowRight:[16,0], ArrowUp:[0,-16], ArrowDown:[0,16] };
       if (directions[e.key]) {
         e.preventDefault();
@@ -19432,7 +19430,7 @@ const theoryDB = [
     if (!collapsed && wasCollapsed) restoreScroll();
     refresh();
   });
-  window.PluginWindow = { refresh, bindBrand:bindControl };
+  window.PluginWindow = { refresh, bindBrand:button => bindControl(button, minimize) };
   refresh();
   send('window-init');
 })();
@@ -20713,16 +20711,21 @@ const ComponentFamilySkill = "---\nname: component-family-synthesis\ndescription
   const brand = document.createElement('button');
   brand.type = 'button';
   brand.className = 'workbench-brand';
-  brand.setAttribute('aria-controls', 'sidebar');
   brand.innerHTML = '<img class="workbench-mark" alt="" draggable="false"><strong>AllinOne</strong>';
   brand.querySelector('img').src = pluginLogoUrl;
   sidebar.prepend(brand);
   const heading = document.createElement('header');
   heading.className = 'workbench-heading';
-  heading.innerHTML = '<button type="button" class="workbench-menu" aria-controls="sidebar"><img class="workbench-mark" alt="" draggable="false"></button><div class="workbench-location"><h1></h1></div><button type="button" class="workbench-back" hidden><span data-smart-icon="chevron-left"></span><span class="back-label"></span></button>';
+  heading.innerHTML = '<button type="button" class="workbench-menu" aria-controls="sidebar"><span data-smart-icon="list"></span></button><div class="workbench-location"><h1></h1></div><button type="button" class="workbench-back" hidden><span data-smart-icon="chevron-left"></span><span class="back-label"></span></button>';
   $('contentScroll').before(heading);
   const menu = heading.querySelector('.workbench-menu');
-  menu.firstElementChild.src = pluginLogoUrl;
+  const headerBrand = document.createElement('button');
+  headerBrand.type = 'button';
+  headerBrand.className = 'workbench-brand-header';
+  headerBrand.append(brand.firstElementChild.cloneNode(true));
+  heading.prepend(headerBrand);
+  PluginWindow.bindBrand(brand);
+  PluginWindow.bindBrand(headerBrand);
   const back = heading.querySelector('.workbench-back');
   back.onclick = () => navigate(previous);
   $('settingsPanel').querySelector(':scope > .sub-header')?.remove();
@@ -20734,31 +20737,18 @@ const ComponentFamilySkill = "---\nname: component-family-synthesis\ndescription
   const narrow = window.matchMedia('(max-width:399px)');
   const usesDrawer = () => narrow.matches || document.body.classList.contains('mini-mode');
   function refreshSidebar() {
-    const expanded = usesDrawer() ? document.body.classList.contains('directory-open') : !document.body.classList.contains('rail-collapsed');
-    const action = expanded ? l('收起侧栏', 'Collapse sidebar') : l('展开侧栏', 'Expand sidebar');
-    for (const button of [brand, menu]) {
-      button.setAttribute('aria-expanded', String(expanded));
-      button.setAttribute('aria-label', 'AllinOne · ' + action);
-      button.title = action + l('。Shift + 点击可收起为气泡。', '. Shift-click to minimize to a bubble.');
-    }
+    const open = document.body.classList.contains('directory-open');
+    menu.setAttribute('aria-expanded', String(open));
+    menu.title = open ? l('关闭工具目录', 'Close tool directory') : l('打开工具目录', 'Open tool directory');
+    menu.setAttribute('aria-label', menu.title);
   }
   function setDirectory(open, restoreFocus = false) {
     document.body.classList.toggle('directory-open', open);
     refreshSidebar();
     if (open) (nav(current) || sidebar.querySelector('.footer-btn')).focus({preventScroll:true});
-    else if (restoreFocus) (brand.getClientRects().length ? brand : menu).focus({preventScroll:true});
+    else if (restoreFocus) menu.focus({preventScroll:true});
   }
-  function toggleSidebar() {
-    if (usesDrawer()) {
-      const open = document.body.classList.contains('directory-open');
-      setDirectory(!open, open);
-    } else {
-      document.body.classList.toggle('rail-collapsed');
-      refreshSidebar();
-    }
-  }
-  PluginWindow.bindBrand(brand, toggleSidebar);
-  PluginWindow.bindBrand(menu, toggleSidebar);
+  menu.onclick = () => setDirectory(!document.body.classList.contains('directory-open'));
   scrim.onclick = () => setDirectory(false, true);
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && document.body.classList.contains('directory-open')) {
@@ -20767,7 +20757,7 @@ const ComponentFamilySkill = "---\nname: component-family-synthesis\ndescription
     }
   });
   document.addEventListener('focusin', event => {
-    if (document.body.classList.contains('directory-open') && !sidebar.contains(event.target)) setDirectory(false);
+    if (document.body.classList.contains('directory-open') && !sidebar.contains(event.target) && event.target !== menu) setDirectory(false);
   });
   window.addEventListener('resize', () => {
     if (document.body.classList.contains('directory-open') && !usesDrawer()) setDirectory(false);
@@ -20775,6 +20765,10 @@ const ComponentFamilySkill = "---\nname: component-family-synthesis\ndescription
   });
 
   function refreshLocation() {
+    for (const button of [brand, headerBrand]) {
+      button.title = l('将 AllinOne 收起为气泡', 'Minimize AllinOne to a bubble');
+      button.setAttribute('aria-label', button.title);
+    }
     heading.querySelector('h1').textContent = label(current);
     back.hidden = current !== 'settings';
     back.querySelector('.back-label').textContent = l('返回', 'Back');
