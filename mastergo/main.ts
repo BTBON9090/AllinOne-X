@@ -2918,7 +2918,7 @@ mg.ui.onmessage = async (rawMessage) => {
   if (msg.uiLanguage === 'en' || msg.uiLanguage === 'zh') pluginUiLanguage = msg.uiLanguage;
   if (msg.type === 'ui-language-changed') { pluginUiLanguage = msg.language === 'en' ? 'en' : 'zh'; return; }
   if (handlePluginWindowMessage(msg)) return;
-  if (msg.type === 'get-iconfont-selection' || msg.type === 'iconfont-repair-run') {
+  if (msg.type === 'get-iconfont-selection' || msg.type === 'iconfont-repair-run' || msg.type === 'iconfont-locate-source') {
     await handleIconfontMessage(msg);
     return;
   }

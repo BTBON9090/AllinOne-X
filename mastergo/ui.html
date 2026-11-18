@@ -6150,8 +6150,29 @@ html #errorToast .toast-close { border-radius: 4px; background: var(--bg-muted);
 #iconfontPanel #iconfontTargetList label:focus-within { color:var(--primary); }
 #iconfontPanel .iconfont-actions { gap:8px; }
 #iconfontPanel #iconfontReport { margin:20px 0 0; padding:0; }
-#iconfontPanel .iconfont-results li { gap:8px; padding:8px 0; border:0; }
-#iconfontPanel .iconfont-results img { width:36px; height:36px; border:1px solid var(--border); }
+#iconfontIssues, #iconfontExports { margin-top:16px; }
+#iconfontPanel .iconfont-issue-tools, #iconfontIssuePages, #iconfontIndividual > div {
+  display:flex; align-items:center; flex-wrap:wrap; gap:4px 8px;
+}
+#iconfontPanel .iconfont-issue-tools { justify-content:space-between; padding:4px 8px; border-radius:8px; background:var(--bg-hover); }
+#iconfontPanel .iconfont-issue-tools label { display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer; }
+#iconfontPanel #iconfontIssues input[type="checkbox"] { width:14px; height:14px; margin:0; flex:none; accent-color:var(--primary); }
+#iconfontPanel :is(.iconfont-issue-tools,#iconfontIssuePages,#iconfontIndividual) .secondary-btn { width:auto; margin:0; }
+#iconfontPanel .iconfont-results { margin:4px 0 0; padding:0; max-height:clamp(160px,38vh,320px); overflow:auto; }
+#iconfontPanel .iconfont-results li { gap:8px; padding:6px 8px; border:0; border-radius:8px; cursor:pointer; }
+#iconfontPanel .iconfont-results li:hover { background:var(--bg-hover); }
+#iconfontPanel .iconfont-issue-check { display:grid; place-items:center; min-width:24px; min-height:28px; margin-inline-start:-4px; cursor:pointer; }
+#iconfontIssueHelp { margin:4px 0 8px; }
+#iconfontPanel .iconfont-results button {
+  display:block; max-width:100%; min-height:22px; padding:2px 0; border:0; color:var(--primary);
+  background:transparent; font:inherit; font-size:12px; font-weight:600; text-align:start; white-space:normal; overflow-wrap:anywhere; cursor:pointer;
+}
+#iconfontPanel .iconfont-results small { line-height:1.45; }
+#iconfontIssuePages { justify-content:flex-end; margin-top:4px; font-size:11px; }
+#iconfontIndividual { margin-top:8px; font-size:12px; }
+#iconfontIndividual summary { width:fit-content; padding:4px 0; cursor:pointer; }
+#iconfontIndividual > div { margin-top:4px; }
+#iconfontPanel #iconfontFile { flex:1 1 100px; min-width:0; max-width:100%; }
 
 /* Keep translation scope and language controls above the review ledger. */
 #i18nPanel #i18nViewConfig { padding:12px 16px !important; }
@@ -20450,36 +20471,61 @@ const ComponentFamilySkill = "---\nname: component-family-synthesis\ndescription
         <button class="secondary-btn" type="button" data-report="inplace"></button>
         <button class="secondary-btn" type="button" data-report="copy"></button>
       </div>
-      <p class="layer-help" id="iconfontStatus" role="status"></p>
-      <button type="button" class="secondary-btn" id="iconfontZip" hidden></button>
+      <p class="layer-help" id="iconfontStatus" role="status" tabindex="-1"></p>
+      <div id="iconfontIssues" hidden>
+        <h4 class="iconfont-scope" id="iconfontIssueTitle"></h4>
+        <p class="layer-help" id="iconfontIssueHelp"></p>
+        <div class="iconfont-issue-tools">
+          <label><input type="checkbox" id="iconfontIssueAll"><span></span></label>
+          <button type="button" class="secondary-btn" id="iconfontRetry"></button>
+        </div>
+        <ul class="iconfont-results" id="iconfontResults" aria-labelledby="iconfontIssueTitle"></ul>
+        <div id="iconfontIssuePages" hidden>
+          <button type="button" class="secondary-btn" id="iconfontIssuePrev">‹</button>
+          <span id="iconfontIssuePage"></span>
+          <button type="button" class="secondary-btn" id="iconfontIssueNext">›</button>
+        </div>
+      </div>
+      <p class="layer-help" id="iconfontLocateStatus" role="status" hidden></p>
+      <div id="iconfontExports" hidden>
+        <button type="button" class="secondary-btn" id="iconfontZip"></button>
+        <details id="iconfontIndividual">
+          <summary></summary>
+          <div>
+            <select id="iconfontFile"></select>
+            <button type="button" class="secondary-btn" id="iconfontDownload"></button>
+          </div>
+        </details>
+      </div>
       <p class="layer-help" id="iconfontDownloadError" role="alert" hidden></p>
-      <ul class="iconfont-results" id="iconfontResults"></ul>
     </section>`;
   $('contentScroll').append(panel);
 
   const mode = $('iconfontMode'), allTargets = $('iconfontAll'), zipButton = $('iconfontZip');
   const buttons = { inplace:$('iconfontInplace'), copy:$('iconfontRun') };
+  const allIssues = $('iconfontIssueAll'), retryButton = $('iconfontRetry'), fileSelect = $('iconfontFile');
   const excluded = { selection:new Set(), children:new Set() };
   const batches = { inplace:null, copy:null };
   const pageSize = 40;
   let selection = null, pageIndex = 0, serial = 0, pending = null, displayed = 'copy';
   let packing = false, downloadError = false;
+  let locateRequest = null;
   const sourceMode = () => mode.querySelector('input:checked').value;
   const targets = () => selection?.targets?.[sourceMode()] || [];
   const exportable = item => item.status === 'fixed' && typeof item.svg === 'string' && item.svg.length > 0;
 
-  function fileNames(rows) {
-    const used = new Set();
-    return rows.map(item => {
-      if (!exportable(item)) return '';
+  function assignFileNames(rows) {
+    const used = new Set(rows.filter(item => item.filename).map(item => item.filename.toLowerCase()));
+    for (const item of rows) {
+      if (!exportable(item) || item.filename) continue;
       let base = String(item.name || '').normalize('NFC').replace(/[<>:"/\\|?*\u0000-\u001f\u007f]/g, '-')
         .replace(/\.svg$/i, '').trim().replace(/^[. ]+|[. ]+$/g, '').slice(0, 72) || 'icon';
       if (/^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(base)) base = '_' + base;
       let name = base + '.svg';
       for (let suffix = 2; used.has(name.toLowerCase()); suffix++) name = base + '-' + suffix + '.svg';
       used.add(name.toLowerCase());
-      return name;
-    });
+      item.filename = name;
+    }
   }
 
   function save(blob, filename) {
@@ -20531,8 +20577,8 @@ const ComponentFamilySkill = "---\nname: component-family-synthesis\ndescription
       rows.length ? l(`已勾选 ${count} / ${rows.length}`, `${count} of ${rows.length} checked`) :
       sourceMode() === 'children' ? l('请选择包含图标的画板或组。', 'Select a frame or group containing icons.') :
         l('请在画布上选中一个或多个图标。', 'Select one or more icons on the canvas.');
-    buttons.inplace.textContent = pending === 'inplace' ? l('正在修复原图层…', 'Repairing originals…') : l('仅修复', 'Repair in place');
-    buttons.copy.textContent = pending === 'copy' ? l('正在修复副本…', 'Repairing copies…') : l('创建副本后修复', 'Create and repair copies');
+    buttons.inplace.textContent = pending?.action === 'inplace' && !pending.retry ? l('正在修复原图层…', 'Repairing originals…') : l('仅修复', 'Repair in place');
+    buttons.copy.textContent = pending?.action === 'copy' && !pending.retry ? l('正在修复副本…', 'Repairing copies…') : l('创建副本后修复', 'Create and repair copies');
     for (const action of actions) buttons[action].disabled = !count || Boolean(pending) || packing;
   }
 
@@ -20548,15 +20594,16 @@ const ComponentFamilySkill = "---\nname: component-family-synthesis\ndescription
       button.setAttribute('aria-pressed', String(button.dataset.report === displayed));
     });
     const ready = inplace ? 0 : batch.items.filter(exportable).length;
-    zipButton.hidden = !ready;
-    zipButton.disabled = packing;
+    $('iconfontExports').hidden = !ready;
+    zipButton.disabled = packing || pending?.action === 'copy';
+    $('iconfontDownload').disabled = pending?.action === 'copy';
     zipButton.textContent = packing ? l('正在打包…', 'Preparing ZIP…') : l(`下载 ZIP（${ready} 个 SVG）`, `Download ZIP (${ready} SVG${ready === 1 ? '' : 's'})`);
     $('iconfontDownloadError').hidden = inplace || !downloadError;
     $('iconfontDownloadError').textContent = l('打包失败，请重试或逐个下载。', 'Could not create the ZIP. Retry or download files individually.');
     let status;
-    if (pending === displayed) {
-      status = inplace ? l('正在修复原图层', 'Repairing originals') : l('正在创建并修复副本', 'Creating and repairing copies');
-      status += ` · ${batch.done} / ${batch.total}`;
+    if (pending?.action === displayed) {
+      status = pending.retry ? l('正在重试异常图标', 'Retrying icons') : inplace ? l('正在修复原图层', 'Repairing originals') : l('正在创建并修复副本', 'Creating and repairing copies');
+      status += ` · ${pending.done} / ${pending.total}`;
     } else if (batch.items.length) {
       const fixed = batch.items.filter(item => item.status === 'fixed').length;
       const skipped = batch.items.filter(item => item.status === 'skipped').length;
@@ -20569,42 +20616,80 @@ const ComponentFamilySkill = "---\nname: component-family-synthesis\ndescription
     $('iconfontStatus').textContent = status;
   }
 
-  function renderItems() {
-    const items = batches[displayed]?.items || [];
-    const isCopy = displayed === 'copy';
+  function updateIssueSelection(batch) {
+    const count = batch.checked.size, total = batch.issues.length;
+    allIssues.checked = total > 0 && count === total;
+    allIssues.indeterminate = count > 0 && count < total;
+    allIssues.disabled = Boolean(pending);
+    retryButton.textContent = count ? l(`重试所选（${count}）`, `Retry selected (${count})`) : l('重试所选', 'Retry selected');
+    retryButton.disabled = !count || Boolean(pending) || packing;
+  }
+
+  function renderIssues(batch) {
+    const rows = batch.issues;
+    $('iconfontIssues').hidden = !rows.length;
+    $('iconfontIssueTitle').textContent = l(`异常图标（${rows.length}）`, `Icons needing attention (${rows.length})`);
+    updateIssueSelection(batch);
+    const pageCount = Math.ceil(rows.length / pageSize);
+    batch.page = Math.max(0, Math.min(batch.page, pageCount - 1));
     const fragment = document.createDocumentFragment();
-    const names = isCopy ? fileNames(items) : [];
-    items.forEach((item, index) => {
+    const pageRows = rows.slice(batch.page * pageSize, (batch.page + 1) * pageSize);
+    for (const [index, item] of pageRows.entries()) {
       const row = document.createElement('li');
-      const info = document.createElement('div');
-      const title = document.createElement('strong');
-      title.dataset.userContent = '';
-      title.textContent = item.name || l('未命名图标', 'Unnamed icon');
-      const note = document.createElement('small');
-      const state = item.status === 'fixed' ? (isCopy ? l('已生成副本', 'Copy ready') : l('已修复原图层', 'Original repaired'))
-        : item.status === 'skipped' ? l('已跳过', 'Skipped') : l('失败', 'Failed');
+      const check = document.createElement('input'), name = document.createElement('button');
+      const label = item.name || l('未命名图标', 'Unnamed icon');
+      row.dataset.sourceId = item.sourceId;
+      check.type = 'checkbox';
+      check.value = item.sourceId;
+      check.checked = batch.checked.has(item.sourceId);
+      check.disabled = Boolean(pending);
+      check.setAttribute('aria-label', l('勾选 ', 'Select ') + label);
+      const checkArea = document.createElement('label');
+      checkArea.className = 'iconfont-issue-check';
+      checkArea.append(check);
+      name.type = 'button';
+      name.dataset.sourceId = item.sourceId;
+      name.dataset.userContent = '';
+      name.textContent = label;
+      name.title = l('在画布中定位 ', 'Locate on canvas: ') + label;
+      name.setAttribute('aria-label', name.title);
+      name.disabled = Boolean(pending);
+      const info = document.createElement('div'), note = document.createElement('small');
+      note.id = 'iconfontIssueNote-' + index;
       note.dataset.userContent = '';
+      name.setAttribute('aria-describedby', note.id);
+      const state = item.status === 'skipped' ? l('已跳过', 'Skipped') : l('失败', 'Failed');
       note.textContent = item.reason ? state + ' · ' + item.reason : state;
-      info.append(title, note);
-      row.append(info);
-      if (isCopy && exportable(item)) {
-        const thumb = document.createElement('img');
-        thumb.alt = '';
-        thumb.loading = 'lazy';
-        thumb.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(item.svg);
-        row.prepend(thumb);
-        const download = document.createElement('button');
-        download.type = 'button';
-        download.className = 'secondary-btn';
-        download.textContent = 'SVG ↓';
-        download.setAttribute('aria-label', l('下载 ', 'Download ') + names[index]);
-        download.onclick = () => save(new Blob([item.svg], { type:'image/svg+xml' }), names[index]);
-        row.append(download);
-      }
+      info.append(name, note);
+      row.append(checkArea, info);
       fragment.append(row);
-    });
+    }
     $('iconfontResults').replaceChildren(fragment);
+    $('iconfontIssuePages').hidden = pageCount <= 1;
+    $('iconfontIssuePage').textContent = (batch.page + 1) + ' / ' + pageCount;
+    $('iconfontIssuePrev').disabled = batch.page === 0;
+    $('iconfontIssueNext').disabled = batch.page + 1 >= pageCount;
+  }
+
+  function renderItems() {
     updateReport();
+    const batch = batches[displayed];
+    if (!batch) return;
+    renderIssues(batch);
+    const note = $('iconfontLocateStatus');
+    note.hidden = !batch.locateError;
+    note.textContent = batch.locateError;
+    if (displayed !== 'copy') return;
+    const files = batch.items.filter(exportable);
+    const fragment = document.createDocumentFragment();
+    for (const item of files) {
+      const option = new Option(item.filename, item.sourceId);
+      option.dataset.userContent = '';
+      fragment.append(option);
+    }
+    fileSelect.replaceChildren(fragment);
+    if (batch.fileId) fileSelect.value = batch.fileId;
+    batch.fileId = fileSelect.value;
   }
 
   function refresh() {
@@ -20618,6 +20703,13 @@ const ComponentFamilySkill = "---\nname: component-family-synthesis\ndescription
     allTargets.nextElementSibling.textContent = l('全选', 'Select all');
     $('iconfontPrev').setAttribute('aria-label', l('上一页目标', 'Previous page of targets'));
     $('iconfontNext').setAttribute('aria-label', l('下一页目标', 'Next page of targets'));
+    allIssues.nextElementSibling.textContent = l('全选异常', 'Select all issues');
+    $('iconfontIssueHelp').textContent = l('点击名称定位到画布，调整后勾选重试。', 'Click a name to locate the layer on the canvas. After editing, check it and retry.');
+    $('iconfontIssuePrev').setAttribute('aria-label', l('上一页异常', 'Previous page of issues'));
+    $('iconfontIssueNext').setAttribute('aria-label', l('下一页异常', 'Next page of issues'));
+    $('iconfontIndividual').querySelector('summary').textContent = l('下载单个 SVG', 'Download an individual SVG');
+    fileSelect.setAttribute('aria-label', l('选择 SVG 文件', 'Choose an SVG file'));
+    $('iconfontDownload').textContent = l('下载 SVG', 'Download SVG');
     renderTargets();
     renderItems();
   }
@@ -20641,34 +20733,77 @@ const ComponentFamilySkill = "---\nname: component-family-synthesis\ndescription
     else ignored.add(input.value);
     updateSelection();
   };
-  for (const action of actions) {
-    buttons[action].onclick = () => {
-      if (buttons[action].disabled) return;
-      const mode = sourceMode(), ignored = excluded[mode];
-      const targetIds = targets().map(target => target.id).filter(id => !ignored.has(id));
-      const requestId = 'iconfont-' + Date.now() + '-' + (++serial);
-      pending = displayed = action;
-      batches[action] = { requestId, items:[], error:'', done:0, total:targetIds.length };
-      if (action === 'copy') downloadError = false;
-      updateSelection();
-      renderItems();
-      postMsg('iconfont-repair-run', { requestId, mode, action, targetIds });
-    };
+  function requestId() {
+    return 'iconfont-' + Date.now() + '-' + (++serial);
   }
+
+  function run(action, retry) {
+    if (pending || packing) return;
+    const mode = sourceMode();
+    const ids = retry ? batches[action].issues.filter(item => batches[action].checked.has(item.sourceId)).map(item => item.sourceId)
+      : targets().map(target => target.id).filter(id => !excluded[mode].has(id));
+    if (!ids.length) return;
+    const id = requestId();
+    const previous = batches[action];
+    const previousExport = action === 'copy' && { open:$('iconfontIndividual').open, error:downloadError };
+    if (!retry) {
+      batches[action] = { reportId:id, items:[], issues:[], checked:new Set(), page:0, error:'', locateError:'', fileId:'' };
+      if (action === 'copy') { downloadError = false; $('iconfontIndividual').open = false; }
+    }
+    const batch = batches[action];
+    displayed = action;
+    locateRequest = null;
+    batch.locateError = '';
+    pending = { action, retry, id, ids:new Set(ids), done:0, total:ids.length, previous, previousExport };
+    updateSelection();
+    renderItems();
+    postMsg('iconfont-repair-run', { requestId:id, action, targetIds:ids, ...(retry ? { retryOf:batch.reportId } : { mode }) });
+  }
+  for (const action of actions) buttons[action].onclick = () => run(action, false);
+  retryButton.onclick = () => run(displayed, true);
+  allIssues.onchange = () => {
+    const batch = batches[displayed];
+    batch.checked = new Set(allIssues.checked ? batch.issues.map(item => item.sourceId) : []);
+    renderIssues(batch);
+  };
+  $('iconfontResults').onchange = event => {
+    if (event.target.type !== 'checkbox') return;
+    const batch = batches[displayed], input = event.target;
+    if (input.checked) batch.checked.add(input.value);
+    else batch.checked.delete(input.value);
+    updateIssueSelection(batch);
+  };
+  $('iconfontResults').onclick = event => {
+    if (event.target.closest('label') || pending) return;
+    const row = event.target.closest('li');
+    if (!row) return;
+    const sourceId = row.dataset.sourceId, id = requestId(), batch = batches[displayed];
+    locateRequest = { id, sourceId, batch };
+    batch.locateError = '';
+    $('iconfontLocateStatus').hidden = true;
+    postMsg('iconfont-locate-source', { requestId:id, sourceId });
+  };
+  $('iconfontIssuePrev').onclick = () => { const batch = batches[displayed]; batch.page--; renderIssues(batch); };
+  $('iconfontIssueNext').onclick = () => { const batch = batches[displayed]; batch.page++; renderIssues(batch); };
+  fileSelect.onchange = () => { batches.copy.fileId = fileSelect.value; };
+  $('iconfontDownload').onclick = () => {
+    const item = batches.copy?.items.find(item => item.sourceId === fileSelect.value && exportable(item));
+    if (item) save(new Blob([item.svg], { type:'image/svg+xml' }), item.filename);
+  };
   panel.querySelectorAll('[data-report]').forEach(button => {
     button.onclick = () => { displayed = button.dataset.report; renderItems(); };
   });
   zipButton.onclick = async () => {
     const items = batches.copy?.items || [];
-    if (displayed !== 'copy' || packing || !items.some(exportable)) return;
+    if (displayed !== 'copy' || zipButton.disabled || !items.some(exportable)) return;
     packing = true; downloadError = false;
-    updateReport(); updateSelection();
+    updateReport(); updateSelection(); updateIssueSelection(batches.copy);
     try {
-      const zip = new JSZip(), names = fileNames(items);
-      items.forEach((item, index) => { if (names[index]) zip.file(names[index], item.svg); });
+      const zip = new JSZip();
+      for (const item of items) if (exportable(item)) zip.file(item.filename, item.svg);
       save(await zip.generateAsync({ type:'blob' }), 'iconfont-svg.zip');
     } catch (_) { downloadError = true; }
-    finally { packing = false; updateReport(); updateSelection(); }
+    finally { packing = false; updateReport(); updateSelection(); updateIssueSelection(batches[displayed]); }
   };
   window.addEventListener('message', event => {
     const message = event.data?.pluginMessage;
@@ -20681,19 +20816,46 @@ const ComponentFamilySkill = "---\nname: component-family-synthesis\ndescription
       else updateSelection();
       return;
     }
-    const batch = batches[pending];
-    if (!batch || message.requestId !== batch.requestId) return;
+    if (message.type === 'iconfont-locate-result') {
+      if (!locateRequest || message.requestId !== locateRequest.id || message.sourceId !== locateRequest.sourceId) return;
+      const batch = locateRequest.batch;
+      locateRequest = null;
+      batch.locateError = message.ok ? '' : message.error || l('无法定位原图层。', 'Could not locate the original layer.');
+      if (batch === batches[displayed]) {
+        $('iconfontLocateStatus').textContent = batch.locateError;
+        $('iconfontLocateStatus').hidden = !batch.locateError;
+      }
+      return;
+    }
+    if (!pending || message.requestId !== pending.id) return;
     if (message.type === 'iconfont-repair-progress') {
-      batch.done = message.done;
-      batch.total = message.total;
+      pending.done = message.done;
+      pending.total = message.total;
       updateReport();
     } else if (message.type === 'iconfont-repair-result') {
-      const finished = pending;
-      pending = null;
-      batch.items = Array.isArray(message.items) ? message.items : [];
+      const { action, retry, ids, previous, previousExport } = pending;
+      let batch = batches[action];
+      const returned = new Map((message.items || []).filter(item => ids.has(item.sourceId)).map(item => [item.sourceId, item]));
+      if (!retry && message.error && !returned.size && previous?.items.length) {
+        batches[action] = batch = previous;
+        if (previousExport) {
+          $('iconfontIndividual').open = previousExport.open;
+          downloadError = previousExport.error;
+        }
+      } else if (retry) {
+        batch.items = batch.items.map(item => returned.get(item.sourceId) || item);
+      } else {
+        batch.reportId = message.reportId || pending.id;
+        batch.items = [...returned.values()];
+      }
+      batch.issues = batch.items.filter(item => item.status !== 'fixed');
+      batch.checked = new Set(batch.issues.filter(item => batch.checked.has(item.sourceId)).map(item => item.sourceId));
+      if (action === 'copy') assignFileNames(batch.items);
       batch.error = message.error || '';
-      if (displayed === finished) renderItems();
+      pending = null;
+      renderItems();
       updateSelection();
+      if (displayed === action && retry && !batch.issues.length && panel.getClientRects().length && document.activeElement === document.body) $('iconfontStatus').focus();
     }
   });
   window.IconfontWorkspace = { refresh, inspect:() => postMsg('get-iconfont-selection') };

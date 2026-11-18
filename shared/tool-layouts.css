@@ -166,8 +166,29 @@
 #iconfontPanel #iconfontTargetList label:focus-within { color:var(--primary); }
 #iconfontPanel .iconfont-actions { gap:8px; }
 #iconfontPanel #iconfontReport { margin:20px 0 0; padding:0; }
-#iconfontPanel .iconfont-results li { gap:8px; padding:8px 0; border:0; }
-#iconfontPanel .iconfont-results img { width:36px; height:36px; border:1px solid var(--border); }
+#iconfontIssues, #iconfontExports { margin-top:16px; }
+#iconfontPanel .iconfont-issue-tools, #iconfontIssuePages, #iconfontIndividual > div {
+  display:flex; align-items:center; flex-wrap:wrap; gap:4px 8px;
+}
+#iconfontPanel .iconfont-issue-tools { justify-content:space-between; padding:4px 8px; border-radius:8px; background:var(--bg-hover); }
+#iconfontPanel .iconfont-issue-tools label { display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer; }
+#iconfontPanel #iconfontIssues input[type="checkbox"] { width:14px; height:14px; margin:0; flex:none; accent-color:var(--primary); }
+#iconfontPanel :is(.iconfont-issue-tools,#iconfontIssuePages,#iconfontIndividual) .secondary-btn { width:auto; margin:0; }
+#iconfontPanel .iconfont-results { margin:4px 0 0; padding:0; max-height:clamp(160px,38vh,320px); overflow:auto; }
+#iconfontPanel .iconfont-results li { gap:8px; padding:6px 8px; border:0; border-radius:8px; cursor:pointer; }
+#iconfontPanel .iconfont-results li:hover { background:var(--bg-hover); }
+#iconfontPanel .iconfont-issue-check { display:grid; place-items:center; min-width:24px; min-height:28px; margin-inline-start:-4px; cursor:pointer; }
+#iconfontIssueHelp { margin:4px 0 8px; }
+#iconfontPanel .iconfont-results button {
+  display:block; max-width:100%; min-height:22px; padding:2px 0; border:0; color:var(--primary);
+  background:transparent; font:inherit; font-size:12px; font-weight:600; text-align:start; white-space:normal; overflow-wrap:anywhere; cursor:pointer;
+}
+#iconfontPanel .iconfont-results small { line-height:1.45; }
+#iconfontIssuePages { justify-content:flex-end; margin-top:4px; font-size:11px; }
+#iconfontIndividual { margin-top:8px; font-size:12px; }
+#iconfontIndividual summary { width:fit-content; padding:4px 0; cursor:pointer; }
+#iconfontIndividual > div { margin-top:4px; }
+#iconfontPanel #iconfontFile { flex:1 1 100px; min-width:0; max-width:100%; }
 
 /* Keep translation scope and language controls above the review ledger. */
 #i18nPanel #i18nViewConfig { padding:12px 16px !important; }

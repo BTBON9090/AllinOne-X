@@ -9828,6 +9828,9 @@ function iconfontApplyMasterGo(source, prepared, host) {
 // Each batch snapshots its page and icon roots before the first canvas write.
 let iconfontRunning = false;
 let iconfontWatchingSelection = false;
+// Keep only the two reports shown by the UI. Retain IDs and names, never live
+// scene nodes: a user can edit, rename, reparent or delete an icon between runs.
+const iconfontReports = new Map();
 function iconfontRoots(selection) {
   const selected = new Set(selection.map(node => node.id));
   return selection.filter(node => {
@@ -9886,6 +9889,8 @@ function iconfontGrid(page, roots, icons) {
 function iconfontReason(error, en) {
   if (!en) return String(error?.message || error);
   const reasons = {
+    'iconfont-source-missing': 'The original layer no longer exists.',
+    'iconfont-source-page': 'Open the original layer’s page and try again.',
     'iconfont-inplace': 'This structure cannot be repaired in place. Use a repaired copy.',
     'iconfont-inplace-layout': 'Repairing in place would change the layout. Use a repaired copy.',
     'iconfont-paint': 'Use opaque solid fills and strokes.',
@@ -9901,6 +9906,57 @@ function iconfontReason(error, en) {
     : 'The editor could not create this icon.');
 }
 
+async function iconfontSource(sourceId, en) {
+  let node, page;
+  try {
+    node = await layerGet(sourceId);
+    if (node && !node.removed && node.id === sourceId && node.type !== 'PAGE' && node.type !== 'DOCUMENT') {
+      page = node.parent;
+      while (page && page.type !== 'PAGE') page = page.parent;
+      if (page && !page.removed) return { node, page };
+    }
+  } catch (_) {
+    return { error: en ? 'The editor could not read the original layer.' : '编辑器无法读取原图层。' };
+  }
+  return { error: en ? 'The original layer no longer exists.' : '原图层已不存在。' };
+}
+
+async function iconfontOpenPage(page) {
+  if (layerPage().id === page.id) return;
+  try {
+    if (layerPlatform === 'mastergo') layerHost.document.currentPage = page;
+    else await layerHost.setCurrentPageAsync(page);
+    if (layerPage().id === page.id) return;
+  } catch (_) { /* The editor may not permit switching to this page. */ }
+  throw iconfontError('iconfont-source-page', '请打开原图层所在页面后重试。');
+}
+
+async function iconfontLocate(msg, en) {
+  const reply = { type: 'iconfont-locate-result', requestId: msg.requestId, sourceId: msg.sourceId };
+  if (iconfontRunning) {
+    layerSend({ ...reply, ok: false, error: en ? 'Wait for the current operation to finish.' : '请等待当前操作结束。' });
+    return;
+  }
+  iconfontRunning = true;
+  try {
+    const source = await iconfontSource(msg.sourceId, en);
+    if (source.error) throw new Error(source.error);
+    await iconfontOpenPage(source.page);
+    try {
+      source.page.selection = [source.node];
+      if (!source.page.selection.some(item => item.id === source.node.id)) throw new Error();
+      layerHost.viewport.scrollAndZoomIntoView([source.node]);
+    } catch (_) {
+      throw new Error(en ? 'The editor could not select and zoom to this layer.' : '编辑器无法选中并缩放至此图层。');
+    }
+    layerSend({ ...reply, ok: true });
+  } catch (error) {
+    layerSend({ ...reply, ok: false, error: error.code ? iconfontReason(error, en) : error.message });
+  } finally {
+    iconfontRunning = false;
+  }
+}
+
 async function handleIconfontMessage(msg) {
   if (msg.type === 'get-iconfont-selection') {
     iconfontWatchingSelection = true;
@@ -9908,61 +9964,103 @@ async function handleIconfontMessage(msg) {
     return;
   }
   const en = msg.uiLanguage === 'en';
-  const action = msg.action === undefined ? 'copy' : msg.action;
-  const items = [];
-  const reply = error => layerSend({ type: 'iconfont-repair-result', requestId: msg.requestId, action, items, error });
+  if (msg.type === 'iconfont-locate-source') return iconfontLocate(msg, en);
+  const retry = msg.retryOf !== undefined;
+  const action = !retry && msg.action === undefined ? 'copy' : msg.action;
+  const reportId = retry ? msg.retryOf : msg.requestId;
+  const items = [], targets = [];
+  const reply = error => layerSend({ type: 'iconfont-repair-result', requestId: msg.requestId, reportId, action, items, error });
   if (iconfontRunning) { reply(en ? 'A batch is already running.' : '上一批图标正在处理。'); return; }
   if (!['copy','inplace'].includes(action)) { reply(en ? 'Unknown repair operation.' : '修复操作无效。'); return; }
   const requested = Array.isArray(msg.targetIds) ? new Set(msg.targetIds) : null;
-  if ((action === 'inplace' && !requested) || requested?.size === 0) {
+  if (((retry || action === 'inplace') && !requested) || requested?.size === 0) {
     reply(en ? 'Check the icons to repair.' : '请勾选要修复的图标。'); return;
   }
-  iconfontRunning = true;
-  try {
-    const page = layerPage();
-    const originalSelection = Array.from(page.selection);
-    const roots = iconfontRoots(originalSelection);
-    const candidates = msg.mode === 'children' ? iconfontChildren(roots) : roots;
-    const icons = requested ? candidates.filter(node => requested.has(node.id)) : candidates;
-    if (requested && icons.length !== requested.size) {
-      reply(en ? 'The selection changed. Check the current targets and try again.' : '选区已变化，请核对勾选目标后重试。');
-      sendIconfontSelection();
+  let report, batchError;
+  if (retry) {
+    report = iconfontReports.get(action);
+    if (!report || report.id !== reportId || !Array.from(requested).every(id => report.exceptions.has(id))) {
+      reply(en ? 'These icons are no longer exceptions in this report.' : '这些图标已不在该报告的异常清单中。');
       return;
     }
-    if (!icons.length) { reply(en ? 'Select icons or a board with visible children.' : '请选择图标，或选择含有可见子图层的画板。'); return; }
-    const position = action === 'copy' ? iconfontGrid(page, roots, icons) : null;
+  }
+  iconfontRunning = true;
+  function record(target, status, detail) {
+    const { sourceId, name } = target;
+    if (status === 'fixed') report.exceptions.delete(sourceId);
+    else report.exceptions.set(sourceId, name);
+    items.push({ sourceId, name, status, ...detail });
+  }
+  try {
+    let activePage = layerPage();
+    const originalSelection = retry ? [] : Array.from(activePage.selection);
     const previousIds = layerIds(originalSelection);
-    const outputs = [];
-    const names = icons.map(icon => icon.name);
-    for (let index = 0; index < icons.length; index++) {
-      if (layerPage().id !== page.id) { reply(en ? 'Page changed. The batch stopped.' : '当前页面已切换，批量处理已停止。'); return; }
-      const icon = icons[index], name = names[index];
+    let roots;
+    if (retry) {
+      for (const sourceId of requested) {
+        const source = await iconfontSource(sourceId, en);
+        targets.push({ sourceId, name: source.node?.name || report.exceptions.get(sourceId), ...source });
+      }
+    } else {
+      roots = iconfontRoots(originalSelection);
+      const candidates = msg.mode === 'children' ? iconfontChildren(roots) : roots;
+      const icons = requested ? candidates.filter(node => requested.has(node.id)) : candidates;
+      if (requested && icons.length !== requested.size) {
+        reply(en ? 'The selection changed. Check the current targets and try again.' : '选区已变化，请核对勾选目标后重试。');
+        sendIconfontSelection();
+        return;
+      }
+      if (!icons.length) { reply(en ? 'Select icons or a board with visible children.' : '请选择图标，或选择含有可见子图层的画板。'); return; }
+      for (const node of icons) targets.push({ sourceId: node.id, name: node.name, node, page: activePage });
+      report = { id: reportId, exceptions: new Map() };
+      iconfontReports.set(action, report);
+    }
+    const outputs = [], grids = new Map();
+    for (const target of targets) {
+      if (layerPage().id !== activePage.id) throw new Error(en ? 'Page changed. The batch stopped.' : '当前页面已切换，批量处理已停止。');
       try {
-        const dest = position ? position(outputs.length) : null;
-        const output = await iconfontRepair(icon, dest, layerHost, layerPlatform === 'mastergo', action);
+        if (target.error || target.node.removed) {
+          throw iconfontError('iconfont-source-missing', target.error || '原图层已不存在。');
+        }
+        if (target.page.id !== activePage.id) await iconfontOpenPage(target.page);
+        activePage = target.page;
+        let grid;
+        if (action === 'copy') {
+          grid = grids.get(activePage.id);
+          if (!grid) {
+            const icons = targets.filter(t => t.page?.id === activePage.id && !t.node.removed).map(t => t.node);
+            grid = { position: iconfontGrid(activePage, roots || icons, icons), count: 0 };
+            grids.set(activePage.id, grid);
+          }
+        }
+        const output = await iconfontRepair(target.node, grid ? grid.position(grid.count) : null, layerHost, layerPlatform === 'mastergo', action);
+        if (grid) grid.count++;
         outputs.push(output.node);
-        const item = { name, status: 'fixed' };
-        if (action === 'copy') item.svg = output.svg;
-        items.push(item);
+        record(target, 'fixed', action === 'copy' ? { svg: output.svg } : {});
       } catch (error) {
-        items.push({ name, status: error?.code ? 'skipped' : 'failed', reason: iconfontReason(error, en) });
+        record(target, error?.code ? 'skipped' : 'failed', { reason: target.error || iconfontReason(error, en) });
       }
-      layerSend({ type: 'iconfont-repair-progress', requestId: msg.requestId, done: index + 1, total: icons.length });
-      if ((index + 1) % 8 === 0) await new Promise(resolve => setTimeout(resolve, 0));
+      layerSend({ type: 'iconfont-repair-progress', requestId: msg.requestId, done: items.length, total: targets.length });
+      if (items.length % 8 === 0) await new Promise(resolve => setTimeout(resolve, 0));
     }
-    if (outputs.length && layerPage().id === page.id) {
-      const selectedIds = layerIds(page.selection);
+    if (outputs.length && !retry && layerPage().id === activePage.id) {
+      const selectedIds = layerIds(activePage.selection);
       if (selectedIds === previousIds || selectedIds === layerIds(originalSelection.filter(node => !node.removed))) {
-        page.selection = outputs.filter(node => !node.removed);
+        activePage.selection = outputs.filter(node => !node.removed);
       }
-      if (typeof layerHost.commitUndo === 'function') layerHost.commitUndo();
     }
-    reply();
   } catch (error) {
-    reply(en ? 'The editor stopped the batch.' : '宿主中断了本批处理：' + String(error?.message || error));
+    batchError = String(error?.message || (en ? 'The editor stopped the batch.' : '宿主中断了本批处理。'));
+    if (report) {
+      for (const target of targets.slice(items.length)) record(target, 'failed', { reason: batchError });
+    }
   } finally {
     iconfontRunning = false;
   }
+  if (typeof layerHost.commitUndo === 'function' && items.some(item => item.status === 'fixed')) {
+    try { layerHost.commitUndo(); } catch (_) { /* The changes are already on the canvas. */ }
+  }
+  reply(batchError);
 }
 
 // shared-host-locale:end
@@ -12540,7 +12638,7 @@ mg.ui.onmessage = async (rawMessage) => {
     }
     if (handlePluginWindowMessage(msg))
         return;
-    if (msg.type === 'get-iconfont-selection' || msg.type === 'iconfont-repair-run') {
+    if (msg.type === 'get-iconfont-selection' || msg.type === 'iconfont-repair-run' || msg.type === 'iconfont-locate-source') {
         await handleIconfontMessage(msg);
         return;
     }
