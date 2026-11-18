@@ -100,8 +100,10 @@ async function checkBrandImage(locator) {
       assert.equal(await page.locator('.spot-page-title svg').count(),0,'Document names are literal text, never markup or icons');
       assert(await page.locator('.spot-item').evaluateAll(items => items.every(item => {
         const style = getComputedStyle(item), box = item.getBoundingClientRect();
-        return style.flexDirection === 'row' && style.borderTopWidth === '1px' && box.height <= 70;
-      })), 'Dense cards keep editable names, a drag handle and whole-card navigation');
+        const edges = ['Top','Right','Bottom','Left'].map(side =>
+          style['border' + side + 'Color'] === 'rgba(0, 0, 0, 0)' ? 0 : parseFloat(style['border' + side + 'Width']));
+        return style.flexDirection === 'row' && box.height <= 70 && edges.every(width => width === edges[0] && width <= 1);
+      })), 'Bookmark rows keep compact whole-card targets and at most a light, even outline');
       assert.equal(await page.locator('.spot-name-input').first().inputValue(),spots[0].name);
       const handle = page.locator('.spot-item[data-spot-id="a"] .bookmark-handle');
       const from = await handle.boundingBox(), to = await page.locator('.spot-item[data-spot-id="c"]').boundingBox();

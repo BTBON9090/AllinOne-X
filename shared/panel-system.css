@@ -17,7 +17,9 @@
   --text-inverse: #fff;
   --border: #dedee1;
   --border-light: #eaeaec;
-  --border-control: #bfbfc4;
+  --border-control: #c9c9cf;
+  --control-tint: #f8f8fa;
+  --selection-outline: #d9c3ed;
   --border-color: var(--border);
   /* Dominant purple and pale tint sampled from the All in One mark. */
   --primary: #5e00c2;
@@ -47,13 +49,13 @@
   --shadow-md: var(--elevation);
   --shadow-lg: var(--elevation);
   --shadow-xl: var(--elevation);
-  --control-radius: 5px;
+  --control-radius: 7px;
   --radius-xs: 4px;
-  --radius-sm: 5px;
-  --radius-md: 6px;
-  --radius-lg: 7px;
-  --radius-xl: 7px;
-  --radius-2xl: 7px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 14px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -79,6 +81,8 @@
   --border: #3a3a40;
   --border-light: #323237;
   --border-control: #5d5d64;
+  --control-tint: #29292e;
+  --selection-outline: #685379;
   --primary: #ceaff0;
   --primary-hover: #dfc7f6;
   --primary-active: #ebdff7;
@@ -128,7 +132,7 @@ html :is(input[type="text"], input[type="number"], input[type="date"], input[typ
   min-height: var(--control-height);
   color: var(--text-primary);
   background-color: var(--bg-surface) !important;
-  border: 1px solid var(--border-control) !important;
+  border: 1px solid var(--field-border, var(--border-control)) !important;
   border-radius: var(--control-radius) !important;
   box-shadow: none;
   font-size: 12px;
@@ -152,7 +156,7 @@ html :is(select, select.search-box, .size-field select, .settings-item select.se
 }
 html :is(input[type="text"], input[type="url"], input[type="search"], input[type="number"], input[type="password"]) { padding-inline: 8px; }
 html textarea { padding: 8px; line-height: 1.5; }
-html :is(input, select, textarea)[aria-invalid="true"] { border-color: var(--danger) !important; }
+html :is(input, select, textarea)[aria-invalid="true"] { --field-border: var(--danger); border-color: var(--danger) !important; }
 html :is(input, select, textarea):disabled { color: var(--text-disabled); cursor: not-allowed; }
 html .layer-switch-row input:checked { background: var(--action-fill); }
 html .layer-switch-row input:checked::after { background: var(--action-text); }
@@ -263,11 +267,11 @@ html :is(.smart-tab-item, .refiner-tab-item, .size-tab).active {
   box-shadow: none;
 }
 html :is(.segmented-control, .scope-segment, .mode-switch) {
-  padding: 2px;
+  padding: 3px;
   gap: 2px;
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  background: var(--bg-muted);
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--control-tint);
 }
 html :is(.seg-btn, .scope-option, .mode-switch span) {
   min-width: 0;
@@ -275,21 +279,22 @@ html :is(.seg-btn, .scope-option, .mode-switch span) {
   padding: 4px 6px;
   color: var(--text-secondary);
   border: 1px solid transparent;
+  border-radius: var(--control-radius);
   background: transparent;
   box-shadow: none;
   font-weight: 500;
 }
 html :is(.seg-btn.active, .scope-option.active, .mode-switch.include .ms-in, .mode-switch.exclude .ms-ex) {
   color: var(--primary);
-  border-color: var(--border-control);
+  border-color: var(--selection-outline);
   background: var(--bg-surface);
   font-weight: 650;
   box-shadow: none;
 }
 html :is(.filter-tag, .filter-tag.all-tag, .tag-btn, .checkbox-chip, .radio-tag, .chip-check, .t-tag, .skew-preset-btn) {
-  background: var(--bg-surface);
+  background: var(--control-tint);
   color: var(--text-secondary);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-light);
   border-radius: var(--control-radius);
   padding: 4px 8px;
   min-height: 24px;
@@ -304,8 +309,8 @@ html :is(.filter-tag.active, .filter-tag.all-tag.active, .tag-btn.active, .check
     .radio-tag.active, .chip-check.active, .t-tag.active, .skew-preset-btn.active, .icon-toggle.active,
     .icon-btn-square.active, .radio-tag:has(input:checked), .checkbox-chip:has(input:checked)) {
   color: var(--primary);
-  background: var(--primary-light);
-  border-color: var(--border-control);
+  background: var(--primary-lighter);
+  border-color: var(--selection-outline);
   box-shadow: none;
   font-weight: 650;
 }
@@ -370,12 +375,13 @@ html :is(.dialog-bottom, .layer-completion, #errorToast) {
   border: 1px solid var(--border-control);
   box-shadow: var(--elevation);
 }
-html .dialog-bottom { border-radius: 7px 7px 0 0; }
+html .dialog-bottom { border-radius: var(--radius-xl) var(--radius-xl) 0 0; }
 html #errorToast .toast-close { border-radius: 4px; background: var(--bg-muted); color: var(--text-primary); }
 
 /* Settings combine aligned preference rows with full-width credential fields. */
-#settingsPanel .settings-section { padding: 12px; margin: 0 0 12px; border: 1px solid var(--border); border-radius: 7px; background: var(--bg-surface); box-shadow: none; }
+#settingsPanel .settings-section { padding: 0 4px; margin: 0 0 24px; border: 0; border-radius: 0; background: var(--bg-surface); box-shadow: none; }
 #settingsPanel .settings-section:last-child { margin-bottom: 0; }
+#settingsPanel .settings-section-title { margin: 0 0 4px; padding: 0; color: var(--text-primary); font-size: 14px; line-height: 20px; font-weight: 650; }
 #settingsPanel .settings-section-title::before, .privacy-note::before { content: none; }
 #settingsPanel .settings-item {
   min-width: 0;
@@ -383,16 +389,15 @@ html #errorToast .toast-close { border-radius: 4px; background: var(--bg-muted);
   padding: 8px 0;
   border: 0;
 }
-#settingsPanel .settings-item + .settings-item { border-top: 1px solid var(--border-light); }
-#settingsPanel .settings-item[style*="column"] { padding: 8px 0 !important; gap: 4px; }
-#settingsPanel .settings-item-label { min-width: 0; gap: 6px; margin: 0; color: var(--text-primary); font-size: 12px; }
+#settingsPanel .settings-item[style*="column"] { padding: 8px 0 !important; gap: 6px; }
+#settingsPanel .settings-item-label { min-width: 0; gap: 6px; margin: 0; color: var(--text-primary); font-size: 12px; line-height: 18px; font-weight: 550; }
 #settingsPanel .settings-item-label-icon { flex: none; width: 16px; height: 16px; border-radius: 0; }
 #settingsPanel .settings-item-label-icon .ui-icon { width: 15px; height: 15px; }
 #settingsPanel .settings-item-control { min-width: 0; max-width: 60%; }
 #settingsPanel .settings-item-control select { min-width: 0; width: 112px; max-width: 100%; }
 #settingsPanel .input-wrapper { min-width: 0; }
 #settingsPanel .input-wrapper input { min-height: var(--control-height); height: 32px; }
-#settingsPanel .privacy-note { padding: 8px; margin: 12px 0 0; overflow-wrap: anywhere; }
+#settingsPanel .privacy-note { padding: 8px 10px; margin: 12px 0 0; background: var(--control-tint) !important; border-radius: var(--radius-lg); overflow-wrap: anywhere; }
 #settingsPanel .about-lead { margin: 4px 0 8px; color: var(--text-primary); font-weight: 550; }
 #settingsPanel .about-row {
   display: flex;
@@ -401,7 +406,7 @@ html #errorToast .toast-close { border-radius: 4px; background: var(--bg-muted);
   gap: 8px;
   min-height: 28px;
   padding: 5px 0;
-  border-top: 1px solid var(--border-light);
+  border: 0;
   color: var(--text-secondary);
   font-size: 12px;
   line-height: 17px;
@@ -410,7 +415,7 @@ html #errorToast .toast-close { border-radius: 4px; background: var(--bg-muted);
 #settingsPanel .about-row a { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
 
 @media (prefers-contrast: more) {
-  :root { --border: var(--text-secondary); --border-light: var(--text-tertiary); --border-control: var(--text-secondary); }
+  :root, :root[data-theme="dark"] { --border: var(--text-secondary); --border-light: var(--text-tertiary); --border-control: var(--text-secondary); --selection-outline: var(--primary); }
 }
 @media (forced-colors: active) {
   :where(button, input, select, textarea, [role="button"], [role="tab"]) { border-color: ButtonText; }

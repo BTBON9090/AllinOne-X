@@ -82,6 +82,14 @@ async function checkViewportSelectAndTranslationActions(page) {
           assert.equal(bounds.panels.length, 1, `${key}: exactly one panel`);
           for (const box of bounds.panels) assert(box.right <= bounds.width + 1 && box.bottom <= bounds.height + 1, `${mode}/${key}: panel overflow`);
           if (key === 'simple') {
+            const shellRules = await page.locator('.sidebar, .workbench-brand, .workbench-heading, .sidebar-footer, .nav-group-label').evaluateAll(nodes =>
+              nodes.filter(node => node.getClientRects().length).flatMap(node => {
+                const style = getComputedStyle(node);
+                return ['Top','Right','Bottom','Left'].filter(side =>
+                  parseFloat(style['border' + side + 'Width']) > 0 && style['border' + side + 'Color'] !== 'rgba(0, 0, 0, 0)'
+                ).map(side => node.className + ' ' + side);
+              }));
+            assert.deepEqual(shellRules, [], mode + ': rail, header and navigation groups have no structural rules');
             assert.equal(await page.locator('#toolGrid .tool-card').count(), 22);
             if (mode !== 'small-english-dark') assert(await page.locator('.tool-card').last().evaluate(el => el.getBoundingClientRect().bottom <= innerHeight), 'All quick tools fit in the normal and compact Chinese first screen');
           }
@@ -94,7 +102,8 @@ async function checkViewportSelectAndTranslationActions(page) {
             assert(await page.locator('.smart-basic-tile').evaluateAll(tiles => tiles.every(tile => {
               const box = tile.getBoundingClientRect();
               const title = tile.querySelector('.smart-fill-trigger');
-              return tile.getAttribute('aria-labelledby') === title.id && getComputedStyle(tile).borderTopWidth === '0px'
+              const style = getComputedStyle(tile);
+              return tile.getAttribute('aria-labelledby') === title.id && style.borderTopWidth === '0px' && style.borderBottomWidth === '0px'
                 && [...tile.querySelectorAll('button')].every(button => {
                   const b = button.getBoundingClientRect();
                   return b.left >= box.left && b.right <= box.right + 1 && b.top >= box.top && b.bottom <= box.bottom + 1;
@@ -111,6 +120,12 @@ async function checkViewportSelectAndTranslationActions(page) {
             assert.equal(await page.locator('.selector-card').first().evaluate(el => getComputedStyle(el).borderTopWidth), '0px');
           }
           if (key === 'size') {
+            const presets = page.locator('#sizePanel .size-preset:visible');
+            assert(await presets.count() > 0);
+            assert(await presets.evaluateAll(rows => rows.every(row => {
+              const style = getComputedStyle(row);
+              return style.borderTopWidth === '0px' && style.borderBottomWidth === '0px';
+            })), mode + ': size preset rows have no dividers');
             const before = await page.locator('.sidebar').boundingBox();
             await page.locator('.size-scroll').evaluate(el => { el.scrollTop = el.scrollHeight; });
             assert.deepEqual(await page.locator('.sidebar').boundingBox(), before);
@@ -339,6 +354,11 @@ async function checkViewportSelectAndTranslationActions(page) {
       await page.evaluate(() => { aiConfig.key = ''; });
       await page.locator('.tool-card').first().focus();
       assert(await page.locator('.tool-card').first().getAttribute('aria-describedby'));
+      await page.keyboard.press('Tab');
+      assert(await page.locator('.tool-card:focus-visible').evaluate(el => {
+        const style = getComputedStyle(el);
+        return style.outlineStyle !== 'none' && parseFloat(style.outlineWidth) > 0 && style.outlineColor !== 'rgba(0, 0, 0, 0)';
+      }), 'Keyboard users can see which quick action is focused');
       await page.evaluate(() => changeLanguage('en'));
       assert.equal(await page.locator('.tool-card:visible').count(), 22);
       await page.evaluate(() => PluginWorkspace.navigate('i18n'));
