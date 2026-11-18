@@ -2780,3 +2780,8 @@ html[data-skin] .theory-input-section { background:var(--ui-header) !important; 
 
 html[data-skin] .skew-preview { height:124px !important; }
 html[data-skin] .skew-proxy { width:64px !important; height:64px !important; }
+
+/* Fit the sixteen navigation items above the footer at the compact default height. */
+@media (max-height:540px) {
+  html[data-skin] body.mini-mode .nav-item { min-height:25px !important; }
+}

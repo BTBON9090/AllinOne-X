@@ -9,7 +9,7 @@ await page.addInitScript(()=>{window.__sent=[];window.parent.postMessage=m=>{if(
 await page.goto('file://'+path.resolve(platform,'ui.html'));await page.waitForFunction(()=>!!window.PluginWorkspace);
 const emit=msg=>page.evaluate(m=>window.dispatchEvent(new MessageEvent('message',{data:{pluginMessage:m}})),msg);
 const route=key=>page.evaluate(key=>PluginWorkspace.navigate(key),key);
-assert.equal(await page.locator('.nav-item').count(),15);assert.equal(await page.locator('#modeBtn').count(),0);assert.equal(await page.locator('#moveWindow').count(),0);
+assert.equal(await page.locator('.nav-item').count(),16);assert.equal(await page.locator('#modeBtn').count(),0);assert.equal(await page.locator('#moveWindow').count(),0);
 await route('smartFill');await page.locator('#sfPrefix').check();await page.locator('#sfSuffix').check();assert.equal(await page.evaluate(()=>getSmartFillMode()),'both');
 await route('size');await emit({type:'size-assistant-selection',validCount:0,invalidCount:0});assert(await page.locator('#sizeApplyBtn').isDisabled());await emit({type:'size-assistant-selection',validCount:2,invalidCount:0});assert(await page.locator('#sizeApplyBtn').isEnabled());await page.locator('#sizeApplyBtn').click();assert.equal(await page.evaluate(()=>__sent.at(-1).type),'size-assistant-apply');
 await route('jumpback');const spots=Array.from({length:5},(_,i)=>({id:String(i),name:'位置 '+(i+1),pageName:'产品设计'}));await emit({type:'jb-render-spots',data:spots});

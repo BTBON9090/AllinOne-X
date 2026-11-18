@@ -13,6 +13,7 @@
     duplicate: ['duplicatePanel', 'components', '选择两个画板，对比重复元素并定位结果。', 'Select two frames to compare repeated elements and locate matches.'],
     compkit: ['compkitPanel', 'components', '将所选组件集按多个属性排列成行、列和分组，可用 AI 建议维度；开启底部开关生成说明书。', 'Arrange selected component sets by rows, columns and groups. AI can suggest dimensions; enable documentation at the bottom to add a showcase.'],
     i18n: ['i18nPanel', 'extensions', '先确认范围和源语言。直接替换会修改文本；Mode 用于保存可切换的语言版本。', 'Confirm scope and source language. Replace changes text; modes preserve switchable language versions.'],
+    iconfont: ['iconfontPanel', 'extensions', '勾选图标，批量修复原图层或生成可下载 SVG 的副本。', 'Repair checked layers in place, or create copies with downloadable SVGs.'],
     skew: ['skewPanel', 'extensions', '预览倾斜与等轴效果，再应用到选中图层。', 'Preview skew and isometric transforms, then apply to selected layers.'],
     ppt: ['pptPanel', 'extensions', '建议先复制页面；按步骤预处理后导出。首次使用请查看面板内的导出说明。', 'Duplicate the page first. Follow the preparation steps and review the export notes.'],
     jumpback: ['jumpbackPanel', 'extensions', '保存当前视角后可一键返回。每个文件最多保存 5 个位置。', 'Save the current viewport to return later. Up to five locations per file.'],
@@ -69,6 +70,7 @@
     refreshLocation();
     window.PluginLocalization?.refresh();
     if (key === 'settings') initSettingsPanel();
+    if (key === 'iconfont') IconfontWorkspace.inspect();
     if (key === 'compkit') { requestCompKitProps(); window.LayerWorkspace?.refreshAxes(); }
     if (key === 'componentBuilder') requestComponentBuilderSelection();
     if (key === 'size') { initSizeAssistant(); updateSizeSummary(); postMsg('size-assistant-inspect'); }
@@ -83,7 +85,7 @@
   const navGroups = [
     ['效率工具', 'Productivity', ['simple','select','text','smartFill','size','jumpback']],
     ['组件与图层', 'Components & Layers', ['refiner','componentBuilder','layerNaming','duplicate','compkit']],
-    ['设计拓展', 'Design Extras', ['i18n','skew','ppt','theory']]
+    ['设计拓展', 'Design Extras', ['iconfont','i18n','skew','ppt','theory']]
   ].map(([zh, en, keys], index) => {
     const group = document.createElement('section');
     group.className = 'nav-group';
@@ -164,6 +166,7 @@
 
   function refresh() {
     navGroups.forEach(({ heading, zh, en }) => { heading.textContent = l(zh, en); });
+    IconfontWorkspace.refresh();
     window.PluginWindow?.refresh();
     window.PluginBookmarks?.refresh();
     document.documentElement.lang = english() ? 'en' : 'zh-CN';

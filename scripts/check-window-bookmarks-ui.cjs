@@ -19,11 +19,11 @@ fs.mkdirSync(output,{ recursive:true });
       await page.waitForFunction(() => window.PluginWindow && window.PluginBookmarks && window.PluginWorkspace);
       const emit = msg => page.evaluate(msg => window.dispatchEvent(new MessageEvent('message',{ data:{ pluginMessage:msg } })),msg);
       assert.equal(await page.locator('.nav-group').count(),3);
-      assert.equal(await page.locator('.nav-item').count(),15);
+      assert.equal(await page.locator('.nav-item').count(),16);
       assert(await page.locator('.nav-item').last().evaluate(el => {
         const box = el.getBoundingClientRect(), rail = el.closest('.nav-scroll').getBoundingClientRect();
         return box.bottom <= rail.bottom;
-      }),'All 15 Chinese tools fit at the regular window size');
+      }),'All 16 Chinese tools fit at the regular window size');
       await page.screenshot({ path:path.join(output,`${platform}-groups.png`),animations:'disabled' });
       await page.evaluate(() => PluginWorkspace.navigate('jumpback'));
       const spots = ['a','b','c'].map((id,index) => ({ id,name:`位置 ${index+1} <svg onload=alert(1)>`,pageName:'中文 页面 ⚡',zoom:index + 0.5,centerX:42 }));

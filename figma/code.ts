@@ -3,6 +3,8 @@ declare function createAITransport(send: (message: any) => void, fetcher: any): 
 declare const LayerRules: any;
 declare function handleLayerToolsMessage(message: any): Promise<boolean>;
 declare function installLayerTools(): void;
+declare function sendIconfontSelection(): void;
+declare function handleIconfontMessage(message: any): Promise<void>;
 declare const __html__: string;
 declare let pluginUiLanguage: string;
 declare function notifyInUiLanguage(message: string, options?: any): any;
@@ -1051,7 +1053,7 @@ const sendComponentBuilderSelection = () => {
   });
 };
 
-figma.on('selectionchange', () => {try{sendComponentBuilderSelection()}catch(error){console.warn('Selection refresh deferred:',String(error));}});
+figma.on('selectionchange', () => {try{sendComponentBuilderSelection();sendIconfontSelection()}catch(error){console.warn('Selection refresh deferred:',String(error));}});
 let componentReverseRunning = false;
 
 // 监听选择变化，主动推送 CompKit 属性更新
@@ -1141,6 +1143,10 @@ figma.ui.onmessage = async (msg) => {
   if (msg.uiLanguage === 'en' || msg.uiLanguage === 'zh') pluginUiLanguage = msg.uiLanguage;
   if (msg.type === 'ui-language-changed') { pluginUiLanguage = msg.language === 'en' ? 'en' : 'zh'; return; }
   if (handlePluginWindowMessage(msg)) return;
+  if (msg.type === 'get-iconfont-selection' || msg.type === 'iconfont-repair-run') {
+    await handleIconfontMessage(msg);
+    return;
+  }
   if (await handleLayerToolsMessage(msg)) return;
   // 新增：专治跨域不服！拦截 'do-fetch' 指令，由后台沙箱代发请求
   // =======================================================

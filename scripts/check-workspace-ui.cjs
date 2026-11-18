@@ -23,7 +23,7 @@ fs.mkdirSync(output, { recursive:true });
       await page.waitForFunction(() => window.PluginWorkspace && document.querySelectorAll('#smartBasicList .smart-fill-trigger').length > 0);
       await screenshot({ path:path.join(output, `${platform}-tools.png`) });
       const routes = await page.locator('.nav-item').evaluateAll(items => items.map(item => item.dataset.nav));
-      assert.equal(routes.length, 15);
+      assert.equal(routes.length, 16);
       for (const mode of ['normal','compact','small-english-dark']) {
         await page.setViewportSize(mode === 'normal' ? { width:440,height:600 } : mode === 'compact' ? { width:360,height:520 } : { width:340,height:440 });
         await page.evaluate(mode => {
@@ -309,7 +309,7 @@ fs.mkdirSync(output, { recursive:true });
       await page.evaluate(() => changeLanguage('zh'));
       assert((await page.locator('#i18nModeDesc').innerText()).startsWith('更新 Mode：'), 'Changing UI language preserves the current action explanation');
       assert.deepEqual(errors, [], `${platform}: browser errors`);
-      console.log(`${platform}: 15 routes × 3 sizes, shared affixes (basic/AI/custom/characters), dense layouts, greeting cache/fallback, keyboard, scrolling, size actions, fill preview and safe titles passed.`);
+      console.log(`${platform}: 16 routes × 3 sizes, shared affixes (basic/AI/custom/characters), dense layouts, greeting cache/fallback, keyboard, scrolling, size actions, fill preview and safe titles passed.`);
       await page.close();
     }
   } finally { await browser.close(); }

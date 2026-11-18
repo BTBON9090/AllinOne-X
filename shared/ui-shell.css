@@ -427,3 +427,38 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
 .layer-dup-progress .layer-feedback { max-height: 90px; }
 .layer-dup-progress > button { min-height: 28px; padding: 4px 9px; font-size: 11px; margin: 0 12px 6px; }
 .layer-dup-progress ~ #dupConfigView, .layer-dup-progress ~ #dupResultView { flex: 1; min-height: 0; height: auto !important; }
+
+#iconfontPanel { height:100%; }
+#iconfontMode { border:0; margin:8px 0 4px; padding:0; min-width:0; }
+.iconfont-scope { font-size:11px; font-weight:600; padding:0; margin:0 0 4px; }
+#iconfontMode label { display:flex; align-items:center; gap:6px; min-height:24px; font-size:11px; cursor:pointer; }
+#iconfontMode input[type="radio"] {
+  appearance:auto; flex:0 0 13px; width:13px; height:13px; min-height:0; padding:0; margin:0;
+  accent-color:var(--ui-accent, var(--primary));
+}
+#iconfontSelection { margin:6px 0; }
+.iconfont-results { list-style:none; margin:6px 0 0; padding:0; }
+.iconfont-results li {
+  display:flex; align-items:center; gap:8px; padding:7px 0;
+  border-top:1px solid var(--ui-border-soft, var(--border));
+}
+.iconfont-results img { width:32px; height:32px; background:#fff; padding:4px; object-fit:contain; border-radius:3px; }
+.iconfont-results li > div { flex:1; min-width:0; overflow-wrap:anywhere; }
+.iconfont-results strong, .iconfont-results small { display:block; font-size:11px; line-height:16px; }
+.iconfont-results small { color:var(--ui-text-2, var(--text-secondary)); }
+#iconfontPanel .iconfont-results button { flex:0 0 auto; width:auto; margin:0; }
+#iconfontPanel [hidden] { display:none !important; }
+#iconfontTargets { border:0; margin:8px 0; padding:0; min-width:0; }
+#iconfontTargets label, .iconfont-target-head {
+  display:flex; align-items:center; gap:6px; font-size:11px; min-height:23px;
+}
+#iconfontTargets label { cursor:pointer; }
+#iconfontTargets input[type="checkbox"] { width:13px; height:13px; flex:none; margin:0; accent-color:var(--ui-accent, var(--primary)); }
+.iconfont-target-head { justify-content:space-between; }
+#iconfontTargetList { max-height:132px; overflow:auto; }
+#iconfontTargetList span { min-width:0; overflow-wrap:anywhere; }
+#iconfontPages, #iconfontReports { display:flex; align-items:center; gap:4px; font-size:11px; }
+#iconfontPages { justify-content:flex-end; }
+#iconfontReports button[aria-pressed="true"] { font-weight:700; text-decoration:underline; }
+.iconfont-actions { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.35fr); gap:6px; }
+#iconfontPanel .iconfont-actions button { margin:0; width:100%; height:auto; white-space:normal; }

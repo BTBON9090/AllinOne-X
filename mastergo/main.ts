@@ -2,6 +2,8 @@ declare function layerSelectSearch(nodes: any[]): void;
 declare const LayerRules: any;
 declare function handleLayerToolsMessage(message: any): Promise<boolean>;
 declare function installLayerTools(): void;
+declare function sendIconfontSelection(): void;
+declare function handleIconfontMessage(message: any): Promise<void>;
 declare function layerSearchRoots(): any[];
 declare function layerRememberSearch(nodes: any[]): void;
 declare function layerBuildManual(message: any): Promise<void>;
@@ -2825,7 +2827,7 @@ const sendComponentBuilderSelection = () => {
   });
 };
 
-mg.on('selectionchange', () => {try{sendComponentBuilderSelection()}catch(error){console.warn('Selection refresh deferred:',String(error));}});
+mg.on('selectionchange', () => {try{sendComponentBuilderSelection();sendIconfontSelection()}catch(error){console.warn('Selection refresh deferred:',String(error));}});
 let componentReverseRunning = false;
 
 // 监听选择变化，主动推送 CompKit 属性更新
@@ -2916,6 +2918,10 @@ mg.ui.onmessage = async (rawMessage) => {
   if (msg.uiLanguage === 'en' || msg.uiLanguage === 'zh') pluginUiLanguage = msg.uiLanguage;
   if (msg.type === 'ui-language-changed') { pluginUiLanguage = msg.language === 'en' ? 'en' : 'zh'; return; }
   if (handlePluginWindowMessage(msg)) return;
+  if (msg.type === 'get-iconfont-selection' || msg.type === 'iconfont-repair-run') {
+    await handleIconfontMessage(msg);
+    return;
+  }
   if (await handleLayerToolsMessage(msg)) return;
   if (msg.type === 'mg-image-size-result') {
     const resolve = imageSizeWaiters.get(msg.reqId);

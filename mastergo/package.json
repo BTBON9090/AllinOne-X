@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "@mastergo/plugin-typings": "^2.19.1",
+    "clipper-lib": "6.4.2",
     "typescript": "^5.0.0"
   }
 }

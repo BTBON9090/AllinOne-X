@@ -23,6 +23,7 @@ const js = fs.readFileSync(path.join(root, 'shared/ui-shell.js'), 'utf8').replac
   + '\n' + fs.readFileSync(path.join(root, 'shared/layer-ai-core.js'), 'utf8')
   + '\nconst ComponentFamilySkill = ' + JSON.stringify(componentSkill).replace(/</g, '\\u003c') + ';'
   + '\n' + fs.readFileSync(path.join(root, 'shared/layer-workspace.js'), 'utf8')
+  + '\n' + fs.readFileSync(path.join(root, 'shared/iconfont-workspace.js'), 'utf8')
   + '\n' + fs.readFileSync(path.join(root, 'shared/workspace.js'), 'utf8')
   + '\n' + fs.readFileSync(path.join(root, 'shared/skins.js'), 'utf8');
 for (const platform of ['figma', 'mastergo']) {
