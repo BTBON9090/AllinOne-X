@@ -1,0 +1,4981 @@
+// @ts-nocheck
+declare function createAITransport(send: (message: any) => void, fetcher: any): any;
+declare const LayerRules: any;
+declare function handleLayerToolsMessage(message: any): Promise<boolean>;
+declare function installLayerTools(): void;
+declare function sendIconfontSelection(): void;
+declare function handleIconfontMessage(message: any): Promise<void>;
+declare const __html__: string;
+declare let pluginUiLanguage: string;
+declare function notifyInUiLanguage(message: string, options?: any): any;
+declare function handlePluginWindowMessage(message: any): boolean;
+declare function reorderPluginBookmarks(spots: any[], ids: string[]): any[] | null;
+declare function installPluginBookmarkQueue(ui: any): void;
+// -------------------------------------------------------------
+// 【更新】高级命名转换函数 (支持清除隐藏标记)
+// -------------------------------------------------------------
+const convertNameAdvanced = (str: string, format: string, sepMode: string, casing: string, keepEmoji: boolean, removeId: boolean, unmarkHidden: boolean) => {
+    let s = str;
+
+    // 1. 移除 ID
+    if (removeId) s = s.replace(/#\d+:\d+$/, '').trim();
+
+    // 2. 处理隐藏标记 (. 或 _)
+    // 逻辑：先提取出来，如果不清除，最后再加回去
+    let hiddenPrefix = "";
+    const hiddenMatch = s.match(/^[\._]/);
+    if (hiddenMatch) {
+        hiddenPrefix = hiddenMatch[0];
+        // 暂时去掉以便后续分词处理
+        s = s.substring(1);
+    }
+
+    // 3. 处理 Emoji
+    let emojiPrefix = "";
+    if (keepEmoji) {
+        const match = s.match(/^(\p{Emoji_Presentation}|\p{Extended_Pictographic}|[\u2000-\u3300]|[\uF000-\uF0FF])+\s*/u);
+        if (match) {
+            emojiPrefix = match[0].trim();
+            s = s.replace(match[0], '');
+        }
+    }
+    s = s.trim();
+
+    // 4. 分词与重组
+    const words = s.match(/[A-Z]?[a-z]+|[0-9]+|[A-Z]+|[\u4e00-\u9fa5]+/g);
+    let newVal = s;
+    if (words && words.length > 0) {
+        let processedWords = words;
+
+        if (format === 'camelCase') {
+            processedWords = words.map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+            newVal = processedWords.join('');
+        } else if (format === 'PascalCase') {
+            processedWords = words.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+            newVal = processedWords.join('');
+        } else {
+            if (casing === 'upper') processedWords = words.map(w => w.toUpperCase());
+            else if (casing === 'lower') processedWords = words.map(w => w.toLowerCase());
+
+            let separatorChar = ' ';
+            if (sepMode === 'snake') separatorChar = '_';
+            if (sepMode === 'kebab') separatorChar = '-';
+            newVal = processedWords.join(separatorChar);
+        }
+    }
+
+    // 5. 加回 Emoji
+    if (keepEmoji && emojiPrefix) {
+        const joiner = (format === 'separator' && sepMode !== 'space') ? (sepMode === 'snake' ? '_' : '-') : ' ';
+        newVal = emojiPrefix + joiner + newVal;
+    }
+
+    // 6. 加回隐藏标记 (如果未勾选清除)
+    if (!unmarkHidden && hiddenPrefix) {
+        newVal = hiddenPrefix + newVal;
+    }
+
+    return { changed: newVal !== str, val: newVal };
+};
+const pluginAITransport = createAITransport(message => figma.ui.postMessage(message), fetch);
+figma.showUI(__html__, { width: 440, height: 600, themeColors: true });
+installLayerTools();
+
+
+// Smart Fill: one deduplicated, visible selection for both count and write.
+const collectSmartFillTextNodes = (roots: readonly any[]): TextNode[] => {
+  const nodes: TextNode[] = [];
+  const seen = new Set<string>();
+  const stack = [...roots].reverse().filter(root => {
+    for (let parent = root?.parent; parent && parent.type !== 'PAGE'; parent = parent.parent) if (parent.visible === false) return false;
+    return true;
+  });
+  while (stack.length) {
+    const node = stack.pop();
+    if (!node || node.removed || node.visible === false || seen.has(node.id)) continue;
+    seen.add(node.id);
+    if (node.type === 'TEXT') nodes.push(node);
+    else if ('children' in node) for (let i = node.children.length - 1; i >= 0; i--) stack.push(node.children[i]);
+  }
+  // Sort geometry once, then group rows against a fixed anchor. A pairwise
+  // "within 10px" comparator is non-transitive and changes with selection order.
+  const positioned = nodes.map(node => ({ node, box: node.absoluteBoundingBox || { x:node.x || 0, y:node.y || 0 } }))
+    .sort((a, b) => a.box.y - b.box.y || a.box.x - b.box.x || a.node.id.localeCompare(b.node.id));
+  const ordered: TextNode[] = [];
+  for (let start = 0; start < positioned.length;) {
+    let end = start + 1;
+    while (end < positioned.length && positioned[end].box.y - positioned[start].box.y <= 10) end++;
+    const row = positioned.slice(start, end).sort((a, b) => a.box.x - b.box.x || a.box.y - b.box.y || a.node.id.localeCompare(b.node.id));
+    row.forEach(item => ordered.push(item.node));
+    start = end;
+  }
+  return ordered;
+};
+
+const loadSmartFillFonts = async (node: any, loaded: Map<string, Promise<any>>) => {
+  const fonts = node.fontName === figma.mixed
+    ? node.getRangeAllFontNames(0, node.characters.length)
+    : [node.fontName];
+  if (!fonts.length) throw new Error('无法读取字体，请先为文本设置可用字体');
+  for (const font of fonts) {
+    if (!font || typeof font.family !== 'string' || typeof font.style !== 'string') {
+      throw new Error('字体信息不完整，请先为文本设置可用字体');
+    }
+    const key = JSON.stringify(font);
+    if (!loaded.has(key)) loaded.set(key, figma.loadFontAsync(font).then(result => {
+      if (result === false) throw new Error(`字体不可用：${font.family} ${font.style}`);
+    }));
+    try { await loaded.get(key); }
+    catch (_) { throw new Error(`字体不可用：${font.family} ${font.style}，请安装或替换该字体`); }
+  }
+};
+
+
+// 用于存储高亮前的原始样式： Key = "NodeID_Index", Value = OriginalFills
+let highlightCache = {};
+let layerSortDirection = 'asc'; // 用于图层排序切换，默认从上到下
+let layerNameSortDirection = 'asc'; // 用于按名称排序切换，默认 A→Z
+
+const normalizeI18nModeName = (value: string) => {
+  const key = String(value || '').toLowerCase().replace(/[\s_()\-]/g, '');
+  const aliases: Record<string, string> = {
+    english:'en', en:'en', '英语':'en', '英文':'en',
+    '简体中文':'zhcn', '中文':'zhcn', chinese:'zhcn', zhcn:'zhcn',
+    '繁体中文':'zhtw', '繁體中文':'zhtw', zhtw:'zhtw',
+    '日本語':'ja', japanese:'ja', ja:'ja', '한국어':'ko', korean:'ko', ko:'ko',
+    français:'fr', french:'fr', fr:'fr', deutsch:'de', german:'de', de:'de',
+    español:'es', spanish:'es', es:'es', italiano:'it', português:'pt', 'русский':'ru', 'العربية':'ar'
+  };
+  return aliases[key] || key;
+};
+
+const isI18nSourceMode = (value: string) => /^(original|source|原文|源语言)$/i.test(String(value || '').trim());
+const stableI18nVariableName = (text: string) => {
+  let hash = 2166136261;
+  for (let index = 0; index < text.length; index++) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  const slug = text.slice(0, 24).replace(/[.*{}\/\\\r\n\t,=]/g, '_').replace(/\s+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '') || 'text';
+  return `i18n/${slug}_${(hash >>> 0).toString(36)}`;
+};
+
+const trySet = (dst: any, propName: string, value: any) => {
+  try { dst[propName] = value; } catch (e) {}
+};
+
+// FrameNode 上 cornerRadius 是只读的，需要通过四个独立角设置
+const safeCornerRadius = (node: any, radius: number) => {
+  try { node.cornerRadius = radius; } catch (e) {
+    try { node.topLeftRadius = radius; } catch (_) {}
+    try { node.topRightRadius = radius; } catch (_) {}
+    try { node.bottomLeftRadius = radius; } catch (_) {}
+    try { node.bottomRightRadius = radius; } catch (_) {}
+  }
+};
+
+function copyNodeStyles(src: SceneNode, dst: SceneNode) {
+  dst.opacity = (src as any).opacity;
+  trySet(dst, 'blendMode', (src as any).blendMode);
+  dst.visible = (src as any).visible;
+  trySet(dst, 'locked', (src as any).locked);
+  trySet(dst, 'rotation', (src as any).rotation);
+  trySet(dst, 'constraints', (src as any).constraints);
+
+  if ('fills' in src && src.fills !== figma.mixed && Array.isArray(src.fills)) {
+    trySet(dst, 'fills', JSON.parse(JSON.stringify(src.fills)));
+  }
+  if ('fillStyleId' in src && typeof (src as any).fillStyleId === 'string') {
+    trySet(dst, 'fillStyleId', (src as any).fillStyleId);
+  }
+
+  if ('strokes' in src && src.strokes !== figma.mixed && Array.isArray(src.strokes)) {
+    trySet(dst, 'strokes', JSON.parse(JSON.stringify(src.strokes)));
+  }
+  if ('strokeStyleId' in src && typeof (src as any).strokeStyleId === 'string') {
+    trySet(dst, 'strokeStyleId', (src as any).strokeStyleId);
+  }
+  if ('strokeWeight' in src && typeof (src as any).strokeWeight === 'number') {
+    trySet(dst, 'strokeWeight', (src as any).strokeWeight);
+  }
+  trySet(dst, 'strokeAlign', (src as any).strokeAlign);
+  if ('dashPattern' in src && Array.isArray((src as any).dashPattern)) {
+    trySet(dst, 'dashPattern', [...(src as any).dashPattern]);
+  }
+  trySet(dst, 'strokeJoin', (src as any).strokeJoin);
+  trySet(dst, 'strokeCap', (src as any).strokeCap);
+  trySet(dst, 'strokeMiterLimit', (src as any).strokeMiterLimit);
+
+  if ('effects' in src && src.effects !== figma.mixed && Array.isArray(src.effects)) {
+    trySet(dst, 'effects', JSON.parse(JSON.stringify(src.effects)));
+  }
+  if ('effectStyleId' in src && typeof (src as any).effectStyleId === 'string') {
+    trySet(dst, 'effectStyleId', (src as any).effectStyleId);
+  }
+
+  trySet(dst, 'clipsContent', (src as any).clipsContent);
+  trySet(dst, 'constrainProportions', (src as any).constrainProportions);
+
+  if ('cornerRadius' in src) {
+    if ((src as any).cornerRadius !== figma.mixed) {
+      trySet(dst, 'cornerRadius', (src as any).cornerRadius);
+    } else {
+      try {
+        dst.topLeftRadius = (src as any).topLeftRadius;
+        dst.topRightRadius = (src as any).topRightRadius;
+        dst.bottomLeftRadius = (src as any).bottomLeftRadius;
+        dst.bottomRightRadius = (src as any).bottomRightRadius;
+      } catch (e) {}
+    }
+  }
+  if ('cornerSmoothing' in src && (src as any).cornerSmoothing !== figma.mixed) {
+    trySet(dst, 'cornerSmoothing', (src as any).cornerSmoothing);
+  }
+
+  if ('individualStrokeWeights' in src) {
+    try {
+      (dst as any).individualStrokeWeights = {
+        top: (src as any).individualStrokeWeights.top,
+        right: (src as any).individualStrokeWeights.right,
+        bottom: (src as any).individualStrokeWeights.bottom,
+        left: (src as any).individualStrokeWeights.left
+      };
+    } catch (e) {}
+  }
+
+  if (src.type === 'FRAME' && dst.type !== 'RECTANGLE') {
+    trySet(dst, 'overflowDirection', (src as FrameNode).overflowDirection);
+    trySet(dst, 'primaryAxisSizingMode', (src as FrameNode).primaryAxisSizingMode);
+    trySet(dst, 'counterAxisSizingMode', (src as FrameNode).counterAxisSizingMode);
+    trySet(dst, 'layoutMode', (src as FrameNode).layoutMode);
+    if ((src as FrameNode).layoutMode !== 'NONE') {
+      trySet(dst, 'primaryAxisAlignItems', (src as FrameNode).primaryAxisAlignItems);
+      trySet(dst, 'counterAxisAlignItems', (src as FrameNode).counterAxisAlignItems);
+      trySet(dst, 'paddingLeft', (src as FrameNode).paddingLeft);
+      trySet(dst, 'paddingRight', (src as FrameNode).paddingRight);
+      trySet(dst, 'paddingTop', (src as FrameNode).paddingTop);
+      trySet(dst, 'paddingBottom', (src as FrameNode).paddingBottom);
+      trySet(dst, 'itemSpacing', (src as FrameNode).itemSpacing);
+      trySet(dst, 'layoutWrap', (src as FrameNode).layoutWrap);
+    }
+  }
+  if ('layoutGrids' in src && Array.isArray((src as any).layoutGrids)) {
+    trySet(dst, 'layoutGrids', JSON.parse(JSON.stringify((src as any).layoutGrids)));
+  }
+  if ('gridStyleId' in src && typeof (src as any).gridStyleId === 'string') {
+    trySet(dst, 'gridStyleId', (src as any).gridStyleId);
+  }
+}
+
+// -------------------------------------------------------------
+// Component Builder：Frame → Component / Component Set，及实例逆向母版
+// -------------------------------------------------------------
+type BuilderReferenceSnapshot = {
+  path: number[];
+  nodeName: string;
+  nodeType: SceneNode['type'];
+  references: { visible?: string; characters?: string; mainComponent?: string };
+};
+
+type BuilderVariantRecord = {
+  source: SceneNode;
+  target: ComponentNode;
+  references: BuilderReferenceSnapshot[];
+};
+
+const MAX_REVERSED_VARIANTS = 100;
+
+const builderChildren = (node: any): SceneNode[] => {
+  try { return 'children' in node ? Array.from(node.children) as SceneNode[] : []; }
+  catch (_) { return []; }
+};
+
+const builderResolvePath = (root: SceneNode, path: number[]): SceneNode | null => {
+  let current: SceneNode = root;
+  for (const index of path) {
+    const children = builderChildren(current);
+    if (!children[index]) return null;
+    current = children[index];
+  }
+  return current;
+};
+
+const captureBuilderReferences = (root: SceneNode): BuilderReferenceSnapshot[] => {
+  const snapshots: BuilderReferenceSnapshot[] = [];
+  const visit = (node: SceneNode, path: number[], isRoot = false) => {
+    if (!isRoot) {
+      try {
+        const refs = node.componentPropertyReferences;
+        if (refs && Object.keys(refs).length > 0) {
+          snapshots.push({
+            path,
+            nodeName: node.name,
+            nodeType: node.type,
+            references: { ...refs }
+          });
+        }
+      } catch (_) {}
+    }
+    // Figma 不允许把外层属性绑定到嵌套实例内部更深的图层。
+    if (!isRoot && node.type === 'INSTANCE') return;
+    builderChildren(node).forEach((child, index) => visit(child, [...path, index]));
+  };
+  visit(root, [], true);
+  return snapshots;
+};
+
+const builderBasePropertyName = (name: string) =>
+  String(name || '').replace(/#[^#]+$/, '').trim() || 'Property';
+
+const builderUniqueName = (raw: string, fallback: string, used: Set<string>) => {
+  const cleaned = String(raw || '')
+    .replace(/[\r\n\t]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 64) || fallback;
+  let name = cleaned;
+  let suffix = 2;
+  while (used.has(name.toLocaleLowerCase())) name = `${cleaned} ${suffix++}`;
+  used.add(name.toLocaleLowerCase());
+  return name;
+};
+
+const builderCopyMetadata = (source: any, target: ComponentNode | ComponentSetNode) => {
+  if (!source) return;
+  trySet(target, 'description', source.description || '');
+  try {
+    if (Array.isArray(source.documentationLinks)) {
+      target.documentationLinks = source.documentationLinks.map((item: any) => ({ uri: item.uri }));
+    }
+  } catch (_) {}
+  try {
+    for (const key of source.getPluginDataKeys()) {
+      target.setPluginData(key, source.getPluginData(key));
+    }
+  } catch (_) {}
+};
+
+const builderFindEquivalentProperty = (
+  definitions: ComponentPropertyDefinitions,
+  sourceName: string,
+  sourceType: ComponentPropertyType
+) => Object.keys(definitions).find(name => {
+  const definition = definitions[name];
+  return definition.type === sourceType
+    && builderBasePropertyName(name).toLocaleLowerCase()
+      === builderBasePropertyName(sourceName).toLocaleLowerCase();
+});
+
+const restoreBuilderProperties = (
+  sourceOwner: ComponentNode | ComponentSetNode,
+  sourceInstance: InstanceNode,
+  targetOwner: ComponentNode | ComponentSetNode,
+  records: BuilderVariantRecord[],
+  warnings: string[]
+) => {
+  let sourceDefinitions: ComponentPropertyDefinitions = {};
+  let sourceValues: ComponentProperties = {};
+  try { sourceDefinitions = sourceOwner.componentPropertyDefinitions || {}; } catch (_) {}
+  try { sourceValues = sourceInstance.componentProperties || {}; } catch (_) {}
+
+  const propertyMap = new Map<string, string>();
+  const used = new Set<string>();
+  let targetDefinitions: ComponentPropertyDefinitions = {};
+  try { targetDefinitions = targetOwner.componentPropertyDefinitions || {}; } catch (_) {}
+  Object.keys(targetDefinitions).forEach(name => used.add(builderBasePropertyName(name).toLocaleLowerCase()));
+
+  for (const [sourceName, definition] of Object.entries(sourceDefinitions)) {
+    const equivalent = builderFindEquivalentProperty(targetDefinitions, sourceName, definition.type);
+    if (equivalent) {
+      propertyMap.set(sourceName, equivalent);
+      continue;
+    }
+    if (definition.type === 'VARIANT') {
+      warnings.push(`变体属性“${builderBasePropertyName(sourceName)}”由组件名称恢复，未找到时已跳过`);
+      continue;
+    }
+    try {
+      const requestedDefault = sourceValues[sourceName]?.value ?? definition.defaultValue;
+      const defaultValue = typeof requestedDefault === 'string' || typeof requestedDefault === 'boolean'
+        ? requestedDefault
+        : definition.defaultValue;
+      const newName = targetOwner.addComponentProperty(
+        builderUniqueName(builderBasePropertyName(sourceName), 'Property', used),
+        definition.type,
+        defaultValue,
+        definition.type === 'INSTANCE_SWAP'
+          ? { preferredValues: definition.preferredValues || [] }
+          : undefined
+      );
+      propertyMap.set(sourceName, newName);
+      targetDefinitions = targetOwner.componentPropertyDefinitions || targetDefinitions;
+    } catch (error) {
+      warnings.push(`属性“${builderBasePropertyName(sourceName)}”恢复失败：${String((error as any)?.message || error)}`);
+    }
+  }
+
+  for (const record of records) {
+    for (const snapshot of record.references) {
+      const target = builderResolvePath(record.target, snapshot.path);
+      if (!target || target.type !== snapshot.nodeType) continue;
+      const mapped: { visible?: string; characters?: string; mainComponent?: string } = {};
+      for (const [field, oldName] of Object.entries(snapshot.references)) {
+        const newName = oldName ? propertyMap.get(oldName) : undefined;
+        if (newName) mapped[field] = newName;
+      }
+      if (Object.keys(mapped).length === 0) continue;
+      try {
+        target.componentPropertyReferences = {
+          ...(target.componentPropertyReferences || {}),
+          ...mapped
+        };
+      } catch (error) {
+        warnings.push(`图层“${snapshot.nodeName}”的组件属性绑定恢复失败`);
+      }
+    }
+  }
+
+  return propertyMap.size;
+};
+
+const getReversePlacement = (source: InstanceNode, width?: number, height?: number) => {
+  const bounds = source.absoluteBoundingBox || {
+    x: source.x,
+    y: source.y,
+    width: source.width,
+    height: source.height
+  };
+  const candidate = {
+    x: bounds.x + bounds.width + 48,
+    y: bounds.y,
+    width: Math.max(0.01, width ?? bounds.width),
+    height: Math.max(0.01, height ?? bounds.height)
+  };
+  const excluded = new Set<string>();
+  let ancestor: BaseNode | null = source;
+  while (ancestor) {
+    excluded.add(ancestor.id);
+    ancestor = ancestor.parent;
+  }
+  const blockers = figma.currentPage.children
+    .filter(node => !excluded.has(node.id))
+    .map(node => node.absoluteBoundingBox)
+    .filter(Boolean);
+  for (let attempt = 0; attempt < 100; attempt++) {
+    const collisions = blockers.filter(blocker =>
+      candidate.x < blocker.x + blocker.width
+      && candidate.x + candidate.width > blocker.x
+      && candidate.y < blocker.y + blocker.height
+      && candidate.y + candidate.height > blocker.y
+    );
+    if (collisions.length === 0) break;
+    candidate.x = Math.max(...collisions.map(blocker => blocker.x + blocker.width + 48));
+  }
+  return { x: candidate.x, y: candidate.y };
+};
+
+const createReverseVisualSnapshot = async (source: InstanceNode, name: string) => {
+  const width = Math.max(0.01, source.width);
+  const height = Math.max(0.01, source.height);
+  const bytes = await source.exportAsync({
+    format: 'PNG',
+    constraint: { type: 'SCALE', value: 1 }
+  });
+  const image = figma.createImage(bytes);
+  const component = figma.createComponent();
+  const rectangle = figma.createRectangle();
+  try {
+    component.name = name || 'Reversed Component';
+    component.resize(width, height);
+    component.fills = [];
+    component.strokes = [];
+    rectangle.name = '视觉快照（原结构无法解析）';
+    rectangle.resize(width, height);
+    rectangle.fills = [{ type: 'IMAGE', imageHash: image.hash, scaleMode: 'FILL' }];
+    component.appendChild(rectangle);
+    rectangle.x = 0;
+    rectangle.y = 0;
+    return component;
+  } catch (error) {
+    try { rectangle.remove(); } catch (_) {}
+    try { component.remove(); } catch (_) {}
+    throw error;
+  }
+};
+
+const reverseInstanceToMaster = async (source: InstanceNode) => {
+  const warnings: string[] = [];
+  const main = await source.getMainComponentAsync();
+  if (!main) throw new Error('所选实例缺少可访问的主组件');
+  const sourceSet = main.parent?.type === 'COMPONENT_SET'
+    ? main.parent as ComponentSetNode
+    : null;
+  const sourceOwner = sourceSet || main;
+  const selectedReferences = captureBuilderReferences(source);
+  const placement = getReversePlacement(source);
+  const records: BuilderVariantRecord[] = [];
+  const created: ComponentNode[] = [];
+  let overflowVariantCount = 0;
+  let clone: InstanceNode | null = null;
+  let detached: FrameNode | null = null;
+  try {
+    let selectedComponent: ComponentNode;
+    let recoveryMode: 'native' | 'structure' | 'raster' = 'native';
+    try {
+      clone = source.clone();
+      figma.currentPage.appendChild(clone);
+      const sourceBounds = source.absoluteBoundingBox;
+      if (sourceBounds) {
+        clone.x = sourceBounds.x;
+        clone.y = sourceBounds.y;
+      }
+      detached = clone.detachInstance();
+      clone = null;
+      selectedComponent = figma.createComponentFromNode(detached);
+      detached = null;
+    } catch (nativeError) {
+      try { if (clone && !clone.removed) clone.remove(); } catch (_) {}
+      try { if (detached && !detached.removed) detached.remove(); } catch (_) {}
+      clone = null;
+      detached = null;
+      try {
+        selectedComponent = main.clone();
+        figma.currentPage.appendChild(selectedComponent);
+        recoveryMode = 'structure';
+        warnings.push(`实例当前结构无法原生解绑，已从主组件结构恢复；未映射的手工覆盖可能无法保留`);
+      } catch (structureError) {
+        selectedComponent = await createReverseVisualSnapshot(
+          source,
+          main.name || source.name || 'Reversed Component'
+        );
+        recoveryMode = 'raster';
+        warnings.push('实例与主组件结构均无法解析，已用可编辑组件容器承载视觉快照；内部图层与属性无法完整恢复');
+      }
+    }
+    selectedComponent.name = main.name || source.name || 'Reversed Component';
+    builderCopyMetadata(main, selectedComponent);
+    created.push(selectedComponent);
+    records.push({ source, target: selectedComponent, references: selectedReferences });
+
+    let variants: ComponentNode[] = [];
+    if (sourceSet) {
+      try { variants = sourceSet.children.filter(node => node.type === 'COMPONENT') as ComponentNode[]; }
+      catch (_) { warnings.push('原组件集的完整变体目录不可读，已只还原当前变体'); }
+    }
+    if (variants.length > MAX_REVERSED_VARIANTS) {
+      overflowVariantCount = variants.length;
+      variants = [];
+      warnings.push(`原组件集包含 ${overflowVariantCount} 个变体，超过完整还原上限 ${MAX_REVERSED_VARIANTS}；已保留当前实例对应的真实变体`);
+    }
+
+    for (const variant of variants) {
+      if (variant.id === main.id) continue;
+      try {
+        const references = captureBuilderReferences(variant);
+        const variantClone = variant.clone();
+        figma.currentPage.appendChild(variantClone);
+        created.push(variantClone);
+        records.push({ source: variant, target: variantClone, references });
+      } catch (error) {
+        warnings.push(`变体“${variant.name}”无法复制，已跳过`);
+      }
+    }
+
+    let target: ComponentNode | ComponentSetNode = selectedComponent;
+    if (sourceSet) {
+      try {
+        // 合并前先用紧凑网格摆放，避免 API 按原始绝对坐标生成数千像素宽的组件集。
+        const preColumns = Math.max(1, Math.ceil(Math.sqrt(created.length)));
+        const preMaxWidth = Math.max(...created.map(component => Math.max(1, component.width)));
+        const preMaxHeight = Math.max(...created.map(component => Math.max(1, component.height)));
+        created.forEach((component, index) => {
+          component.x = (index % preColumns) * (preMaxWidth + 24);
+          component.y = Math.floor(index / preColumns) * (preMaxHeight + 24);
+        });
+        const set = figma.combineAsVariants(created, figma.currentPage);
+        set.name = sourceSet.name || main.name || 'Reversed Component Set';
+        builderCopyMetadata(sourceSet, set);
+        set.layoutMode = 'NONE';
+        const setComponents = set.children.filter(node => node.type === 'COMPONENT') as ComponentNode[];
+        const columns = Math.max(1, Math.ceil(Math.sqrt(setComponents.length)));
+        const maxWidth = Math.max(...setComponents.map(component => Math.max(1, component.width)));
+        const maxHeight = Math.max(...setComponents.map(component => Math.max(1, component.height)));
+        setComponents.forEach((component, index) => {
+          component.x = 24 + (index % columns) * (maxWidth + 24) + (maxWidth - component.width) / 2;
+          component.y = 24 + Math.floor(index / columns) * (maxHeight + 24) + (maxHeight - component.height) / 2;
+        });
+        const rows = Math.ceil(setComponents.length / columns);
+        set.resize(
+          48 + columns * maxWidth + Math.max(0, columns - 1) * 24,
+          48 + rows * maxHeight + Math.max(0, rows - 1) * 24
+        );
+        target = set;
+      } catch (error) {
+        warnings.push(`组件集创建失败，已保留为单个组件：${String((error as any)?.message || error)}`);
+        for (const component of created.slice(1)) {
+          try { component.remove(); } catch (_) {}
+        }
+      }
+    }
+
+    const propertyCount = restoreBuilderProperties(
+      sourceOwner,
+      source,
+      target,
+      target.type === 'COMPONENT_SET' ? records : records.slice(0, 1),
+      warnings
+    );
+    const finalPlacement = getReversePlacement(source, target.width, target.height);
+    target.x = finalPlacement.x;
+    target.y = finalPlacement.y;
+    return {
+      target,
+      propertyCount,
+      variantCount: target.type === 'COMPONENT_SET' ? target.children.length : 1,
+      overflowVariantCount,
+      recoveryMode,
+      warnings: [...new Set(warnings)]
+    };
+  } catch (error) {
+    try { if (clone && !clone.removed) clone.remove(); } catch (_) {}
+    try { if (detached && !detached.removed) detached.remove(); } catch (_) {}
+    for (const component of created) {
+      try { if (!component.removed) component.remove(); } catch (_) {}
+    }
+    throw error;
+  }
+};
+
+const commonNamePrefix = (names: string[]) => {
+  if (names.length === 0) return 'Component';
+  const tokenLists = names.map(name => name.split(/[\/_-]/).map(token => token.trim()).filter(Boolean));
+  const first = tokenLists[0];
+  const common: string[] = [];
+  for (let index = 0; index < first.length; index++) {
+    if (tokenLists.every(tokens => tokens[index]?.toLocaleLowerCase() === first[index].toLocaleLowerCase())) {
+      common.push(first[index]);
+    } else break;
+  }
+  return common.join('/') || names[0] || 'Component';
+};
+
+const safeVariantValue = (value: string, index: number) =>
+  String(value || `Variant ${index + 1}`).replace(/[,=]/g, ' ').replace(/\s+/g, ' ').trim();
+
+const languageVariantValue = (value: string, index: number) => {
+  const source = String(value || '').trim();
+  const normalized = source.toLowerCase().replace(/_/g, '-');
+  const aliases: Array<[RegExp, string]> = [
+    [/(^|[\/\s.-])(zh-cn|zh-hans|简体中文|简体|中文)(?=$|[\/\s.-])/i, 'zh-CN'],
+    [/(^|[\/\s.-])(zh-tw|zh-hant|繁体中文|繁體中文|繁体)(?=$|[\/\s.-])/i, 'zh-TW'],
+    [/(^|[\/\s.-])(en-us|en|english|英文|英语)(?=$|[\/\s.-])/i, 'en-US'],
+    [/(^|[\/\s.-])(ja-jp|ja|japanese|日本語|日语)(?=$|[\/\s.-])/i, 'ja-JP'],
+    [/(^|[\/\s.-])(ko-kr|ko|korean|한국어|韩语)(?=$|[\/\s.-])/i, 'ko-KR'],
+    [/(^|[\/\s.-])(fr-fr|fr|french|français)(?=$|[\/\s.-])/i, 'fr-FR'],
+    [/(^|[\/\s.-])(de-de|de|german|deutsch)(?=$|[\/\s.-])/i, 'de-DE'],
+    [/(^|[\/\s.-])(es-es|es|spanish|español)(?=$|[\/\s.-])/i, 'es-ES'],
+    [/(^|[\/\s.-])(pt-br|pt|português)(?=$|[\/\s.-])/i, 'pt-BR'],
+    [/(^|[\/\s.-])(it-it|it|italiano)(?=$|[\/\s.-])/i, 'it-IT'],
+    [/(^|[\/\s.-])(ru-ru|ru|русский)(?=$|[\/\s.-])/i, 'ru-RU'],
+    [/(^|[\/\s.-])(ar-sa|ar|العربية)(?=$|[\/\s.-])/i, 'ar-SA']
+  ];
+  const matched = aliases.find(([pattern]) => pattern.test(normalized));
+  if (matched) return matched[1];
+  const fallback = source.split(/[\/@|]/).map(part => part.trim()).filter(Boolean).pop();
+  return safeVariantValue(fallback || `Language ${index + 1}`, index);
+};
+
+const wrapFramesAsOneComponent = (frames: FrameNode[], name: string) => {
+  const parent = frames[0]?.parent as BaseNode & ChildrenMixin;
+  if (!parent || !('children' in parent) || frames.some(frame => frame.parent !== parent)) {
+    throw new Error('创建单个组件时，所选 Frame 必须位于同一父级');
+  }
+  const ordered = [...frames].sort((a, b) =>
+    Array.from(parent.children).indexOf(a) - Array.from(parent.children).indexOf(b)
+  );
+  const minX = Math.min(...frames.map(frame => frame.x));
+  const minY = Math.min(...frames.map(frame => frame.y));
+  const maxX = Math.max(...frames.map(frame => frame.x + frame.width));
+  const maxY = Math.max(...frames.map(frame => frame.y + frame.height));
+  const firstIndex = Array.from(parent.children).indexOf(ordered[0]);
+  const positions = ordered.map(frame => ({
+    frame,
+    x: frame.x - minX,
+    y: frame.y - minY,
+    originalX: frame.x,
+    originalY: frame.y,
+    originalIndex: Array.from(parent.children).indexOf(frame)
+  }));
+  const component = figma.createComponent();
+  try {
+    parent.insertChild(Math.max(0, firstIndex), component);
+    component.name = name || commonNamePrefix(frames.map(frame => frame.name));
+    component.x = minX;
+    component.y = minY;
+    component.resize(Math.max(0.01, maxX - minX), Math.max(0.01, maxY - minY));
+    component.fills = [];
+    component.strokes = [];
+    positions.forEach(({ frame, x, y }) => {
+      component.appendChild(frame);
+      frame.x = x;
+      frame.y = y;
+    });
+    return component;
+  } catch (error) {
+    positions.sort((a, b) => a.originalIndex - b.originalIndex).forEach(item => {
+      if (!item.frame.removed && item.frame.parent !== parent) {
+        parent.insertChild(Math.max(0, item.originalIndex), item.frame);
+      }
+      trySet(item.frame, 'x', item.originalX);
+      trySet(item.frame, 'y', item.originalY);
+    });
+    try { component.remove(); } catch (_) {}
+    throw error;
+  }
+};
+
+const collectBuilderCandidates = (
+  component: ComponentNode,
+  exposeText: boolean,
+  exposeInstances: boolean
+) => {
+  const candidates: Array<{ key: string; node: TextNode | InstanceNode }> = [];
+  const visit = (parent: SceneNode, parentKey: string) => {
+    const occurrences = new Map<string, number>();
+    builderChildren(parent).forEach(child => {
+      const normalized = String(child.name || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase();
+      const base = `${child.type}:${normalized}`;
+      const occurrence = (occurrences.get(base) || 0) + 1;
+      occurrences.set(base, occurrence);
+      const key = `${parentKey}/${base}#${occurrence}`;
+      if (child.type === 'INSTANCE') {
+        if (exposeInstances) candidates.push({ key, node: child as InstanceNode });
+        return;
+      }
+      if (child.type === 'TEXT' && exposeText) candidates.push({ key, node: child as TextNode });
+      visit(child, key);
+    });
+  };
+  visit(component, 'root');
+  return candidates;
+};
+
+const exposeBuilderProperties = async (
+  owner: ComponentNode | ComponentSetNode,
+  components: ComponentNode[],
+  exposeText: boolean,
+  exposeInstances: boolean
+) => {
+  const used = new Set<string>();
+  try {
+    Object.keys(owner.componentPropertyDefinitions).forEach(name =>
+      used.add(builderBasePropertyName(name).toLocaleLowerCase())
+    );
+  } catch (_) {}
+  const groups = new Map<string, Array<TextNode | InstanceNode>>();
+  components.forEach(component => {
+    collectBuilderCandidates(component, exposeText, exposeInstances).forEach(candidate => {
+      const group = groups.get(candidate.key) || [];
+      group.push(candidate.node);
+      groups.set(candidate.key, group);
+    });
+  });
+
+  const warnings: string[] = [];
+  let textCount = 0;
+  let instanceCount = 0;
+  for (const nodes of groups.values()) {
+    const first = nodes[0];
+    if (first.type === 'TEXT') {
+      try {
+        const name = builderUniqueName(first.name || first.characters, `Text ${textCount + 1}`, used);
+        const property = owner.addComponentProperty(name, 'TEXT', first.characters);
+        for (const node of nodes) {
+          if (node.type !== 'TEXT') continue;
+          node.componentPropertyReferences = {
+            ...(node.componentPropertyReferences || {}),
+            characters: property
+          };
+        }
+        textCount++;
+      } catch (error) {
+        warnings.push(`文本“${first.name}”属性创建失败：${String((error as any)?.message || error)}`);
+      }
+      continue;
+    }
+
+    const instances = nodes.filter(node => node.type === 'INSTANCE') as InstanceNode[];
+    const resolved: Array<{ node: InstanceNode; main: ComponentNode }> = [];
+    for (const instance of instances) {
+      try {
+        const main = await instance.getMainComponentAsync();
+        if (main) resolved.push({ node: instance, main });
+      } catch (_) {}
+    }
+    if (resolved.length === 0) {
+      warnings.push(`实例“${first.name}”缺少可访问的主组件，已跳过实例属性`);
+      continue;
+    }
+    try {
+      const preferred = new Map<string, InstanceSwapPreferredValue>();
+      for (const { main } of resolved) {
+        if (main.key) preferred.set(`COMPONENT:${main.key}`, { type: 'COMPONENT', key: main.key });
+        if (main.parent?.type === 'COMPONENT_SET' && main.parent.key) {
+          preferred.set(`COMPONENT_SET:${main.parent.key}`, { type: 'COMPONENT_SET', key: main.parent.key });
+        }
+      }
+      const name = builderUniqueName(first.name, `Instance ${instanceCount + 1}`, used);
+      const property = owner.addComponentProperty(
+        name,
+        'INSTANCE_SWAP',
+        resolved[0].main.id,
+        { preferredValues: [...preferred.values()] }
+      );
+      for (const { node } of resolved) {
+        node.componentPropertyReferences = {
+          ...(node.componentPropertyReferences || {}),
+          mainComponent: property
+        };
+      }
+      instanceCount++;
+    } catch (error) {
+      warnings.push(`实例“${first.name}”属性创建失败：${String((error as any)?.message || error)}`);
+    }
+  }
+  return { textCount, instanceCount, warnings };
+};
+
+const buildComponentAiContext = (language = 'zh') => {
+  const selection = figma.currentPage.selection;
+  const selectedComponents = selection.filter(node => node.type === 'COMPONENT') as ComponentNode[];
+  const selectedSets = selection.filter(node => node.type === 'COMPONENT_SET') as ComponentSetNode[];
+  const valid = (selection.length === 1 && selectedSets.length === 1)
+    || (selection.length >= 1 && selection.length <= 800 && selectedComponents.length === selection.length);
+  if (!valid) throw new Error(language === 'en'
+    ? 'Select one component set or 1–800 standalone components.'
+    : '请选择 1 个组件集，或 1–800 个独立组件。');
+
+  const owners: Array<ComponentNode | ComponentSetNode> = selectedSets.length ? selectedSets : selectedComponents;
+  const issues: Array<{ code: string; severity: 'warning' | 'info'; targetId: string; message: string }> = [];
+  const selectedNameCounts = new Map<string, number>();
+  owners.forEach(owner => {
+    const key = owner.name.trim().toLocaleLowerCase();
+    selectedNameCounts.set(key, (selectedNameCounts.get(key) || 0) + 1);
+  });
+
+  if(owners.reduce((count,owner)=>count+(owner.type==='COMPONENT_SET'?owner.children.filter(n=>n.type==='COMPONENT').length:1),0)>800)throw new Error('单次最多分析 800 个组件或变体');
+  const targets = owners.map(owner => {
+    const variants = owner.type === 'COMPONENT_SET'
+      ? owner.children.filter(node => node.type === 'COMPONENT') as ComponentNode[]
+      : [];
+    const values: Record<string, Set<string>> = {};
+    const signatures = new Map<string, string[]>();
+    const propertyPresence = new Map<string, number>();
+    variants.forEach(variant => {
+      const props = parseVariantName(variant.name);
+      const keys = Object.keys(props);
+      keys.forEach(key => {
+        if (!values[key]) values[key] = new Set<string>();
+        values[key].add(props[key]);
+        propertyPresence.set(key, (propertyPresence.get(key) || 0) + 1);
+      });
+      const signature = keys.sort().map(key => `${key.toLocaleLowerCase()}=${props[key].toLocaleLowerCase()}`).join('|');
+      const names = signatures.get(signature) || [];
+      names.push(variant.name);
+      signatures.set(signature, names);
+    });
+
+    signatures.forEach(names => {
+      if (names.length < 2) return;
+      issues.push({
+        code: 'duplicate-variant', severity: 'warning', targetId: owner.id,
+        message: language === 'en'
+          ? `${owner.name}: ${names.length} variants use the same property combination.`
+          : `${owner.name}：发现 ${names.length} 个属性组合重复的变体。`
+      });
+    });
+    propertyPresence.forEach((count, property) => {
+      if (variants.length > 0 && count < variants.length) {
+        issues.push({
+          code: 'missing-property', severity: 'warning', targetId: owner.id,
+          message: language === 'en'
+            ? `${owner.name}: “${property}” is missing from ${variants.length - count} variants.`
+            : `${owner.name}：属性“${property}”在 ${variants.length - count} 个变体中缺失。`
+        });
+      }
+    });
+    if (/^(component|组件|variant|变体)(\s*\d+)?$/i.test(owner.name.trim())) {
+      issues.push({
+        code: 'generic-name', severity: 'info', targetId: owner.id,
+        message: language === 'en' ? `${owner.name}: the name is too generic.` : `${owner.name}：名称过于宽泛。`
+      });
+    }
+    if ((selectedNameCounts.get(owner.name.trim().toLocaleLowerCase()) || 0) > 1) {
+      issues.push({
+        code: 'duplicate-name', severity: 'warning', targetId: owner.id,
+        message: language === 'en' ? `${owner.name}: duplicate selected component name.` : `${owner.name}：所选组件中存在重名。`
+      });
+    }
+
+    const definitions = (() => {
+      try { return owner.componentPropertyDefinitions || {}; } catch (_) { return {}; }
+    })();
+    const propertyDefinitions = Object.entries(definitions).map(([key, definition]) => ({
+      key,
+      name: key.split('#')[0],
+      type: definition.type,
+      defaultValue: 'defaultValue' in definition ? String(definition.defaultValue) : ''
+    }));
+    const propertyValues = Object.fromEntries(
+      Object.entries(values).map(([key, set]) => [key, Array.from(set)])
+    );
+    return {
+      id: owner.id,
+      type: owner.type,
+      name: owner.name,
+      description: (() => { try { return owner.description || ''; } catch (_) { return ''; } })(),
+      propertyDefinitions,
+      propertyValues,
+      variantCount: variants.length,
+      variantNames: variants.map(variant => variant.name),
+      variantsTruncated: 0
+    };
+  });
+
+  return { platform: 'figma', language, selectionIds: owners.map(owner => owner.id), targets, issues };
+};
+
+const applyComponentAiPlan = async (plan: any) => {
+  const selection = figma.currentPage.selection;
+  const allowedIds = new Set(selection.map(node => node.id));
+  const selectedComponents = selection.filter(node => node.type === 'COMPONENT');
+  const selectedSets = selection.filter(node => node.type === 'COMPONENT_SET');
+  const valid = (selection.length === 1 && selectedSets.length === 1)
+    || (selection.length >= 1 && selection.length <= 800 && selectedComponents.length === selection.length);
+  if (!valid) throw new Error('当前选择已变化，请重新分析后再应用');
+
+  let changed = 0;
+  const warnings: string[] = [];
+  const targetPlans = Array.isArray(plan?.targets) ? plan.targets.slice(0, 800) : [];
+  const desiredNameCounts = new Map<string, number>();
+  targetPlans.forEach((targetPlan: any) => {
+    const key = String(targetPlan?.name || '').trim().toLocaleLowerCase();
+    if (key) desiredNameCounts.set(key, (desiredNameCounts.get(key) || 0) + 1);
+  });
+  for (const targetPlan of targetPlans) {
+    const id = String(targetPlan?.id || '');
+    if (!allowedIds.has(id)) continue;
+    const owner = await figma.getNodeByIdAsync(id);
+    if (!owner || (owner.type !== 'COMPONENT' && owner.type !== 'COMPONENT_SET')) continue;
+
+    const nextName = String(targetPlan.name || '').trim().slice(0, 120);
+    const description = String(targetPlan.description || '').trim().slice(0, 1000);
+    if (nextName && nextName !== owner.name) {
+      if ((desiredNameCounts.get(nextName.toLocaleLowerCase()) || 0) > 1) warnings.push(`方案中的组件名“${nextName}”重复，已跳过`);
+      else { owner.name = nextName; changed++; }
+    }
+    if (description) {
+      try { owner.description = description; changed++; } catch (_) { warnings.push(`${owner.name} 的描述无法写入`); }
+    }
+
+    if (owner.type === 'COMPONENT_SET') {
+      const valueRenames = Array.isArray(targetPlan.valueRenames) ? targetPlan.valueRenames.slice(0, 800) : [];
+      for (const rename of valueRenames) {
+        const property = String(rename?.property || '').trim();
+        const from = String(rename?.from || '').trim();
+        const to = String(rename?.to || '').trim().replace(/[,=]/g, ' ').slice(0, 80);
+        if (!property || !from || !to || from === to) continue;
+        const existingValues = new Set(
+          owner.children.filter(node => node.type === 'COMPONENT')
+            .map(node => parseVariantName(node.name)[property])
+            .filter(Boolean)
+        );
+        if (existingValues.has(to)) {
+          warnings.push(`${owner.name} 的属性“${property}”已存在值“${to}”，为避免重复变体已跳过`);
+          continue;
+        }
+        owner.children.filter(node => node.type === 'COMPONENT').forEach(node => {
+          const component = node as ComponentNode;
+          const parts = component.name.split(',').map(part => part.trim()).filter(Boolean);
+          let touched = false;
+          const updated = parts.map(part => {
+            const eq = part.indexOf('=');
+            if (eq < 0) return part;
+            const key = part.slice(0, eq).trim();
+            const value = part.slice(eq + 1).trim();
+            if (key === property && value === from) { touched = true; return `${key}=${to}`; }
+            return part;
+          });
+          if (touched) { component.name = updated.join(', '); changed++; }
+        });
+      }
+    }
+
+    const propertyRenames = Array.isArray(targetPlan.propertyRenames) ? targetPlan.propertyRenames.slice(0, 800) : [];
+    for (const rename of propertyRenames) {
+      const from = String(rename?.from || '').trim();
+      const to = String(rename?.to || '').trim().replace(/[,=]/g, ' ').slice(0, 80);
+      if (!from || !to || from === to) continue;
+      const definitions = owner.componentPropertyDefinitions || {};
+      const key = Object.keys(definitions).find(candidate => candidate === from || candidate.split('#')[0] === from);
+      if (!key) { warnings.push(`${owner.name} 中未找到属性“${from}”`); continue; }
+      const hasNameCollision = Object.keys(definitions).some(candidate => candidate !== key && candidate.split('#')[0].toLocaleLowerCase() === to.toLocaleLowerCase());
+      if (hasNameCollision) { warnings.push(`${owner.name} 中已存在属性“${to}”，已跳过`); continue; }
+      try { owner.editComponentProperty(key, { name: to }); changed++; }
+      catch (_) { warnings.push(`${owner.name} 的属性“${from}”无法重命名`); }
+    }
+  }
+  return { changed, warnings };
+};
+
+const sendComponentBuilderSelection = () => {
+  const selection = figma.currentPage.selection;
+  const frames = selection.filter(node => node.type === 'FRAME');
+  const instances = selection.filter(node => node.type === 'INSTANCE');
+  const components = selection.filter(node => node.type === 'COMPONENT');
+  const componentSets = selection.filter(node => node.type === 'COMPONENT_SET');
+  const canOptimize = (selection.length === 1 && componentSets.length === 1)
+    || (selection.length >= 1 && selection.length <= 800 && components.length === selection.length);
+  figma.ui.postMessage({
+    type: 'component-builder-selection',
+    total: selection.length,
+    frames: frames.length,
+    instances: instances.length,
+    components: components.length,
+    componentSets: componentSets.length,
+    canOptimize,
+    canReverse: selection.length === 1 && instances.length === 1,
+    canAnalyzeBuild: selection.length > 0 && frames.length + components.length + componentSets.length === selection.length,
+    canBuild: selection.length > 0 && frames.length === selection.length,
+    sameParent: selection.length > 0 && selection.every(node => node.parent === selection[0].parent),
+    selectionIds: selection.map(node => node.id),
+    names: selection.slice(0, 4).map(node => node.name)
+  });
+};
+
+figma.on('selectionchange', () => {try{sendComponentBuilderSelection();sendIconfontSelection()}catch(error){console.warn('Selection refresh deferred:',String(error));}});
+let componentReverseRunning = false;
+
+// 监听选择变化，主动推送 CompKit 属性更新
+let lastCompKitTargetId: string | null = null;
+figma.on('selectionchange', () => {
+  try {
+  const selection = figma.currentPage.selection;
+  let targetId: string | null = null;
+  let properties: string[] = [];
+  let componentName = '';
+  let propertyValues: { [key: string]: string[] } = {};
+  let variantsCount = 0;
+
+  if (selection.length === 1) {
+    if (selection[0].type === 'COMPONENT_SET') {
+      targetId = selection[0].id;
+      const componentSet = selection[0] as ComponentSetNode;
+      componentName = componentSet.name;
+      variantsCount = componentSet.children.length;
+
+      if (componentSet.children.length > 0) {
+        const sampleName = componentSet.children[0].name;
+        properties = sampleName.split(',').map(p => p.split('=')[0].trim());
+
+        // 收集每个属性的所有值
+        const variants = componentSet.children as ComponentNode[];
+        properties.forEach(prop => {
+          const values = new Set<string>();
+          variants.forEach(v => {
+            const props = v.name.split(',').reduce((acc, pair) => {
+              const [key, val] = pair.split('=').map(s => s.trim());
+              acc[key] = val;
+              return acc;
+            }, {} as { [key: string]: string });
+            if (props[prop]) values.add(props[prop]);
+          });
+          propertyValues[prop] = Array.from(values);
+        });
+      }
+    } else if (selection[0].type === 'FRAME' && selection[0].getPluginData('isShowcaseBoard') === 'true') {
+      const compSet = selection[0].findOne(n => n.type === 'COMPONENT_SET') as ComponentSetNode | null;
+      if (compSet) {
+        targetId = compSet.id;
+        componentName = compSet.name;
+        variantsCount = compSet.children.length;
+
+        if (compSet.children.length > 0) {
+          const sampleName = compSet.children[0].name;
+          properties = sampleName.split(',').map(p => p.split('=')[0].trim());
+
+          // 收集每个属性的所有值
+          const variants = compSet.children as ComponentNode[];
+          properties.forEach(prop => {
+            const values = new Set<string>();
+            variants.forEach(v => {
+              const props = v.name.split(',').reduce((acc, pair) => {
+                const [key, val] = pair.split('=').map(s => s.trim());
+                acc[key] = val;
+                return acc;
+              }, {} as { [key: string]: string });
+              if (props[prop]) values.add(props[prop]);
+            });
+            propertyValues[prop] = Array.from(values);
+          });
+        }
+      }
+    }
+  }
+
+  // 只有当目标变化时才推送
+  if (targetId !== lastCompKitTargetId) {
+    lastCompKitTargetId = targetId;
+    figma.ui.postMessage({
+      type: 'compkit-props',
+      properties,
+      targetId,
+      componentName,
+      propertyValues,
+      variantsCount
+    });
+  }
+  } catch(error) { console.warn('Component property refresh deferred:',String(error)); }
+});
+
+figma.ui.onmessage = async (msg) => {
+  if (!msg || !msg.type) return;
+  if (msg.uiLanguage === 'en' || msg.uiLanguage === 'zh') pluginUiLanguage = msg.uiLanguage;
+  if (msg.type === 'ui-language-changed') { pluginUiLanguage = msg.language === 'en' ? 'en' : 'zh'; return; }
+  if (handlePluginWindowMessage(msg)) return;
+  if (msg.type === 'get-iconfont-selection' || msg.type === 'iconfont-repair-run') {
+    await handleIconfontMessage(msg);
+    return;
+  }
+  if (await handleLayerToolsMessage(msg)) return;
+  // 新增：专治跨域不服！拦截 'do-fetch' 指令，由后台沙箱代发请求
+  // =======================================================
+  if (msg.type === 'do-fetch') { void pluginAITransport.request(msg); return; }
+  if (msg.type === 'cancel-fetch') { pluginAITransport.cancel(msg.reqId); return; }
+
+  console.log("【2】后端：收到了消息 ->", msg.type);
+  const selection = figma.currentPage.selection;
+
+  // 核心路由
+  switch (msg.type) {
+
+    // ===========================
+    // H. 智能填充 (Smart Fill)
+    // ===========================
+
+    // 1. 获取选中图层数量 (用于前端生成对应数量的数据)
+    case 'get-selection-count': {
+      const nodes = collectSmartFillTextNodes(figma.currentPage.selection);
+      figma.ui.postMessage({ type: 'selection-count-res', count: nodes.length, nodeIds: nodes.map(node => node.id) });
+      break;
+    }
+
+    case 'smart-fill-exec': {
+      const { dataList, mode, distribution } = msg;
+      const report = (count: number, errors: string[] = [], message = '') => {
+        const summary = message || `已填充 ${count} 个文本${errors.length ? `，${errors.length} 项失败：${errors[0]}` : ''}`;
+        notifyInUiLanguage(summary);
+        figma.ui.postMessage({ type: 'smart-fill-result', count, errors, message: summary });
+      };
+      if (!Array.isArray(dataList) || dataList.length === 0) {
+        report(0, [], '填充列表为空');
+        break;
+      }
+      // Use the same selection snapshot for counting and writing.
+      const errors: string[] = [];
+      const snapshot = Array.isArray(msg.nodeIds) ? Array.from(new Set<string>(msg.nodeIds)) : null;
+      const snapshotOrder = new Map(snapshot?.map((id, index) => [id, index]) || []);
+      const roots = snapshot
+        ? (await Promise.all(snapshot.map(async id => {
+            try {
+              const node = await figma.getNodeByIdAsync(id);
+              if (!node || node.removed) { errors.push(`图层 ${id} 已删除或不可用`); return null; }
+              return node;
+            } catch (_) { errors.push(`无法读取图层 ${id}，已跳过`); return null; }
+          }))).filter(Boolean)
+        : figma.currentPage.selection;
+      const textNodes = collectSmartFillTextNodes(roots);
+      if (snapshot) textNodes.sort((a, b) => snapshotOrder.get(a.id) - snapshotOrder.get(b.id));
+      if (!textNodes.length) {
+        report(0, errors, errors.length ? `未能填充：${errors[0]}` : '请先选择可见的文本图层或包含文本的画板');
+        break;
+      }
+      if (textNodes.length > 10000) { report(0, [], '单次最多填充 10,000 个文本，请分批处理'); break; }
+      let changeCount = 0;
+      const fontLoads = new Map<string, Promise<any>>();
+      for (let i = 0; i < textNodes.length; i++) {
+        const node = textNodes[i];
+        try {
+          await loadSmartFillFonts(node, fontLoads);
+          const value = String(dataList[distribution === 'random'
+            ? Math.floor(Math.random() * dataList.length) : (snapshotOrder.get(node.id) ?? i) % dataList.length] ?? '');
+          // Inserting at the edges retains mixed text styles in prefix/suffix mode.
+          if (mode === 'both') {
+            if (value) { node.insertCharacters(node.characters.length, value); node.insertCharacters(0, value); }
+          } else if (mode === 'prefix') {
+            if (value) node.insertCharacters(0, value);
+          } else if (mode === 'suffix') {
+            if (value) node.insertCharacters(node.characters.length, value);
+          } else {
+            node.characters = value;
+          }
+          changeCount++;
+        } catch (error) {
+          const detail = `${node.name}: ${String((error as any)?.message || error)}`;
+          errors.push(detail);
+          console.error('Smart fill failed:', detail);
+        }
+      }
+      report(changeCount, errors);
+      break;
+    }
+
+    // 3. 存储/读取配置 (ClientStorage)
+    case 'save-storage': {
+      await figma.clientStorage.setAsync(msg.key, msg.value);
+      if (msg.notify) notifyInUiLanguage("配置已保存");
+      figma.ui.postMessage({ type: 'storage-saved', key: msg.key, value: msg.value });
+      break;
+    }
+
+    case 'load-storage': {
+      const value = await figma.clientStorage.getAsync(msg.key);
+      figma.ui.postMessage({ type: 'storage-loaded', key: msg.key, value: value });
+      break;
+    }
+
+    case 'req-ai-config': {
+      const aiConfig = await figma.clientStorage.getAsync('smart_ai_config');
+      figma.ui.postMessage({ type: 'init-ai-config', data: aiConfig || {} });
+      break;
+    }
+
+    // ===========================
+    // A. 简易工具 (Simple Tools)
+    // ===========================
+
+    case 'to-frame': {
+      if (selection.length === 0) { notifyInUiLanguage("请选择形状"); return; }
+      const newSelection: FrameNode[] = [];
+      const selCopy = [...selection];
+      for (const node of selCopy) {
+        if (node.removed) continue;
+        const parent = node.parent;
+        if (!parent) continue;
+        const idx = parent.children.indexOf(node);
+
+        const frame = figma.createFrame();
+        frame.resize(node.width, node.height);
+        frame.name = node.name;
+        frame.x = node.x;
+        frame.y = node.y;
+        parent.insertChild(idx, frame);
+
+        copyNodeStyles(node, frame);
+
+        if ('children' in node) {
+          for (const child of [...(node as FrameNode | GroupNode).children]) {
+            if (!child.removed) frame.appendChild(child);
+          }
+        }
+
+        try { node.remove(); } catch(e) {}
+        newSelection.push(frame);
+      }
+      if (newSelection.length > 0) figma.currentPage.selection = newSelection;
+      notifyInUiLanguage("已转换为 Frame");
+      break;
+    }
+
+    case 'to-rect': {
+      if (selection.length === 0) { notifyInUiLanguage("请选择图层"); return; }
+      const newSelection: RectangleNode[] = [];
+      const selCopy = [...selection];
+      for (const node of selCopy) {
+        if (node.removed) continue;
+        if (node.type !== 'FRAME' && node.type !== 'GROUP' && node.type !== 'SECTION') continue;
+        const parent = node.parent;
+        if (!parent) continue;
+
+        if ('children' in node) {
+          for (const child of [...(node as FrameNode | GroupNode).children]) {
+            if (!child.removed) {
+              parent.insertChild(parent.children.indexOf(node), child);
+            }
+          }
+        }
+
+        const idx = parent.children.indexOf(node);
+        const rect = figma.createRectangle();
+        rect.resize(node.width, node.height);
+        rect.name = node.name;
+        rect.x = node.x;
+        rect.y = node.y;
+        parent.insertChild(idx, rect);
+
+        copyNodeStyles(node, rect);
+
+        try { node.remove(); } catch(e) {}
+        newSelection.push(rect);
+      }
+      if (newSelection.length > 0) figma.currentPage.selection = newSelection;
+      break;
+    }
+
+    case 'swap-fs': {
+      let count = 0;
+      for (const node of selection) {
+        if ('fills' in node && 'strokes' in node) {
+          const temp = node.fills;
+          node.fills = node.strokes;
+          node.strokes = temp;
+          if (node.strokes.length > 0 && node.strokeWeight === 0) node.strokeWeight = 1;
+          count++;
+        }
+      }
+      if (count > 0) notifyInUiLanguage("已交换填充/描边");
+      break;
+    }
+
+    case 'reset-image': {
+      for (const node of selection) {
+        if ('fills' in node && Array.isArray(node.fills)) {
+          const img = (node.fills as Paint[]).find(f => f.type === 'IMAGE');
+          if (img && img.imageHash) {
+            const asyncImg = figma.getImageByHash(img.imageHash);
+            const size = await asyncImg.getSizeAsync();
+            if (size && size.width) node.resize(node.width, node.width * (size.height / size.width));
+          }
+        }
+      }
+      break;
+    }
+
+    case 'remove-al': {
+      let count = 0;
+      function rm(n: any) {
+        if (n.layoutMode && n.layoutMode !== 'NONE') { n.layoutMode = 'NONE'; count++; }
+        if (n.children) n.children.forEach(rm);
+      }
+      selection.forEach(rm);
+      notifyInUiLanguage(`移除 ${count} 个自动布局`);
+      break;
+    }
+
+    case 'add-al-wrapper': {
+      const newSelection = [];
+      if (selection.length === 0) { notifyInUiLanguage("请选择图层"); return; }
+      for (const node of selection) {
+        if (node.removed || !node.parent) continue;
+        const frame = figma.createFrame();
+        frame.name = "Auto Layout Wrapper";
+        frame.layoutMode = "VERTICAL";
+        frame.itemSpacing = 10;
+        frame.paddingLeft = 0; frame.paddingRight = 0;
+        frame.paddingTop = 0; frame.paddingBottom = 0;
+        frame.primaryAxisSizingMode = "AUTO";
+        frame.counterAxisSizingMode = "AUTO";
+        frame.fills = [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 } }];
+        frame.strokes = [];
+        frame.x = node.x;
+        frame.y = node.y;
+        const parent = node.parent;
+        const index = parent.children.indexOf(node);
+        parent.insertChild(index, frame);
+        frame.appendChild(node);
+        newSelection.push(frame);
+      }
+      if (newSelection.length > 0) {
+        figma.currentPage.selection = newSelection;
+        notifyInUiLanguage("已添加自动布局外套");
+      }
+      break;
+    }
+
+    case 'split-text': {
+      const newSel = [];
+      for (const node of selection) {
+        if (node.type !== "TEXT") continue;
+        const lines = node.characters.split(/\r\n|\r|\n/);
+        if (lines.length <= 1) continue;
+        let font: FontName = node.fontName;
+        if (font === figma.mixed) font = node.getRangeFontName(0, 1) as FontName;
+        try { await figma.loadFontAsync(font); } catch (e) { notifyInUiLanguage("字体加载失败"); continue; }
+        let cy = node.y;
+        for (const l of lines) {
+          if (!l.trim()) continue;
+          const t = node.clone(); t.characters = l; t.textAutoResize = "WIDTH_AND_HEIGHT"; t.y = cy;
+          node.parent!.appendChild(t); newSel.push(t); cy += t.height + 10;
+        }
+        node.remove();
+      }
+      if (newSel.length > 0) figma.currentPage.selection = newSel;
+      break;
+    }
+
+    case 'join-text': {
+      const tNodes = selection.filter(n => n.type === 'TEXT').sort((a, b) => Math.abs(a.y - b.y) > 5 ? a.y - b.y : a.x - b.x);
+      if (tNodes.length < 2) { notifyInUiLanguage("请选2个以上文本"); return; }
+      let font: FontName = tNodes[0].fontName;
+      if (font === figma.mixed) font = tNodes[0].getRangeFontName(0, 1) as FontName;
+      try { await figma.loadFontAsync(font); } catch (e) { notifyInUiLanguage("字体加载失败"); return; }
+      const txt = tNodes.map(n => n.characters).join('\n');
+      const nt = tNodes[0].clone(); nt.characters = txt; nt.textAutoResize = 'HEIGHT';
+      tNodes.forEach(n => n.remove());
+      figma.currentPage.selection = [nt];
+      break;
+    }
+
+    // up-one
+    case 'up-one': {
+      const newSel: SceneNode[] = [];
+      for (const node of selection) {
+        if (node.parent && node.parent.parent && node.parent.type !== 'PAGE') {
+          const grandParent = node.parent.parent;
+          const absX = node.absoluteTransform[0][2];
+          const absY = node.absoluteTransform[1][2];
+          const gpAbsX = grandParent.absoluteTransform[0][2];
+          const gpAbsY = grandParent.absoluteTransform[1][2];
+          const relX = absX - gpAbsX;
+          const relY = absY - gpAbsY;
+          grandParent.appendChild(node);
+          if ('layoutMode' in grandParent && (grandParent as FrameNode).layoutMode !== 'NONE') {
+            try { (node as any).layoutPositioning = 'ABSOLUTE'; } catch(e) {}
+          }
+          node.x = relX;
+          node.y = relY;
+          newSel.push(node);
+        }
+      }
+      if (newSel.length) figma.currentPage.selection = newSel;
+      break;
+    }
+
+    // up-all 同理
+    case 'up-all': {
+      const page = figma.currentPage;
+      const newSel: SceneNode[] = [];
+      for (const node of selection) {
+        const absX = node.absoluteTransform[0][2];
+        const absY = node.absoluteTransform[1][2];
+        page.appendChild(node);
+        node.x = absX;
+        node.y = absY;
+        newSel.push(node);
+      }
+      figma.currentPage.selection = newSel;
+      break;
+    }
+
+    case 'rename-content': {
+      selection.forEach(n => {
+        let name = "";
+        if (n.type === 'TEXT') name = n.characters;
+        else if ('findOne' in n) { const t = (n as any).findOne((x:any) => x.type === 'TEXT'); if (t) name = t.characters; }
+        if (name) n.name = name.substring(0, 20);
+      });
+      notifyInUiLanguage("已重命名");
+      break;
+    }
+
+    case 'detach-all': {
+      const sel = figma.currentPage.selection;
+      if (sel.length === 0) { notifyInUiLanguage("请先选中图层"); return; }
+      const targets: InstanceNode[] = [];
+      const scan = (n: any) => {
+        if ('children' in n) {
+          for (const child of (n as FrameNode | GroupNode).children) scan(child);
+        }
+        if (n.type === 'INSTANCE') targets.push(n);
+      };
+      sel.forEach(scan);
+      if (targets.length === 0) { notifyInUiLanguage("未找到可解绑的实例"); return; }
+      for (const node of targets) {
+        if (!node.removed) {
+          try { node.detachInstance(); } catch (e) {}
+        }
+      }
+      notifyInUiLanguage(`已解绑 ${targets.length} 个组件`);
+      break;
+    }
+
+    case 'remove-hidden': {
+      let h: SceneNode[] = [];
+      const pool = selection.length > 0 ? selection : [figma.currentPage];
+      for (const n of pool) {
+        if ('visible' in n && !n.visible) h.push(n);
+        if ('findAll' in n) h = h.concat((n as any).findAll((x: any) => !x.visible));
+      }
+      let count = 0;
+      h.reverse().forEach(n => { if (!n.removed) { n.remove(); count++; } });
+      notifyInUiLanguage(`已删除 ${count} 个隐藏图层`);
+      break;
+    }
+
+    case 'sort-layers': {
+      if (selection.length > 1) {
+        const p = selection[0].parent;
+        if (selection.every(n => n.parent === p)) {
+          const isReverse = (layerSortDirection === 'desc');
+          [...selection].sort((a, b) => {
+            const diffY = a.y - b.y;
+            const diffX = a.x - b.x;
+            const result = Math.abs(diffY) > 2 ? diffY : diffX;
+            return isReverse ? -result : result;
+          }).forEach(n => p!.appendChild(n));
+          notifyInUiLanguage(isReverse ? "已反转排列（从下到上）" : "已排列（从上到下）");
+          layerSortDirection = isReverse ? 'asc' : 'desc';
+        }
+      } else {
+        notifyInUiLanguage("请至少选择两个同级图层");
+      }
+      break;
+    }
+
+    case 'sort-by-name': {
+      // 按图层名称字典序排序：首字母→第二个字母→以此类推
+      // 支持两种模式：选中多个同级图层排序；或选中单个容器对其直接子图层排序
+      let p: any = null;
+      let targets: SceneNode[] = [];
+      if (selection.length > 1 && selection.every(n => n.parent === selection[0].parent)) {
+        p = selection[0].parent;
+        targets = [...selection];
+      } else if (selection.length === 1 && 'children' in selection[0]) {
+        p = selection[0];
+        targets = [...(selection[0] as any).children];
+      }
+      if (!p || targets.length < 2) {
+        notifyInUiLanguage("请选择至少两个同级图层，或选择一个包含多个子图层的容器");
+        return;
+      }
+      const isReverse = (layerNameSortDirection === 'desc');
+      targets.sort((a, b) => {
+        const cmp = a.name < b.name ? -1 : (a.name > b.name ? 1 : 0);
+        return isReverse ? -cmp : cmp;
+      }).forEach(n => p!.appendChild(n));
+      notifyInUiLanguage(isReverse ? "已按名称倒序排列（Z→A）" : "已按名称排序（A→Z）");
+      layerNameSortDirection = isReverse ? 'asc' : 'desc';
+      break;
+    }
+
+    case 'ungroup-all': {
+      let count = 0;
+      // 收集所有 Group: 包含选中的 Group 以及其内部的 Group
+      const groups: GroupNode[] = [];
+      function collect(n: BaseNode) {
+        if (n.type === 'GROUP') groups.push(n);
+        if ('children' in n) for (const child of (n as any).children) collect(child);
+      }
+      for (const node of selection) collect(node);
+      // 解组（从内向外解组可能更安全，但 ungroup 后子节点会保留）
+      for (const g of groups) {
+        if (!g.removed) {
+          figma.ungroup(g);
+          count++;
+        }
+      }
+      notifyInUiLanguage(`已解散 ${count} 个组`);
+      break;
+    }
+
+    case 'unlock-all': {
+      let count = 0;
+      function ul(n: any) {
+        if ('locked' in n && n.locked) { n.locked = false; count++; }
+        if ('children' in n) n.children.forEach(ul);
+      }
+      selection.forEach(ul);
+      notifyInUiLanguage(`已解锁 ${count} 个图层`);
+      break;
+    }
+
+    case 'pixel-perfect': {
+      if (selection.length === 0) { notifyInUiLanguage("请选择图层"); return; }
+      let count = 0;
+      for (const node of selection) {
+        if (!node.removed) {
+          const newX = Math.round(node.x);
+          const newY = Math.round(node.y);
+          const newW = Math.round(node.width);
+          const newH = Math.round(node.height);
+          if (node.x !== newX || node.y !== newY) { node.x = newX; node.y = newY; }
+          if (node.width !== newW || node.height !== newH) node.resize(newW, newH);
+          count++;
+        }
+      }
+      notifyInUiLanguage(`已对齐 ${count} 个图层`);
+      break;
+    }
+
+    case 'swap-positions': {
+      if (selection.length !== 2) { notifyInUiLanguage("请严格选择 2 个图层进行交换"); return; }
+      const n1 = selection[0];
+      const n2 = selection[1];
+      const x1 = n1.x, y1 = n1.y;
+      n1.x = n2.x; n1.y = n2.y;
+      n2.x = x1; n2.y = y1;
+      notifyInUiLanguage("位置已互换");
+      break;
+    }
+
+    case 'create-styles': {
+      console.log("=== 开始执行创建样式 ===");
+      if (selection.length === 0) { notifyInUiLanguage("请选择图层"); return; }
+      let createdCount = 0;
+      const conflicts: string[] = [];
+      const errors: string[] = [];
+      try {
+        const localPaints = await figma.getLocalPaintStylesAsync();
+        const localTexts = await figma.getLocalTextStylesAsync();
+        const localEffects = await figma.getLocalEffectStylesAsync();
+
+        for (const node of selection) {
+          if (node.removed) continue;
+          const name = node.name;
+
+          if ('fills' in node && node.type !== 'GROUP' && node.fills !== figma.mixed && Array.isArray(node.fills) && node.fills.length > 0) {
+            if (node.fills[0].type !== 'IMAGE') {
+              const exist = localPaints.find(s => s.name === name);
+              if (exist) { if (!conflicts.includes(name)) conflicts.push(name + " (颜色)"); }
+              else {
+                try {
+                  const style = figma.createPaintStyle();
+                  createdCount++;
+                  style.name = name;
+                  style.paints = JSON.parse(JSON.stringify(node.fills));
+                  try { node.fillStyleId = style.id; } catch (e) {}
+                } catch (err) { errors.push(name); }
+              }
+            }
+          }
+
+          if (node.type === 'TEXT') {
+            const exist = localTexts.find(s => s.name === name);
+            if (exist) { if (!conflicts.includes(name)) conflicts.push(name + " (文本)"); }
+            else {
+              try {
+                const style = figma.createTextStyle();
+                createdCount++;
+                style.name = name;
+                const font = node.fontName;
+                if (font !== figma.mixed) {
+                  await figma.loadFontAsync(font);
+                  style.fontName = font;
+                  style.fontSize = node.fontSize !== figma.mixed ? node.fontSize : 12;
+                  if (node.letterSpacing !== figma.mixed) style.letterSpacing = node.letterSpacing;
+                  if (node.lineHeight !== figma.mixed) style.lineHeight = node.lineHeight;
+                  if (node.textDecoration !== figma.mixed) style.textDecoration = node.textDecoration;
+                  try { node.textStyleId = style.id; } catch (e) {}
+                }
+              } catch (err) { errors.push(name); }
+            }
+          }
+
+          if ('effects' in node && node.effects !== figma.mixed && Array.isArray(node.effects) && node.effects.length > 0) {
+            const exist = localEffects.find(s => s.name === name);
+            if (exist) { if (!conflicts.includes(name)) conflicts.push(name + " (效果)"); }
+            else {
+              try {
+                const style = figma.createEffectStyle();
+                createdCount++;
+                style.name = name;
+                style.effects = JSON.parse(JSON.stringify(node.effects));
+                try { node.effectStyleId = style.id; } catch (e) {}
+              } catch (err) { errors.push(name); }
+            }
+          }
+        }
+      } catch (e) { console.error("全局错误:", e); notifyInUiLanguage("样式创建失败: " + String(e).slice(0, 50)); return; }
+
+      const parts = [];
+      if (createdCount > 0) parts.push(`新建 ${createdCount} 个`);
+      if (conflicts.length > 0) parts.push(`跳过重复 ${conflicts.length} 个`);
+      if (errors.length > 0) parts.push(`失败 ${errors.length} 个`);
+      if (parts.length > 0) notifyInUiLanguage(parts.join('，'));
+      else notifyInUiLanguage("未发现可创建的样式（选中的图层可能没有填充/文本/效果属性）");
+      break;
+    }
+
+    case 'match-styles': {
+      console.log("=== 开始匹配样式 ===");
+      const sel = figma.currentPage.selection;
+      if (sel.length === 0) { notifyInUiLanguage("请先选择范围"); return; }
+      let countFill = 0, countStroke = 0, countText = 0, countEffect = 0;
+      try {
+        const paints = await figma.getLocalPaintStylesAsync();
+        const texts = await figma.getLocalTextStylesAsync();
+        const effects = await figma.getLocalEffectStylesAsync();
+
+        const paintMap = new Map<string, string>();
+        paints.forEach(s => paintMap.set(JSON.stringify(s.paints), s.id));
+        const effectMap = new Map<string, string>();
+        effects.forEach(s => effectMap.set(JSON.stringify(s.effects), s.id));
+        const textMap = new Map<string, string>();
+        texts.forEach(s => {
+          const fingerprint = JSON.stringify({
+            family: s.fontName.family,
+            style: s.fontName.style,
+            size: s.fontSize,
+            lh: s.lineHeight,
+            ls: s.letterSpacing,
+            td: s.textDecoration,
+            pi: s.paragraphIndent,
+            ps: s.paragraphSpacing
+          });
+          textMap.set(fingerprint, s.id);
+        });
+
+        const traverse = async (node: any) => {
+          if (node.removed) return;
+          if ('fills' in node && node.fills !== figma.mixed && node.fills.length > 0 && node.fillStyleId === '') {
+            const key = JSON.stringify(node.fills);
+            if (paintMap.has(key)) { try { await node.setFillStyleIdAsync(paintMap.get(key)!); countFill++; } catch (e) {} }
+          }
+          if ('strokes' in node && node.strokes !== figma.mixed && node.strokes.length > 0 && node.strokeStyleId === '') {
+            const key = JSON.stringify(node.strokes);
+            if (paintMap.has(key)) { try { await node.setStrokeStyleIdAsync(paintMap.get(key)!); countStroke++; } catch (e) {} }
+          }
+          if ('effects' in node && node.effects !== figma.mixed && node.effects.length > 0 && node.effectStyleId === '') {
+            const key = JSON.stringify(node.effects);
+            if (effectMap.has(key)) { try { await node.setEffectStyleIdAsync(effectMap.get(key)!); countEffect++; } catch (e) {} }
+          }
+          if (node.type === 'TEXT' && node.textStyleId === '' && node.fontName !== figma.mixed && node.fontSize !== figma.mixed) {
+            const key = JSON.stringify({
+              family: node.fontName.family,
+              style: node.fontName.style,
+              size: node.fontSize,
+              lh: node.lineHeight,
+              ls: node.letterSpacing,
+              td: node.textDecoration,
+              pi: node.paragraphIndent,
+              ps: node.paragraphSpacing
+            });
+            if (textMap.has(key)) { try { await node.setTextStyleIdAsync(textMap.get(key)!); countText++; } catch (e) {} }
+          }
+          if ('children' in node) {
+            for (const child of node.children) await traverse(child);
+          }
+        };
+
+        for (const node of sel) await traverse(node);
+      } catch (e) { console.error(e); notifyInUiLanguage("匹配出错"); return; }
+
+      const total = countFill + countStroke + countText + countEffect;
+      if (total > 0) notifyInUiLanguage(`匹配成功: 填充${countFill} / 描边${countStroke} / 文本${countText} / 效果${countEffect}`);
+      else notifyInUiLanguage("未发现可匹配的样式");
+      break;
+    }
+
+    // ===========================
+    // B. 高级查找 (Find & Select) - 【已修复】
+    // ===========================
+    case 'fetch-selection-name': {
+      const sel = figma.currentPage.selection;
+      if (sel.length > 0) {
+        figma.ui.postMessage({ type: 'update-name-input', name: sel[0].name });
+      } else {
+        notifyInUiLanguage("请先选择一个图层以获取名称");
+      }
+      break;
+    }
+
+    case 'find-and-select': {
+        const f = msg.filters;
+        // Keep the user's seed selection while switching filters after selecting results.
+        const sel = layerSearchRoots();
+        if (f.scope !== 'page' && !sel.length) {
+            notifyInUiLanguage('请先选择查找范围的起点图层');
+        }
+        const finalPool = LayerRules.pool(figma.currentPage, sel, f.scope);
+        const colorToHex = (color: any) => {
+            if (!color) return undefined;
+            const part = (value: number) => Math.round(Math.max(0, Math.min(1, value || 0)) * 255).toString(16).padStart(2, '0');
+            return `#${part(color.r)}${part(color.g)}${part(color.b)}`.toUpperCase();
+        };
+        const firstVisiblePaint = (paints: any) => Array.isArray(paints)
+            ? paints.find((paint: any) => paint && paint.visible !== false)
+            : undefined;
+        const getAdvancedPropertyValue = async (node: any, key: string): Promise<any> => {
+            if (key === 'mainComponentId') return node.type === 'INSTANCE' ? (await node.getMainComponentAsync())?.id : undefined;
+            const fill = firstVisiblePaint(node.fills);
+            const stroke = firstVisiblePaint(node.strokes);
+            const effect = Array.isArray(node.effects) ? node.effects.find((item: any) => item && item.visible !== false) : undefined;
+            const bounds = node.absoluteBoundingBox;
+            const parentChildren = node.parent && 'children' in node.parent ? node.parent.children : undefined;
+            const siblingIndex = parentChildren ? parentChildren.indexOf(node) : -1;
+            const textFont = node.type === 'TEXT' && node.characters.length > 0 && node.fontName === figma.mixed
+                ? node.getRangeFontName(0, 1)
+                : node.fontName;
+            const spacing = node.letterSpacing;
+            const lineHeight = node.lineHeight;
+            const direct: Record<string, any> = {
+                name: node.name,
+                visible: node.visible,
+                locked: node.locked,
+                opacity: node.opacity,
+                rotation: node.rotation,
+                blendMode: node.blendMode,
+                siblingIndex: siblingIndex >= 0 ? siblingIndex + 1 : undefined,
+                reverseSiblingIndex: siblingIndex >= 0 && parentChildren ? parentChildren.length - siblingIndex : undefined,
+                childCount: 'children' in node ? node.children.length : undefined,
+                expanded: node.expanded,
+                width: node.width,
+                height: node.height,
+                x: node.x,
+                y: node.y,
+                absoluteWidth: bounds?.width,
+                absoluteHeight: bounds?.height,
+                absoluteX: bounds?.x,
+                absoluteY: bounds?.y,
+                fillCount: Array.isArray(node.fills) ? node.fills.length : undefined,
+                fillColor: fill?.type === 'SOLID' ? colorToHex(fill.color) : undefined,
+                fillOpacity: fill?.opacity ?? (fill ? 1 : undefined),
+                fillBlendMode: fill?.blendMode,
+                fillType: fill?.type,
+                fillVisible: fill?.visible ?? (fill ? true : undefined),
+                fillStyleId: node.fillStyleId,
+                cornerRadius: node.cornerRadius,
+                topLeftRadius: node.topLeftRadius,
+                topRightRadius: node.topRightRadius,
+                bottomLeftRadius: node.bottomLeftRadius,
+                bottomRightRadius: node.bottomRightRadius,
+                cornerSmoothing: node.cornerSmoothing,
+                strokeCount: Array.isArray(node.strokes) ? node.strokes.length : undefined,
+                strokeColor: stroke?.type === 'SOLID' ? colorToHex(stroke.color) : undefined,
+                strokeWeight: node.strokeWeight,
+                strokeOpacity: stroke?.opacity ?? (stroke ? 1 : undefined),
+                strokeBlendMode: stroke?.blendMode,
+                strokeType: stroke?.type,
+                strokeVisible: stroke?.visible ?? (stroke ? true : undefined),
+                strokeAlign: node.strokeAlign,
+                strokeCap: node.strokeCap,
+                strokeJoin: node.strokeJoin,
+                strokeMiterLimit: node.strokeMiterLimit,
+                strokeStyleId: node.strokeStyleId,
+                effectCount: Array.isArray(node.effects) ? node.effects.length : undefined,
+                effectType: effect?.type,
+                effectVisible: effect?.visible ?? (effect ? true : undefined),
+                effectStyleId: node.effectStyleId,
+                layoutPositioning: node.layoutPositioning,
+                layoutMode: node.layoutMode,
+                primaryAxisAlignItems: node.primaryAxisAlignItems,
+                counterAxisAlignItems: node.counterAxisAlignItems,
+                itemSpacing: node.itemSpacing,
+                paddingTop: node.paddingTop,
+                paddingBottom: node.paddingBottom,
+                paddingLeft: node.paddingLeft,
+                paddingRight: node.paddingRight,
+                gridCount: Array.isArray(node.layoutGrids) ? node.layoutGrids.length : undefined,
+                gridStyleId: node.gridStyleId,
+                characters: node.characters,
+                fontFamily: textFont?.family,
+                fontStyle: textFont?.style,
+                fontSize: node.fontSize,
+                hyperlink: node.type === 'TEXT' && node.characters.length > 0 ? Boolean(node.getRangeHyperlink(0, node.characters.length)) : undefined,
+                textAlignHorizontal: node.textAlignHorizontal,
+                textAlignVertical: node.textAlignVertical,
+                textDecoration: node.textDecoration,
+                letterSpacing: spacing && spacing !== figma.mixed ? spacing.value : undefined,
+                letterSpacingUnit: spacing && spacing !== figma.mixed ? spacing.unit : undefined,
+                lineHeight: lineHeight && lineHeight !== figma.mixed && lineHeight.unit !== 'AUTO' ? lineHeight.value : (lineHeight?.unit === 'AUTO' ? 'AUTO' : undefined),
+                lineHeightUnit: lineHeight && lineHeight !== figma.mixed ? lineHeight.unit : undefined,
+                hasMissingFont: node.hasMissingFont,
+                paragraphIndent: node.paragraphIndent,
+                paragraphSpacing: node.paragraphSpacing,
+                textStyleId: node.textStyleId,
+                description: node.description,
+
+                componentPropertyCount: node.componentProperties ? Object.keys(node.componentProperties).length : undefined,
+                variantPropertyCount: node.componentPropertyDefinitions ? Object.keys(node.componentPropertyDefinitions).length : undefined,
+                reactionCount: Array.isArray(node.reactions) ? node.reactions.length : undefined,
+                overflowDirection: node.overflowDirection,
+                fixedChildCount: 'children' in node ? node.children.filter((child: any) => child.layoutPositioning === 'FIXED').length : undefined,
+                pointCount: node.pointCount
+            };
+            const value = direct[key];
+            return value === figma.mixed ? undefined : value;
+        };
+
+        const results = [];
+
+        // =========================================================
+        // C. 遍历筛选 (Filtering)
+        // =========================================================
+        for (const node of finalPool) {
+            let match = true;
+
+            // 1. 名称匹配
+            if (f.name && f.name.val) {
+                let n = node.name;
+                let q = f.name.val;
+                if (!f.name.caseSensitive) {
+                    n = n.toLowerCase();
+                    q = q.toLowerCase();
+                }
+                if (!n.includes(q)) match = false;
+            }
+
+            // Within each group: OR. Between type/state/name/property groups: AND.
+            if (match && !LayerRules.matches(node, f.types, f.states)) match = false;
+
+            // 4. 属性匹配 (Props) - 加强容错
+            if (match && f.props && f.props.length > 0) {
+                for (const p of f.props) {
+                    let val = undefined;
+                    try { val = await getAdvancedPropertyValue(node, p.key); } catch(e) {}
+
+                    if (val === undefined) {
+                        match = false; break;
+                    }
+
+                    const tgt = p.val;
+                    if (['>','<','>=','<='].includes(p.op) && (!Number.isFinite(Number(val)) || !Number.isFinite(Number(tgt)))) { match = false; break; }
+                    // 数字比较 vs 字符串比较
+                    if (p.op === '=') { if (val != tgt) match = false; }
+                    else if (p.op === '!=') { if (val == tgt) match = false; }
+                    else if (p.op === '>') { if (Number(val) <= Number(tgt)) match = false; }
+                    else if (p.op === '<') { if (Number(val) >= Number(tgt)) match = false; }
+                    else if (p.op === '>=') { if (Number(val) < Number(tgt)) match = false; }
+                    else if (p.op === '<=') { if (Number(val) > Number(tgt)) match = false; }
+                    else if (p.op === 'has') { if (!String(val).toLowerCase().includes(String(tgt).toLowerCase())) match = false; }
+                    else if (p.op === 'starts') { if (!String(val).toLowerCase().startsWith(String(tgt).toLowerCase())) match = false; }
+                    else if (p.op === 'ends') { if (!String(val).toLowerCase().endsWith(String(tgt).toLowerCase())) match = false; }
+                }
+            }
+
+            if (match) {
+                results.push(node);
+            }
+        }
+
+        console.log(`✅ 最终匹配: ${results.length}`);
+
+        if (results.length > 0) {
+            layerSelectSearch(results);
+            try { figma.viewport.scrollAndZoomIntoView(results); } catch (_) { /* Hidden results can have no viewport bounds. */ }
+            notifyInUiLanguage(`✅ 已选中 ${results.length} 个图层`);
+
+            // 🔥 新增：将结果回传给 UI
+            figma.ui.postMessage({
+              type: 'found-layers-result',
+              count: results.length,
+              layers: results.map(n => ({ id: n.id, name: n.name, type: n.type }))
+            });
+
+        } else {
+            layerSelectSearch([]);
+            notifyInUiLanguage("未找到符合条件的图层，请调整范围或筛选条件");
+            figma.ui.postMessage({ type: 'found-layers-result', count: 0, layers: [] });
+        }
+        break;
+    }
+
+    // ==========================================
+    // 后端逻辑：响应 focus-layers
+    // ==========================================
+        case 'focus-layers': {
+            const runFocus = async () => {
+                try {
+                    const ids = msg.ids;
+                    if (!ids || ids.length === 0) return;
+
+                    // 1. 异步获取图层 (Figma 强制要求)
+                    // 使用 Promise.all 确保并发获取，速度极快
+                    const nodes = await Promise.all(ids.map(id => figma.getNodeByIdAsync(id)));
+
+                    const targets: SceneNode[] = [];
+                    const selection: SceneNode[] = [];
+                    const currentPageId = figma.currentPage.id;
+
+                    // 2. 快速筛选
+                    for (const node of nodes) {
+                        if (!node || node.removed) continue;
+                        if (node.type === 'DOCUMENT' || node.type === 'PAGE') continue;
+
+                        // 确保在当前页
+                        // 简单的向上查找，确保安全
+                        let p = node.parent;
+                        let isCurrent = false;
+                        // 大多数情况父级就是 Page，优化判断速度
+                        if (p && p.type === 'PAGE') {
+                            isCurrent = (p.id === currentPageId);
+                        } else {
+                            // 深度查找
+                            while (p) {
+                                if (p.type === 'PAGE') {
+                                    isCurrent = (p.id === currentPageId);
+                                    break;
+                                }
+                                p = p.parent;
+                            }
+                        }
+
+                        if (isCurrent) {
+                            // 只要在当前页，就加入“视图定位目标”
+                            targets.push(node as SceneNode);
+
+                            // 如果没锁且可见，也加入“选中目标”
+                            if (!node.locked && node.visible) {
+                                selection.push(node as SceneNode);
+                            }
+                        }
+                    }
+
+                    if (targets.length > 0) {
+                        // A. 尝试选中 (如果全是锁定的，这里就是空数组，会清空选择，是正确的表现)
+                        figma.currentPage.selection = selection;
+
+                        // B. 视图定位 (这是你要的核心功能)
+                        figma.viewport.scrollAndZoomIntoView(targets);
+
+                        // C. 只有多选时才提示，单选静默，体验最好
+                        if (targets.length > 1) {
+                            notifyInUiLanguage(`已定位 ${targets.length} 项`);
+                        }
+                    }
+
+                } catch (e: any) {
+                    console.log("定位错误 (已忽略):", e);
+                }
+            };
+
+            runFocus();
+            break;
+        }
+
+    // ===========================
+    // D. 跨画板查重 (Duplicate Finder)
+    // ===========================
+    case 'dup-check': {
+      const sel = figma.currentPage.selection;
+      // 必须恰好选中两个容器 (Frame/Group/Section/Component 等)
+      const containers = sel.filter(n => 'children' in n);
+      if (sel.length !== 2 || containers.length !== 2) {
+        notifyInUiLanguage("请在画布上选中恰好两个画板/容器");
+        return;
+      }
+      const [cA, cB] = containers;
+
+      // 递归收集两容器内所有图层 (包含自身)
+      const collectAll = (root: any): SceneNode[] => {
+        const arr = [root];
+        if ('findAll' in root) arr.push(...root.findAll(() => true));
+        return arr;
+      };
+      const nodesA = collectAll(cA);
+      const nodesB = collectAll(cB);
+
+      // 名称分词：按 - _ 空格 . / 切词，统一小写
+      const tokenize = (name: string): string[] => {
+        return name.toLowerCase().split(/[-_\s./]+/).filter(t => t.length > 0);
+      };
+
+      const mode = msg.mode === 'substring' ? 'substring' : 'segment';
+      const excludeNumeric = msg.excludeNumeric !== false;
+      const excludeSet = new Set<string>((msg.excludeWords || []).map((w: string) => w.toLowerCase()));
+
+      // 词段过滤：剔除排除词与纯数字编号
+      const filterTokens = (tokens: string[]): string[] => {
+        return tokens.filter(t => {
+          if (excludeSet.has(t)) return false;
+          if (excludeNumeric && /^\d+$/.test(t)) return false;
+          return true;
+        });
+      };
+
+      // 两两匹配，公共词段 ≥ 2 字符才计入
+      const pairs: any[] = [];
+      for (const a of nodesA) {
+        const ta = filterTokens(tokenize(a.name));
+        if (ta.length === 0) continue;
+        for (const b of nodesB) {
+          if (b.id === a.id) continue;
+          const tb = filterTokens(tokenize(b.name));
+          if (tb.length === 0) continue;
+          let common: string[] = [];
+          if (mode === 'segment') {
+            // 分段匹配：词段完全相同才算命中
+            common = ta.filter(t => t.length >= 2 && tb.includes(t));
+          } else {
+            // 子串匹配：词段被对方完整名称包含即命中
+            const bFull = b.name.toLowerCase();
+            const aFull = a.name.toLowerCase();
+            const hitA = ta.filter(t => t.length >= 2 && bFull.includes(t));
+            const hitB = tb.filter(t => t.length >= 2 && aFull.includes(t));
+            common = Array.from(new Set([...hitA, ...hitB]));
+          }
+          if (common.length > 0) {
+            pairs.push({ aId: a.id, aName: a.name, bId: b.id, bName: b.name, common });
+          }
+        }
+      }
+
+      // 按公共词数量降序
+      pairs.sort((x, y) => y.common.length - x.common.length);
+
+      // 防止结果过多导致 UI 卡死，最多返回 500 对
+      const MAX_PAIRS = 500;
+      const truncated = pairs.length > MAX_PAIRS;
+
+      figma.ui.postMessage({
+        type: 'dup-check-result',
+        data: {
+          pairs: pairs.slice(0, MAX_PAIRS),
+          totalPairs: pairs.length,
+          truncated,
+          aName: cA.name,
+          bName: cB.name,
+          aCount: nodesA.length,
+          bCount: nodesB.length
+        }
+      });
+      break;
+    }
+
+    case 'dup-select-layers': {
+      // 勾选模式: add 加入选中 / remove 移出选中 / set 替换选中
+      const ids: string[] = msg.ids || [];
+      // dynamic-page 模式下必须用异步 API 获取节点
+      const found = await Promise.all(ids.map(id => figma.getNodeByIdAsync(id)));
+      const nodes = found
+        .filter(n => n && (n as any).type !== 'DOCUMENT' && (n as any).type !== 'PAGE') as SceneNode[];
+      const cur = figma.currentPage.selection;
+      let next: SceneNode[];
+      if (msg.mode === 'add') {
+        next = Array.from(new Set([...cur, ...nodes]));
+      } else if (msg.mode === 'remove') {
+        next = cur.filter(n => !ids.includes(n.id));
+      } else {
+        next = nodes;
+      }
+      figma.currentPage.selection = next;
+      notifyInUiLanguage(`已选中 ${next.length} 个图层`);
+      break;
+    }
+
+    case 'dup-fill-red': {
+      // 自动标记：左(A)侧勾选填红，右(B)侧勾选填绿
+      // 可直接改 fills 的节点直接填充；Instance/Component/Group 等无法改 fills 的节点，
+      // 在其下方插入同尺寸半透明标记矩形兑底，不改动目标节点本身
+      try {
+        const aIds: string[] = msg.aIds || [];
+        const bIds: string[] = msg.bIds || [];
+        console.log('[dup-fill-red] A侧', aIds.length, '个, B侧', bIds.length, '个');
+
+        const runGroup = async (ids: string[], COLOR: RGB, tagName: string): Promise<{ filled: number, marked: number, skipped: number }> => {
+          const stat = { filled: 0, marked: 0, skipped: 0 };
+          if (ids.length === 0) return stat;
+          // dynamic-page 模式下必须用异步 API 获取节点
+          const found = await Promise.all(ids.map(id => figma.getNodeByIdAsync(id)));
+          const nodes: any[] = [];
+          found.forEach((n, i) => {
+            if (n && (n as any).type !== 'DOCUMENT' && (n as any).type !== 'PAGE') {
+              nodes.push(n);
+            } else {
+              console.log('[dup-fill-red] 未找到节点:', ids[i], '->', n ? (n as any).type : null);
+            }
+          });
+
+          // 直接改 fills（Instance/Component 的 fills 只读，赋值会抛错返回 false）
+          const trySetFill = (node: any): boolean => {
+            if (typeof node.fills === 'undefined') return false;
+            try {
+              node.fills = [{ type: 'SOLID', color: COLOR, opacity: 0.35 } as SolidPaint];
+              return true;
+            } catch (e: any) {
+              console.log('[dup-fill-red] 直接填充失败:', node.id, node.type, e && e.message);
+              return false;
+            }
+          };
+
+          // 在节点下方插入同尺寸半透明标记矩形
+          const addMarkRect = (node: any): boolean => {
+            try {
+              const abs = node.absoluteBoundingBox;
+              const parent: any = node.parent;
+              if (!abs || !parent) {
+                console.log('[dup-fill-red] 无包围盒或父容器:', node.id, node.type);
+                return false;
+              }
+              const pabs = parent.absoluteBoundingBox;
+              const rect = figma.createRectangle();
+              rect.name = tagName + ' 查重标记';
+              rect.resize(abs.width, abs.height);
+              rect.x = abs.x - (pabs ? pabs.x : 0);
+              rect.y = abs.y - (pabs ? pabs.y : 0);
+              rect.fills = [{ type: 'SOLID', color: COLOR } as SolidPaint];
+              rect.opacity = 0.35;
+              const idx = parent.children.indexOf(node);
+              parent.insertChild(idx < 0 ? parent.children.length : idx, rect);
+              return true;
+            } catch (e: any) {
+              console.log('[dup-fill-red] 矩形标记失败:', node.id, node.type, e && e.message);
+              return false;
+            }
+          };
+
+          for (const n of nodes) {
+            if ('locked' in n && (n as any).locked) { stat.skipped++; continue; }
+            if (trySetFill(n)) { stat.filled++; continue; }
+            if (addMarkRect(n)) { stat.marked++; }
+            else { stat.skipped++; }
+          }
+          return stat;
+        };
+
+        const red = await runGroup(aIds, { r: 1, g: 0, b: 0 }, '🔴');
+        const green = await runGroup(bIds, { r: 0.18, g: 0.75, b: 0.33 }, '🟢');
+        const redCount = red.filled + red.marked;
+        const greenCount = green.filled + green.marked;
+        const skipped = red.skipped + green.skipped;
+        console.log('[dup-fill-red] 结果: 左红=' + redCount + ' 右绿=' + greenCount + ' 跳过=' + skipped);
+
+        let msgTxt = `已标记 左红 ${redCount} 个 · 右绿 ${greenCount} 个`;
+        if (skipped > 0) msgTxt += `（跳过 ${skipped} 个）`;
+        notifyInUiLanguage(msgTxt);
+      } catch (e: any) {
+        console.error('[dup-fill-red] 异常:', e);
+        notifyInUiLanguage('填充失败：' + (e && e.message ? e.message : String(e)));
+      }
+      break;
+    }
+
+    // ===========================
+    // E. 文本查找与替换
+    // ===========================
+    case 'find-replace': {
+      const { findText, replaceText } = msg;
+      if (!findText) { notifyInUiLanguage("请输入查找内容，注意区分大小写"); return; }
+
+      // 确定范围：如果有选区则在选区内查，否则在全页查
+      const scope = selection.length > 0 ? selection : [figma.currentPage];
+      let count = 0;
+
+      // 递归查找文本节点
+      const textNodes: TextNode[] = [];
+      const collect = (n: any) => {
+        if (n.type === 'TEXT') textNodes.push(n);
+        if ('children' in n) n.children.forEach(collect);
+      };
+      scope.forEach(collect);
+
+      if (textNodes.length === 0) { notifyInUiLanguage("范围内没有文本"); return; }
+
+      // 批量处理
+      for (const node of textNodes) {
+        if (node.characters.includes(findText)) {
+          try {
+            // 必须加载字体才能修改内容
+            const font = node.fontName;
+            if (font === figma.mixed) {
+               // 简化处理：如果是混合字体，尝试加载第一段的字体（复杂情况可能报错，暂跳过）
+               await figma.loadFontAsync(node.getRangeFontName(0,1) as FontName);
+            } else {
+               await figma.loadFontAsync(font);
+            }
+
+            // 执行替换
+            node.characters = node.characters.split(findText).join(replaceText);
+            count++;
+          } catch (e) {
+            console.error("字体加载失败或替换出错", e);
+          }
+        }
+      }
+
+      if (count > 0) notifyInUiLanguage(`已替换 ${count} 处文本`);
+      else notifyInUiLanguage("未找到匹配内容");
+      break;
+    }
+
+    // ===========================
+    // F. PPT 工具
+    // ===========================
+    case 'ppt-step-1': { // 初始化
+      const pageName = figma.currentPage.name.toLowerCase();
+
+      // --- 修复点 1：安全检查不通过时，要告诉 UI 重置按钮 ---
+      if (!pageName.includes('copy') && !pageName.includes('副本')) {
+        notifyInUiLanguage("⚠️ 请先将 Page 重命名为 'xxx 副本' 以确保安全！", {error: true});
+        // 发送一个 'step-error' 消息给 UI，让它停止转圈
+        figma.ui.postMessage({ type: 'step-error', step: 1 });
+        return;
+      }
+
+      const slides = getSlides();
+      // --- 修复点 2：没选图层时，也要告诉 UI 重置按钮 ---
+      if (slides.length === 0) {
+        notifyInUiLanguage("请至少选择一个 Frame 画板");
+        figma.ui.postMessage({ type: 'step-error', step: 1 });
+        return;
+      }
+
+      // 执行 Step 1 函数
+      await pptStep1_Init(slides);
+      break;
+    }
+
+    case 'ppt-step-2': { // 栅格化图标
+      const slides = getSlides();
+      await pptStep2_Rasterize(slides);
+      break;
+    }
+
+    case 'ppt-step-3': { // 扁平化
+      const slides = getSlides();
+      await pptStep3_Flatten(slides);
+      break;
+    }
+
+    case 'ppt-step-4': { // 提取数据
+      let slides = getSlides();
+
+      // === 修复：使用绝对坐标排序 ===
+      slides = sortNodesByVisualPosition(slides);
+
+      // 函数内部会发送 step-done，这里不需要再发了
+      await pptStep4_Extract(slides);
+      break;
+    }
+
+    case 'ppt-step-5': { // 导出资源
+      let slides = getSlides();
+
+      // === 修复：使用绝对坐标排序 (保持顺序一致) ===
+      slides = sortNodesByVisualPosition(slides);
+
+      // 同上，内部已发消息
+      await pptStep5_ExportImages(slides);
+      break;
+    }
+
+    // ===========================
+    // G. 组件清洗 Refiner (Smart Grouping V2 - Updated)
+    // ===========================
+    case 'lint-variants': {
+        console.log("【3】后端：进入严格分类逻辑...");
+
+        const cfg = msg.config || msg;
+        const targets: SceneNode[] = [];
+
+        const targetTypes = cfg.targetTypes || { compName: true, propName: true, propValue: true };
+
+        let scopeNodes: readonly SceneNode[] = [];
+        if (cfg.scope === 'page') {
+            scopeNodes = figma.currentPage.children;
+        } else {
+            scopeNodes = figma.currentPage.selection;
+        }
+
+        const collectTargets = (nodes: readonly SceneNode[]) => {
+            for (const node of nodes) {
+                if (node.type === 'COMPONENT_SET' || node.type === 'COMPONENT') {
+                    targets.push(node);
+                }
+                if ('children' in node) collectTargets((node as any).children);
+            }
+        };
+        collectTargets(scopeNodes);
+
+        let findRegex: RegExp | null = null;
+        if (cfg.mode === 'find' && cfg.findText) {
+             try {
+                const escape = (s:string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                let pat = escape(cfg.findText);
+                if (cfg.wholeWord) pat = `\\b${pat}\\b`;
+                findRegex = new RegExp(pat, cfg.caseSensitive ? 'g' : 'gi');
+            } catch(e) {}
+        }
+
+        const results = [];
+
+        const checkString = (text: string) => {
+            let res = { changed: false, val: text };
+            if (cfg.mode === 'lint') {
+                res = convertNameAdvanced(text, cfg.format, cfg.separator, cfg.casing, cfg.emoji, cfg.removeId, cfg.unmarkHidden);
+            } else if (findRegex) {
+                if (findRegex.test(text)) {
+                    res.val = text.replace(findRegex, cfg.replaceText || '');
+                    res.changed = true;
+                }
+                if (res.changed && cfg.markHidden) {
+                    if (!res.val.startsWith('.') && !res.val.startsWith('_')) res.val = '.' + res.val;
+                }
+                if (cfg.unmarkHidden) {
+                    if (res.val.startsWith('.') || res.val.startsWith('_')) {
+                        res.val = res.val.substring(1);
+                        res.changed = true;
+                    }
+                }
+            }
+            return res;
+        };
+
+        for (const node of targets) {
+            try {
+                if (node.type === 'COMPONENT_SET') {
+                    if (targetTypes.compName) {
+                        const res = checkString(node.name);
+                        if (res.changed) {
+                            results.push({
+                                id: node.id, compId: node.id, compName: node.name,
+                                type: 'COMPONENT_SET',
+                                targetType: 'CompName',
+                                propName: 'Name', oldVal: node.name, newVal: res.val
+                            });
+                        }
+                    }
+                }
+
+                else if (node.type === 'COMPONENT') {
+                    const isVariant = node.parent && node.parent.type === 'COMPONENT_SET';
+                    const compId = isVariant ? node.parent!.id : node.id;
+                    const CompName = isVariant ? node.parent!.name : node.name;
+                    const groupType = isVariant ? 'COMPONENT_SET' : 'COMPONENT';
+
+                    if (!isVariant) {
+                        if (targetTypes.compName) {
+                            const res = checkString(node.name);
+                            if (res.changed) {
+                                results.push({
+                                    id: node.id, compId: compId, compName: CompName,
+                                    type: groupType,
+                                    targetType: 'CompName',
+                                    propName: 'Name', oldVal: node.name, newVal: res.val
+                                });
+                            }
+                        }
+                    } else {
+                         const rawProps = node.name.split(',').map(p => p.trim());
+                         const newProps: string[] = [];
+                         let hasAnyChange = false;
+
+                         rawProps.forEach(pair => {
+                             const parts = pair.split('=');
+                             if (parts.length < 2) {
+                                 newProps.push(pair);
+                                 return;
+                             }
+
+                             const key = parts[0].trim();
+                             const val = parts[1].trim();
+
+                             if (targetTypes.propName) {
+                                 const resKey = checkString(key);
+                                 if (resKey.changed) {
+                                     results.push({
+                                         id: node.id, compId: compId, compName: CompName,
+                                         type: groupType,
+                                         targetType: 'PropName',
+                                         propName: 'Property',
+                                         oldVal: key, newVal: resKey.val
+                                     });
+                                     hasAnyChange = true;
+                                 }
+                             }
+
+                             if (targetTypes.propValue) {
+                                 const resVal = checkString(val);
+                                 if (resVal.changed) {
+                                     results.push({
+                                         id: node.id, compId: compId, compName: CompName,
+                                         type: groupType,
+                                         targetType: 'PropValue',
+                                         propName: key,
+                                         oldVal: val, newVal: resVal.val
+                                     });
+                                     hasAnyChange = true;
+                                 }
+                             }
+
+                             const finalKey = (targetTypes.propName && checkString(key).changed) ? checkString(key).val : key;
+                             const finalVal = (targetTypes.propValue && checkString(val).changed) ? checkString(val).val : val;
+                             newProps.push(`${finalKey}=${finalVal}`);
+                         });
+
+                         if (hasAnyChange) {
+                             const fullNewName = newProps.join(', ');
+                             for (let k = results.length - 1; k >= 0; k--) {
+                                 if (results[k].id === node.id) {
+                                     if(!results[k].fullResult) results[k].fullResult = fullNewName;
+                                 } else {
+                                     break;
+                                 }
+                             }
+                         }
+                    }
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        figma.ui.postMessage({ type: 'lint-results', data: results });
+        break;
+    }
+
+    case 'fix-variants': {
+        const items = msg.items;
+        let count = 0;
+        for (const item of items) {
+            try {
+                const node = await figma.getNodeByIdAsync(item.id);
+                if (node) {
+                    node.name = item.fullResult || item.newVal;
+                    count++;
+                }
+            } catch (err) {}
+        }
+        notifyInUiLanguage(`✨ 已成功修复 ${count} 项命名`);
+        break;
+    }
+
+    // -------------------------------------------------------------
+    // 1. 查找功能：改为返回具体的匹配项列表 (后端修复版)
+    // -------------------------------------------------------------
+    case 'text-find-matches': {
+        const { scope, findText } = msg;
+        console.log("【后端】收到文本查找请求:", scope, findText); // 调试日志
+
+        const results = [];
+        let searchPool = [];
+
+        // 1. 确定搜索范围
+        if (scope === 'selection') {
+            searchPool = figma.currentPage.selection;
+        } else {
+            // 搜索整个页面 (包含页面本身)
+            searchPool = [figma.currentPage];
+        }
+
+        if (searchPool.length === 0 && scope === 'selection') {
+            notifyInUiLanguage("请先选择图层");
+            // 即使失败，也要发回空结果，以此重置前端按钮状态
+            figma.ui.postMessage({ type: 'text-find-results', data: [] });
+            return;
+        }
+
+        // 2. 递归查找函数
+        const traverse = (node) => {
+            // 只有可见的文本层才参与查找
+            if (node.type === 'TEXT' && node.visible) {
+                const fullText = node.characters;
+                // 转义正则特殊字符
+                const escapedFindText = findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                // 全局、不区分大小写匹配
+                const regex = new RegExp(escapedFindText, 'gi');
+
+                let match;
+                while ((match = regex.exec(fullText)) !== null) {
+                    results.push({
+                        id: node.id,
+                        fullText: fullText,
+                        index: match.index,
+                        length: match[0].length,
+                        matchText: match[0]
+                    });
+                }
+            }
+
+            // 递归子级
+            if ('children' in node) {
+                node.children.forEach(traverse);
+            }
+        };
+
+        // 3. 执行查找
+        searchPool.forEach(traverse);
+
+        console.log(`【后端】查找完成，找到 ${results.length} 项`);
+
+        // 4. 发送结果给前端
+        figma.ui.postMessage({ type: 'text-find-results', data: results });
+
+        if (results.length === 0) {
+            notifyInUiLanguage("未找到匹配文本");
+        }
+        break;
+    }
+
+    // -------------------------------------------------------------
+    // 2. 定位功能 (修复版：兼容组件清洗和文字工具)
+    // -------------------------------------------------------------
+    case 'locate-node': {
+        try {
+            const node = await figma.getNodeByIdAsync(msg.id);
+
+            if (node) {
+                // === 第一步：通用操作 (先选中并聚焦) ===
+                // 这一步对组件、矩形、文本都有效，修复了组件清洗无法定位的问题
+                // 检查节点是否在当前页面，如果在不同页面可能需要切换（但插件API限制通常只能操作当前页）
+                figma.currentPage.selection = [node];
+                figma.viewport.scrollAndZoomIntoView([node]);
+
+                // === 第二步：文字工具特有逻辑 (仅当是文本且包含索引参数时执行) ===
+                if (node.type === 'TEXT' && typeof msg.index === 'number' && typeof msg.length === 'number') {
+
+                    const cacheKey = `${msg.id}_${msg.index}`;
+
+                    // 加载字体
+                    const font = node.fontName === figma.mixed
+                                 ? node.getRangeFontName(0, 1)
+                                 : node.fontName;
+                    await figma.loadFontAsync(font);
+
+                    // A. 还原颜色
+                    if (highlightCache[cacheKey]) {
+                        const cachedData = highlightCache[cacheKey]; // { fills, length }
+                        node.setRangeFills(msg.index, msg.index + cachedData.length, cachedData.fills);
+
+                        delete highlightCache[cacheKey];
+                        notifyInUiLanguage("已还原颜色");
+                        figma.ui.postMessage({ type: 'highlight-status', key: cacheKey, status: false });
+
+                    } else {
+                        // B. 执行高亮
+                        const currentFills = node.getRangeFills(msg.index, msg.index + 1);
+                        highlightCache[cacheKey] = { fills: currentFills, length: msg.length };
+
+                        const highlightPaint = [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 } }];
+                        node.setRangeFills(msg.index, msg.index + msg.length, highlightPaint);
+
+                        notifyInUiLanguage("已标记 (再次点击可还原)");
+                        figma.ui.postMessage({ type: 'highlight-status', key: cacheKey, status: true });
+                    }
+                }
+            } else {
+                notifyInUiLanguage("图层不存在 (可能已被删除)");
+            }
+        } catch (e) {
+            console.error("定位失败:", e);
+            // 即使报错，通常是因为字体加载或跨页问题，不应该影响基础选中
+            // 如果已经在上面被选中了，这里就不报干扰信息了
+        }
+        break;
+    }
+
+    // -------------------------------------------------------------
+    // 3. 替换功能：支持点对点替换 (修复Bug 1 & 4)
+    // -------------------------------------------------------------
+    case 'text-replace-batch': {
+        const { tasks, replaceText } = msg;
+        // tasks 是一个数组: [{id, index, length}, ...]
+
+        let successCount = 0;
+        const processedIds = new Set(); // 用于记录成功的 uniqueId，发回给前端禁用
+
+        // 🌟 关键策略：按 Node ID 分组，组内按 Index 倒序排列
+        // 为什么倒序？因为替换前面的文字会改变后面文字的索引。
+        // 从后往前替换，坐标永远是准的。
+
+        const groups = {};
+        tasks.forEach(task => {
+            if (!groups[task.id]) groups[task.id] = [];
+            groups[task.id].push(task);
+        });
+
+        for (const nodeId in groups) {
+            const node = await figma.getNodeByIdAsync(nodeId);
+            if (!node || node.type !== 'TEXT') continue;
+
+            const groupTasks = groups[nodeId];
+            // 🌟 倒序排序
+            groupTasks.sort((a, b) => b.index - a.index);
+
+            try {
+                // 混合字体文本需先加载所有字体，否则批量替换会整组失败。
+                const fonts = node.fontName === figma.mixed
+                  ? node.getRangeAllFontNames(0, node.characters.length)
+                  : [node.fontName];
+                for (const font of fonts) await figma.loadFontAsync(font);
+
+                // 执行替换
+                for (const task of groupTasks) {
+                    // 再次检查字符是否匹配（防止并发修改导致的错位）
+                    const currentStr = node.characters.substring(task.index, task.index + task.length);
+                    // 简单的校验，略过严格校验以允许大小写差异
+
+                    node.deleteCharacters(task.index, task.index + task.length);
+                    node.insertCharacters(task.index, replaceText);
+
+                    successCount++;
+                    delete highlightCache[`${task.id}_${task.index}`];
+                    // 记录前端传来的唯一标识 (uid)，以便前端禁用
+                    if (task.uid) processedIds.add(task.uid);
+                }
+            } catch (err) {
+                console.error(`替换失败 ${nodeId}:`, err);
+            }
+        }
+
+        // 通知前端哪些任务完成了
+        figma.ui.postMessage({
+            type: 'text-replace-success',
+            count: successCount,
+            processedUids: Array.from(processedIds)
+        });
+
+        notifyInUiLanguage(`已替换 ${successCount} 处文本`);
+        break;
+    }
+
+    // -------------------------------------------------------------
+    // [新] 一键清除所有高亮
+    // -------------------------------------------------------------
+    case 'clear-all-highlights': {
+        let count = 0;
+        for (const key in highlightCache) {
+            const [nodeId, indexStr] = key.split('_');
+            const index = parseInt(indexStr);
+            const data = highlightCache[key]; // { fills, length }
+
+            try {
+                const node = await figma.getNodeByIdAsync(nodeId);
+                if (node && node.type === 'TEXT') {
+                     const font = node.fontName === figma.mixed ? node.getRangeFontName(0, 1) : node.fontName;
+                     await figma.loadFontAsync(font);
+                     node.setRangeFills(index, index + data.length, data.fills);
+                     count++;
+                }
+            } catch(e) { console.log("还原失败", e) }
+        }
+        highlightCache = {}; // 清空池子
+        notifyInUiLanguage(`已还原 ${count} 处高亮`);
+        // 通知前端清除所有高亮样式
+        figma.ui.postMessage({ type: 'clear-all-highlights-ui' });
+        break;
+    }
+
+    // ===========================
+    // === 锚点工具 (Jumpback) ===
+    // ===========================
+
+    case 'jb-init': {
+      // 初始化读取
+      const dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
+      const spots = dataStr ? JSON.parse(dataStr) :[];
+      figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
+      break;
+    }
+
+    case 'jb-reorder': {
+      const raw = figma.root.getPluginData('JUMPBACK_SPOTS');
+      const spots = raw ? JSON.parse(raw) : [];
+      const ordered = reorderPluginBookmarks(spots, msg.ids);
+      let error = !ordered;
+      try { if (ordered) figma.root.setPluginData('JUMPBACK_SPOTS', JSON.stringify(ordered)); }
+      catch (_) { error = true; }
+      figma.ui.postMessage({ type:'jb-render-spots', data:error ? spots : ordered, requestId:msg.requestId, error });
+      break;
+    }
+
+    case 'jb-save': {
+      const dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
+      let spots = dataStr ? JSON.parse(dataStr) :[];
+
+      if (spots.length >= 5) {
+        notifyInUiLanguage("最多只能保存 5 个锚点！");
+        return;
+      }
+
+      // 获取案发现场数据
+      const currentSelection = figma.currentPage.selection;
+      // 默认名字：如果选中了图层就用图层名，否则叫 Spot
+      const defaultName = currentSelection.length > 0 ? currentSelection[0].name.substring(0, 15) : `Spot ${spots.length + 1}`;
+
+      const newSpot = {
+        id: 'spot_' + Date.now(),
+        name: defaultName,
+        pageId: figma.currentPage.id,
+        pageName: figma.currentPage.name,
+        zoom: figma.viewport.zoom,
+        centerX: figma.viewport.center.x,
+        centerY: figma.viewport.center.y,
+        // 保存选中的图层 ID 数组
+        selectionIds: currentSelection.map(n => n.id)
+      };
+
+      spots.push(newSpot);
+      figma.root.setPluginData('JUMPBACK_SPOTS', JSON.stringify(spots));
+
+      notifyInUiLanguage("📍 位置已保存");
+      figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
+      break;
+    }
+
+    case 'jb-jump': {
+      const dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
+      if (!dataStr) return;
+      const spots = JSON.parse(dataStr);
+      const spot = spots.find((s: any) => s.id === msg.id);
+
+      if (!spot) return;
+
+      try {
+        // 1. 跨页面跳转 (如果所在的 Page 不一样)
+        if (figma.currentPage.id !== spot.pageId) {
+          // === 修复点 1：使用 getNodeByIdAsync 异步获取节点 ===
+          const targetPage = await figma.getNodeByIdAsync(spot.pageId);
+          if (targetPage && targetPage.type === 'PAGE') {
+            // === 修复点 2：在 dynamic-page 模式下，必须用 setCurrentPageAsync 切换页面 ===
+            await figma.setCurrentPageAsync(targetPage as PageNode);
+          } else {
+            notifyInUiLanguage("⚠️ 该位置所在的页面已被删除！");
+            return;
+          }
+        }
+
+        // 2. 恢复视角坐标和缩放
+        figma.viewport.center = { x: spot.centerX, y: spot.centerY };
+        figma.viewport.zoom = spot.zoom;
+
+        // 3. 尝试恢复离开前选中的图层
+        const nodesToSelect: SceneNode[] = [];
+        if (spot.selectionIds && Array.isArray(spot.selectionIds)) {
+           // 使用 for...of 配合 await 依次获取节点
+           for (const id of spot.selectionIds) {
+             // === 修复点 3：同样使用 getNodeByIdAsync 获取历史图层 ===
+             const node = await figma.getNodeByIdAsync(id);
+
+             // 确保节点还存在，且不是页面本身 (防止意外)
+             if (node && !node.removed && node.type !== 'PAGE' && node.type !== 'DOCUMENT') {
+                nodesToSelect.push(node as SceneNode);
+             }
+           }
+        }
+
+        // 4. 执行选中
+        if (nodesToSelect.length > 0) {
+           figma.currentPage.selection = nodesToSelect;
+        } else {
+           // 如果图层被删了，清空当前选中项，视角依然过去 (补全了这里)
+           figma.currentPage.selection = [];
+        }
+
+        notifyInUiLanguage("🚀 已传送！");
+      } catch (e) {
+        console.warn("Jumpback failed:", e);
+        notifyInUiLanguage("传送失败，可能是图层结构已发生巨大改变");
+      }
+      break;
+    }
+
+    case 'jb-delete': {
+      const dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
+      if (!dataStr) return;
+      let spots = JSON.parse(dataStr);
+
+      // 过滤掉要删除的 ID
+      spots = spots.filter((s: any) => s.id !== msg.id);
+
+      // 更新保存
+      figma.root.setPluginData('JUMPBACK_SPOTS', JSON.stringify(spots));
+
+      // 重新渲染 UI
+      figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
+      notifyInUiLanguage("🗑️ 锚点已删除");
+      break;
+    }
+
+    case 'jb-rename': {
+      const dataStr = figma.root.getPluginData('JUMPBACK_SPOTS');
+      if (!dataStr) return;
+      let spots = JSON.parse(dataStr);
+
+      const index = spots.findIndex((s: any) => s.id === msg.id);
+      if (index > -1 && msg.newName.trim() !== '') {
+        spots[index].name = msg.newName.substring(0, 20); // 限制长度
+        figma.root.setPluginData('JUMPBACK_SPOTS', JSON.stringify(spots));
+        notifyInUiLanguage("已重命名");
+      } else {
+         // 如果名字为空，发回原数据恢复 UI
+         figma.ui.postMessage({ type: 'jb-render-spots', data: spots });
+      }
+      break;
+    }
+
+    // ==========================================
+    // === 引擎：等轴形变 (Transform & Skew) ===
+    // ==========================================
+
+    case 'skew-apply': {
+      const selection = figma.currentPage.selection;
+      if (selection.length === 0) return; // 拖动滑块时高频触发，没选中就静默退出
+
+      // 1. 将角度转换为弧度
+      const r = (msg.rot * Math.PI) / 180;
+      const sx = (msg.angleX * Math.PI) / 180;
+      const sy = (msg.angleY * Math.PI) / 180;
+
+      // 2. 提前计算三角函数
+      const cosR = Math.cos(r);
+      const sinR = Math.sin(r);
+      const tanX = Math.tan(sx);
+      const tanY = Math.tan(sy);
+
+      // 3. 矩阵乘法合并 (Rotate Matrix * Skew Matrix)
+      // 这是一道图形学经典公式推导，确保了变形的无损和连贯性
+      const m00 = cosR - sinR * tanY;
+      const m01 = cosR * tanX - sinR;
+      const m10 = sinR + cosR * tanY;
+      const m11 = sinR * tanX + cosR;
+
+      try {
+        for (const node of selection) {
+          if ('relativeTransform' in node) {
+            // 获取图层当前在父级中的原点坐标 (X, Y 轴偏移量)
+            // 如果不保留这个，每次变形图层都会飞到画布左上角 (0,0)
+            const tx = node.relativeTransform[0][2];
+            const ty = node.relativeTransform[1][2];
+
+            // 4. 应用最终的 2x3 仿射变换矩阵
+            const newTransform: Transform = [
+              [m00, m01, tx],
+              [m10, m11, ty]
+            ];
+
+            node.relativeTransform = newTransform;
+          }
+        }
+      } catch (error) {
+        console.error("Transform Engine failed:", error);
+      }
+      break;
+    }
+
+    // ==========================================
+    // === Skew 预设数据存储 (ClientStorage) ===
+    // ==========================================
+
+    // 1. UI 请求加载历史预设
+    case 'req-skew-presets': {
+      try {
+        // 读取缓存在用户 Figma 账号下的数据
+        const data = await figma.clientStorage.getAsync('MY_SKEW_PRESETS');
+        // 发送回前端渲染
+        figma.ui.postMessage({ type: 'init-skew-presets', data: data || [] });
+      } catch (e) {
+        console.warn("读取 Skew 预设失败", e);
+      }
+      break;
+    }
+
+    // 2. UI 请求保存新的预设
+    case 'save-skew-presets': {
+      try {
+        // 覆盖保存到用户的 Figma 账号下
+        await figma.clientStorage.setAsync('MY_SKEW_PRESETS', msg.data);
+      } catch (e) {
+        console.warn("保存 Skew 预设失败", e);
+      }
+      break;
+    }
+
+    // ==================== 语言切换 (i18n) 逻辑 ====================
+    case 'size-assistant-inspect': {
+        const selected = figma.currentPage.selection;
+        const valid = selected.filter(node => node.type === 'FRAME' || node.type === 'RECTANGLE') as Array<FrameNode | RectangleNode>;
+        figma.ui.postMessage({
+            type: 'size-assistant-selection',
+            validCount: valid.length,
+            invalidCount: selected.length - valid.length,
+            width: valid.length === 1 ? valid[0].width : 0,
+            height: valid.length === 1 ? valid[0].height : 0
+        });
+        break;
+    }
+
+    case 'size-assistant-apply': {
+        const width = Math.min(32768, Math.max(1, Number(msg.width)));
+        const height = Math.min(32768, Math.max(1, Number(msg.height)));
+        const selected = figma.currentPage.selection;
+        const valid = selected.filter(node => node.type === 'FRAME' || node.type === 'RECTANGLE') as Array<FrameNode | RectangleNode>;
+        if (!valid.length || !Number.isFinite(width) || !Number.isFinite(height)) {
+            const message = '请先选择一个或多个 Frame / 矩形';
+            notifyInUiLanguage(message, { error: true });
+            figma.ui.postMessage({ type: 'size-assistant-result', ok: false, message });
+            break;
+        }
+        let resized = 0;
+        const warnings: string[] = [];
+        for (const node of valid) {
+            try {
+                const centerX = node.x + node.width / 2;
+                const centerY = node.y + node.height / 2;
+                node.resize(width, height);
+                if (msg.keepCenter === true) {
+                    node.x = centerX - width / 2;
+                    node.y = centerY - height / 2;
+                }
+                resized++;
+            } catch (error) {
+                warnings.push(`${node.name}: ${String((error as any)?.message || error)}`);
+            }
+        }
+        try { figma.commitUndo(); } catch (_) {}
+        const message = `已将 ${resized} 个图层设为 ${width} × ${height}${warnings.length ? `，${warnings.length} 个图层调整失败` : ''}`;
+        notifyInUiLanguage(message, warnings.length ? { error: true } : undefined);
+        figma.ui.postMessage({ type: 'size-assistant-result', ok: resized > 0, message, warnings });
+        break;
+    }
+
+    case 'i18n-check-selection': {
+        const hasSelection = figma.currentPage.selection.length > 0;
+        figma.ui.postMessage({ type: 'i18n-check-selection-result', hasSelection: hasSelection });
+        break;
+    }
+
+    case 'i18n-load-config': {
+        const collections = await figma.variables.getLocalVariableCollectionsAsync();
+        figma.ui.postMessage({
+            type: 'i18n-config-result',
+            data: {
+                collections: collections
+                    .map(collection => ({ name: collection.name, modes: collection.modes.map(mode => mode.name) }))
+                    .sort((a, b) => Number(!/i18n|dictionary|多语言/i.test(a.name)) - Number(!/i18n|dictionary|多语言/i.test(b.name)))
+            }
+        });
+        break;
+    }
+
+    case 'i18n-detect': {
+        const { scope, extractTarget, collectionName } = msg;
+        let nodesToScan = scope === 'selection' ? [...figma.currentPage.selection] : [...figma.currentPage.children];
+
+        const textNodes = [];
+        async function findText(nodes) {
+            for (const node of nodes) {
+                if (node.type === 'TEXT') textNodes.push(node);
+                else if ('children' in node) await findText(node.children);
+            }
+        }
+        await findText(nodesToScan);
+
+        const allCollections = await figma.variables.getLocalVariableCollectionsAsync();
+        // 获取所有合集的名字，并把最像 i18n 的排在前面
+        const collectionNames = allCollections
+            .map(c => c.name)
+            .sort((a, b) => {
+                const aMatch = a.toLowerCase().includes('i18n') ? -1 : 1;
+                const bMatch = b.toLowerCase().includes('i18n') ? -1 : 1;
+                return aMatch - bMatch;
+            });
+        const targetColName = collectionName || "i18n Dictionary";
+        const i18nCollection = allCollections.find(c => c.name === targetColName)
+                            || allCollections.find(c => c.name.includes("i18n") || c.name.includes("Dictionary"));
+
+        let modes = [];
+        const existingVarMap = new Map();
+
+        if (i18nCollection) {
+            const sourceMode = i18nCollection.modes.find(mode => isI18nSourceMode(mode.name)) || i18nCollection.modes[0];
+            const origModeId = sourceMode.modeId;
+            i18nCollection.modes.forEach(m => {
+                if (m.modeId !== origModeId) modes.push(m.name);
+            });
+            const localVars = await figma.variables.getLocalVariablesAsync('STRING');
+            for (const v of localVars) {
+                if (v.variableCollectionId === i18nCollection.id) {
+                    const origVal = v.valuesByMode[origModeId];
+                    if (origVal) existingVarMap.set(origVal, v);
+                }
+            }
+        }
+
+        let boundCount = 0;
+        let mixedFonts = 0;
+        const autoBindMap = new Map();
+        const newTextMap = new Map();
+
+        for (const node of textNodes) {
+            if (node.hasMissingFont) continue;
+            if (extractTarget === 'unbound' && node.boundVariables && node.boundVariables['characters']) {
+                boundCount++;
+                continue;
+            }
+
+            const text = node.characters.trim();
+            if (!text) continue;
+
+            if (existingVarMap.has(text)) {
+                if (!autoBindMap.has(text)) autoBindMap.set(text, { variableId: existingVarMap.get(text).id, nodeIds: [] });
+                autoBindMap.get(text).nodeIds.push(node.id);
+            } else {
+                if (!newTextMap.has(text)) newTextMap.set(text, { nodeIds: [] });
+                newTextMap.get(text).nodeIds.push(node.id);
+            }
+        }
+
+        figma.ui.postMessage({
+            type: 'i18n-detect-result',
+            data: {
+                totalNodes: textNodes.length,
+                boundCount: boundCount,
+                collections: collectionNames,
+                collectionName: i18nCollection?.name || targetColName,
+                allModes: i18nCollection?.modes.map(mode => mode.name) || [],
+                autoBindList: Array.from(autoBindMap.entries()).map(([orig, d]) => ({ original: orig, ...d })),
+                newTextList: Array.from(newTextMap.entries()).map(([orig, d]) => ({ original: orig, ...d })),
+                modes: modes
+            }
+        });
+        break;
+    }
+
+    case 'i18n-bind-variables': {
+        const { newPayload, autoBindPayload, isCreate, collectionName } = msg;
+        try {
+            let collections = await figma.variables.getLocalVariableCollectionsAsync();
+            let collection = collections.find(c => c.name === collectionName);
+
+            // 1. 确保 Collection 存在
+            if (!collection) {
+                collection = figma.variables.createVariableCollection(collectionName);
+                collection.renameMode(collection.modes[0].modeId, 'Original');
+            }
+
+            const sourceMode = collection.modes.find(mode => isI18nSourceMode(mode.name)) || collection.modes[0];
+            const origModeId = sourceMode.modeId;
+
+            // 2. 收集所有需要处理的语种
+            const allTargetLangs = new Set<string>();
+            newPayload.forEach(item => Object.keys(item.translations).forEach(l => allTargetLangs.add(l)));
+
+            // 3. 核心修复：创建/获取 Mode ID 映射
+            const modeIdMap: { [key: string]: string } = {};
+            collection.modes.forEach(m => {
+                modeIdMap[m.name] = m.modeId;
+                modeIdMap[normalizeI18nModeName(m.name)] = m.modeId;
+            });
+
+            for (const lang of Array.from(allTargetLangs)) {
+                const canonicalKey = normalizeI18nModeName(lang);
+                if (!modeIdMap[canonicalKey]) {
+                    try {
+                        // The host enforces the collection's current mode capacity.
+                        const newModeId = collection.addMode(lang);
+                        modeIdMap[lang] = newModeId;
+                        modeIdMap[canonicalKey] = newModeId;
+                    } catch (e) {
+                        // Explain the failed operation without assuming a fixed plan quota.
+                        figma.ui.postMessage({
+                            type: 'i18n-bind-error',
+                            error: `无法创建 "${lang}" 语言模式。当前合集可能已达到模式数量限制。可改用「直接替换」，或检查当前方案支持的模式数量。`
+                        });
+                        return; // 终止执行
+                    }
+                }
+            }
+
+            // 已有词条只补绑定，不重复创建变量。
+            for (const item of autoBindPayload || []) {
+                const variable = await figma.variables.getVariableByIdAsync(item.variableId);
+                if (!variable) continue;
+                for (const nodeId of item.nodeIds || []) {
+                    const node = await figma.getNodeByIdAsync(nodeId);
+                    if (node?.type === 'TEXT' && !node.hasMissingFont) node.setBoundVariable('characters', variable);
+                }
+            }
+
+            // 4. 建立变量索引 (Original Text -> Variable)
+            const localVars = await figma.variables.getLocalVariablesAsync('STRING');
+            const varMap = new Map<string, Variable>();
+            for (const v of localVars) {
+                if (v.variableCollectionId === collection.id) {
+                    const baseVal = v.valuesByMode[origModeId] as string;
+                    if (baseVal) varMap.set(baseVal, v);
+                }
+            }
+
+            // 5. 遍历翻译数据，写入变量并执行绑定
+            for (const item of newPayload) {
+                let variable = varMap.get(item.original);
+
+                // 如果不存在则创建
+                if (!variable) {
+                    const varName = stableI18nVariableName(item.original);
+                    variable = figma.variables.createVariable(varName, collection, 'STRING');
+                    variable.setValueForMode(origModeId, item.original);
+                }
+
+                // 【核心修复】：为该变量在所有目标 Mode 中设置翻译值
+                for (const [langName, translatedText] of Object.entries(item.translations)) {
+                    const targetModeId = modeIdMap[langName] || modeIdMap[normalizeI18nModeName(langName)];
+                    if (targetModeId) {
+                        variable.setValueForMode(targetModeId, translatedText as string);
+                    }
+                }
+
+                // 执行画布节点的变量绑定
+                for (const nodeId of item.nodeIds) {
+                    const node = await figma.getNodeByIdAsync(nodeId);
+                    if (node && node.type === 'TEXT' && !node.hasMissingFont) {
+                        node.setBoundVariable('characters', variable);
+                    }
+                }
+            }
+
+            figma.ui.postMessage({ type: 'i18n-bind-success', message: '🎉 多语言 Mode 已同步更新！' });
+
+        } catch (e) {
+            figma.ui.postMessage({ type: 'i18n-bind-error', error: e.message });
+        }
+        break;
+    }
+
+    case 'i18n-replace-text': {
+        const { payload } = msg;
+        let successCount = 0;
+
+        try {
+            for (const item of payload) {
+                const targetText = Object.values(item.translations)[0];
+
+                for (const nodeId of item.nodeIds) {
+                    try {
+                        const node = await figma.getNodeByIdAsync(nodeId);
+                        if (node && node.type === 'TEXT' && !node.hasMissingFont) {
+                            const fonts = node.fontName === figma.mixed ? node.getRangeAllFontNames(0, node.characters.length) : [node.fontName];
+                            for (const font of fonts) await figma.loadFontAsync(font);
+
+                            // 【核心修复】：直接替换前，必须解除已有的变量绑定，否则必定被 Figma API 拦截失败！
+                            node.setBoundVariable('characters', null);
+
+                            node.characters = targetText;
+                            successCount++;
+                        }
+                    } catch (e) {
+                        console.warn(`节点替换失败`, e);
+                    }
+                }
+            }
+
+            figma.ui.postMessage({ type: 'i18n-bind-success', message: `🎉 成功替换了 ${successCount} 个文本节点！` });
+
+        } catch (e) {
+            figma.ui.postMessage({ type: 'i18n-bind-error', error: e.message });
+        }
+        break;
+    }
+
+    // --- 窗口大小调整 ---
+    case 'resize-start': {
+      // 记录开始拖拽时的状态
+      break;
+    }
+    case 'resize-move': {
+      // 计算新尺寸并调整窗口
+      const dx = msg.clientX - msg.startX;
+      const dy = msg.clientY - msg.startY;
+      const newW = Math.max(170, msg.startW + dx);
+      const newH = Math.max(200, msg.startH + dy);
+      figma.ui.resize(newW, newH);
+      break;
+    }
+    case 'resize-end': {
+      // 结束拖拽
+      break;
+    }
+    case 'resize-drag':
+    case 'resize-window':
+      figma.ui.resize(msg.width, msg.height);
+      break;
+
+    // ===========================
+    // I. Component Builder - 组件构建器
+    // ===========================
+    case 'component-builder-inspect': {
+      sendComponentBuilderSelection();
+      break;
+    }
+
+    case 'component-ai-inspect': {
+      try {
+        figma.ui.postMessage({ type: 'component-ai-context', context: buildComponentAiContext(msg.language || 'zh') });
+      } catch (error) {
+        figma.ui.postMessage({ type: 'component-ai-error', message: String((error as any)?.message || error) });
+      }
+      break;
+    }
+
+    case 'component-ai-apply': {
+      try {
+        const result = await applyComponentAiPlan(msg.plan);
+        figma.currentPage.selection = figma.currentPage.selection;
+        figma.commitUndo();
+        const message = `已应用 ${result.changed} 项组件规范优化${result.warnings.length ? `；${result.warnings.length} 项未能修改` : ''}`;
+        notifyInUiLanguage(message);
+        figma.ui.postMessage({ type: 'component-ai-applied', ok: true, message, warnings: result.warnings });
+        sendComponentBuilderSelection();
+      } catch (error) {
+        const message = `应用失败：${String((error as any)?.message || error)}`;
+        notifyInUiLanguage(message, { error: true });
+        figma.ui.postMessage({ type: 'component-ai-applied', ok: false, message });
+      }
+      break;
+    }
+
+    case 'component-builder-reverse': {
+      if (selection.length !== 1 || selection[0].type !== 'INSTANCE') {
+        const message = '请只选择一个实例（Instance）后再逆向母版';
+        notifyInUiLanguage(message);
+        figma.ui.postMessage({ type: 'component-builder-result', ok: false, message });
+        break;
+      }
+      if (componentReverseRunning) {
+        const message = '实例逆向正在处理中，请等待当前操作完成';
+        notifyInUiLanguage(message);
+        figma.ui.postMessage({ type: 'component-builder-result', ok: false, message });
+        break;
+      }
+
+      componentReverseRunning = true;
+      let result: Awaited<ReturnType<typeof reverseInstanceToMaster>> | null = null;
+      try {
+        result = await reverseInstanceToMaster(selection[0] as InstanceNode);
+      } catch (error) {
+        const message = `逆向失败：${String((error as any)?.message || error)}`;
+        notifyInUiLanguage(message);
+        figma.ui.postMessage({ type: 'component-builder-result', ok: false, message });
+      } finally {
+        componentReverseRunning = false;
+      }
+      if (!result) break;
+
+      try { figma.commitUndo(); } catch (_) {}
+      try { figma.currentPage.selection = [result.target]; } catch (error) {
+        result.warnings.push(`新母版已创建，但自动选中失败：${String((error as any)?.message || error)}`);
+      }
+      try { figma.viewport.scrollAndZoomIntoView([result.target]); } catch (error) {
+        result.warnings.push(`新母版已创建，但自动定位失败：${String((error as any)?.message || error)}`);
+      }
+      result.warnings = [...new Set(result.warnings)];
+      const variantText = result.variantCount > 1
+        ? `，完整还原 ${result.variantCount} 个真实变体`
+        : '';
+      const overflowText = result.overflowVariantCount > 0
+        ? `，原组件集 ${result.overflowVariantCount} 个变体超过上限 ${MAX_REVERSED_VARIANTS}，已保留当前真实变体`
+        : variantText;
+      const warningText = result.warnings.length > 0
+        ? `；${result.warnings.length} 项内容已安全降级或跳过`
+        : '';
+      const modeText = result.recoveryMode === 'raster' ? '（视觉快照兜底）' : '';
+      const message = `已逆向组件母版${modeText}${overflowText}，并保留 ${result.propertyCount} 个有效属性${warningText}`;
+      notifyInUiLanguage(message);
+      figma.ui.postMessage({
+        type: 'component-builder-result',
+        ok: true,
+        message,
+        warnings: result.warnings,
+        recoveryMode: result.recoveryMode,
+        variantCount: result.variantCount,
+        overflowVariantCount: result.overflowVariantCount,
+        created: 1
+      });
+      break;
+    }
+
+    case 'component-builder-create': {
+      await layerBuildManual(msg);
+      break;
+    }
+
+    // ===========================
+    // J. CompKit - 变体矩阵工具
+    // ===========================
+
+    // 初始化：获取组件集属性列表
+    case 'init-compkit': {
+      const selection = figma.currentPage.selection;
+      let properties: string[] = [];
+      let targetId: string | null = null;
+      let componentName = '';
+      let propertyValues: { [key: string]: string[] } = {};
+      let variantsCount = 0;
+      let totalSets = 0;
+
+      // 过滤出所有选中的组件集（支持直接从画板中提取）
+      const selectedSets: ComponentSetNode[] = [];
+      for (const node of selection) {
+        if (node.type === 'COMPONENT_SET') {
+          selectedSets.push(node);
+        } else if (node.type === 'FRAME' && node.getPluginData('isShowcaseBoard') === 'true') {
+          const innerSet = node.findOne(n => n.type === 'COMPONENT_SET') as ComponentSetNode | null;
+          if (innerSet) selectedSets.push(innerSet);
+        }
+      }
+
+      if (selectedSets.length > 0) {
+        totalSets = selectedSets.length;
+
+        if (selectedSets.length === 1) {
+          // 单选：完整解析，收集所有属性及其值（供"生成说明书"使用）
+          const targetNode = selectedSets[0];
+          if (targetNode.children.length > 0) {
+            componentName = targetNode.name;
+            variantsCount = targetNode.children.length;
+            targetId = targetNode.id;
+
+            const sampleName = targetNode.children[0].name;
+            properties = sampleName.split(',').map(p => p.split('=')[0].trim());
+
+            const variants = targetNode.children as ComponentNode[];
+            properties.forEach(prop => {
+              const values = new Set<string>();
+              variants.forEach(v => {
+                const props = v.name.split(',').reduce((acc, pair) => {
+                  const [key, val] = pair.split('=').map(s => s.trim());
+                  acc[key] = val;
+                  return acc;
+                }, {} as { [key: string]: string });
+                if (props[prop]) values.add(props[prop]);
+              });
+              propertyValues[prop] = Array.from(values);
+            });
+          }
+        } else {
+          // 多选：取所有组件集的公共（交集）属性（供"批量排布"使用）
+          const firstSample = selectedSets[0].children[0]?.name || '';
+          let common = firstSample.split(',').map(p => p.split('=')[0].trim());
+
+          for (let i = 1; i < selectedSets.length; i++) {
+            const sample = selectedSets[i].children[0]?.name || '';
+            const props = sample.split(',').map(p => p.split('=')[0].trim());
+            common = common.filter(p => props.includes(p));
+          }
+          properties = common;
+        }
+      }
+
+      figma.ui.postMessage({
+        type: 'compkit-props',
+        properties,
+        targetId,
+        componentName,
+        propertyValues,
+        variantsCount,
+        totalSets
+      });
+      break;
+    }
+
+    // 矩阵排列（简化版）- 支持单属性（1D）和多属性（2D）
+    case 'run-compkit': {
+      await handleLayerToolsMessage({ ...msg, type:'layer-matrix' });
+      break;
+    }
+
+    case 'generate-batch-showcase': {
+      const gapX = msg.gapX !== undefined ? msg.gapX : 16;
+      const gapY = msg.gapY !== undefined ? msg.gapY : 16;
+      const padding = msg.padding !== undefined ? msg.padding : 20;
+      const setSpacing = msg.setSpacing !== undefined ? msg.setSpacing : 32;
+      const drawLabels = msg.drawLabels !== false;
+      const drawGrid = msg.drawGrid !== false;
+      const orientation = msg.orientation === 'portrait' ? 'portrait' : 'landscape';
+      const isDark = msg.theme === 'dark';
+
+      const selection = figma.currentPage.selection;
+      // 从选中项中提取组件集（支持直接选中 ComponentSet 或已生成的说明书画板）
+      const compSets: ComponentSetNode[] = [];
+      for (const n of selection) {
+        if (n.type === 'COMPONENT_SET') {
+          compSets.push(n);
+        } else if (n.type === 'FRAME' && (n as FrameNode).getPluginData('isShowcaseBoard') === 'true') {
+          const innerSet = (n as FrameNode).findOne(child => child.type === 'COMPONENT_SET') as ComponentSetNode | null;
+          if (innerSet) compSets.push(innerSet);
+        }
+      }
+      if (compSets.length === 0) {
+        notifyInUiLanguage("请选中至少一个 Component Set！", { error: true });
+        break;
+      }
+
+      await figma.loadFontAsync({ family: "Inter", style: "Regular" });
+      await figma.loadFontAsync({ family: "Inter", style: "Semi Bold" });
+      await figma.loadFontAsync({ family: "Inter", style: "Bold" });
+
+      const layouts = new Map(compSets.map(componentSet => {
+        const variants = componentSet.children as ComponentNode[];
+        const properties = [...new Set(variants.flatMap(v => Object.keys(parseVariantName(v.name))))];
+        const axesX = Array.isArray(msg.axesX) ? msg.axesX.filter(p => properties.includes(p)) : [];
+        const axesY = Array.isArray(msg.axesY) ? msg.axesY.filter(p => properties.includes(p) && !axesX.includes(p)) : [properties[1]].filter(Boolean);
+        return [componentSet.id, LayerRules.matrix(variants, { ...msg, axesX: axesX.length ? axesX : [properties[0]], axesY, groupGap: msg.groupGap ?? setSpacing })];
+      }));
+      const oldBoards = new Set<any>();
+
+      // 收集所有组件集的中心位置
+      let centerX = 0, centerY = 0;
+      compSets.forEach(cs => { centerX += cs.x + cs.width / 2; centerY += cs.y + cs.height / 2; });
+      centerX /= compSets.length;
+      centerY /= compSets.length;
+
+      // 外层容器 Frame
+      const container = figma.createFrame();
+      container.name = "🧩 Component Specs Catalog";
+      container.setPluginData('isShowcaseBoard', 'true');
+      container.layoutMode = orientation === 'portrait' ? "VERTICAL" : "HORIZONTAL";
+      container.primaryAxisSizingMode = "AUTO";
+      container.counterAxisSizingMode = "AUTO";
+      container.itemSpacing = setSpacing;
+      container.paddingLeft = msg.boardPaddingX ?? 48; container.paddingRight = msg.boardPaddingX ?? 48;
+      container.paddingTop = msg.boardPaddingY ?? 56; container.paddingBottom = msg.boardPaddingY ?? 56;
+      container.fills = [{ type: 'SOLID', color: isDark
+        ? { r: 17/255, g: 24/255, b: 39/255 }
+        : { r: 249/255, g: 250/255, b: 251/255 } }];
+
+      let maxSetWidth = 0;
+
+      // 处理每个组件集
+      for (const componentSet of compSets) {
+        const variants = componentSet.children as ComponentNode[];
+        if (variants.length === 0) continue;
+
+        // 解耦组件集并自动销毁旧大画板，防止画布残留垃圾图层
+        const origX = componentSet.x;
+        const origY = componentSet.y;
+        let ancestor: BaseNode | null = componentSet.parent;
+        let oldBoard: FrameNode | null = null;
+        while (ancestor && ancestor.type !== 'DOCUMENT' && ancestor.type !== 'PAGE') {
+          if (ancestor.type === 'FRAME' && (ancestor as FrameNode).getPluginData('isShowcaseBoard') === 'true') {
+            oldBoard = ancestor as FrameNode;
+            break;
+          }
+          ancestor = ancestor.parent;
+        }
+        figma.currentPage.appendChild(componentSet);
+        if (oldBoard) oldBoards.add(oldBoard);
+
+        const layout = layouts.get(componentSet.id);
+        const localPropX = layout.x.join(' / '), localPropY = layout.y.join(' / '), localHasY = layout.y.length > 0;
+        const groupProps = layout.group;
+        const xArray = layout.xs.map(key => JSON.parse(key).join(' / '));
+        const yArray = layout.ys.map(key => JSON.parse(key).join(' / '));
+        const groups = layout.groups.map(key => JSON.parse(key).map((v,i) => `${groupProps[i]}=${v}`).join(', ') || 'Default');
+        const maxW = layout.maxW, maxH = layout.maxH, cellW = maxW + gapX, cellH = maxH + gapY, groupH = layout.groupH;
+        componentSet.layoutMode = 'NONE';
+        layout.placements.forEach(p => { p.node.x = p.x; p.node.y = p.y; });
+        const csWidth = layout.width, csHeight = layout.height;
+        componentSet.resize(csWidth, csHeight);
+
+        if (csWidth > maxSetWidth) maxSetWidth = csWidth;
+
+        // 每组创建一个包装容器：标题 + 组件集
+        const setGroup = figma.createFrame();
+        setGroup.name = componentSet.name;
+        setGroup.layoutMode = "VERTICAL";
+        setGroup.primaryAxisSizingMode = "AUTO";
+        setGroup.counterAxisSizingMode = "AUTO";
+        setGroup.itemSpacing = 12;
+        setGroup.fills = [];
+
+        // 组件集标题
+        const titleText = figma.createText();
+        titleText.characters = componentSet.name;
+        titleText.fontSize = 20; titleText.fontName = { family: "Inter", style: "Bold" };
+        titleText.fills = [{ type: 'SOLID', color: isDark
+          ? { r: 243/255, g: 244/255, b: 246/255 }
+          : { r: 17/255, g: 24/255, b: 39/255 } }];
+        setGroup.appendChild(titleText);
+
+        // 内部包装块（组件集 + 标签/网格）
+        const innerBlock = figma.createFrame();
+        innerBlock.name = `${componentSet.name} Block`;
+        innerBlock.layoutMode = "NONE";
+        innerBlock.fills = [];
+        setGroup.appendChild(innerBlock);
+
+        innerBlock.appendChild(componentSet);
+        const labelOffset = (localHasY && drawLabels) ? 100 : 0;
+        componentSet.x = labelOffset;
+        componentSet.y = drawLabels ? 40 : 0;
+
+        // 计算内部区域大小
+        const areaW = csWidth + labelOffset;
+        const areaH = csHeight + (drawLabels ? 60 : 0);
+        innerBlock.resize(areaW, areaH);
+
+        // 轴标签和网格线
+        const decorationNodes: SceneNode[] = [];
+
+        if (drawLabels) {
+          // X 轴标签
+          xArray.forEach((xVal, index) => {
+            const label = figma.createText();
+            label.characters = `${localPropX}: ${xVal}`.toUpperCase();
+            label.fontSize = 12; label.fontName = { family: "Inter", style: "Semi Bold" };
+            label.fills = [{ type: 'SOLID', color: { r: 107/255, g: 114/255, b: 128/255 } }];
+            label.x = componentSet.x + padding + layout.columnOffsets[index] + layout.columnWidths[index] / 2 - label.width / 2;
+            label.y = componentSet.y - 32;
+            innerBlock.appendChild(label); decorationNodes.push(label);
+          });
+        }
+
+        groups.forEach((gSign, gIndex) => {
+          const gAbsY = componentSet.y + padding + gIndex * (groupH + layout.groupGap);
+
+          // Y 轴标签（仅二维）
+          if (localHasY && drawLabels) {
+            yArray.forEach((yVal, rowIndex) => {
+              const label = figma.createText();
+              label.characters = `${localPropY}: ${yVal}`.toUpperCase();
+              label.fontSize = 12; label.fontName = { family: "Inter", style: "Semi Bold" };
+              label.fills = [{ type: 'SOLID', color: { r: 156/255, g: 163/255, b: 175/255 } }];
+              label.x = componentSet.x - label.width - 16;
+              label.y = gAbsY + layout.rowOffsets[rowIndex] + layout.rowHeights[rowIndex] / 2 - label.height / 2;
+              innerBlock.appendChild(label); decorationNodes.push(label);
+            });
+          }
+
+          // 网格线
+          if (drawGrid) {
+            if (localHasY) {
+              for (let r = 1; r < yArray.length; r++) {
+                const line = figma.createLine(); line.resize(csWidth - padding * 2, 0);
+                line.x = componentSet.x + padding; line.y = gAbsY + layout.rowOffsets[r] - gapY / 2;
+                line.dashPattern = [4, 4]; line.strokeWeight = 1;
+                line.strokes = [{ type: 'SOLID', color: { r: 0.9, g: 0.92, b: 0.94 } }];
+                innerBlock.appendChild(line); decorationNodes.push(line);
+              }
+            }
+            for (let c = 1; c < xArray.length; c++) {
+              const lineH = groupH;
+              const line = figma.createLine(); line.resize(lineH, 0); line.rotation = -90;
+              line.x = componentSet.x + padding + layout.columnOffsets[c] - gapX / 2; line.y = gAbsY;
+              line.dashPattern = [4, 4]; line.strokeWeight = 1;
+              line.strokes = [{ type: 'SOLID', color: { r: 0.9, g: 0.92, b: 0.94 } }];
+              innerBlock.appendChild(line); decorationNodes.push(line);
+            }
+          }
+        });
+
+        if (decorationNodes.length > 0) {
+          figma.group(decorationNodes, innerBlock).name = `${componentSet.name} Decorations`;
+        }
+
+        // 恢复原始位置（放在容器中）
+        componentSet.x = labelOffset;
+        componentSet.y = drawLabels ? 40 : 0;
+
+        container.appendChild(setGroup);
+      }
+
+      // 容器定位
+      container.x = centerX - 200;
+      container.y = centerY - 200;
+
+      // 组件集作为最外层说明书画板的直接子项，保留占位与装饰但缩短资产引用路径。
+      const containerBounds = container.absoluteBoundingBox;
+      const directPlacements = compSets.map(componentSet => ({
+        componentSet,
+        bounds: componentSet.absoluteBoundingBox
+      }));
+      if (containerBounds) {
+        directPlacements.forEach(({ componentSet, bounds }) => {
+          if (!bounds || componentSet.removed) return;
+          container.appendChild(componentSet);
+          try { (componentSet as any).layoutPositioning = 'ABSOLUTE'; } catch (_) {}
+          componentSet.x = bounds.x - containerBounds.x;
+          componentSet.y = bounds.y - containerBounds.y;
+        });
+      }
+      figma.currentPage.selection = [container];
+      oldBoards.forEach(board => { if (!board.removed && !LayerRules.walk(board.children).some(n => n.type === 'COMPONENT_SET')) board.remove(); });
+      figma.viewport.scrollAndZoomIntoView([container]);
+
+      notifyInUiLanguage(`✅ 批量排布完成！共 ${compSets.length} 个组件集`);
+      break;
+    }
+
+    // 生成说明书（完整版）
+    case 'generate-showcase': {
+      const propX = msg.propX;
+      const propY = msg.propY || ''; // propY 可以为空（单属性组件集）
+      const padding = msg.padding !== undefined ? msg.padding : 20;
+      const gapX = msg.gapX !== undefined ? msg.gapX : 16;
+      const gapY = msg.gapY !== undefined ? msg.gapY : 16;
+      const groupGap = msg.groupGap !== undefined ? msg.groupGap : 32;
+      const compRadius = msg.compRadius !== undefined ? msg.compRadius : 0;
+      const compStroke = msg.compStroke !== undefined ? msg.compStroke : 1;
+      const compStrokeColor = msg.compStrokeColor || { r: 140/255, g: 91/255, b: 212/255 };
+      const gridLineWidth = msg.gridLineWidth !== undefined ? msg.gridLineWidth : 1;
+      const gridLineColor = msg.gridLineColor || { r: 0.9, g: 0.92, b: 0.94 };
+      const boardRadius = msg.boardRadius !== undefined ? msg.boardRadius : 12;
+      const boardPaddingX = msg.boardPaddingX !== undefined ? msg.boardPaddingX : 48;
+      const boardPaddingY = msg.boardPaddingY !== undefined ? msg.boardPaddingY : 56;
+      const boardBg = msg.boardBg || { r: 249/255, g: 250/255, b: 251/255 };
+
+      const drawGrid = msg.drawGrid !== false;
+      const drawLabels = msg.drawLabels !== false;
+      const drawProps = msg.drawProps !== false;
+      const drawUsage = msg.drawUsage !== false;
+
+      const language = msg.language || 'zh';
+      const status = msg.status || 'approved';
+      const designer = msg.designer || '';
+      const usagePage = msg.usagePage || '';
+      const aiGeneratedDescription = msg.aiGeneratedDescription || '';
+      const itemSpacing = msg.itemSpacing !== undefined ? msg.itemSpacing : 24;
+      const orientation = msg.orientation === 'portrait' ? 'portrait' : 'landscape';
+      const isDark = msg.theme === 'dark';
+      const themeText: RGB = isDark ? { r: 243/255, g: 244/255, b: 246/255 } : { r: 17/255, g: 24/255, b: 39/255 };
+      const themeMuted: RGB = isDark ? { r: 156/255, g: 163/255, b: 175/255 } : { r: 75/255, g: 85/255, b: 99/255 };
+      const themeSurface: RGB = isDark ? { r: 31/255, g: 41/255, b: 55/255 } : { r: 1, g: 1, b: 1 };
+      const themeBorder: RGB = isDark ? { r: 55/255, g: 65/255, b: 81/255 } : { r: 229/255, g: 231/255, b: 235/255 };
+
+      const selection = figma.currentPage.selection;
+      let targetNode: ComponentSetNode | null = null;
+      if (selection.length === 1) {
+        if (selection[0].type === 'COMPONENT_SET') targetNode = selection[0];
+        else if (selection[0].type === 'FRAME' && selection[0].getPluginData('isShowcaseBoard') === 'true') {
+          targetNode = selection[0].findOne(n => n.type === 'COMPONENT_SET') as ComponentSetNode | null;
+        }
+      }
+
+      if (!targetNode) {
+        notifyInUiLanguage("请选中一个 Component Set 或已生成的说明书画板！", { error: true });
+        break;
+      }
+
+      const componentSet = targetNode;
+      const variants = componentSet.children as ComponentNode[];
+      if (variants.length === 0) break;
+
+      const layout = LayerRules.matrix(variants, msg);
+      const properties = [...new Set(variants.flatMap(v => Object.keys(parseVariantName(v.name))))];
+      const hasY = layout.y.length > 0;
+      const groupProps = layout.group;
+      const xArray = layout.xs.map(key => JSON.parse(key).join(' / '));
+      const yArray = layout.ys.map(key => JSON.parse(key).join(' / '));
+      const groups = layout.groups.map(key => JSON.parse(key).map((value,index) => `${groupProps[index]}=${value}`).join(', ') || 'Default');
+      const maxWidth = layout.maxW, maxHeight = layout.maxH;
+      const cellWidth = maxWidth + gapX, cellHeight = maxHeight + gapY;
+      const singleGroupHeight = layout.groupH;
+      await figma.loadFontAsync({ family: "Inter", style: "Regular" });
+      await figma.loadFontAsync({ family: "Inter", style: "Medium" });
+      await figma.loadFontAsync({ family: "Inter", style: "Semi Bold" });
+      await figma.loadFontAsync({ family: "Inter", style: "Bold" });
+
+      // ====== 【核心修复】二次编辑重写与销毁旧画板的递归追溯算法 ======
+      let baseX = componentSet.x;
+      let baseY = componentSet.y;
+      let isReedit = false;
+
+      let ancestor: BaseNode | null = componentSet.parent;
+      let oldBoard: FrameNode | null = null;
+      while (ancestor && ancestor.type !== 'DOCUMENT' && ancestor.type !== 'PAGE') {
+        if (ancestor.type === 'FRAME' && ancestor.getPluginData('isShowcaseBoard') === 'true') {
+          oldBoard = ancestor as FrameNode;
+          break;
+        }
+        ancestor = ancestor.parent;
+      }
+
+      if (oldBoard) {
+        baseX = oldBoard.x;
+        baseY = oldBoard.y;
+        isReedit = true;
+        figma.currentPage.appendChild(componentSet); // 提取组件集到当前页面根目录
+        // Old board is cleaned only after new documentation succeeds.
+      }
+
+      componentSet.layoutMode = "NONE";
+      safeCornerRadius(componentSet, compRadius);
+      try {
+        componentSet.strokes = compStroke > 0 ? [{ type:'SOLID', color:compStrokeColor }] : [];
+        if (compStroke > 0) { componentSet.strokeWeight = compStroke; componentSet.dashPattern = [6,4]; }
+      } catch (_) {}
+      layout.placements.forEach(p => { p.node.x = p.x; p.node.y = p.y; });
+      const compSetWidth = layout.width, compSetHeight = layout.height;
+      componentSet.resize(compSetWidth, compSetHeight);
+
+      // ================= 视觉绘制层 =================
+      // 计算自适应宽度，为两旁留出呼吸空间
+      const minimumBoardWidth = orientation === 'portrait' ? 720 : 1120;
+      const boardWidth = Math.max(
+        compSetWidth + boardPaddingX * 2 + (drawLabels && hasY ? 120 : 0),
+        minimumBoardWidth
+      );
+
+      const boardFrame = figma.createFrame();
+      boardFrame.name = `📚 ${componentSet.name} Specs`;
+      boardFrame.setPluginData('isShowcaseBoard', 'true');
+      boardFrame.fills = [{ type: 'SOLID', color: boardBg }];
+      safeCornerRadius(boardFrame, boardRadius);
+
+      // 定位修正：如果是新生成，向左向上抵消偏移，让组件集永远留在用户点击的原位上
+      boardFrame.x = isReedit ? baseX : (baseX - boardPaddingX - (drawLabels && hasY ? 120 : 0));
+      boardFrame.y = isReedit ? baseY : (baseY - boardPaddingY - 96);
+
+      // 顶级画板：开启自动布局
+      boardFrame.layoutMode = "VERTICAL";
+      boardFrame.layoutSizingHorizontal = "FIXED";
+      boardFrame.resize(boardWidth, 200); // 仅在横向上固定，高度后续完全交由 HUG 托管自适应
+      boardFrame.itemSpacing = itemSpacing;// 画板内部区块间距（可配置）
+      boardFrame.paddingLeft = boardPaddingX;
+      boardFrame.paddingRight = boardPaddingX;
+      boardFrame.paddingTop = boardPaddingY;
+      boardFrame.paddingBottom = boardPaddingY;
+
+      const contentWidth = boardWidth - boardPaddingX * 2;
+
+      // 视觉微勋章：顶部极致的高阶色条
+      const accentBar = figma.createFrame();
+      accentBar.name = "🎨 Accent Bar";
+      accentBar.resize(boardWidth, 6);
+      accentBar.fills = [{ type: 'SOLID', color: compStrokeColor }];
+      boardFrame.appendChild(accentBar);
+      accentBar.layoutSizingHorizontal = "FILL";
+      accentBar.layoutSizingVertical = "FIXED";
+
+      // --- Header 区域 ---
+      const headerFrame = figma.createFrame();
+      headerFrame.name = "Header Row";
+      headerFrame.layoutMode = "HORIZONTAL";
+      headerFrame.fills = [];
+      headerFrame.itemSpacing = 16;
+      headerFrame.primaryAxisAlignItems = "MIN";
+      headerFrame.counterAxisAlignItems = "CENTER";
+      boardFrame.appendChild(headerFrame);
+      headerFrame.layoutSizingHorizontal = "FILL";
+      headerFrame.layoutSizingVertical = "HUG";
+
+      const formatTitle = (name: string, lang: string): string => {
+        let title = name.replace(/^(ic_|icon_|btn_|img_|img-)/i, '');
+        title = title.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim();
+        title = title.charAt(0).toUpperCase() + title.slice(1);
+        title = title.replace(/\s+/g, ' ');
+        if (lang === 'en') return title;
+        const translations: { [key: string]: string } = {
+          'button': '按钮', 'input': '输入框', 'card': '卡片', 'modal': '弹窗', 'dialog': '对话框',
+          'checkbox': '复选框', 'radio': '单选框', 'switch': '开关', 'select': '选择器', 'table': '表格',
+          'tag': '标签', 'label': '标签', 'badge': '徽章', 'list': '列表', 'avatar': '头像',
+        };
+        const lowerTitle = title.toLowerCase();
+        return translations[lowerTitle] || title;
+      };
+
+      const titleText = formatTitle(componentSet.name, language);
+
+      const title = figma.createText();
+      title.name = "Component Title";
+      title.characters = titleText;
+      title.fontSize = 36; title.fontName = { family: "Inter", style: "Bold" };
+      title.fills = [{ type: 'SOLID', color: themeText }];
+      headerFrame.appendChild(title);
+      title.layoutSizingHorizontal = "FILL";
+      title.layoutSizingVertical = "HUG";
+      title.textAutoResize = "HEIGHT";
+
+      // 精美自适应状态徽章
+      const statusConfig: { [key: string]: { bg: RGB, text: RGB, label: string, labelEn: string } } = {
+        'approved': { bg: { r: 220/255, g: 252/255, b: 231/255 }, text: { r: 22/255, g: 101/255, b: 52/255 }, label: '已审核', labelEn: 'APPROVED' },
+        'draft': { bg: { r: 254/255, g: 243/255, b: 199/255 }, text: { r: 146/255, g: 113/255, b: 24/255 }, label: '草稿', labelEn: 'DRAFT' },
+        'deprecated': { bg: { r: 254/255, g: 226/255, b: 226/255 }, text: { r: 153/255, g: 27/255, b: 27/255 }, label: '已废弃', labelEn: 'DEPRECATED' },
+        'review': { bg: { r: 223/255, g: 232/255, b: 255/255 }, text: { r: 67/255, g: 56/255, b: 202/255 }, label: '待审核', labelEn: 'REVIEW' },
+      };
+
+      const badge = figma.createFrame();
+      badge.name = `Status: ${status.toUpperCase()}`;
+      badge.layoutMode = "HORIZONTAL";
+      badge.paddingLeft = 12; badge.paddingRight = 12; badge.paddingTop = 7; badge.paddingBottom = 7;
+      safeCornerRadius(badge, 8);
+      const statusInfo = statusConfig[status] || statusConfig['approved'];
+      badge.fills = [{ type: 'SOLID', color: statusInfo.bg }];
+
+      const badgeText = figma.createText();
+      badgeText.name = "Status Text";
+      badgeText.characters = language === 'zh' ? statusInfo.label : statusInfo.labelEn;
+      badgeText.fontSize = 12; badgeText.fontName = { family: "Inter", style: "Bold" };
+      badgeText.fills = [{ type: 'SOLID', color: statusInfo.text }];
+      badge.appendChild(badgeText);
+      headerFrame.appendChild(badge);
+      badge.layoutSizingHorizontal = "HUG";
+      badge.layoutSizingVertical = "HUG";
+
+      // --- Metadata Spec Card (高颜值结构化描述卡片) ---
+      const metaCard = figma.createFrame();
+      metaCard.name = "Metadata Spec Card";
+      metaCard.layoutMode = "VERTICAL";
+      metaCard.itemSpacing = 8;
+      metaCard.paddingLeft = 16; metaCard.paddingRight = 16; metaCard.paddingTop = 14; metaCard.paddingBottom = 14;
+      safeCornerRadius(metaCard, 12);
+      metaCard.fills = [{ type: 'SOLID', color: themeSurface }];
+      metaCard.strokes = [{ type: 'SOLID', color: themeBorder }];
+      boardFrame.appendChild(metaCard);
+      metaCard.layoutSizingHorizontal = "FILL";
+      metaCard.layoutSizingVertical = "HUG";
+
+      let aiDesc: { componentName?: string; usage?: string; properties?: string; propertyDescriptions?: Record<string, string>; do?: string; dont?: string } | null = null;
+      if (aiGeneratedDescription) {
+        try { aiDesc = JSON.parse(aiGeneratedDescription); } catch (e) { console.error('Failed to parse AI description:', e); }
+      }
+
+      const createDescriptionText = (content: string, isHeader: boolean = false) => {
+        const textNode = figma.createText();
+        textNode.name = isHeader ? "Component Name Line" : "Info Text Paragraph";
+        textNode.characters = content;
+        textNode.fontSize = isHeader ? 14 : 13;
+        textNode.fontName = { family: "Inter", style: isHeader ? "Semi Bold" : "Regular" };
+        textNode.fills = [{ type: 'SOLID', color: isHeader ? themeText : themeMuted }];
+        metaCard.appendChild(textNode);
+        textNode.layoutSizingHorizontal = "FILL";
+        textNode.layoutSizingVertical = "HUG";
+        textNode.textAutoResize = "HEIGHT";
+      };
+
+      const englishTitle = formatTitle(componentSet.name, 'en');
+      const nameVal = aiDesc?.componentName ? aiDesc.componentName : (language === 'zh' ? `${titleText} / ${englishTitle}` : `${englishTitle} / ${titleText}`);
+      createDescriptionText(language === 'zh' ? `组件名称：${nameVal}` : `Component: ${nameVal}`, true);
+
+      const usageVal = aiDesc?.usage ? aiDesc.usage : (language === 'zh' ? `请根据组件的实际用途补充使用场景；未使用 AI 生成说明。` : `Add usage guidance for this component. No AI description was generated.`);
+      createDescriptionText(language === 'zh' ? `适用场景：${usageVal}` : `Usage: ${usageVal}`);
+
+      const propsVal = aiDesc?.properties ? aiDesc.properties : (language === 'zh' ? `包含 ${properties.length} 个可配置属性（${properties.join('、')}），每个属性控制组件的不同视觉状态或功能变体。` : `Contains ${properties.length} configurable properties (${properties.join(', ')}).`);
+      createDescriptionText(language === 'zh' ? `属性说明：${propsVal}` : `Properties: ${propsVal}`);
+
+      // --- Tags 标签行 ---
+      const tagsContainer = figma.createFrame();
+      tagsContainer.name = "Meta Tags Row";
+      tagsContainer.layoutMode = "HORIZONTAL";
+      tagsContainer.itemSpacing = 8;
+      metaCard.appendChild(tagsContainer);
+      tagsContainer.layoutSizingHorizontal = "FILL";
+      tagsContainer.layoutSizingVertical = "HUG";
+
+      const createTag = (label: string, value: string, bgColor: RGB, textColor: RGB) => {
+        const tag = figma.createFrame();
+        tag.name = `Tag: ${label}`;
+        tag.layoutMode = "HORIZONTAL";
+        tag.paddingLeft = 8; tag.paddingRight = 8; tag.paddingTop = 4; tag.paddingBottom = 4;
+        safeCornerRadius(tag, 4);
+        tag.fills = [{ type: 'SOLID', color: bgColor }];
+
+        const tagText = figma.createText();
+        tagText.name = "Tag Label";
+        tagText.characters = `${label}: ${value}`;
+        tagText.fontSize = 11; tagText.fontName = { family: "Inter", style: "Medium" };
+        tagText.fills = [{ type: 'SOLID', color: textColor }];
+        tag.appendChild(tagText);
+        tagsContainer.appendChild(tag);
+        tag.layoutSizingHorizontal = "HUG";
+        tag.layoutSizingVertical = "HUG";
+      };
+
+      createTag(language === 'zh' ? '变体数量' : 'Variants', `${variants.length}`, { r: 243/255, g: 244/255, b: 246/255 }, { r: 55/255, g: 65/255, b: 81/255 });
+      const now = new Date();
+      const dateStr = language === 'zh'
+        ? `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`
+        : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      createTag(language === 'zh' ? '更新日期' : 'Updated', dateStr, { r: 243/255, g: 244/255, b: 246/255 }, { r: 55/255, g: 65/255, b: 81/255 });
+
+      if (designer) createTag(language === 'zh' ? '设计者' : 'Designer', designer, { r: 239/255, g: 246/255, b: 255/255 }, { r: 37/255, g: 99/255, b: 235/255 });
+      if (usagePage) createTag(language === 'zh' ? '使用页面' : 'Usage', usagePage, { r: 254/255, g: 243/255, b: 199/255 }, { r: 146/255, g: 113/255, b: 24/255 });
+
+      // --- 分割线 (修复：确保高度在自动布局中固定为 1px，避免被拉高) ---
+      const divider = figma.createLine();
+      divider.name = "Section Divider Line";
+      boardFrame.appendChild(divider);
+      divider.layoutSizingHorizontal = "FILL";
+      divider.layoutSizingVertical = "FIXED";
+      divider.strokeWeight = 1;
+      divider.strokes = [{ type: 'SOLID', color: { r: 27/255, g: 43/255, b: 75/255 }, opacity: 0.2 }];
+
+      // --- 【视觉重构】变体舞台区 (Matrix Stage) ---
+      const matrixStage = figma.createFrame();
+      matrixStage.name = "Matrix Stage";
+      matrixStage.layoutMode = "VERTICAL";
+      matrixStage.paddingLeft = 0; matrixStage.paddingRight = 0; matrixStage.paddingTop = 0; matrixStage.paddingBottom = 0;
+      safeCornerRadius(matrixStage, 12);
+      matrixStage.fills = [{ type: 'SOLID', color: themeSurface }];
+      matrixStage.strokes = [{ type: 'SOLID', color: themeBorder }];
+      matrixStage.counterAxisAlignItems = "MIN";
+      boardFrame.appendChild(matrixStage);
+      matrixStage.layoutSizingHorizontal = "FILL";
+      matrixStage.layoutSizingVertical = "HUG";
+
+      // 矩阵绘制区域（绝对定位容器置于舞台中央）
+      const componentArea = figma.createFrame();
+      componentArea.name = "Component Draw Area";
+      componentArea.layoutMode = "NONE";
+      componentArea.fills = [];
+      matrixStage.appendChild(componentArea);
+
+      const areaWidth = compSetWidth + (drawLabels && hasY ? 120 : 0);
+      const areaHeight = compSetHeight + (drawLabels ? 60 : 0);
+      componentArea.layoutSizingHorizontal = "FIXED";
+      componentArea.layoutSizingVertical = "FIXED";
+      componentArea.resize(areaWidth, areaHeight);
+
+      // 将组件集安置于有偏移的精确定位上，防止裁剪行/列标签
+      componentArea.appendChild(componentSet);
+      componentSet.x = (drawLabels && hasY) ? 120 : 0;
+      componentSet.y = drawLabels ? 40 : 0;
+
+      // 绘制虚线网格和行列标签
+      const matrixNodes: SceneNode[] = [];
+
+      if (drawLabels) {
+        xArray.forEach((xVal, index) => {
+          const label = figma.createText();
+          label.name = "X Axis Label";
+          label.characters = `${layout.x.join(" / ")}: ${xVal}`.toUpperCase();
+          label.fontSize = 12; label.fontName = { family: "Inter", style: "Semi Bold" };
+          label.fills = [{ type: 'SOLID', color: { r: 107/255, g: 114/255, b: 128/255 } }];
+          label.x = componentSet.x + padding + layout.columnOffsets[index] + layout.columnWidths[index] / 2 - label.width / 2;
+          label.y = componentSet.y - 32;
+          componentArea.appendChild(label); matrixNodes.push(label);
+        });
+      }
+
+      groups.forEach((gSign, gIndex) => {
+        const groupAbsoluteY = componentSet.y + padding + gIndex * (singleGroupHeight + groupGap);
+
+        // 组标题（仅在多属性分组时显示）
+        if (hasY && groupProps.length > 0 && drawLabels) {
+          const gTitle = figma.createText();
+          gTitle.name = "Group Title";
+          gTitle.characters = gSign.toUpperCase();
+          gTitle.fontSize = 16; gTitle.fontName = { family: "Inter", style: "Bold" };
+          gTitle.fills = [{ type: 'SOLID', color: { r: 75/255, g: 85/255, b: 99/255 } }];
+          gTitle.x = componentSet.x - 90; gTitle.y = groupAbsoluteY;
+          componentArea.appendChild(gTitle); matrixNodes.push(gTitle);
+        }
+
+        // Y 轴标签（仅在二维布局时绘制）
+        if (hasY && drawLabels) {
+          yArray.forEach((yVal, rowIndex) => {
+            const label = figma.createText();
+            label.name = "Y Axis Label";
+            label.characters = `${layout.y.join(" / ")}: ${yVal}`.toUpperCase();
+            label.fontSize = 12; label.fontName = { family: "Inter", style: "Semi Bold" };
+            label.fills = [{ type: 'SOLID', color: { r: 156/255, g: 163/255, b: 175/255 } }];
+            label.x = componentSet.x - label.width - 24;
+            label.y = groupAbsoluteY + layout.rowOffsets[rowIndex] + layout.rowHeights[rowIndex] / 2 - label.height / 2;
+            componentArea.appendChild(label); matrixNodes.push(label);
+          });
+        }
+
+        if (drawGrid) {
+          // 水平网格线（仅在二维布局时绘制）
+          if (hasY) {
+            for (let r = 1; r < yArray.length; r++) {
+              const line = figma.createLine(); line.resize(compSetWidth - padding * 2, 0);
+              line.x = componentSet.x + padding; line.y = groupAbsoluteY + layout.rowOffsets[r] - gapY / 2;
+              line.dashPattern = [4, 4]; line.strokeWeight = gridLineWidth; line.strokes = [{ type: 'SOLID', color: gridLineColor }];
+              componentArea.appendChild(line); matrixNodes.push(line);
+            }
+          }
+          // 垂直网格线
+          for (let c = 1; c < xArray.length; c++) {
+            const lineHeight = singleGroupHeight;
+            const line = figma.createLine(); line.resize(lineHeight, 0); line.rotation = -90;
+            line.x = componentSet.x + padding + layout.columnOffsets[c] - gapX / 2; line.y = groupAbsoluteY;
+            line.dashPattern = [4, 4]; line.strokeWeight = gridLineWidth; line.strokes = [{ type: 'SOLID', color: gridLineColor }];
+            componentArea.appendChild(line); matrixNodes.push(line);
+          }
+        }
+      });
+
+      if (matrixNodes.length > 0) {
+        const matrixGroup = figma.group(matrixNodes, componentArea);
+        matrixGroup.name = "Matrix Decorations";
+      }
+
+      const describeVariantProperty = (prop: string, values: string[]) => {
+        const key = prop.toLocaleLowerCase();
+        const joined = values.slice(0, 6).join(language === 'zh' ? '、' : ', ');
+        const semantic = /size|尺寸|scale/.test(key)
+          ? (language === 'zh' ? '控制组件的尺寸层级与使用密度。' : 'Controls component scale and interface density.')
+          : /state|status|状态|interaction/.test(key)
+            ? (language === 'zh' ? '描述组件在交互流程中的状态。' : 'Describes the component state in an interaction flow.')
+            : /theme|mode|主题|模式|appearance/.test(key)
+              ? (language === 'zh' ? '切换视觉主题或外观模式。' : 'Switches the visual theme or appearance mode.')
+              : /type|kind|variant|style|类型|样式/.test(key)
+                ? (language === 'zh' ? '区分组件的语义类型与视觉层级。' : 'Distinguishes semantic variants and visual hierarchy.')
+                : /icon|图标/.test(key)
+                  ? (language === 'zh' ? '控制图标内容、位置或显隐。' : 'Controls icon content, placement, or visibility.')
+                  : /direction|position|placement|align|方向|位置|对齐/.test(key)
+                    ? (language === 'zh' ? '控制内容方向、位置或对齐关系。' : 'Controls direction, placement, or alignment.')
+                    : (language === 'zh' ? '控制该组件的一组可复用表现。' : 'Controls a reusable aspect of the component.');
+        return `${semantic}${joined ? (language === 'zh' ? ` 可选：${joined}。` : ` Options: ${joined}.`) : ''}`;
+      };
+
+      // --- Properties 属性汇总面板（自动布局，完美自适应高度）---
+      if (drawProps) {
+        // 包装容器：标题 + 卡片作为一组
+        const propsGroup = figma.createFrame();
+        propsGroup.name = "Properties & Tokens Group";
+        propsGroup.fills = [];
+        propsGroup.layoutMode = "VERTICAL";
+        propsGroup.itemSpacing = 10;
+        boardFrame.appendChild(propsGroup);
+        propsGroup.layoutSizingHorizontal = "FILL";
+        propsGroup.layoutSizingVertical = "HUG";
+
+        // 标题放在卡片外面
+        const specTitle = figma.createText();
+        specTitle.name = "Properties & Tokens Title";
+        specTitle.characters = "Properties & Tokens";
+        specTitle.fontSize = 18; specTitle.fontName = { family: "Inter", style: "Bold" };
+        specTitle.fills = [{ type: 'SOLID', color: themeText }];
+        propsGroup.appendChild(specTitle);
+        specTitle.layoutSizingHorizontal = "FILL";
+        specTitle.layoutSizingVertical = "HUG";
+
+        const propsPanel = figma.createFrame();
+        propsPanel.name = "Properties & Tokens Panel";
+        propsPanel.layoutMode = "VERTICAL";
+        propsPanel.itemSpacing = 14;
+        propsPanel.paddingLeft = 16; propsPanel.paddingRight = 16; propsPanel.paddingTop = 16; propsPanel.paddingBottom = 16;
+        safeCornerRadius(propsPanel, 12);
+        propsPanel.fills = [{ type: 'SOLID', color: themeSurface }];
+        propsPanel.strokes = [{ type: 'SOLID', color: themeBorder }];
+        propsGroup.appendChild(propsPanel);
+        propsPanel.layoutSizingHorizontal = "FILL";
+        propsPanel.layoutSizingVertical = "HUG";
+
+        properties.forEach(prop => {
+          const vals = new Set<string>();
+          variants.forEach(v => { const p = parseVariantName(v.name); if (p[prop]) vals.add(p[prop]); });
+
+          const propRow = figma.createFrame();
+          propRow.name = "Property Row";
+          propRow.layoutMode = "VERTICAL";
+          propRow.itemSpacing = 5;
+          propsPanel.appendChild(propRow);
+          propRow.layoutSizingHorizontal = "FILL";
+          propRow.layoutSizingVertical = "HUG";
+
+          const pName = figma.createText();
+          pName.name = "Property Name";
+          pName.characters = prop; pName.fontSize = 13; pName.fontName = { family: "Inter", style: "Semi Bold" };
+          pName.fills = [{ type: 'SOLID', color: themeText }];
+          propRow.appendChild(pName);
+          pName.layoutSizingHorizontal = "HUG";
+          pName.layoutSizingVertical = "HUG";
+
+          const semanticText = figma.createText();
+          semanticText.name = "Property Description";
+          semanticText.characters = aiDesc?.propertyDescriptions?.[prop]
+            || describeVariantProperty(prop, Array.from(vals));
+          semanticText.fontSize = 11;
+          semanticText.fontName = { family: "Inter", style: "Regular" };
+          semanticText.fills = [{ type: 'SOLID', color: themeMuted }];
+          propRow.appendChild(semanticText);
+          semanticText.layoutSizingHorizontal = "FILL";
+          semanticText.layoutSizingVertical = "HUG";
+          semanticText.textAutoResize = "HEIGHT";
+
+          const valuesRow = figma.createFrame();
+          valuesRow.name = "Property Values";
+          valuesRow.layoutMode = "HORIZONTAL";
+          valuesRow.itemSpacing = 6;
+          valuesRow.fills = [];
+          propRow.appendChild(valuesRow);
+          valuesRow.layoutSizingHorizontal = "FILL";
+          valuesRow.layoutSizingVertical = "HUG";
+          try { valuesRow.layoutWrap = "WRAP"; valuesRow.counterAxisSpacing = 6; } catch (_) {}
+
+          Array.from(vals).forEach(val => {
+            const pill = figma.createFrame();
+            pill.layoutMode = "HORIZONTAL";
+            safeCornerRadius(pill, 6); pill.fills = [{ type: 'SOLID', color: isDark ? { r: 55/255, g: 65/255, b: 81/255 } : { r: 243/255, g: 244/255, b: 246/255 } }];
+            pill.strokes = [{ type: 'SOLID', color: themeBorder }];
+            pill.paddingLeft = 8; pill.paddingRight = 8; pill.paddingTop = 4; pill.paddingBottom = 4;
+
+            const pVal = figma.createText(); pVal.characters = val;
+            pVal.fontSize = 11; pVal.fontName = { family: "Inter", style: "Regular" };
+            pVal.fills = [{ type: 'SOLID', color: themeText }];
+            pill.appendChild(pVal);
+            valuesRow.appendChild(pill);
+
+            pill.layoutSizingHorizontal = "HUG";
+            pill.layoutSizingVertical = "HUG";
+            pVal.layoutSizingHorizontal = "HUG";
+            pVal.layoutSizingVertical = "HUG";
+          });
+        });
+      }
+
+      // --- Best Practices 使用指南卡片（自动布局，完美自适应）---
+      if (drawUsage) {
+        const usagePanel = figma.createFrame();
+        usagePanel.name = "Best Practices Panel";
+        usagePanel.fills = [];
+        usagePanel.layoutMode = "VERTICAL";
+        usagePanel.itemSpacing = 10;
+        boardFrame.appendChild(usagePanel);
+        usagePanel.layoutSizingHorizontal = "FILL";
+        usagePanel.layoutSizingVertical = "HUG";
+
+        const usageTitle = figma.createText();
+        usageTitle.name = "Best Practices Title";
+        usageTitle.characters = "Best Practices";
+        usageTitle.fontSize = 18; usageTitle.fontName = { family: "Inter", style: "Bold" };
+        usageTitle.fills = [{ type: 'SOLID', color: themeText }];
+        usagePanel.appendChild(usageTitle);
+        usageTitle.layoutSizingHorizontal = "FILL";
+        usageTitle.layoutSizingVertical = "HUG";
+
+        const doDontContainer = figma.createFrame();
+        doDontContainer.name = "Do-Dont Container";
+        doDontContainer.fills = [];
+        doDontContainer.layoutMode = "HORIZONTAL";
+        doDontContainer.itemSpacing = 12;
+        usagePanel.appendChild(doDontContainer);
+        doDontContainer.layoutSizingHorizontal = "FILL";
+        doDontContainer.layoutSizingVertical = "HUG";
+
+        // Do Card - 完美自适应高度
+        const doCard = figma.createFrame();
+        doCard.name = "Do Card";
+        doCard.layoutMode = "VERTICAL";
+        doCard.itemSpacing = 0;
+        safeCornerRadius(doCard, 12);
+        doCard.fills = [{ type: 'SOLID', color: themeSurface }];
+        doCard.strokes = [{ type: 'SOLID', color: themeBorder }];
+        doCard.strokeWeight = 1;
+        doDontContainer.appendChild(doCard);
+
+        doCard.layoutSizingHorizontal = "FILL";
+        doCard.layoutSizingVertical = "HUG";
+
+        const doTopBar = figma.createFrame();
+        doTopBar.resize(100, 6);
+        doTopBar.fills = [{ type: 'SOLID', color: { r: 34/255, g: 197/255, b: 94/255 } }];
+        doCard.appendChild(doTopBar);
+        doTopBar.layoutSizingHorizontal = "FILL";
+        doTopBar.layoutSizingVertical = "FIXED";
+
+        const doContent = figma.createFrame();
+        doContent.layoutMode = "HORIZONTAL";
+        doContent.itemSpacing = 12;
+        doContent.paddingLeft = 16; doContent.paddingRight = 16; doContent.paddingTop = 14; doContent.paddingBottom = 16;
+        doContent.fills = [];
+        doCard.appendChild(doContent);
+
+        doContent.layoutSizingHorizontal = "FILL";
+        doContent.layoutSizingVertical = "HUG";
+
+        const doIcon = figma.createText();
+        doIcon.characters = "✅";
+        doIcon.fontSize = 18;
+        doContent.appendChild(doIcon);
+        doIcon.layoutSizingHorizontal = "HUG";
+        doIcon.layoutSizingVertical = "HUG";
+
+        const doText = figma.createText();
+        doText.characters = aiDesc?.do || (language === 'zh'
+          ? `建议：在设计稿中通过 ${properties.slice(0, 2).join('、') || '组件属性'} 切换状态，保持实例与母版同步。`
+          : `Do: switch states with ${properties.slice(0, 2).join(', ') || 'component properties'} and keep instances linked to the master.`);
+        doText.fontSize = 12; doText.fontName = { family: "Inter", style: "Medium" };
+        doText.fills = [{ type: 'SOLID', color: themeText }];
+        doContent.appendChild(doText);
+
+        doText.layoutSizingHorizontal = "FILL";
+        doText.layoutSizingVertical = "HUG";
+        doText.textAutoResize = "HEIGHT";
+
+        // Don't Card - 完美自适应高度
+        const dontCard = figma.createFrame();
+        dontCard.name = "Don't Card";
+        dontCard.layoutMode = "VERTICAL";
+        dontCard.itemSpacing = 0;
+        safeCornerRadius(dontCard, 12);
+        dontCard.fills = [{ type: 'SOLID', color: themeSurface }];
+        dontCard.strokes = [{ type: 'SOLID', color: themeBorder }];
+        dontCard.strokeWeight = 1;
+        doDontContainer.appendChild(dontCard);
+
+        dontCard.layoutSizingHorizontal = "FILL";
+        dontCard.layoutSizingVertical = "HUG";
+
+        const dontTopBar = figma.createFrame();
+        dontTopBar.resize(100, 6);
+        dontTopBar.fills = [{ type: 'SOLID', color: { r: 239/255, g: 68/255, b: 68/255 } }];
+        dontCard.appendChild(dontTopBar);
+        dontTopBar.layoutSizingHorizontal = "FILL";
+        dontTopBar.layoutSizingVertical = "FIXED";
+
+        const dontContent = figma.createFrame();
+        dontContent.layoutMode = "HORIZONTAL";
+        dontContent.itemSpacing = 12;
+        dontContent.paddingLeft = 16; dontContent.paddingRight = 16; dontContent.paddingTop = 14; dontContent.paddingBottom = 16;
+        dontContent.fills = [];
+        dontCard.appendChild(dontContent);
+
+        dontContent.layoutSizingHorizontal = "FILL";
+        dontContent.layoutSizingVertical = "HUG";
+
+        const dontIcon = figma.createText();
+        dontIcon.characters = "🚫";
+        dontIcon.fontSize = 18;
+        dontContent.appendChild(dontIcon);
+        dontIcon.layoutSizingHorizontal = "HUG";
+        dontIcon.layoutSizingVertical = "HUG";
+
+        const dontText = figma.createText();
+        dontText.characters = aiDesc?.dont || (language === 'zh'
+          ? '避免解绑实例后手工复制状态，也不要用重复的属性值表达同一种语义。'
+          : 'Avoid detaching instances to copy states, and do not use duplicate property values for the same meaning.');
+        dontText.fontSize = 12; dontText.fontName = { family: "Inter", style: "Medium" };
+        dontText.fills = [{ type: 'SOLID', color: themeText }];
+        dontContent.appendChild(dontText);
+
+        dontText.layoutSizingHorizontal = "FILL";
+        dontText.layoutSizingVertical = "HUG";
+        dontText.textAutoResize = "HEIGHT";
+      }
+
+      // ====== 【核心修复】启用高度自适应 HUG (在此之后严禁再调用 resize(..., height)) ======
+      boardFrame.layoutSizingVertical = "HUG";
+
+      // 组件集直接挂在最外层说明书画板下，装饰区保留原尺寸作为布局占位。
+      const componentBounds = componentSet.absoluteBoundingBox;
+      const boardBounds = boardFrame.absoluteBoundingBox;
+      if (componentBounds && boardBounds) {
+        boardFrame.appendChild(componentSet);
+        try { (componentSet as any).layoutPositioning = 'ABSOLUTE'; } catch (_) {}
+        componentSet.x = componentBounds.x - boardBounds.x;
+        componentSet.y = componentBounds.y - boardBounds.y;
+      }
+      figma.currentPage.selection = [boardFrame];
+      if (oldBoard && !oldBoard.removed && !LayerRules.walk(oldBoard.children).some(n => n.type === 'COMPONENT_SET')) oldBoard.remove();
+      figma.viewport.scrollAndZoomIntoView([boardFrame]);
+
+      notifyInUiLanguage("✅ 说明书生成完毕！");
+      figma.commitUndo();
+      break;
+    }
+
+
+  }
+};
+
+// -------------------------------------------------------------
+// 【新增】高级命名转换函数 (支持 格式+分隔符+大小写 组合)
+// -------------------------------------------------------------
+
+
+// --- PPT 工具辅助函数 ---
+
+// 获取用户选中的 Frame (ID去重版)
+function getSlides() {
+  const selection = figma.currentPage.selection;
+  const uniqueMap = new Map<string, FrameNode>();
+
+  // 1. 只找选中的 Frame
+  for (const node of selection) {
+    if (node.type === 'FRAME') {
+      uniqueMap.set(node.id, node);
+    }
+  }
+
+  const frames = Array.from(uniqueMap.values());
+
+  // 2. 简单的嵌套过滤 (防止选了画板又选了里面的按钮)
+  // 如果一个 Frame 的父级也在选中列表里，那它就是子元素，删掉
+  const finalSlides = frames.filter(node => {
+     let parent = node.parent;
+     while(parent && parent.type !== 'PAGE' && parent.type !== 'DOCUMENT') {
+        if (uniqueMap.has(parent.id)) return false;
+        parent = parent.parent;
+     }
+     return true;
+  });
+
+  return finalSlides;
+}
+
+// Step 1: 初始化 (解锁、解组实例、移除隐藏)
+// Step 1: 初始化 (防崩溃稳健版)
+// 将 "解绑" 和 "清理" 分离，彻底解决 WASM 内存越界问题
+async function pptStep1_Init(slides: FrameNode[]) {
+
+  // === 阶段一：暴力解绑 (Iterative Detach) ===
+  // 只要还有 Instance，就一直循环处理，直到解绑干净
+  for (const slide of slides) {
+    let loopCount = 0;
+
+    // 初次扫描
+    let instances = slide.findAll(n => n.type === 'INSTANCE');
+
+    while (instances.length > 0) {
+      // 安全熔断机制：防止极个别情况下的死循环
+      loopCount++;
+      if (loopCount > 5000) {
+        console.warn("解绑层级过深，强制跳出");
+        break;
+      }
+
+      // 取出列表里的第一个实例
+      const target = instances[0];
+
+      try {
+        // 执行解绑
+        // 注意：解绑后，target 这个变量就“死”了，不能再访问它的属性
+        target.detachInstance();
+      } catch (e) {
+        console.warn("解绑单个节点失败:", e);
+      }
+
+      // === 关键点 ===
+      // 解绑一个后，整个图层树结构变了，之前的 instances 数组里的引用全都失效了
+      // 必须立刻重新扫描，获取最新的列表
+      instances = slide.findAll(n => n.type === 'INSTANCE');
+    }
+  }
+
+  // === 阶段二：常规清洗 (Cleanup) ===
+  // 此时图层树里已经没有 Instance 了，结构非常稳定，可以安全递归
+  const traverse = (node: SceneNode) => {
+    // 防御性检查
+    if (node.removed) return;
+
+    // === 新增：黑盒保护 ===
+    // 如果名字以 p_img 开头，视为用户指定的整体图标，不清洗内部，直接跳过子级遍历
+    if (node.name.toLowerCase().startsWith('p_img')) {
+      return;
+    }
+
+    // 1. 解锁
+    if ('locked' in node && node.locked) {
+        node.locked = false;
+    }
+
+    // 2. 移除隐藏图层
+    if ('visible' in node && !node.visible) {
+      node.remove();
+      return; // 删了就不用看子级了
+    }
+
+    // 3. 移除 AutoLayout
+    if (node.type === 'FRAME' && node.layoutMode !== 'NONE') {
+      node.layoutMode = 'NONE';
+    }
+
+    // 4. 递归子级
+    if ('children' in node) {
+      // 浅拷贝 children，避免遍历时的索引干扰
+      [...(node as FrameNode).children].forEach(child => traverse(child));
+    }
+  };
+
+  // 对所有 Slide 执行清洗
+  slides.forEach(slide => traverse(slide));
+
+  // 通知 UI 完成
+  figma.ui.postMessage({ type: 'step-done', step: 1 });
+}
+
+// Step 2: 智能栅格化 (性能优化 + Hex ID)
+async function pptStep2_Rasterize(slides: FrameNode[]) {
+  let count = 0;
+  // 生成短 ID
+  const generateHexId = () => 'p_' + Math.random().toString(16).substring(2, 8);
+
+  const isLineLike = (node: SceneNode) => {
+    if (node.type === 'LINE') return true;
+    if (node.type === 'VECTOR') {
+      if (node.width < 2 || node.height < 2) return true;
+      const ratio = node.width / node.height;
+      if (ratio > 50 || ratio < 0.02) return true;
+    }
+    return false;
+  };
+
+  const traverse = async (node: SceneNode) => {
+    if (node.removed || !node.visible) return;
+    const name = node.name.toLowerCase();
+
+    const isUserTarget = name.startsWith('p_img');
+    let isTechTarget = false;
+
+    if ('effects' in node && node.effects.some(e => e.type === 'LAYER_BLUR' && e.visible)) isTechTarget = true;
+    else if (node.type === 'BOOLEAN_OPERATION') isTechTarget = true;
+    else if (node.type === 'VECTOR' && !isLineLike(node)) isTechTarget = true;
+    else if (node.type === 'ELLIPSE' && 'fills' in node && (node.fills as Paint[]).some(p => p.type === 'IMAGE')) isTechTarget = true;
+
+    if (isUserTarget || isTechTarget) {
+      try {
+        const bytes = await node.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 3 } });
+        const image = figma.createImage(bytes);
+
+        const rect = figma.createRectangle();
+        rect.x = node.x; rect.y = node.y;
+        rect.resize(node.width, node.height);
+
+        // === 使用 Hex ID 重命名 ===
+        rect.name = generateHexId();
+
+        rect.fills = [{ type: 'IMAGE', scaleMode: 'FIT', imageHash: image.hash }];
+        rect.rotation = node.rotation;
+
+        node.parent?.insertChild(node.parent.children.indexOf(node), rect);
+        node.remove();
+        count++;
+        return;
+      } catch (e) {}
+    }
+
+    if ('children' in node) {
+      const children = [...node.children];
+      for (const child of children) await traverse(child);
+    }
+  };
+
+  for (const slide of slides) await traverse(slide);
+  figma.ui.postMessage({ type: 'step-done', step: 2 });
+}
+
+// Step 3: 深度扁平化 (修复混合属性导致的崩溃)
+async function pptStep3_Flatten(slides: FrameNode[]) {
+
+  for (const slide of slides) {
+    let hasNested = true;
+    let loopCount = 0; // 防止死循环保险丝
+
+    while (hasNested) {
+      hasNested = false;
+      loopCount++;
+
+      // 如果层级太深(超过2000次循环)，强制休息一下，防止浏览器卡死
+      if (loopCount % 100 === 0) {
+        await new Promise(r => setTimeout(r, 20));
+      }
+
+      const children = slide.children;
+      // 倒序遍历
+      // 倒序遍历
+      for (let i = children.length - 1; i >= 0; i--) {
+        const node = children[i];
+
+        // 1. === 新增：垃圾清理 (针对普通形状) ===
+        // 如果不是容器(Group/Frame)，且视觉不可见，直接删除
+        if (node.type !== 'GROUP' && node.type !== 'FRAME' && isNodeInvisible(node)) {
+          node.remove();
+          continue;
+        }
+
+        // 情况 A: Group -> 直接解散
+        if (node.type === 'GROUP') {
+          figma.ungroup(node);
+          hasNested = true;
+        }
+        // 情况 B: Frame -> 转换为背景矩形(如需要) + 解散
+        else if (node.type === 'FRAME') {
+
+          try {
+            // 2. === 修改：判断是否生成背景 ===
+            // 使用 isNodeInvisible 判断：如果不透明且有填充/描边，才生成背景矩形
+            // 如果是透明容器，则跳过此步，直接进入下面的 ungroup
+            if (!isNodeInvisible(node)) {
+               const rect = figma.createRectangle();
+               rect.x = node.x;
+               rect.y = node.y;
+               rect.resize(node.width, node.height);
+
+               // 复制样式
+               if (node.fills !== figma.mixed) rect.fills = node.fills;
+               if (node.strokes !== figma.mixed) rect.strokes = node.strokes;
+
+               // 安全复制粗细
+               if (node.strokeWeight !== figma.mixed) rect.strokeWeight = node.strokeWeight;
+               else rect.strokeWeight = 0;
+
+               // 安全复制圆角
+               if (node.cornerRadius !== figma.mixed) safeCornerRadius(rect, node.cornerRadius);
+               else safeCornerRadius(rect, 0);
+
+               // 复制特效
+               if (node.effects !== figma.mixed) rect.effects = node.effects;
+
+               // 复制透明度
+               rect.opacity = node.opacity;
+
+               // === 关键修复：复制旋转角度 ===
+               rect.rotation = node.rotation;
+
+               // 将矩形插入到 Frame 所在位置
+               node.parent.insertChild(i, rect);
+            }
+
+            // 3. 处理子元素 (核心扁平化逻辑)
+            if (node.children.length > 0) {
+              figma.ungroup(node);
+              hasNested = true; // 结构变了，标记需要继续循环
+            } else {
+              node.remove(); // 空 Frame 删掉
+            }
+
+          } catch (err) {
+            console.error("Layer flatten error:", err);
+            // 容错：出错了也尝试解开，防止死循环
+            if (node.children.length > 0) {
+                figma.ungroup(node);
+                hasNested = true;
+            } else {
+                node.remove();
+            }
+          }
+        }
+      }
+    }
+
+    // 文本宽度修正 (保持原有逻辑)
+    for (const node of slide.children) {
+      if (node.type === 'TEXT' && node.visible) {
+        try {
+          const font = node.fontName;
+          if (font !== figma.mixed) {
+            await figma.loadFontAsync(font);
+            node.textAutoResize = "HEIGHT";
+            node.resize(node.width + 10, node.height);
+          }
+        } catch (e) {}
+      }
+    }
+  }
+
+  figma.ui.postMessage({ type: 'step-done', step: 3 });
+}
+
+// Step 4: 提取结构 (高性能优化版：大批次 + 零丢弃)
+async function pptStep4_Extract(slides: FrameNode[]) {
+  // 辅助函数定义
+  const rgbToHex = (color: {r: number, g: number, b: number}) => {
+    const toHex = (v: number) => {
+      const hex = Math.round(v * 255).toString(16);
+      return hex.length === 1 ? "0" + hex : hex;
+    };
+    return toHex(color.r) + toHex(color.g) + toHex(color.b);
+  };
+
+  // 通知前端总数
+  figma.ui.postMessage({ type: 'ppt-init-total', count: slides.length });
+
+  for (let i = 0; i < slides.length; i++) {
+    const slide = slides[i];
+
+    // 强制休息，释放上一页内存
+    await new Promise(r => setTimeout(r, 50));
+
+    const slideAbs = slide.absoluteBoundingBox;
+    const slideX = slideAbs ? slideAbs.x : slide.x;
+    const slideY = slideAbs ? slideAbs.y : slide.y;
+
+    figma.ui.postMessage({
+      type: 'ppt-start-slide', index: i, width: slide.width, height: slide.height
+    });
+
+    let chunkBuffer = [];
+    const children = slide.children;
+    // 已移除 imgCounter，不再需要
+
+    for (let j = 0; j < children.length; j++) {
+      const node = children[j];
+
+      // 1. 基础过滤：只过滤不可见图层，保留所有尺寸的元素
+      if (!node.visible) continue;
+
+      // 2. 获取位置：如果获取失败则跳过
+      const nodeAbs = node.absoluteBoundingBox;
+      if (!nodeAbs) continue;
+
+      // 3. 计算相对中心点
+      const centerX = (nodeAbs.x + nodeAbs.width / 2) - slideX;
+      const centerY = (nodeAbs.y + nodeAbs.height / 2) - slideY;
+
+      const el: any = {
+        cx: centerX, cy: centerY, w: node.width, h: node.height, rotation: node.rotation
+      };
+
+      if ('opacity' in node) el.opacity = node.opacity;
+      if ('cornerRadius' in node && node.cornerRadius !== figma.mixed) el.cornerRadius = node.cornerRadius;
+
+      try {
+        // --- 样式提取 ---
+        if ('strokes' in node && node.strokes !== figma.mixed && node.strokes.length > 0) {
+          const stroke = node.strokes.find(s => s.type === 'SOLID' && s.visible !== false && s.opacity > 0);
+          if (stroke) {
+            el.strokeColor = rgbToHex(stroke.color);
+            el.strokeWeight = node.strokeWeight;
+            el.strokeAlpha = (el.opacity || 1) * stroke.opacity;
+          }
+        }
+
+        if ('effects' in node && node.effects.length > 0) {
+          const shadow = node.effects.find(e => e.type === 'DROP_SHADOW' && e.visible);
+          if (shadow) {
+            el.shadow = {
+              color: rgbToHex(shadow.color),
+              opacity: shadow.color.a,
+              blur: shadow.radius,
+              x: shadow.offset.x,
+              y: shadow.offset.y
+            };
+          }
+        }
+
+        let visibleFill = null;
+        if ('fills' in node && node.fills !== figma.mixed && node.fills.length > 0) {
+          visibleFill = node.fills.find(f => f.type === 'SOLID' && f.visible !== false && f.opacity > 0);
+        }
+        if (visibleFill) {
+          el.color = rgbToHex(visibleFill.color);
+          el.fillAlpha = (el.opacity || 1) * visibleFill.opacity;
+        } else {
+          el.color = null;
+          el.fillAlpha = 0;
+        }
+
+        // --- 类型分类 ---
+
+        // A. 直线 & 连接线 (以及看起来像线的 Vector)
+        const isLineLike = (node.type === 'LINE' || node.type === 'CONNECTOR');
+
+        if (isLineLike) {
+          el.type = 'line';
+
+          if ('dashPattern' in node && node.dashPattern.length > 0) el.dashPattern = node.dashPattern;
+
+          const arrowCaps = ['ARROW_LINES', 'ARROW_EQUILATERAL', 'TRIANGLE_FILLED', 'TRIANGLE_WIRED', 'DIAMOND_FILLED', 'CIRCLE_FILLED'];
+          if ('lineStartCap' in node && arrowCaps.includes(node.lineStartCap)) el.headArrow = 'triangle';
+          if ('lineEndCap' in node && arrowCaps.includes(node.lineEndCap)) el.tailArrow = 'triangle';
+
+          // 必须要有一条可见的描边，否则跳过
+          if (!el.strokeColor) continue;
+
+          chunkBuffer.push(el);
+        }
+
+        // B. 文本
+        else if (node.type === 'TEXT') {
+          el.type = 'text';
+          el.text = node.characters.substring(0, 2000);
+
+          // --- 1. 强制获取基准字号 ---
+          let baseSize = 12;
+          if (node.fontSize !== figma.mixed) {
+              baseSize = node.fontSize;
+          } else {
+              const firstCharFont = node.getRangeFontSize(0, 1);
+              if (firstCharFont && firstCharFont !== figma.mixed) baseSize = firstCharFont;
+          }
+          el.fontSize = baseSize;
+
+          // --- 2. 强制获取基准行高 (核心修复) ---
+          // 无论是否混合，都尝试获取具体的行高对象
+          let lh = node.lineHeight;
+          if (lh === figma.mixed) {
+              // 如果混合，强制读取第一个字符的行高
+              lh = node.getRangeLineHeight(0, 1);
+          }
+          // 如果还是读不到(极罕见)，造一个默认值
+          if (!lh || lh === figma.mixed) {
+              lh = { unit: 'AUTO' };
+          }
+
+          // --- 3. 计算绝对像素值 ---
+          // 默认 Auto = 1.3 倍
+          let finalPx = baseSize * 1.3;
+
+          if (lh.unit === 'PIXELS') {
+              finalPx = lh.value;
+          } else if (lh.unit === 'PERCENT') {
+              finalPx = baseSize * (lh.value / 100);
+          }
+
+          // 存入变量
+          el.lineHeightPx = finalPx;
+
+          // 4. 其他属性
+          if (node.fontName !== figma.mixed) {
+             el.fontFace = node.fontName.family;
+             const style = node.fontName.style.toLowerCase();
+             if (/bold|heavy|black|strong/.test(style)) el.isBold = true;
+          }
+
+          // 4. 判定多行 (逻辑保持不变，但要存入 el)
+          let isMultiLine = node.characters.includes('\n');
+          // 如果没有换行符，但高度超过 1.5 倍字号，也视为多行（折行）
+          if (!isMultiLine && node.fontSize !== figma.mixed) {
+             if (node.height > node.fontSize * 1.5) isMultiLine = true;
+          }
+          el.isMultiLine = isMultiLine;
+
+          // 5. 获取水平对齐 (Horizontal Align)
+          if (node.textAlignHorizontal === 'CENTER') el.align = 'center';
+          else if (node.textAlignHorizontal === 'RIGHT') el.align = 'right';
+          else if (node.textAlignHorizontal === 'JUSTIFIED') el.align = 'justify';
+          else el.align = 'left'; // 默认左对齐
+
+          // 6. (可选) 获取垂直对齐，虽然你的需求是强制覆盖，但获取一下也没坏处
+          if (node.textAlignVertical === 'CENTER') el.vAlignFigma = 'middle';
+          else if (node.textAlignVertical === 'BOTTOM') el.vAlignFigma = 'bottom';
+          else el.vAlignFigma = 'top';
+
+          if (!visibleFill) el.fillAlpha = el.opacity || 1;
+          chunkBuffer.push(el);
+        }
+        // C. 占位符 (图片)
+        else if (node.type === 'RECTANGLE' && node.fills !== figma.mixed && node.fills.length > 0 && node.fills.some(p => p.type === 'IMAGE' && p.visible !== false)) {
+          el.type = 'placeholder';
+          // 直接使用图层名 (p_xxxxxx)
+          el.imageName = node.name;
+          el.fillAlpha = el.opacity || 1;
+          chunkBuffer.push(el);
+        }
+
+        // D. 形状 (矩形、圆、星形、多边形) - 排除 LINE/CONNECTOR
+        else if (
+          node.type === 'RECTANGLE' || node.type === 'ELLIPSE' ||
+          node.type === 'VECTOR' || node.type === 'STAR' ||
+          node.type === 'POLYGON' || node.type === 'BOOLEAN_OPERATION'
+        ) {
+          el.type = 'shape';
+          el.pptShape = 'rect'; // 默认
+
+          if (node.type === 'ELLIPSE') el.pptShape = 'ellipse';
+          else if (node.type === 'STAR') {
+              const c = node.pointCount;
+              if(c>=4 && c<=32) el.pptShape = 'star'+c;
+              else el.pptShape = 'star5';
+          }
+          else if (node.type === 'POLYGON') {
+              const c = node.pointCount;
+              if (c === 3) el.pptShape = 'triangle';
+              else if (c === 5) el.pptShape = 'pentagon';
+              else if (c === 6) el.pptShape = 'hexagon';
+              else if (c === 8) el.pptShape = 'octagon';
+          }
+
+          if (!el.color && !el.strokeColor) continue;
+          chunkBuffer.push(el);
+        }
+
+        // === 性能优化：加大批次到 200 ===
+        if (chunkBuffer.length >= 200) {
+          figma.ui.postMessage({ type: 'ppt-element-batch', data: chunkBuffer });
+          chunkBuffer = [];
+          // 强制休息 15ms，让 UI 线程有机会渲染 Loading 动画
+          await new Promise(r => setTimeout(r, 15));
+        }
+      } catch (err) {
+        // 静默失败，不打印 log
+      }
+    }
+
+    if (chunkBuffer.length > 0) {
+      figma.ui.postMessage({ type: 'ppt-element-batch', data: chunkBuffer });
+    }
+    figma.ui.postMessage({ type: 'ppt-end-slide' });
+  }
+
+  figma.ui.postMessage({ type: 'step-done', step: 4, data: { done: true } });
+}
+
+// Step 5: 导出资源 (Hex ID 版)
+async function pptStep5_ExportImages(slides: FrameNode[]) {
+  figma.ui.postMessage({ type: 'ppt-asset-start', totalSlides: slides.length });
+  let imgCount = 0;
+
+  for (let i = 0; i < slides.length; i++) {
+    const slide = slides[i];
+    const children = slide.children;
+
+    for (let j = 0; j < children.length; j++) {
+       const node = children[j];
+       if (!node.visible) continue;
+
+       let isTarget = false;
+       if ('effects' in node && node.effects.some(e => e.type === 'LAYER_BLUR' && e.visible)) isTarget = true;
+       if (!isTarget && node.type === 'RECTANGLE' && node.fills !== figma.mixed && node.fills.some(p => p.type === 'IMAGE')) isTarget = true;
+
+       if (isTarget) {
+          await new Promise(r => setTimeout(r, 50));
+          try {
+            const bytes = await node.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 1.5 } });
+            // 使用 ID 命名
+            const fileName = `${node.name}.png`;
+
+            figma.ui.postMessage({ type: 'ppt-asset-chunk', fileName: fileName, data: bytes });
+            imgCount++;
+          } catch (e) { console.error(e); }
+       }
+    }
+  }
+  figma.ui.postMessage({ type: 'step-done', step: 5, data: { count: imgCount } });
+}
+
+// 辅助：RGB 转 Hex
+function rgbToHex(color: {r: number, g: number, b: number}) {
+  const toHex = (v: number) => {
+    const hex = Math.round(v * 255).toString(16);
+    return hex.length === 1 ? "0" + hex : hex;
+  };
+  return toHex(color.r) + toHex(color.g) + toHex(color.b);
+}
+
+// 判断节点是否“视觉不可见” (无有效填充且无有效描边，或全局隐藏/全透)
+function isNodeInvisible(node: SceneNode): boolean {
+  // 1. 全局检查：被隐藏 或 透明度为0
+  if ('visible' in node && !node.visible) return true;
+  if ('opacity' in node && node.opacity === 0) return true;
+
+  // 2. 文本特殊处理：无内容即不可见
+  if (node.type === 'TEXT' && node.characters.trim().length === 0) return true;
+
+  // 3. 样式检查：针对有 fills/strokes 的节点
+  if ('fills' in node && 'strokes' in node) {
+
+    // 有效填充：存在 + 可见 + 不透明
+    const hasFill = node.fills !== figma.mixed &&
+                    node.fills.length > 0 &&
+                    node.fills.some(p => p.visible !== false && p.opacity > 0);
+
+    // 有效描边：存在 + 粗细>0 + 可见 + 不透明
+    const hasStroke = node.strokes !== figma.mixed &&
+                      node.strokes.length > 0 &&
+                      node.strokeWeight > 0 &&
+                      node.strokes.some(p => p.visible !== false && p.opacity > 0);
+
+    // 如果既无有效填充，也无有效描边 -> 视为不可见 (忽略特效)
+    if (!hasFill && !hasStroke) return true;
+  }
+
+  // 其他情况（如 Group/Frame/Slice）暂时视为可见，交给后续逻辑处理
+  return false;
+}
+
+// 辅助：按视觉位置排序 (Z字形：先上后下，同行先左后右)
+function sortNodesByVisualPosition(nodes: SceneNode[]) {
+  return nodes.sort((a, b) => {
+    // 获取绝对坐标 (降级处理：如果没有绝对坐标，用相对坐标兜底)
+    const aAbs = a.absoluteBoundingBox || { x: a.x, y: a.y };
+    const bAbs = b.absoluteBoundingBox || { x: b.x, y: b.y };
+
+    // 1. 先判断 Y 轴 (行)
+    // 容差设为 50px，只要高度差在 50px 以内，视为同一行
+    if (Math.abs(aAbs.y - bAbs.y) > 50) {
+      return aAbs.y - bAbs.y; // 谁 y 小谁在上面
+    }
+
+    // 2. 同一行，判断 X 轴 (列)
+    return aAbs.x - bAbs.x; // 谁 x 小谁在左边
+  });
+}
+
+// 辅助函数：将 "Size=Small, State=Hover" 解析为 { Size: 'Small', State: 'Hover' }
+function parseVariantName(name: string): Record<string, string> {
+  const result: Record<string, string> = {};
+  const parts = name.split(',');
+  parts.forEach(part => {
+    const [key, value] = part.split('=');
+    if (key && value) {
+      result[key.trim()] = value.trim();
+    }
+  });
+  return result;
+}
+
+installPluginBookmarkQueue(figma.ui);

@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>All in One · 7 个功能切片</title>
+<link rel="stylesheet" href="xhs.css">
+<style>
+/* 7 页：钩子、工具地图、前后对比、过滤、清理、交付、结尾 */
+.shot-frame{width:100%;border-radius:20px;overflow:hidden;background:var(--fill-soft)}
+.shot-frame img{width:100%;height:100%;object-fit:cover;object-position:top center}
+.mini-shot{width:232px;height:148px;border-radius:16px;overflow:hidden;border:1px solid var(--line-soft);background:var(--fill-soft);flex:none}
+.mini-shot img{width:100%;height:100%;object-fit:cover;object-position:top center}
+.toolmap{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:26px}
+.toolmap .card{padding:22px 20px}
+.toolmap h3{font-size:32px;line-height:42px;font-weight:600;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+.toolmap h3 span{font:600 22px/1 var(--font-num);color:var(--text-faint)}
+.toolmap ul{list-style:none}
+.toolmap li{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-top:1px solid var(--line-soft);font-size:24px;line-height:34px;color:var(--text-medium)}
+.toolmap li small{font-size:22px;color:var(--text-faint);font-family:var(--font-num)}
+
+.toolmap .is-key{border-color:var(--orange);box-shadow:0 0 0 2px var(--orange-200),var(--shadow-card)}
+.formcard{height:520px;background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:26px 26px 20px}
+.formcard__top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.formcard__top b{font-size:26px}
+.formcard__top span{font-size:22px;color:var(--text-faint);font-family:var(--font-num)}
+.frow{display:flex;align-items:center;gap:14px;padding:15px 0;border-top:1px solid var(--line-soft)}
+.frow label{width:84px;font-size:22px;color:var(--text-muted);flex:none}
+.frow p{flex:1;min-height:44px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:22px;line-height:28px;color:var(--text-faint);background:var(--fill-soft)}
+.filled .frow p{color:var(--text-strong);background:var(--surface);border-color:var(--line-soft)}
+.filled .frow:first-of-type p{color:var(--text-strong);border-color:var(--orange);background:var(--orange-50)}
+.pipe{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:26px}
+.pipe .card{padding:14px;display:flex;flex-direction:column;gap:12px}
+.pipe .num{font:600 22px/1 var(--font-num);color:var(--text-faint)}
+.pipe .shot-frame{height:190px;border-radius:14px}
+.pipe .row__head{font-size:26px}
+.pipe .row__note{font-size:22px;line-height:32px}
+.done__list li{font-size:32px;line-height:48px}
+.statement{margin-top:44px;font-size:32px;line-height:46px;font-weight:600;letter-spacing:-.02em}.statement span{color:var(--orange)}
+</style>
+</head>
+<body>
+
+<!-- 01 钩子 -->
+<section class="slide" data-layout="T02 封面 · 窗口">
+  <header class="head">
+    <p class="chip">Figma / MasterGo 插件</p>
+    <h1 class="t-display">设计 10 分钟<br>找图层 <span class="c-orange">20</span> 分钟</h1>
+    <p class="sub">这四件事，一个插件就能省掉</p>
+  </header>
+  <div class="stage">
+    <div class="card card--dialog split">
+      <div class="chrome"><p class="chrome__address t-caption c-muted">All in One · plugin</p></div>
+      <div class="shot-frame" style="height:720px"><img src="shots/home-cards.png" alt="All in One 插件首页"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 02 工具地图 -->
+<section class="slide" data-layout="扩展 · 三组工具地图">
+  <header class="head">
+    <p class="chip">工具地图</p>
+    <h2 class="t-title">3 组入口<br>22 个工具</h2>
+    <p class="sub">效率、组件、交付，一栏直达</p>
+  </header>
+  <div class="stage">
+    <div class="toolmap">
+      <div class="card is-key"><h3>效率 <span>05</span></h3><ul><li>超级选择 <small>过滤</small></li><li>智能填充 <small>内容</small></li><li>文字替换 <small>查改</small></li><li>尺寸助手 <small>预设</small></li><li>时空信标 <small>视口</small></li></ul></div>
+      <div class="card"><h3>组件 <span>05</span></h3><ul><li>组件清洗 <small>命名</small></li><li>组件构建 <small>拼装</small></li><li>图层命名 <small>AI</small></li><li>图层查重 <small>对比</small></li><li>CompKit <small>矩阵</small></li></ul></div>
+      <div class="card"><h3>交付 <span>04</span></h3><ul><li>语言切换 <small>多语言</small></li><li>等轴形变 <small>透视</small></li><li>导出 PPT <small>幻灯片</small></li><li>设计理论 <small>18 篇</small></li></ul></div>
+    </div>
+    <div class="statement">不用在 22 个插件之间切换<br><span>一个面板就够</span></div>
+  </div>
+</section>
+
+<!-- 03 智能填充 前后对比 -->
+<section class="slide" data-layout="T08 前后 · 双栏">
+  <header class="head">
+    <p class="chip">智能填充</p>
+    <h2 class="t-title">表单<br>一键填满</h2>
+    <p class="sub">姓名、地址、电话、公司名</p>
+  </header>
+  <div class="stage">
+    <div class="hstack hstack--wide">
+      <div class="card versus"><span class="tag">之前</span><div class="formcard"><div class="formcard__top"><b>用户资料</b><span>0 / 4</span></div><div class="frow"><label>姓名</label><p>姓名</p></div><div class="frow"><label>手机号</label><p>手机号</p></div><div class="frow"><label>公司</label><p>公司名称</p></div><div class="frow"><label>地址</label><p>详细地址</p></div></div><div class="row__text"><p class="row__head">空字段</p><p class="row__note">一个个敲，改一次填一次</p></div></div>
+      <div class="card versus"><span class="tag tag--orange">之后</span><div class="formcard filled"><div class="formcard__top"><b>用户资料</b><span>4 / 4</span></div><div class="frow"><label>姓名</label><p>林知夏</p></div><div class="frow"><label>手机号</label><p>138 0000 2468</p></div><div class="frow"><label>公司</label><p>山屿设计</p></div><div class="frow"><label>地址</label><p>上海市徐汇区…</p></div></div><div class="row__text"><p class="row__head">一键填充</p><p class="row__note">选字段，选数据源，批量写入</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 超级选择 -->
+<section class="slide slide--tight" data-layout="T10 标注 · 截图">
+  <header class="head">
+    <p class="chip">超级选择</p>
+    <h2 class="t-title">找图层<br>三层过滤</h2>
+    <p class="sub">名称、类型、状态，同时满足</p>
+  </header>
+  <div class="stage" data-accent>
+    <div class="card card--dialog split">
+      <div class="chrome"><p class="chrome__title">超级选择 · 筛选器</p></div>
+      <div class="shot">
+        <div class="shot-frame" style="height:380px"><img src="shots/select-cards.png" alt="超级选择筛选器"></div>
+        <span class="badge badge--orange pin" style="left:310px;top:120px">1</span>
+        <span class="badge badge--orange pin" style="left:520px;top:235px">2</span>
+        <span class="badge badge--orange pin" style="left:310px;top:330px">3</span>
+      </div>
+    </div>
+    <div class="card split">
+      <div class="row"><span class="badge badge--soft">1</span><div class="row__text"><p class="row__head">名称</p><p class="row__note">包含 / 排除，精确匹配</p></div></div>
+      <div class="row"><span class="badge badge--soft">2</span><div class="row__text"><p class="row__head">类型</p><p class="row__note">画板、组、组件、文本、图片…</p></div></div>
+      <div class="row"><span class="badge badge--soft">3</span><div class="row__text"><p class="row__head">状态</p><p class="row__note">隐藏、锁定、蒙版、可导出</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 组件清理 -->
+<section class="slide" data-layout="T04 步骤 · 文档">
+  <header class="head">
+    <p class="chip">组件与图层</p>
+    <h2 class="t-title">组件名<br>一次清完</h2>
+    <p class="sub">清洗、命名、查重、翻译</p>
+  </header>
+  <div class="stage">
+    <div class="card split">
+      <div class="row"><span class="badge">1</span><div class="row__text"><p class="row__head">组件清洗</p><p class="row__note">Button/Primary → button-primary</p></div><div class="mini-shot"><img src="shots/refiner-cards.png"></div></div>
+      <div class="row"><span class="badge">2</span><div class="row__text"><p class="row__head">图层命名</p><p class="row__note">Frame 12 → Checkout / Card</p></div><div class="mini-shot"><img src="shots/layer-cards.png"></div></div>
+      <div class="row"><span class="badge">3</span><div class="row__text"><p class="row__head">图层查重</p><p class="row__note">icon-sun-01 与 frame-sun-32</p></div><div class="mini-shot"><img src="shots/duplicate-cards.png"></div></div>
+    </div>
+    <div class="card split" style="margin-top:24px">
+      <div class="row"><span class="tag tag--orange">AI</span><div class="row__text"><p class="row__head">名称翻译</p><p class="row__note">中文组件名 → 英文，保留变体结构</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 06 交付 -->
+<section class="slide" data-layout="扩展 · 交付流水线">
+  <header class="head">
+    <p class="chip">从设计到交付</p>
+    <h2 class="t-title">设计完<br>直接交付</h2>
+    <p class="sub">尺寸、PPT、多语言、理论</p>
+  </header>
+  <div class="stage">
+    <div class="pipe">
+      <div class="card"><span class="num">01</span><div class="shot-frame"><img src="shots/size-cards.png"></div><p class="row__head">尺寸助手</p><p class="row__note">设备预设 / 比例</p></div>
+      <div class="card"><span class="num" style="color:var(--orange)">02</span><div class="shot-frame"><img src="shots/ppt-cards.png"></div><p class="row__head">导出 PPT</p><p class="row__note">可编辑幻灯片</p></div>
+      <div class="card"><span class="num">03</span><div class="shot-frame"><img src="shots/i18n-cards.png"></div><p class="row__head">语言切换</p><p class="row__note">变量合集</p></div>
+      <div class="card"><span class="num">04</span><div class="shot-frame"><img src="shots/theory-cards.png"></div><p class="row__head">设计理论</p><p class="row__note">18 篇原则</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 结尾 -->
+<section class="slide" data-layout="T20 结尾 · 完成">
+  <header class="head head--center">
+    <p class="chip">All in One</p>
+    <h2 class="t-display">22 个工具<br>一个面板</h2>
+    <p class="sub">Figma / MasterGo，本地运行</p>
+  </header>
+  <div class="stage">
+    <div class="card card--dialog split">
+      <div class="done__top"><span class="done__mark"><i class="ic ic--lg" data-i="check"></i></span><p class="t-heading">少做重复操作</p></div>
+      <ul class="done__list">
+        <li><i class="ic c-green" data-i="check"></i><strong>15</strong> 个入口 · <strong>22</strong> 个工具</li>
+        <li><i class="ic c-green" data-i="check"></i>本地运行，不上传设计稿</li>
+        <li><i class="ic c-green" data-i="check"></i>Figma / MasterGo 双端</li>
+      </ul>
+      <div class="foot foot--base"><p class="foot__note">QQ 群 376556413 · www.btbon.cn</p><span class="btn btn--primary" style="background:var(--orange);color:#fff">收藏备用</span></div>
+    </div>
+  </div>
+</section>
+
+<script src="xhs.js"></script>
+<script src="figure-kit.js"></script>
+</body>
+</html>

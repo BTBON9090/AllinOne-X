@@ -1,0 +1,183 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const { pathToFileURL } = require('node:url');
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
+const root = path.resolve(__dirname,'..');
+const output = process.env.UI_REVIEW_DIR || fs.mkdtempSync(path.join(require('node:os').tmpdir(),'allinone-window-'));
+fs.mkdirSync(output,{ recursive:true });
+const logoFile = path.join(root, 'mastergo', 'assets', 'all-in-one-logo.png');
+const originalLogo = 'data:image/png;base64,' + fs.readFileSync(logoFile).toString('base64');
+
+async function checkBrandImage(locator) {
+  assert(await locator.isVisible(), 'Brand artwork is visible');
+  const result = await locator.evaluate(async (image, referenceSource) => {
+    const reference = new Image();
+    reference.src = referenceSource;
+    await Promise.all([image.decode(), reference.decode()]);
+    const canvas = document.createElement('canvas');
+    canvas.width = reference.naturalWidth;
+    canvas.height = reference.naturalHeight;
+    const context = canvas.getContext('2d', {willReadFrequently:true});
+    function rgba(source) {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(source, 0, 0, canvas.width, canvas.height);
+      return context.getImageData(0, 0, canvas.width, canvas.height).data;
+    }
+    const source = rgba(reference), displayed = rgba(image);
+    const box = image.getBoundingClientRect();
+    const style = getComputedStyle(image);
+    return {
+      samePixels:source.every((value, i) => value === displayed[i]),
+      cornerAlpha:displayed[3], square:box.width === box.height && box.width > 0,
+      background:style.backgroundColor, filter:style.filter, transform:style.transform, clipPath:style.clipPath,
+      padded:['paddingTop','paddingRight','paddingBottom','paddingLeft'].some(key => parseFloat(style[key]) !== 0)
+    };
+  }, originalLogo);
+  assert(result.samePixels, 'Displayed RGBA pixels match the original logo, including white tiles and transparent corners');
+  assert.equal(result.cornerAlpha, 0);
+  assert(result.square && !result.padded, 'Logo keeps its square proportions without inset padding');
+  assert.equal(result.filter, 'none');
+  assert.equal(result.transform, 'none', 'Original artwork stays upright');
+  assert.equal(result.clipPath, 'none');
+  assert.equal(result.background, 'rgba(0, 0, 0, 0)', 'No extra background behind the logo');
+}
+
+(async () => {
+  const browser = await chromium.launch({ headless:true, ...(process.env.PLAYWRIGHT_EXECUTABLE_PATH ? { executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH } : {}) });
+  try {
+    for (const platform of ['figma','mastergo']) {
+      const page = await browser.newPage({ viewport:{ width:440,height:600 } });
+      const errors = [];
+      page.on('pageerror',e => errors.push(e.message));
+      await page.route('https://**/*',route => route.abort());
+      await page.addInitScript(() => { window.__sent = []; parent.postMessage = message => { if (message.pluginMessage) window.__sent.push(message.pluginMessage); }; });
+      await page.goto(pathToFileURL(path.join(root,platform,'ui.html')).href);
+      await page.waitForFunction(() => window.PluginWindow && window.PluginBookmarks && window.PluginWorkspace);
+      const emit = msg => page.evaluate(msg => window.dispatchEvent(new MessageEvent('message',{ data:{ pluginMessage:msg } })),msg);
+      await page.evaluate(() => changeTheme('light'));
+      const mark = page.locator('.workbench-brand img.workbench-mark');
+      await checkBrandImage(mark);
+      const markSource = await mark.getAttribute('src');
+      assert.match(markSource, /^data:image\/png;base64,/, 'Logo is available offline');
+      const colors = await page.evaluate(() => {
+        const color = selector => getComputedStyle(document.querySelector(selector)).backgroundColor;
+        const swatch = document.createElement('span');
+        swatch.style.color = 'var(--primary)';
+        document.body.append(swatch);
+        const primary = getComputedStyle(swatch).color;
+        swatch.remove();
+        return {sidebar:color('.sidebar'), main:color('.main-content'), primary};
+      });
+      assert.deepEqual(colors, {sidebar:'rgb(255, 255, 255)', main:'rgb(255, 255, 255)', primary:'rgb(94, 0, 194)'});
+      assert.equal(await page.locator('.nav-group').count(),3);
+      assert.equal(await page.locator('.nav-item').count(),16);
+      assert(await page.locator('.nav-item').last().evaluate(el => {
+        const box = el.getBoundingClientRect(), rail = el.closest('.nav-scroll').getBoundingClientRect();
+        return box.bottom <= rail.bottom;
+      }),'All 16 Chinese tools fit at the regular window size');
+      await page.screenshot({ path:path.join(output,`${platform}-groups.png`),animations:'disabled' });
+      await page.evaluate(() => PluginWorkspace.navigate('jumpback'));
+      const spots = ['a','b','c'].map((id,index) => ({ id,name:`位置 ${index+1} <svg onload=alert(1)>`,pageName:'中文 页面 ⚡',zoom:index + 0.5,centerX:42 }));
+      await emit({ type:'jb-render-spots',data:spots });
+      assert.equal(await page.locator('.spot-item').count(),3);
+      assert.equal(await page.locator('.spot-page-title svg').count(),0,'Document names are literal text, never markup or icons');
+      assert(await page.locator('.spot-item').evaluateAll(items => items.every(item => {
+        const style = getComputedStyle(item), box = item.getBoundingClientRect();
+        return style.flexDirection === 'row' && style.borderTopWidth === '1px' && box.height <= 70;
+      })), 'Dense cards keep editable names, a drag handle and whole-card navigation');
+      assert.equal(await page.locator('.spot-name-input').first().inputValue(),spots[0].name);
+      const handle = page.locator('.spot-item[data-spot-id="a"] .bookmark-handle');
+      const from = await handle.boundingBox(), to = await page.locator('.spot-item[data-spot-id="c"]').boundingBox();
+      await page.mouse.move(from.x+11,from.y+14); await page.mouse.down();
+      await page.mouse.move(to.x+11,to.y+to.height-2,{ steps:8 }); await page.mouse.up();
+      let message = await page.evaluate(() => __sent.filter(m => m.type === 'jb-reorder').at(-1));
+      assert.deepEqual(message.ids,['b','c','a']);
+      await emit({ type:'jb-render-spots',data:message.ids.map(id=>spots.find(s=>s.id===id)),requestId:message.requestId });
+      await page.locator('.spot-item[data-spot-id="a"] .bookmark-handle').press('Home');
+      message = await page.evaluate(() => __sent.filter(m => m.type === 'jb-reorder').at(-1));
+      assert.deepEqual(message.ids,['a','b','c']);
+      await emit({ type:'jb-render-spots',data:spots,requestId:message.requestId,error:true });
+      assert.match(await page.locator('.bookmark-status').innerText(),/重试/);
+      await page.locator('.spot-name-input').first().fill('尚未提交的中文草稿');
+      await page.evaluate(() => changeLanguage('en'));
+      assert.equal(await page.locator('.spot-name-input').first().inputValue(),'尚未提交的中文草稿');
+      assert.equal(await page.locator('.spot-page-title').first().innerText(),'中文 页面 ⚡');
+      assert.equal(await page.locator('.nav-group-label').first().innerText(),'Productivity');
+      assert.match(await page.locator('.bookmark-handle').first().getAttribute('aria-label'),/Sort/);
+      // Cancel restores the original order and does not commit any mutation.
+      const before = await page.evaluate(() => __sent.filter(m=>m.type==='jb-reorder').length);
+      const start = await page.locator('.bookmark-handle').first().boundingBox();
+      await page.mouse.move(start.x+11,start.y+14); await page.mouse.down();
+      await page.mouse.move(start.x+11,start.y+95,{ steps:5 });
+      await page.keyboard.press('Escape'); await page.mouse.up();
+      assert.equal(await page.evaluate(() => __sent.filter(m=>m.type==='jb-reorder').length),before);
+      assert.deepEqual(await page.locator('.spot-item').evaluateAll(items=>items.map(el=>el.dataset.spotId)),['a','b','c']);
+      await emit({ type:'jb-render-spots',data:spots.map((spot,i) => ({ ...spot,name:['首页总览','组件细节','交付检查'][i],pageName:'产品设计 · 工作区' })),requestId:message.requestId,error:false });
+      await page.evaluate(() => changeLanguage('zh'));
+      await page.screenshot({ path:path.join(output,`${platform}-bookmarks.png`),animations:'disabled' });
+      await page.evaluate(() => PluginWorkspace.navigate('text'));
+      const input = page.locator('#textPanel input[type="text"]').first(); await input.fill('保留搜索草稿');
+      await page.evaluate(() => { changeLanguage('en'); const nav = document.querySelector('.nav-scroll'); nav.scrollTop = 70; window.__navScroll = nav.scrollTop; });
+      await emit({ type:'window-state',collapsed:false,canMove:true,edge:'right' });
+      await page.locator('#collapseWindow').click();
+      assert.equal(await page.evaluate(() => __sent.at(-1).type),'window-collapse');
+      await emit({ type:'window-state',collapsed:true,canMove:true,edge:'right' }); await page.setViewportSize({ width:70,height:48 });
+      assert.equal(await page.locator('.app-container').isVisible(),false);
+      assert.equal(await page.locator('#pluginBubble').isVisible(),true);
+      assert.equal(await page.evaluate(() => document.activeElement.id),'pluginBubble');
+      const bubble = page.locator('#pluginBubble img.bubble-logo');
+      await checkBrandImage(bubble);
+      assert.equal(await bubble.getAttribute('src'), markSource, 'Expanded and collapsed windows share the same artwork');
+      // The body fades its background when the expanded panel collapses.
+      await page.waitForFunction(() => [document.documentElement, document.body, document.getElementById('pluginBubble')]
+        .every(node => getComputedStyle(node).backgroundColor === 'rgba(0, 0, 0, 0)'), null, {timeout:2000});
+      await page.screenshot({ path:path.join(output,`${platform}-bubble.png`),animations:'disabled' });
+      await page.mouse.move(35,24); await page.mouse.down(); await page.mouse.move(60,35,{ steps:6 }); await page.mouse.up();
+      assert.equal(await page.evaluate(() => __sent.at(-1).type),'window-drag-end','Dragging does not expand');
+      await page.locator('#pluginBubble').click();
+      assert.equal(await page.evaluate(() => __sent.at(-1).type),'window-expand');
+      await emit({ type:'window-state',collapsed:false,canMove:true,edge:'right' }); await page.setViewportSize({ width:440,height:600 });
+      await page.waitForFunction(() => document.querySelector('.nav-scroll').scrollTop === window.__navScroll);
+      assert.equal(await input.inputValue(),'保留搜索草稿');
+      assert.equal(await page.locator('.nav-item.active').getAttribute('data-nav'),'text');
+      await page.locator('#collapseWindow').press('ArrowLeft');
+      assert.deepEqual(await page.evaluate(() => { const m = __sent.at(-1); return [m.type,m.dx,m.dy]; }),['window-nudge',-16,0]);
+      await page.evaluate(() => { setCompactMode(true); changeLanguage('en'); changeTheme('dark'); });
+      await page.setViewportSize({ width:360,height:520 });
+      await checkBrandImage(mark);
+      assert(await page.locator('.nav-item').last().evaluate(el => el.getBoundingClientRect().bottom <= el.closest('.nav-scroll').getBoundingClientRect().bottom),'All compact icons fit at 360 × 520');
+      await page.screenshot({ path:path.join(output,`${platform}-groups-compact.png`),animations:'disabled' });
+      assert.equal(await page.locator('#collapseWindow').isVisible(),true);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollHeight > innerHeight || document.documentElement.scrollWidth > innerWidth),false);
+      for (const [compact,width] of [[false,210],[true,170]]) {
+        await page.evaluate(compact => { setCompactMode(compact); PluginWorkspace.navigate('simple'); },compact);
+        await page.setViewportSize({ width:compact ? 360 : 440,height:520 });
+        const corner = await page.locator('#resizeHandle').boundingBox();
+        await page.mouse.move(corner.x+8,corner.y+8); await page.mouse.down();
+        await page.mouse.move(0,0,{ steps:6 }); await page.mouse.up();
+        const resize = await page.evaluate(() => __sent.filter(m => m.type === 'resize-drag').at(-1));
+        assert.deepEqual([resize.width,resize.height],[width,400],'Corner drag uses the halved width floor and keeps the height floor');
+        await page.setViewportSize({ width,height:520 });
+        assert(await page.locator('.workbench-menu').isVisible());
+        assert.equal(await page.locator('.tool-home-commands').first().evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length),1);
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),false);
+        await page.screenshot({ path:path.join(output,`${platform}-narrow-${width}.png`),animations:'disabled' });
+        await page.evaluate(() => PluginWorkspace.navigate('size'));
+        assert(await page.locator('.main-content').evaluate(el => el.scrollWidth > el.clientWidth),'Complex controls remain available in a local horizontal scroll region');
+        await page.locator('.main-content').evaluate(el => { el.scrollLeft = el.scrollWidth; });
+        assert(await page.locator('.main-content').evaluate(el => el.scrollLeft > 0));
+        assert.equal(await page.locator('#resizeHandle').isVisible(),true);
+        await page.locator('.workbench-menu').click();
+        assert.equal(await page.locator('.nav-item').first().isVisible(), true);
+        await page.locator('.nav-item[data-nav="simple"]').press('Enter');
+        assert.equal(await page.locator('.workbench-menu').getAttribute('aria-expanded'), 'false');
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),false);
+      }
+      assert.deepEqual(errors,[]);
+      await page.close();
+      console.log(`${platform}: grouped navigation, safe names, pointer/keyboard sorting, cancel/error recovery, bubble dragging, state preservation, English and compact dark layout passed.`);
+    }
+  } finally { await browser.close(); }
+  console.log(`Screenshots: ${output}`);
+})().catch(error => { console.error(error); process.exitCode = 1; });

@@ -1,8 +1,4 @@
-# Node
-*.log
-*.log.*
-node_modules
-
-out/
-dist/
-code.js
+node_modules/
+.DS_Store
+.history/
+.local-releases/

@@ -1,14 +1,32 @@
 {
-  "name": "allinone-plugin",
-  "version": "1.0.0",
-  "description": "Figma All in One Plugin",
-  "main": "code.js",
+  "name": "allinonex",
+  "version": "4.4.6",
+  "private": true,
+  "description": "All in One dual-platform plugin monorepo for Figma and MasterGo",
   "scripts": {
-    "build": "tsc code.ts --outFile code.js",
-    "watch": "tsc code.ts --outFile code.js --watch"
-  },
-  "devDependencies": {
-    "typescript": "^5.0.0",
-    "@figma/plugin-typings": "*"
+    "install:all": "npm ci --prefix figma && npm ci --prefix mastergo",
+    "sync:ui": "node scripts/sync-ui-shell.mjs",
+    "build": "npm run sync:ui && npm --prefix figma run build && npm --prefix mastergo run build",
+    "verify:figma": "npm --prefix figma run verify",
+    "verify:mastergo": "npm --prefix mastergo run verify",
+    "check:parity": "node scripts/check-dual-platform.mjs",
+    "check:smart-fill": "node scripts/check-smart-fill.mjs",
+    "check:fill-generators": "node scripts/check-fill-generators.mjs",
+    "check:chinese-names": "node scripts/check-chinese-names.mjs",
+    "check:localization": "node scripts/check-localization.mjs",
+    "check:localization-ui": "node scripts/check-localization-ui.cjs",
+    "check:workspace-ui": "node scripts/check-workspace-ui.cjs",
+    "check:window-bookmarks": "node scripts/check-window-bookmarks.mjs",
+    "check:window-bookmarks-ui": "node scripts/check-window-bookmarks-ui.cjs",
+    "verify": "npm run sync:ui && npm run verify:figma && npm run verify:mastergo && npm run check:parity && npm run check:smart-fill && npm run check:fill-generators && npm run check:chinese-names && npm run check:localization && npm run check:window-bookmarks && npm run check:layer-workflows && npm run check:ai-contracts && npm run check:component-families && npm run check:iconfont",
+    "check:layer-workflows": "node scripts/check-layer-workflows.mjs",
+    "check:layer-ui": "node scripts/check-layer-workspace-ui.cjs",
+    "check:ai-contracts": "node scripts/check-ai-contracts.mjs",
+    "check:ai-recovery-ui": "node scripts/check-ai-recovery-ui.cjs",
+    "check:component-conflicts-ui": "node scripts/check-component-conflicts-ui.cjs",
+    "check:component-families": "node scripts/check-component-families.mjs",
+    "check:component-families-ui": "node scripts/check-component-families-ui.cjs",
+    "check:iconfont": "node scripts/check-iconfont-geometry.mjs && node scripts/check-iconfont-host.mjs",
+    "check:iconfont-ui": "node scripts/check-iconfont-ui.cjs"
   }
 }

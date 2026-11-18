@@ -1,40 +1,151 @@
-Below are the steps to get your plugin running. You can also find instructions at:
+# AllinoneX
 
-  https://www.figma.com/plugin-docs/plugin-quickstart-guide/
+AllinoneX 4.4.6 是同仓库双平台插件项目。Figma 与 MasterGo 版本分别保留独立的主线程源码、清单、构建产物和依赖配置，公共功能通过自动等价检查保持同步。
 
-This plugin template uses Typescript and NPM, two standard tools in creating JavaScript applications.
+面板导航、主题与工具布局见[插件面板](docs/PLUGIN_PANEL.md)。
 
-First, download Node.js which comes with NPM. This will allow you to install TypeScript and other
-libraries. You can find the download link here:
+## 项目结构
 
-  https://nodejs.org/en/download/
+```text
+AllinoneX/
+├── figma/       # Figma 插件：code.ts / code.js / ui.html / manifest.json
+├── mastergo/    # MasterGo 插件：main.ts / main.js / ui.html / manifest.json
+├── scripts/     # 跨平台功能与版本等价检查
+└── docs/        # 双平台维护规范
+```
 
-Next, install TypeScript using the command:
+## 本次 4.4.6 更新
 
-  npm install -g typescript
+- 组件 AI 改为三个可续传阶段：每批最多 20 张观察差异 → 全局规划组件族与统一属性 → 按统一属性整合。分批时保留恒定属性和观察证据，避免把圆形、照片、品牌、相机角标当成互不相干的组件族。
+- 全局属性规划保存后，最终统筹失败只重试统筹。同一组件族、相同目标父级与目标组件集的结果由插件合并，不能因 AI 返回多个小组名而再次分散；缺失统一属性时要求修正，不把未知默认为“无”。
+- 默认支持将多个已有组件集及 Frame/组件一起重新规划，创建新的整合副本；原组件集、源组件 ID 和原实例关联保留。关闭“整合所选组件集”可使用原有补入模式。合并源需要处于同一父级，总计最多 800 个来源对象。
+- [组件族整合 skill](shared/skills/component-family-synthesis/SKILL.md) 随构建嵌入双端 UI，观察、属性规划、最终整合每个阶段都会加载，不需要用户手动配置提示词。规则包含头像属性示例、编辑遮罩与内容区分、同族合并及原始外观保护。
+- 新增 150 头像/10 分组归为一个组件族、真正不同用途保留为两族、全局属性遗漏拒绝、双端 150 变体副本合并/失败回滚、原集变化检测、属性规划及统筹分别限流恢复测试。模拟测试不代表已验证用户真实云模型的识别质量。
 
-Finally, in the directory of your plugin, get the latest type definitions for the plugin API by running:
+## 4.4.5 更新
 
-  npm install --save-dev @figma/plugin-typings
+- 修复组件分析反复停在 80/150：草稿允许不同来源暂时具有相同属性组合，成功批次立即计入进度，不因分类冲突反复请求同一批；未知、重复引用或遗漏的图层仍严格拒绝。
+- 最终 AI 统筹接收全部批次、冲突记录和根对象信息，依据已观察到的差异区分属性；仍无法安全合并的全部冲突成员保留为独立组件，不补造变体、不删除来源、不改动外观。
+- 同时检查跨批合并、已有组件集及宿主名称规范化引入的冲突。完成时显示明确的 150/150 进度，冲突提示保持在结果滚动区之外，结果名称仍可点击定位。
+- 新增双平台 80 → 100 → 150 续传、完成批次不重传、重复属性保留全部来源，以及独立组件颜色、尺寸、圆角和内部文字保护回归。真实云模型与原生文档仍需实机验收。
 
-If you are familiar with JavaScript, TypeScript will look very familiar. In fact, valid JavaScript code
-is already valid Typescript code.
+## 4.4.4 更新
 
-TypeScript adds type annotations to variables. This allows code editors such as Visual Studio Code
-to provide information about the Figma API while you are writing code, as well as help catch bugs
-you previously didn't notice.
+- 修复首批截断后反复重发同样 20 个对象的问题：自动逐步缩小失败批次（20 → 10 → 5 → 2 → 1），成功子批次立即保存；继续解析从已保存位置接着处理，后续沿用缩小后的批量。
+- OpenAI 格式的 `length` 与 Anthropic 的 `max_tokens` 都识别为截断；如果内容实际完整且通过当前功能的校验，正常保留。真正截断时不接受残缺 JSON。单个对象仍失败会明确暂停，不无限重试。
+- 参考图、命名、CompKit 同样支持拆批；视觉查重拆分两侧比较任务时保留全部交叉组合。统筹阶段仅重试一次精简输出，失败仍保留全部批次。
+- 对官方支持的 GLM / DeepSeek 型号使用关闭默认思考的请求参数，优先留出结构化结果空间；其他型号不注入该参数。
+- 启动和切换页面只显示本地或缓存问候，手动点击才调用 AI；HTTP 429 与包装在 HTTP 200 内的 429 均进入冷却，不自动重试。
+- 双平台新增 150 对象截断/限流恢复回归，保留 800 对象、外观保护与最终统筹测试。真实模型输出质量与宿主文档操作仍需实机验收。
 
-For more information, visit https://www.typescriptlang.org/
+## 4.4.3 更新
 
-Using TypeScript requires a compiler to convert TypeScript (code.ts) into JavaScript (code.js)
-for the browser to run.
+- 组件方案、图层命名、视觉查重和 CompKit 统一为：每批最多 20 张 → 插件内暂存累加 → AI 统筹全部批次 → 预览并应用。参考图单独成批，同样受 20 张硬限制。
+- 正常自动连续处理，无八次请求的强制暂停；请求串行、至少间隔 1 秒。遇到 429、网络错误或取消，保留已完成批次，由用户点击继续解析。
+- 统筹失败可单独续传，不重读或重传成功批次的截图。统筹只发送所有批次的分析文字，不再上传图片；批次草稿不开放构建、改名或矩阵应用。
+- 组件方案用紧凑来源引用进行跨批次合并、拆分与属性术语统一，仍校验 800 个来源恰好各出现一次；命名通过全局术语修正统一名称，查重统筹确认候选，CompKit 汇总全部建议后选择布局。
+- 保留根对象截图分析、原始外观保护、点击标题定位与已有组件集补入能力；MasterGo 未开放插入 API 时仍采用独立组件降级并说明原因。
+- 双平台自动化覆盖 800 项 40 个命名批次、批次/统筹阶段的中途 429、参考图计数、完成前禁用应用，以及 160000 个相同图片匹配的紧凑统筹和分页。真实模型与原生文档效果仍需实机验收。
 
-We recommend writing TypeScript code using Visual Studio code:
+## 4.4.1 更新
 
-1. Download Visual Studio Code if you haven't already: https://code.visualstudio.com/.
-2. Open this directory in Visual Studio Code.
-3. Compile TypeScript to JavaScript: Run the "Terminal > Run Build Task..." menu item,
-    then select "npm: watch". You will have to do this again every time
-    you reopen Visual Studio Code.
+- AI 图层读取统一支持 800 个目标，以元数据快照与按需分批读取降低图片内存占用；进度、取消和保持插件打开提示持续可见。
+- 组件构建一一对应原 Frame，不补齐不存在的变体；颜色、几何、子层布局和文字在提交前校验。不同默认值不合并绑定，实例替换/Slot 保留为建议。
+- AI 网络请求串行排队，429/临时服务错误有界退避；JSON 格式失败可修复一次，模型截断与网络错误明确区分。窗口重复 resize 去重，选择刷新隔离失效节点错误，启动问候失败不重复轰炸接口。
+- 图层命名只描述语义或功能，静态导航入口、应用完成提示；AI 控件统一紧凑高度。
+- CompKit 根据所有属性的实际值、组合与尺寸，提供最多三套多维排列建议和原因。
+- 详细行为、边界与验证范围见 [图层工作流](docs/LAYER_WORKFLOWS.md)。
 
-That's it! Visual Studio Code will regenerate the JavaScript file every time you save.
+## 4.4.0 更新
+
+- 超级选择统一范围和交叉筛选规则，支持原生 Slot；筛选结果不再覆盖后续切换范围的起点。
+- 前后缀可同时启用，尺寸助手实时响应选择变化。五个信标使用紧凑卡片，整卡传送、名称编辑、拖拽/键盘排序。
+- 组件构建支持 AI 完整图层读取、可选截图、分组和属性建议，以及方案预览。构建失败清理副本并保留原 Frame。
+- 组件清洗新增 AI 中文名称转英文；新增图层命名、可选多含义，以及视觉查重。识图先验证模型，普通工具保持独立可用。
+- CompKit 合并为一个流程，底部开关控制是否生成说明书；支持多个行列维度与剩余属性分组，统一间距计算。
+- 移除组件构建内的语言组件集与精简侧栏入口，放大收起按钮，移除旁边的移动按钮。
+
+使用规则、AI 上限、API 参考与验证边界见 [docs/LAYER_WORKFLOWS.md](docs/LAYER_WORKFLOWS.md)。
+
+## 4.3.0 更新
+
+- 支持收起为贴边气泡、点击展开与拖拽移动；恢复原面板尺寸、当前功能和输入。宿主原生标题栏保留，公开 API 不支持无边框圆形窗口。
+- 时空信标支持拖拽和键盘排序，顺序持久保存；侧栏轻量分为效率工具、组件与图层、设计拓展，保留全部功能直接访问。
+
+- 全面补齐英文标签、选项和动态提示，校对界面术语；设计理论的 18 个主题、58 个分项提供完整英文正文。
+- 设计理论详情改为紧凑单列阅读布局，增加章节跳转；首页、详情和对话使用小型发送控件，支持输入法、回车发送和上下文提问。见 [翻译与理论页检查记录](docs/LOCALIZATION_AUDIT.md)。
+
+- 统一为轻量平面工作区：保留全部 14 个功能入口，移除重复品牌栏、页面标题与首页搜索/分类；侧栏使用轻量任务分组。
+- 22 项简易工具直接以三列展示，默认和精简中文窗口首屏均可见；详细说明保留在悬停提示和可访问描述中。
+- 去掉超级选择、尺寸助手、组件构建和设置等功能的外层卡片，以标题和间距分组；控件统一 4px 圆角和明确行高，减少描边与重复边距。
+- 尺寸助手优先显示目标尺寸，底栏持续显示实际目标值与执行按钮；切换功能保留各页滚动位置。
+- 基础填充采用两列紧凑网格，标题、设置与副选项用无描边浅底分组，短选项同行、长选项组内换行，移除“发送到 AI”；自定义字段采用标题和顺序/随机/编辑/删除同排的列表，不再显示数量或独立填充按钮。
+- 中文姓名替换为 512 个整理过的完整姓名，覆盖 16 种风格、男女样本和二至四字长度；抽取时穿插男女，每轮不重复。详见 [中文姓名库](docs/CHINESE_NAME_LIBRARY.md)。
+- 前后缀操作栏由基础填充、AI 生成和自定义字段共用，支持直接添加自定义标点与空格；点击填充时固定模式、数据和选区顺序。数列设置按生成方式显示相关参数，实时预览前 5 项。
+- 自定义数据编辑页底部增加顺序录入与随机录入图标按钮，直接使用当前编辑内容；保留保存按钮，录入后可继续编辑。
+- 简易工具顶部恢复 AI 每日问候，按当天和界面语言缓存，支持点击换一句；未配置或请求失败时显示本地问候，不阻塞工具。
+- 修复零公差/零公比、数列溢出、按序生成被旧排序覆盖、跨午夜与逆向时间序列；文本按固定行基准排序，保留请求时的填充顺序，跳过失效节点后不再错位。
+- 共用导航、视觉变量和纯数列算法，减少双端重复；补充浏览器交互和算法回归检查。修复语言模式说明与选中动作不一致、切换界面语言后显示 HTML 标签的问题。
+
+改版决策、验证范围与后续方案见 [docs/UI_REDESIGN.md](docs/UI_REDESIGN.md)。
+
+## 4.2.1 更新
+
+- 修复智能填充的混合字体加载，统一选区计数与写入快照，保留前后缀的混合样式，并显示缺失字体等具体失败原因。
+- 修复自定义字段恢复后不显示、点击内嵌图标误触发填充，以及前后缀同时勾选的问题。
+- 隔离侧栏与内容滚动，移除尺寸助手图标触发的旧导航重排；统一采用离线内置的 Tabler 线性图标。
+- 缩减面板留白、圆角与控件高度；普通窗口为 440 × 600，精简模式会实际缩小到 360 × 520，并记住选择。
+- 尺寸助手改为单层滚动与常驻操作栏，修复重新锁定比例及自定义尺寸横竖切换。
+- 修复从查重打开设置时旧面板仍显示，以及 Figma 构建时 UI 内的特殊字符串被替换的问题。
+
+共享界面样式与图标源位于 `shared/`。运行 `npm run sync:ui` 会将它们嵌入双端 HTML，插件运行时不依赖网络图标资源。图标许可见 [shared/ICONS.md](shared/ICONS.md)。
+
+## 4.2.0 更新
+
+- 修复文字工具在选中图层范围内无法查找，以及查找后无法全选并批量替换的问题；默认范围改为“选中图层”。
+- 超级选择器补齐图层、边界、填充、描边、圆角、效果、自动布局、文本、组件与原型等高级属性。
+- 智能填充的数字和时间支持按序填写；数字内置等差、等比、斐波那契、质数、平方、三角数、阶乘等数列。
+- 新增尺寸助手：提供主流设备、常见屏幕与经典比例预设，支持设计尺寸/物理分辨率、横竖切换、锁定比例、批量调整和保持中心。
+- 语言切换改用稳定的集合、模式和变量命名，自动复用已有模式，并强化占位符、变量和换行保护。
+- 组件构建器新增“语言切换”组件集模式，替代与组件清洗重复的 AI 组件规范优化入口。
+
+## 4.1.1 更新
+
+- 查重说明补充版本对比、页面迁移、图标检查和组件库清理场景。
+- AI 组件规范优化增加响应兼容、超时控制、重试和并发保护。
+- 智能填充自定义字段改为标题与操作分两行，适配窄面板。
+
+## 4.1.0 更新
+
+- 查重移入“实验室”，结果行可一次定位两侧元素，改为严格左右等分布局，并可恢复最近一次结果。
+- CompKit 矩阵严格采用配置的边距与间距；说明书新增紧凑浅色、紧凑深色、横向简洁、竖向完整四套方案。
+- 将批量排布合并为说明书的“批量目录”输出范围，组件集保持为最外层画板直接子项。
+- 实例逆向改用紧凑二维网格，修复多变体结果宽度异常膨胀。
+- 新增 AI 组件规范优化：支持中英文、命名风格、分隔符、组件描述和异常反馈；限制为一个组件集或最多十个组件。
+
+## 4.0.0 更新
+
+- 合并 Figma V2 与 MasterGo 两个独立项目。
+- Figma 版补齐 MasterGo 新增的实例逆向母版与组件构建器。
+- 修复两个版本超级选择器无法按选中画板的子级/子孙范围查询的问题。
+- 智能填充的用户自定义字段新增顺序与随机两种填充方式。
+- 新增跨平台消息分支、导航、UI ID、国际化键和关键行为等价检查。
+
+## 开发与验证
+
+```bash
+npm run install:all
+npm run build
+npm run verify
+```
+
+可选浏览器回归：安装 Playwright 后运行 `npm run check:workspace-ui`。也可通过 `PLAYWRIGHT_MODULE_PATH` 和 `PLAYWRIGHT_EXECUTABLE_PATH` 使用已有运行时，通过 `UI_REVIEW_DIR` 指定截图目录。
+
+分别加载：
+
+- Figma：`figma/manifest.json`。旧版安装使用的根目录 `manifest.json` 也会加载同一份 Figma 构建。
+- MasterGo：`mastergo/manifest.json`
+
+双平台同步规则见 [`docs/DUAL_PLATFORM_MAINTENANCE.md`](docs/DUAL_PLATFORM_MAINTENANCE.md)，源版本基线见 [`SOURCE_BASELINES.md`](SOURCE_BASELINES.md)。
+
+尺寸助手设备预设的来源与维护说明见 [`docs/SIZE_ASSISTANT_PRESETS.md`](docs/SIZE_ASSISTANT_PRESETS.md)。

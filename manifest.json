@@ -1,9 +1,9 @@
 {
-  "name": "AllinOne-git",
+  "name": "AllinOne",
   "id": "1579115225697225019",
   "api": "1.0.0",
-  "main": "code.js",
-  "ui": "ui.html",
+  "main": "figma/code.js",
+  "ui": "figma/ui.html",
   "capabilities": [],
   "enableProposedApi": false,
   "documentAccess": "dynamic-page",
@@ -11,11 +11,10 @@
     "figma",
     "figjam"
   ],
-  
   "networkAccess": {
     "allowedDomains": [
-      "https://cdn.jsdelivr.net",
-      "https://cdnjs.cloudflare.com" 
-    ]
+      "*"
+    ],
+    "reasoning": "This plugin connects to AI APIs and loads external libraries (JSZip, PptxGenJS) from CDNs."
   }
 }
