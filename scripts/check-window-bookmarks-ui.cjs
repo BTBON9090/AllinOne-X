@@ -57,7 +57,10 @@ async function checkBrandImage(locator) {
       const emit = msg => page.evaluate(msg => window.dispatchEvent(new MessageEvent('message',{ data:{ pluginMessage:msg } })),msg);
       await page.evaluate(() => changeTheme('light'));
       const mark = page.locator('.workbench-brand img.workbench-mark');
+      const brand = page.locator('button.workbench-brand');
       await checkBrandImage(mark);
+      assert.equal(await brand.innerText(), 'AllinOne');
+      assert.equal(await page.locator('#collapseWindow, .workbench-location > span').count(), 0);
       const markSource = await mark.getAttribute('src');
       assert.match(markSource, /^data:image\/png;base64,/, 'Logo is available offline');
       const colors = await page.evaluate(() => {
@@ -77,6 +80,14 @@ async function checkBrandImage(locator) {
         return box.bottom <= rail.bottom;
       }),'All 16 Chinese tools fit at the regular window size');
       await page.screenshot({ path:path.join(output,`${platform}-groups.png`),animations:'disabled' });
+      await page.setViewportSize({width:440,height:380});
+      assert(await page.locator('.nav-scroll').evaluate(el => {
+        el.scrollTop = el.scrollHeight;
+        const reachedBottom = el.scrollTop > 0 && Math.abs(el.scrollHeight - el.clientHeight - el.scrollTop) <= 1;
+        el.scrollTop = 0;
+        return reachedBottom && getComputedStyle(el).scrollbarWidth === 'none';
+      }), 'Short windows keep all tools reachable without showing a scrollbar');
+      await page.setViewportSize({width:440,height:600});
       await page.evaluate(() => PluginWorkspace.navigate('jumpback'));
       const spots = ['a','b','c'].map((id,index) => ({ id,name:`位置 ${index+1} <svg onload=alert(1)>`,pageName:'中文 页面 ⚡',zoom:index + 0.5,centerX:42 }));
       await emit({ type:'jb-render-spots',data:spots });
@@ -120,7 +131,19 @@ async function checkBrandImage(locator) {
       const input = page.locator('#textPanel input[type="text"]').first(); await input.fill('保留搜索草稿');
       await page.evaluate(() => { changeLanguage('en'); const nav = document.querySelector('.nav-scroll'); nav.scrollTop = 70; window.__navScroll = nav.scrollTop; });
       await emit({ type:'window-state',collapsed:false,canMove:true,edge:'right' });
-      await page.locator('#collapseWindow').click();
+      await brand.locator('strong').click();
+      assert.equal(await brand.getAttribute('aria-expanded'),'false');
+      assert.equal(await page.locator('.nav-item.active .nav-text').isVisible(),false);
+      await page.waitForFunction(() => document.querySelector('.sidebar').offsetWidth === 44, null, {timeout:2000});
+      assert(await input.isVisible());
+      await brand.press('Enter');
+      await page.waitForFunction(() => document.querySelector('.sidebar').offsetWidth === 112, null, {timeout:2000});
+      assert.equal(await brand.getAttribute('aria-expanded'),'true');
+      assert(await page.locator('.nav-item.active .nav-text').isVisible());
+      assert.equal(await input.inputValue(),'保留搜索草稿');
+      assert.equal(await page.evaluate(() => __sent.filter(m=>m.type==='window-collapse').length),0);
+      await page.evaluate(() => { const nav = document.querySelector('.nav-scroll'); nav.scrollTop = 70; window.__navScroll = nav.scrollTop; });
+      await brand.click({modifiers:['Shift']});
       assert.equal(await page.evaluate(() => __sent.at(-1).type),'window-collapse');
       await emit({ type:'window-state',collapsed:true,canMove:true,edge:'right' }); await page.setViewportSize({ width:70,height:48 });
       assert.equal(await page.locator('.app-container').isVisible(),false);
@@ -138,17 +161,23 @@ async function checkBrandImage(locator) {
       await page.locator('#pluginBubble').click();
       assert.equal(await page.evaluate(() => __sent.at(-1).type),'window-expand');
       await emit({ type:'window-state',collapsed:false,canMove:true,edge:'right' }); await page.setViewportSize({ width:440,height:600 });
-      await page.waitForFunction(() => document.querySelector('.nav-scroll').scrollTop === window.__navScroll);
+      await page.waitForFunction(() => document.querySelector('.nav-scroll').scrollTop === window.__navScroll, null, {timeout:3000});
+      await page.waitForFunction(() => document.activeElement === document.querySelector('.workbench-brand'), null, {timeout:2000});
       assert.equal(await input.inputValue(),'保留搜索草稿');
       assert.equal(await page.locator('.nav-item.active').getAttribute('data-nav'),'text');
-      await page.locator('#collapseWindow').press('ArrowLeft');
+      await brand.press('ArrowLeft');
       assert.deepEqual(await page.evaluate(() => { const m = __sent.at(-1); return [m.type,m.dx,m.dy]; }),['window-nudge',-16,0]);
       await page.evaluate(() => { setCompactMode(true); changeLanguage('en'); changeTheme('dark'); });
       await page.setViewportSize({ width:360,height:520 });
       await checkBrandImage(mark);
       assert(await page.locator('.nav-item').last().evaluate(el => el.getBoundingClientRect().bottom <= el.closest('.nav-scroll').getBoundingClientRect().bottom),'All compact icons fit at 360 × 520');
       await page.screenshot({ path:path.join(output,`${platform}-groups-compact.png`),animations:'disabled' });
-      assert.equal(await page.locator('#collapseWindow').isVisible(),true);
+      assert(await brand.isVisible());
+      await brand.click();
+      assert.equal(await brand.getAttribute('aria-expanded'),'true');
+      await page.keyboard.press('Escape');
+      assert.equal(await brand.getAttribute('aria-expanded'),'false');
+      assert(await brand.evaluate(el => document.activeElement === el));
       assert.equal(await page.evaluate(() => document.documentElement.scrollHeight > innerHeight || document.documentElement.scrollWidth > innerWidth),false);
       for (const [compact,width] of [[false,210],[true,170]]) {
         await page.evaluate(compact => { setCompactMode(compact); PluginWorkspace.navigate('simple'); },compact);

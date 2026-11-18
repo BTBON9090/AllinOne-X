@@ -43,16 +43,19 @@
   };
 
   const sidebar = $('sidebar');
-  const brand = document.createElement('div');
+  const brand = document.createElement('button');
+  brand.type = 'button';
   brand.className = 'workbench-brand';
-  brand.innerHTML = '<img class="workbench-mark" alt="All in One" draggable="false"><strong aria-hidden="true">All in One</strong>';
+  brand.setAttribute('aria-controls', 'sidebar');
+  brand.innerHTML = '<img class="workbench-mark" alt="" draggable="false"><strong>AllinOne</strong>';
   brand.querySelector('img').src = pluginLogoUrl;
   sidebar.prepend(brand);
   const heading = document.createElement('header');
   heading.className = 'workbench-heading';
-  heading.innerHTML = '<button type="button" class="workbench-menu" aria-controls="sidebar" aria-expanded="false"><span data-smart-icon="layout-sidebar-left-collapse"></span></button><div class="workbench-location"><span></span><h1></h1></div><button type="button" class="workbench-back" hidden><span data-smart-icon="chevron-left"></span><span class="back-label"></span></button>';
+  heading.innerHTML = '<button type="button" class="workbench-menu" aria-controls="sidebar"><img class="workbench-mark" alt="" draggable="false"></button><div class="workbench-location"><h1></h1></div><button type="button" class="workbench-back" hidden><span data-smart-icon="chevron-left"></span><span class="back-label"></span></button>';
   $('contentScroll').before(heading);
   const menu = heading.querySelector('.workbench-menu');
+  menu.firstElementChild.src = pluginLogoUrl;
   const back = heading.querySelector('.workbench-back');
   back.onclick = () => navigate(previous);
   $('settingsPanel').querySelector(':scope > .sub-header')?.remove();
@@ -61,13 +64,34 @@
   scrim.type = 'button';
   scrim.tabIndex = -1;
   sidebar.after(scrim);
+  const narrow = window.matchMedia('(max-width:399px)');
+  const usesDrawer = () => narrow.matches || document.body.classList.contains('mini-mode');
+  function refreshSidebar() {
+    const expanded = usesDrawer() ? document.body.classList.contains('directory-open') : !document.body.classList.contains('rail-collapsed');
+    const action = expanded ? l('收起侧栏', 'Collapse sidebar') : l('展开侧栏', 'Expand sidebar');
+    for (const button of [brand, menu]) {
+      button.setAttribute('aria-expanded', String(expanded));
+      button.setAttribute('aria-label', 'AllinOne · ' + action);
+      button.title = action + l('。Shift + 点击可收起为气泡。', '. Shift-click to minimize to a bubble.');
+    }
+  }
   function setDirectory(open, restoreFocus = false) {
     document.body.classList.toggle('directory-open', open);
-    menu.setAttribute('aria-expanded', String(open));
-    if (open) (nav(current) || sidebar.querySelector('button')).focus({preventScroll:true});
-    else if (restoreFocus) menu.focus({preventScroll:true});
+    refreshSidebar();
+    if (open) (nav(current) || sidebar.querySelector('.footer-btn')).focus({preventScroll:true});
+    else if (restoreFocus) (brand.getClientRects().length ? brand : menu).focus({preventScroll:true});
   }
-  menu.onclick = () => setDirectory(true);
+  function toggleSidebar() {
+    if (usesDrawer()) {
+      const open = document.body.classList.contains('directory-open');
+      setDirectory(!open, open);
+    } else {
+      document.body.classList.toggle('rail-collapsed');
+      refreshSidebar();
+    }
+  }
+  PluginWindow.bindBrand(brand, toggleSidebar);
+  PluginWindow.bindBrand(menu, toggleSidebar);
   scrim.onclick = () => setDirectory(false, true);
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && document.body.classList.contains('directory-open')) {
@@ -79,17 +103,15 @@
     if (document.body.classList.contains('directory-open') && !sidebar.contains(event.target)) setDirectory(false);
   });
   window.addEventListener('resize', () => {
-    if (document.body.classList.contains('directory-open') && getComputedStyle(menu).display === 'none') setDirectory(false);
+    if (document.body.classList.contains('directory-open') && !usesDrawer()) setDirectory(false);
+    else refreshSidebar();
   });
 
   function refreshLocation() {
-    const group = current === 'settings' ? '' : nav(current).closest('.nav-group')?.querySelector('.nav-group-label').textContent;
-    heading.querySelector('.workbench-location > span').textContent = group || '';
     heading.querySelector('h1').textContent = label(current);
     back.hidden = current !== 'settings';
     back.querySelector('.back-label').textContent = l('返回', 'Back');
-    menu.title = l('展开工具目录', 'Open tool directory');
-    menu.setAttribute('aria-label', menu.title);
+    refreshSidebar();
     scrim.setAttribute('aria-label', l('关闭工具目录', 'Close tool directory'));
     currentPanel().setAttribute('role', 'region');
     currentPanel().setAttribute('aria-label', label(current));
@@ -129,7 +151,7 @@
   // All tools remain directly accessible; headings separate tasks without folding.
   const navScroll = document.querySelector('.nav-scroll');
   navScroll.setAttribute('role', 'navigation');
-  navScroll.setAttribute('aria-label', 'All in One');
+  navScroll.setAttribute('aria-label', 'AllinOne');
   navScroll.querySelectorAll('.nav-section-label').forEach(el => el.remove());
   const navGroups = [
     ['效率工具', 'Productivity', ['simple','select','text','smartFill','size','jumpback']],

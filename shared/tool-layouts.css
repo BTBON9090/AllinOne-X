@@ -99,6 +99,8 @@
 #refinerPanel :is(#lintList,#findList) { padding:0 12px; }
 #refinerPanel .res-row { margin:0; border-radius:0; border:0; border-bottom:1px solid var(--border); padding:8px 4px; }
 
+#refinerTranslation .layer-actions { gap:8px; }
+
 /* Component creation keeps source objects ahead of modes and proposed groups. */
 #componentBuilderPanel #builderSelectionState { align-items:center; padding:8px 12px; margin:0 0 12px; background:var(--bg-surface); border:0; border-inline-start:2px solid var(--primary); border-radius:0; }
 #componentBuilderPanel .builder-modes { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; margin:8px 0; }

@@ -45,12 +45,6 @@
   letter-spacing:-.015em;
   color:var(--text-primary);
 }
-.tool-home-heading::after {
-  content:"";
-  height:1px;
-  flex:1;
-  background:var(--border);
-}
 .tool-home-commands {
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
@@ -66,7 +60,7 @@
   min-height:32px;
   height:auto;
   margin:0;
-  padding:3px 4px 3px 1px;
+  padding:3px 4px 3px 5px;
   gap:7px;
   border:0;
   border-radius:5px;

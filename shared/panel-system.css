@@ -146,7 +146,8 @@ html :is(input, select, textarea):focus-visible {
 }
 html :is(select, select.search-box, .size-field select, .settings-item select.search-box, .layer-ai-card select) {
   appearance: auto;
-  background-image: none;
+  /* Keep the native arrow when older hover and focus rules supply an SVG. */
+  background-image: none !important;
   padding-inline: 8px 3px;
 }
 html :is(input[type="text"], input[type="url"], input[type="search"], input[type="number"], input[type="password"]) { padding-inline: 8px; }

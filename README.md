@@ -141,10 +141,14 @@ npm run verify
 
 可选浏览器回归：安装 Playwright 后运行 `npm run check:workspace-ui`。也可通过 `PLAYWRIGHT_MODULE_PATH` 和 `PLAYWRIGHT_EXECUTABLE_PATH` 使用已有运行时，通过 `UI_REVIEW_DIR` 指定截图目录。
 
-分别加载：
+## 导入开发版
 
-- Figma：`figma/manifest.json`。旧版安装使用的根目录 `manifest.json` 也会加载同一份 Figma 构建。
-- MasterGo：`mastergo/manifest.json`
+每个客户端只需导入一次对应平台的清单。
+
+- **Figma** 新安装时，在开发插件的清单选择器中打开 [figma/manifest.json](figma/manifest.json)。
+- **MasterGo** 在开发者模式下添加本地插件，选择 [mastergo/manifest.json](mastergo/manifest.json)。
+
+若 Figma 已通过仓库根目录的 [manifest.json](manifest.json) 安装，可以继续使用现有入口。它与 Figma 子目录的清单使用同一个插件 ID，并加载同一份 `figma/code.js` 和 `figma/ui.html`。维护 Figma 配置时编辑子目录清单，`npm run sync:ui` 会自动更新根目录兼容清单。
 
 双平台同步规则见 [`docs/DUAL_PLATFORM_MAINTENANCE.md`](docs/DUAL_PLATFORM_MAINTENANCE.md)，源版本基线见 [`SOURCE_BASELINES.md`](SOURCE_BASELINES.md)。
 

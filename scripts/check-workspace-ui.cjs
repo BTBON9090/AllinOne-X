@@ -8,6 +8,41 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright')
 const root = path.resolve(__dirname, '..');
 const output = process.env.UI_REVIEW_DIR || fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'allinone-review-'));
 fs.mkdirSync(output, { recursive:true });
+async function checkViewportSelectAndTranslationActions(page) {
+  await page.evaluate(() => PluginWorkspace.navigate('size'));
+  const select = page.locator('#sizePresetMode');
+  const arrow = () => select.evaluate(el => [getComputedStyle(el).appearance, getComputedStyle(el).backgroundImage]);
+  for (const [theme, scheme] of [['light','light'], ['dark','dark'], ['system','light'], ['system','dark']]) {
+    await page.emulateMedia({ colorScheme:scheme });
+    await page.evaluate(theme => changeTheme(theme), theme);
+    assert.equal(await page.locator('html').getAttribute('data-theme'), scheme);
+    await select.evaluate(el => el.blur());
+    await page.mouse.move(0,0);
+    assert.deepEqual(await arrow(), ['auto','none'], theme + ': one native arrow at rest');
+    await select.hover();
+    assert.deepEqual(await arrow(), ['auto','none'], theme + ': one native arrow on hover');
+    await select.focus();
+    await page.mouse.move(0,0);
+    assert.deepEqual(await arrow(), ['auto','none'], theme + ': one native arrow on focus');
+  }
+  await page.emulateMedia({ colorScheme:null });
+  await page.evaluate(() => {
+    changeTheme('light'); changeLanguage('zh');
+    PluginWorkspace.navigate('refiner'); switchRefinerTab('translate');
+  });
+  const gaps = () => page.locator('#refinerTranslation .layer-actions').evaluate(group => {
+    const [preview, apply] = [...group.children].map(el => el.getBoundingClientRect());
+    return { horizontal:apply.left - preview.right, vertical:apply.top - preview.bottom };
+  });
+  assert((await gaps()).horizontal >= 8, 'Preview and apply are separated in a wide row');
+  assert(await page.getByRole('button', { name:'应用英文名称', exact:true }).isDisabled());
+  await page.setViewportSize({ width:340, height:440 });
+  await page.evaluate(() => changeLanguage('en'));
+  assert((await gaps()).vertical >= 8, 'Wrapped English translation actions retain vertical spacing');
+  await page.setViewportSize({ width:440, height:600 });
+  await page.evaluate(() => { changeLanguage('zh'); PluginWorkspace.navigate('simple'); });
+}
+
 (async () => {
   const browser = await chromium.launch({ headless:true, ...(process.env.PLAYWRIGHT_EXECUTABLE_PATH ? { executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH } : {}) });
   try {
@@ -21,6 +56,7 @@ fs.mkdirSync(output, { recursive:true });
       await page.addInitScript(() => { window.__sent = []; window.parent.postMessage = message => { if (message.pluginMessage) window.__sent.push(message.pluginMessage); }; });
       await page.goto(pathToFileURL(path.join(root, platform, 'ui.html')).href);
       await page.waitForFunction(() => window.PluginWorkspace && document.querySelectorAll('#smartBasicList .smart-fill-trigger').length > 0);
+      await checkViewportSelectAndTranslationActions(page);
       await screenshot({ path:path.join(output, `${platform}-tools.png`) });
       const routes = await page.locator('.nav-item').evaluateAll(items => items.map(item => item.dataset.nav));
       assert.equal(routes.length, 16);
