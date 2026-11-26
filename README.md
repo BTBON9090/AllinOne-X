@@ -4,14 +4,29 @@ AllinoneX 4.4.6 是同仓库双平台插件项目。Figma 与 MasterGo 版本分
 
 点击侧栏顶部的 AllinOne 品牌区可将整个插件收起为标志气泡，点击气泡即可恢复。窄窗口的工具目录由页头按钮打开。面板操作见[插件面板](docs/PLUGIN_PANEL.md)。
 
+## 现在要发布
+
+在当前仓库运行 `npm run build:export`，然后选择对应平台的清单。
+
+| 平台 | 发布时选择 |
+| --- | --- |
+| Figma | `release/figma/manifest.json` |
+| MasterGo | `release/mastergo/manifest.json` |
+
+更新已有插件的操作和原插件 ID 见[发布说明](release/README.md)。
+
 ## 项目结构
 
 ```text
-AllinoneX/
-├── figma/       # Figma 插件：code.ts / code.js / ui.html / manifest.json
-├── mastergo/    # MasterGo 插件：main.ts / main.js / ui.html / manifest.json
-├── scripts/     # 跨平台功能与版本等价检查
-└── docs/        # 双平台维护规范
+AllinOne-X-20251224/
+├── release/    # 构建生成的双端发布包和发布说明
+├── figma/      # Figma 源码、清单和构建产物
+├── mastergo/   # MasterGo 源码、清单和构建产物
+├── shared/     # 双端共用的样式、交互、图标与业务逻辑
+├── scripts/    # 构建、导出与回归检查
+├── docs/       # 当前使用和维护说明
+├── marketing/  # 社区发布备选素材
+└── archive/    # 历史 UI、宣传工程和早期开发记录
 ```
 
 ## 本次 4.4.6 更新
@@ -87,7 +102,7 @@ AllinoneX/
 - 修复零公差/零公比、数列溢出、按序生成被旧排序覆盖、跨午夜与逆向时间序列；文本按固定行基准排序，保留请求时的填充顺序，跳过失效节点后不再错位。
 - 共用导航、视觉变量和纯数列算法，减少双端重复；补充浏览器交互和算法回归检查。修复语言模式说明与选中动作不一致、切换界面语言后显示 HTML 标签的问题。
 
-改版决策、验证范围与后续方案见 [docs/UI_REDESIGN.md](docs/UI_REDESIGN.md)。
+改版决策、验证范围与后续方案见 [4.3 版面板归档](archive/ui-v4.3/UI_REDESIGN.md)。
 
 ## 4.2.1 更新
 
@@ -135,7 +150,7 @@ AllinoneX/
 
 ```bash
 npm run install:all
-npm run build
+npm run build:export
 npm run verify
 ```
 
@@ -143,12 +158,7 @@ npm run verify
 
 ## 导入开发版
 
-每个客户端只需导入一次对应平台的清单。
-
-- **Figma** 新安装时，在开发插件的清单选择器中打开 [figma/manifest.json](figma/manifest.json)。
-- **MasterGo** 在开发者模式下添加本地插件，选择 [mastergo/manifest.json](mastergo/manifest.json)。
-
-若 Figma 已通过仓库根目录的 [manifest.json](manifest.json) 安装，可以继续使用现有入口。它与 Figma 子目录的清单使用同一个插件 ID，并加载同一份 `figma/code.js` 和 `figma/ui.html`。维护 Figma 配置时编辑子目录清单，`npm run sync:ui` 会自动更新根目录兼容清单。
+开发时可将客户端关联到 [Figma 源码清单](figma/manifest.json)或 [MasterGo 源码清单](mastergo/manifest.json)。修改源码或共享样式后，运行 `npm run build:export` 同时刷新开发构建和发布包。曾关联仓库根清单的 Figma 开发安装，可重新关联上方的 Figma 源码清单。
 
 双平台同步规则见 [`docs/DUAL_PLATFORM_MAINTENANCE.md`](docs/DUAL_PLATFORM_MAINTENANCE.md)，源版本基线见 [`SOURCE_BASELINES.md`](SOURCE_BASELINES.md)。
 

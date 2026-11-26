@@ -59,10 +59,10 @@
 
 预览：
 
-- [中文详情](ui-redesign-theory-zh.png)
-- [英文详情](ui-redesign-theory-en.png)
-- [英文对话与输入区](ui-redesign-theory-chat.png)
-- [精简深色界面](ui-redesign-theory-compact.png)
+- [中文详情](../archive/ui-v4.3/ui-redesign-theory-zh.png)
+- [英文详情](../archive/ui-v4.3/ui-redesign-theory-en.png)
+- [英文对话与输入区](../archive/ui-v4.3/ui-redesign-theory-chat.png)
+- [精简深色界面](../archive/ui-v4.3/ui-redesign-theory-compact.png)
 
 ## 验证
 

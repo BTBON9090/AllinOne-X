@@ -28,4 +28,4 @@
 
 检查命令：`npm run verify`、`npm run check:window-bookmarks-ui`、`npm run check:workspace-ui`、`npm run check:localization-ui`。浏览器检查需要 Playwright（可指定 `PLAYWRIGHT_MODULE_PATH` 与 `PLAYWRIGHT_EXECUTABLE_PATH`）。
 
-截图为 iframe 内容，不包括宿主原生标题栏：`ui-redesign-groups.png`、`ui-redesign-bookmarks.png`、`ui-redesign-bubble.png`、`ui-redesign-groups-compact.png`。
+4.3 版截图记录了 iframe 内的[分组导航](../archive/ui-v4.3/ui-redesign-groups.png)、[时空信标](../archive/ui-v4.3/ui-redesign-bookmarks.png)、[气泡](../archive/ui-v4.3/ui-redesign-bubble.png)和[精简窗口](../archive/ui-v4.3/ui-redesign-groups-compact.png)。

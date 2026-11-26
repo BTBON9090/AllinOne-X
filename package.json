@@ -7,6 +7,8 @@
     "install:all": "npm ci --prefix figma && npm ci --prefix mastergo",
     "sync:ui": "node scripts/sync-ui-shell.mjs",
     "build": "npm run sync:ui && npm --prefix figma run build && npm --prefix mastergo run build",
+    "export:plugins": "node scripts/export-plugins.mjs",
+    "build:export": "npm run build && npm run export:plugins",
     "verify:figma": "npm --prefix figma run verify",
     "verify:mastergo": "npm --prefix mastergo run verify",
     "check:parity": "node scripts/check-dual-platform.mjs",

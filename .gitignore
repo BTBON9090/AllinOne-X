@@ -2,3 +2,7 @@ node_modules/
 .DS_Store
 .history/
 .local-releases/
+/release/figma/
+/release/mastergo/
+/release/.export-*/
+/archive/marketing/figma-community-draft.local.md

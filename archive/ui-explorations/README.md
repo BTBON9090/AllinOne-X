@@ -1,6 +1,6 @@
 # All in One · UI 视觉方向
 
-这里归档两轮视觉方向提案和旧版插件截图。当前实现见[插件面板](../PLUGIN_PANEL.md)。
+这里归档两轮视觉方向提案和旧版插件截图。当前实现见[插件面板](../../docs/PLUGIN_PANEL.md)。
 
 ## 打开方式
 
@@ -27,7 +27,7 @@
 ## 目录
 
 - `screens/`：上述页面在 440 × 600 实尺寸下渲染出的 PNG。
-- `build.mjs`：生成器。修改方向数据、文案或样式后运行 `node docs/ui-directions/build.mjs` 重新生成。
+- `build.mjs`：生成器。修改方向数据、文案或样式后运行 `node archive/ui-explorations/build.mjs` 重新生成。
 
 ## 边界
 
@@ -56,5 +56,5 @@
 
 宣传物料（功能向）：
 
-- [XHS 7 页轮播](../../marketing/xhs-carousel/总览.png) · [发布文案](../../marketing/xhs-carousel/post.md)
-- [产品介绍视频 47.4s](../../marketing/product-video/all-in-one-features.mp4) · [视频封面](../../marketing/product-video/poster-features.png)
+- [小红书 7 页预览](../marketing/xhs-carousel/index.html) · [发布文案](../marketing/xhs-carousel/post.md)
+- [产品演示视频](../marketing/product-video/all-in-one-demo.mp4) · [视频封面](../marketing/product-video/poster-demo.png)

@@ -40,8 +40,4 @@ for (const platform of ['figma', 'mastergo']) {
   html = html.replace('</body>', () => '\n<!-- shared-shell-script:start -->\n<script>\n' + js + '\n</script>\n<!-- shared-shell-script:end -->\n</body>');
   fs.writeFileSync(file, html);
 }
-// Existing Figma development installs may point at the original root manifest.
-const figmaManifest = JSON.parse(fs.readFileSync(path.join(root, 'figma/manifest.json'), 'utf8'));
-const rootManifest = { ...figmaManifest, main: 'figma/' + figmaManifest.main, ui: 'figma/' + figmaManifest.ui };
-fs.writeFileSync(path.join(root, 'manifest.json'), JSON.stringify(rootManifest, null, 2) + '\n');
 console.log('Synced shared workbench and offline Tabler icons to both platforms.');
