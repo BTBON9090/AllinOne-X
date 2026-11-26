@@ -10,7 +10,7 @@ declare let pluginUiLanguage: string;
 declare function notifyInUiLanguage(message: string, options?: any): any;
 declare function handlePluginWindowMessage(message: any): boolean;
 declare function reorderPluginBookmarks(spots: any[], ids: string[]): any[] | null;
-declare function installPluginBookmarkQueue(ui: any): void;
+declare function queuePluginBookmarkMessages(dispatch: (message: any) => Promise<void>): (message: any) => Promise<void>;
 // -------------------------------------------------------------
 // 【更新】高级命名转换函数 (支持清除隐藏标记)
 // -------------------------------------------------------------
@@ -1138,7 +1138,7 @@ figma.on('selectionchange', () => {
   } catch(error) { console.warn('Component property refresh deferred:',String(error)); }
 });
 
-figma.ui.onmessage = async (msg) => {
+const handleUiMessage = async (msg: any) => {
   if (!msg || !msg.type) return;
   if (msg.uiLanguage === 'en' || msg.uiLanguage === 'zh') pluginUiLanguage = msg.uiLanguage;
   if (msg.type === 'ui-language-changed') { pluginUiLanguage = msg.language === 'en' ? 'en' : 'zh'; return; }
@@ -4978,4 +4978,4 @@ function parseVariantName(name: string): Record<string, string> {
   return result;
 }
 
-installPluginBookmarkQueue(figma.ui);
+figma.ui.onmessage = queuePluginBookmarkMessages(handleUiMessage);

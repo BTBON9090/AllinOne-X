@@ -112,10 +112,9 @@ function reorderPluginBookmarks(spots, ids) {
   return ids.map(id => byId.get(id)); // Retain all metadata, never trust UI-supplied objects.
 }
 
-function installPluginBookmarkQueue(ui) {
-  const dispatch = ui.onmessage;
+function queuePluginBookmarkMessages(dispatch) {
   let queue = Promise.resolve();
-  ui.onmessage = message => {
+  return message => {
     const msg = message?.pluginMessage || message;
     if (!String(msg?.type || '').startsWith('jb-')) return dispatch(message);
     const pending = queue.then(() => dispatch(message));

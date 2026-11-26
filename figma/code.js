@@ -451,10 +451,9 @@ function reorderPluginBookmarks(spots, ids) {
   return ids.map(id => byId.get(id)); // Retain all metadata, never trust UI-supplied objects.
 }
 
-function installPluginBookmarkQueue(ui) {
-  const dispatch = ui.onmessage;
+function queuePluginBookmarkMessages(dispatch) {
   let queue = Promise.resolve();
-  ui.onmessage = message => {
+  return message => {
     const msg = message?.pluginMessage || message;
     if (!String(msg?.type || '').startsWith('jb-')) return dispatch(message);
     const pending = queue.then(() => dispatch(message));
@@ -11224,7 +11223,7 @@ figma.on('selectionchange', function () {
         console.warn('Component property refresh deferred:', String(error));
     }
 });
-figma.ui.onmessage = function (msg) { return __awaiter(_this, void 0, void 0, function () {
+var handleUiMessage = function (msg) { return __awaiter(_this, void 0, void 0, function () {
     function rm(n) {
         if (n.layoutMode && n.layoutMode !== 'NONE') {
             n.layoutMode = 'NONE';
@@ -15740,4 +15739,4 @@ function parseVariantName(name) {
     });
     return result;
 }
-installPluginBookmarkQueue(figma.ui);
+figma.ui.onmessage = queuePluginBookmarkMessages(handleUiMessage);

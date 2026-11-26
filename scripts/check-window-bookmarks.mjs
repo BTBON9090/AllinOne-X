@@ -85,10 +85,57 @@ for (const platform of ['figma','mastergo']) {
   }
   assert.notEqual(original,ordered);
   console.log(`${platform}: coordinate conversion, edge snap, drag/cancel, size restoration, old-host fallback and validated bookmark persistence passed.`);
+
+  // The native bridge registers a listener through a setter without returning it on read.
+  const startupMessages = [], settings = new Map();
+  let receive, registrations = 0;
+  const page = { id:'page', selection:[{ id:'text', type:'TEXT', name:'Sample text' }] };
+  const runtime = {
+    currentPage:page,
+    document:{ currentPage:page },
+    showUI() {},
+    on() {},
+    clientStorage:{
+      async setAsync(key, value) { settings.set(key, value); },
+      async getAsync(key) { return settings.get(key); }
+    },
+    ui:{
+      set onmessage(handler) { receive = handler; registrations += 1; },
+      postMessage(payload) {
+        startupMessages.push(platform === 'mastergo' ? payload.pluginMessage : payload);
+      }
+    }
+  };
+  const builtPath = platform === 'figma' ? 'figma/code.js' : 'mastergo/main.js';
+  const sandbox = {
+    figma:runtime, mg:runtime, __html__:'<html></html>', console, fetch,
+    setTimeout() {}, setInterval() {}
+  };
+  vm.runInNewContext(fs.readFileSync(builtPath, 'utf8'), sandbox, { filename:builtPath });
+  assert.equal(registrations, 1);
+  const send = message => receive(platform === 'mastergo' ? { pluginMessage:message } : message);
+  await send({ type:'window-init' });
+  assert.equal(startupMessages.at(-1).type, 'window-state');
+  await send({ type:'get-selection-count' });
+  assert.equal(startupMessages.at(-1).type, 'selection-count-res');
+  assert.equal(startupMessages.at(-1).count, 1);
+  await send({ type:'get-iconfont-selection' });
+  assert.equal(startupMessages.at(-1).type, 'iconfont-selection');
+  assert.equal(startupMessages.at(-1).targets.selection[0].id, 'text');
+  await send({ type:'save-storage', key:'test', value:'saved' });
+  assert.equal(startupMessages.at(-1).type, 'storage-saved');
+  await send({ type:'load-storage', key:'test' });
+  assert.equal(startupMessages.at(-1).value, 'saved');
+  console.log(`${platform}: built plugin registers once and handles canvas and settings requests on a setter-only host.`);
 }
 const queueContext = vm.createContext({ console }); vm.runInContext(core,queueContext);
-const order = [], ui = { onmessage:async msg => { order.push('start-'+msg.type); await Promise.resolve(); order.push('end-'+msg.type); } };
-queueContext.installPluginBookmarkQueue(ui);
-await Promise.all([ui.onmessage({ type:'jb-reorder' }),ui.onmessage({ type:'jb-delete' })]);
-assert.deepEqual(order,['start-jb-reorder','end-jb-reorder','start-jb-delete','end-jb-delete']);
+const order = [];
+const dispatch = queueContext.queuePluginBookmarkMessages(async message => {
+  const { type } = message.pluginMessage || message;
+  order.push('start-' + type);
+  await Promise.resolve();
+  order.push('end-' + type);
+});
+await Promise.all([dispatch({ pluginMessage:{ type:'jb-reorder' } }), dispatch({ type:'jb-delete' }), dispatch({ type:'window-init' })]);
+assert.deepEqual(order,['start-window-init','start-jb-reorder','end-window-init','end-jb-reorder','start-jb-delete','end-jb-delete']);
 console.log('Bookmark writes are serialized; concurrent mutations cannot overwrite a saved order.');

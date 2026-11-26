@@ -11,7 +11,7 @@ declare let pluginUiLanguage: string;
 declare function notifyInUiLanguage(message: string, options?: any): any;
 declare function handlePluginWindowMessage(message: any): boolean;
 declare function reorderPluginBookmarks(spots: any[], ids: string[]): any[] | null;
-declare function installPluginBookmarkQueue(ui: any): void;
+declare function queuePluginBookmarkMessages(dispatch: (message: any) => Promise<void>): (message: any) => Promise<void>;
 // -------------------------------------------------------------
 // 【更新】高级命名转换函数 (支持清除隐藏标记)
 // -------------------------------------------------------------
@@ -2912,7 +2912,7 @@ mg.on('selectionchange', () => {
   } catch(error) { console.warn('Component property refresh deferred:',String(error)); }
 });
 
-mg.ui.onmessage = async (rawMessage) => {
+const handleUiMessage = async (rawMessage: any) => {
   const msg = rawMessage?.pluginMessage || rawMessage;
   if (!msg || !msg.type) return;
   if (msg.uiLanguage === 'en' || msg.uiLanguage === 'zh') pluginUiLanguage = msg.uiLanguage;
@@ -6714,4 +6714,4 @@ function parseVariantName(name: string): Record<string, string> {
   return result;
 }
 
-installPluginBookmarkQueue(mg.ui);
+mg.ui.onmessage = queuePluginBookmarkMessages(handleUiMessage);
