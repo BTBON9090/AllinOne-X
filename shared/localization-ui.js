@@ -70,6 +70,7 @@
   Object.assign(i18n.en, reviewedEnglish);
   i18n.zh.sf_prefix = '前缀'; i18n.zh.sf_suffix = '后缀';
   i18n.zh.sel_scope_page = '全页';
+  i18n.zh.sel_t_section = '❏ 区域 Section';
   i18n.zh.sf_cfg_time_help = '支持时、分、秒；随机模式会在指定范围内生成。';
   i18n.en.sf_cfg_time_help = 'Supports hours, minutes and seconds. Random mode uses the selected time range.';
   i18n.zh.refiner_fix_count_suffix = '项。点击继续，返回列表处理剩余项。';

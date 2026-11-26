@@ -1,116 +1,168 @@
-/* Keep all four command families open. The scroll container's inline size,
-   including the selected rail and density, governs the number of columns. */
+/* Quick Tools Home — Iris Atelier Edition:
+   Serene daily greeting strip above four completely borderless lavender-pearl command islands.
+   Hovering any command elevates it into a luminous porcelain pill with a jewel royal-violet icon.
+   All 22 commands remain directly visible on the first screen in both 440×600 and 360×520 Chinese windows. */
 #toolPanel .tool-home-scroll {
-  min-width:0;
-  min-height:0;
-  container:tool-home / inline-size;
-  overscroll-behavior:contain;
+  min-width: 0;
+  min-height: 0;
+  container: tool-home / inline-size;
+  overscroll-behavior: contain;
 }
+
 #toolPanel .tool-greeting {
-  padding:4px 15px 0;
+  display: flex;
+  padding: 2px 14px 4px;
+  flex-shrink: 0;
 }
 #toolPanel .tool-greeting .dash-greeting {
-  width:auto;
-  min-height:24px;
-  padding:2px 0;
-  color:var(--text-secondary);
-  font-family:inherit;
-  font-size:11px;
-  font-weight:450;
-  line-height:16px !important;
-  letter-spacing:normal;
-  text-wrap:initial;
+  display: inline-flex;
+  align-items: center;
+  width: auto;
+  max-width: 100%;
+  min-height: 22px;
+  margin: 0;
+  padding: 2px 8px 2px 2px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 16px !important;
+  letter-spacing: 0;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  transition: color 140ms ease, background-color 140ms ease;
 }
 #toolPanel .tool-greeting .dash-greeting:hover {
-  color:var(--primary);
+  color: var(--primary);
+  background: var(--primary-lighter);
 }
+
 #toolGrid.tool-home {
-  display:grid;
-  grid-template-columns:minmax(0,1fr);
-  align-content:start;
-  padding:6px 14px 12px;
-  gap:14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  padding: 2px 14px 10px;
+  gap: 8px;
 }
-.tool-home-section { min-width:0; }
+
+.tool-home-section {
+  min-width: 0;
+  padding: 7px 7px 6px;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--bg-well);
+  box-shadow: none;
+}
+
 #toolGrid .tool-home-heading {
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin:0 0 5px;
-  min-height:22px;
-  font-family:inherit;
-  font-size:14px;
-  line-height:20px;
-  font-weight:650;
-  letter-spacing:-.015em;
-  color:var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 4px;
+  padding: 0 5px;
+  min-height: 16px;
+  font-family: inherit;
+  font-size: 10.5px;
+  line-height: 15px;
+  font-weight: 650;
+  letter-spacing: .02em;
+  color: var(--text-tertiary);
 }
+
 .tool-home-commands {
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  column-gap:8px;
-  row-gap:1px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 4px;
+  row-gap: 2px;
 }
+
 #toolGrid .tool-card {
-  display:flex;
-  align-items:center;
-  justify-content:flex-start;
-  flex-direction:row;
-  min-width:0;
-  min-height:32px;
-  height:auto;
-  margin:0;
-  padding:3px 4px 3px 5px;
-  gap:7px;
-  border:0;
-  border-radius:8px;
-  background:transparent;
-  box-shadow:none;
-  transform:none;
-  cursor:pointer;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-direction: row;
+  min-width: 0;
+  min-height: 27px;
+  height: auto;
+  margin: 0;
+  padding: 3px 5px 3px 4px;
+  gap: 7px;
+  border: 0;
+  border-radius: var(--control-radius);
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+  cursor: pointer;
+  transition: background-color 140ms ease, box-shadow 140ms ease, color 140ms ease;
 }
-#toolGrid .tool-card.hidden { display:none; }
-#toolGrid .tool-card:is(:hover,:focus-visible) { background:var(--bg-hover); }
-#toolGrid .tool-card:focus-visible { outline:2px solid var(--primary); outline-offset:-1px; }
-#toolGrid .tool-card:active { background:var(--primary-light); }
+#toolGrid .tool-card.hidden { display: none; }
+#toolGrid .tool-card:is(:hover, :focus-visible) {
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-pill);
+}
+#toolGrid .tool-card:focus-visible { outline: 2px solid var(--primary); outline-offset: -1px; }
+#toolGrid .tool-card:active { background: var(--primary-light); }
+
 #toolGrid .tool-card .tc-icon {
-  display:grid;
-  place-items:center;
-  flex:0 0 24px;
-  width:24px;
-  height:24px;
-  border-radius:8px;
-  color:var(--primary);
-  background:var(--primary-lighter);
-  box-shadow:none;
+  display: grid;
+  place-items: center;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  border-radius: 6px;
+  color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: none;
+  transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease;
 }
-#toolGrid .tc-icon .ui-icon { width:15px; height:15px; flex:none; }
+#toolGrid .tool-card:hover .tc-icon,
+#toolGrid .tool-card:focus-visible .tc-icon {
+  background: var(--action-gradient);
+  color: var(--action-text);
+  box-shadow: 0 2px 6px -1px rgb(96 16 203 / 35%);
+}
+#toolGrid .tc-icon .ui-icon { width: 13.5px; height: 13.5px; flex: none; }
+
 #toolGrid .tool-card .tc-title {
-  min-width:0;
-  padding:0;
-  font-family:inherit;
-  font-size:12px;
-  font-weight:500;
-  line-height:16px;
-  color:var(--text-primary);
-  letter-spacing:normal;
-  overflow:visible;
-  text-align:left;
-  white-space:normal;
-  overflow-wrap:anywhere;
-  text-overflow:clip;
+  min-width: 0;
+  padding: 0;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 15px;
+  color: var(--text-primary);
+  letter-spacing: 0;
+  overflow: visible;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
 }
-body.mini-mode #toolGrid.tool-home {
-  gap:7px;
-  padding:4px 11px 9px;
+#toolGrid .tool-card:hover .tc-title { color: var(--primary); font-weight: 550; }
+#toolGrid .tool-card .tc-desc,
+#toolGrid .tool-card .tc-tooltip { display: none !important; }
+
+/* Compact window density keeps all 22 quick commands on the first screen at 360×520 */
+body.mini-mode #toolPanel .tool-greeting { padding: 1px 10px 2px; }
+body.mini-mode #toolPanel .tool-greeting .dash-greeting { min-height: 19px; font-size: 11px; }
+body.mini-mode #toolGrid.tool-home { gap: 5px; padding: 2px 10px 6px; }
+body.mini-mode .tool-home-section { padding: 5px 5px 4px; border-radius: var(--radius-md); }
+body.mini-mode #toolGrid .tool-home-heading { min-height: 14px; margin-bottom: 2px; font-size: 10px; line-height: 14px; }
+body.mini-mode #toolGrid .tool-card { min-height: 23px; padding: 2px 4px; gap: 5px; }
+body.mini-mode #toolGrid .tool-card .tc-icon { width: 19px; height: 19px; flex-basis: 19px; border-radius: 5px; }
+body.mini-mode #toolGrid .tc-icon .ui-icon { width: 12px; height: 12px; }
+body.mini-mode #toolGrid .tool-card .tc-title { font-size: 11px; line-height: 14px; }
+
+@container tool-home (max-width: 238px) {
+  .tool-home-commands { grid-template-columns: minmax(0, 1fr); }
+  #toolGrid.tool-home { padding-inline: 8px; }
 }
-body.mini-mode #toolGrid .tool-home-heading { min-height:19px; margin-bottom:2px; font-size:13px; line-height:18px; }
-body.mini-mode #toolGrid .tool-card { min-height:27px; padding-block:2px; gap:6px; }
-body.mini-mode #toolGrid .tool-card .tc-icon { width:21px; height:21px; flex-basis:21px; }
-@container tool-home (max-width:238px) {
-  .tool-home-commands { grid-template-columns:minmax(0,1fr); }
-  #toolGrid.tool-home { padding-inline:9px; }
-}
-@container tool-home (min-width:520px) {
-  #toolGrid.tool-home { grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 22px; }
+@container tool-home (min-width: 520px) {
+  #toolGrid.tool-home { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 }

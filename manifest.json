@@ -15,6 +15,6 @@
     "allowedDomains": [
       "*"
     ],
-    "reasoning": "This plugin connects to AI APIs and loads external libraries (JSZip, PptxGenJS) from CDNs."
+    "reasoning": "AI tools connect to the built-in GLM proxy or to a model provider selected by the user. Users can enter a custom HTTPS provider URL, so the destination cannot be limited to a fixed list of domains."
   }
 }

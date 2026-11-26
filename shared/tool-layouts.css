@@ -1,266 +1,889 @@
-/* The shell owns navigation and titles. Each tool below arranges its real
-   controls, results and footer around the task performed in that panel. */
-#contentScroll :is(.selection-scroll-area,.builder-scroll,.size-scroll,.skew-content,.refiner-config,.i18n-view,.ppt-content-area,.compkit-main,.theory-capsule-container,.layer-panel) {
-  min-width:0; min-height:0; scrollbar-gutter:auto; overscroll-behavior:contain;
+/* Iris Atelier Task Workspaces:
+   Pure luminous workspace sheet holding borderless soft iris tonal wells (#F6F4FB / #211D31),
+   sculpted royal-violet primary actions, and soft ambient dock shadows instead of hard gray divider lines. */
+#contentScroll :is(.selection-scroll-area, .builder-scroll, .size-scroll, .skew-content, .refiner-config,
+    .i18n-view, .ppt-content-area, .compkit-main, .theory-capsule-container, .layer-panel) {
+  min-width: 0;
+  min-height: 0;
+  scrollbar-gutter: auto;
+  overscroll-behavior: contain;
 }
-:is(#selectionPanel,#duplicatePanel,#compkitPanel) .selection-scroll-area,
-:is(#sizePanel .size-scroll,#componentBuilderPanel .builder-scroll,#skewPanel .skew-content,#refinerPanel .refiner-config,#i18nPanel .i18n-view,#theoryPanel .theory-capsule-container,#layerNamingPanel,#iconfontPanel) {
-  padding:12px 16px;
+
+:is(#selectionPanel, #duplicatePanel, #compkitPanel) .selection-scroll-area,
+:is(#sizePanel .size-scroll, #componentBuilderPanel .builder-scroll, #skewPanel .skew-content,
+    #refinerPanel .refiner-config, #i18nPanel .i18n-view, #theoryPanel .theory-capsule-container,
+    #layerNamingPanel, #iconfontPanel) {
+  padding: 6px 14px 14px;
 }
-:is(#selectionPanel,#duplicatePanel,#compkitPanel) .selector-card,
-#refinerPanel .config-group, #sizePanel .size-card, #skewPanel .skew-card,
-#layerNamingPanel .layer-ai-card, #componentBuilderPanel :is(.builder-card,.layer-ai-card),
-#iconfontPanel .layer-ai-card, #i18nPanel .config-group {
-  min-width:0; border:none; border-radius:0; box-shadow:none; background:transparent;
-  margin:0; padding:0;
+
+/* Soft, completely borderless tonal wells replace clunky gray-outlined boxes */
+:is(#selectionPanel, #duplicatePanel, #compkitPanel) .selector-card,
+#refinerPanel .config-group,
+#sizePanel .size-card,
+#skewPanel .skew-card,
+#componentBuilderPanel .builder-card,
+#i18nPanel .config-group {
+  min-width: 0;
+  margin: 0 !important;
+  padding: 12px 13px;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--bg-well);
+  box-shadow: none;
 }
-:is(#selectionPanel,#duplicatePanel,#compkitPanel) .selector-card + .selector-card,
-#refinerPanel .refiner-config > .config-group + .config-group,
-#sizePanel .size-card + .size-card, #skewPanel .skew-card + .skew-card,
-#layerNamingPanel .layer-ai-card + .layer-ai-card,
-#componentBuilderPanel .builder-scroll > :is(.builder-card,.layer-ai-card) + :is(.builder-card,.layer-ai-card),
+
+:is(#selectionPanel, #duplicatePanel) .selection-scroll-area,
+#sizePanel .size-scroll,
+#componentBuilderPanel .builder-scroll,
+#skewPanel .skew-content,
+#refinerPanel .refiner-config {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#compkitPanel .selector-card + .selector-card,
 #i18nPanel .config-group + .config-group {
-  border-top:0; margin-top:20px; padding-top:0;
-}
-:is(#selectionPanel,#duplicatePanel,#compkitPanel) .section-header,
-#componentBuilderPanel .builder-card-head, #skewPanel .skew-card-header {
-  padding:0; margin:0 0 8px; border:0; align-items:center;
-}
-:is(#sizePanel .size-hero-title,#componentBuilderPanel .builder-hero,#iconfontTitle) { display:none; }
-:is(#componentBuilderPanel,#layerNamingPanel,#compkitPanel,#refinerPanel) .layer-actions {
-  display:flex; align-items:center; gap:4px 8px; flex-wrap:wrap; margin:8px 0 0;
-}
-:is(#componentBuilderPanel,#layerNamingPanel,#compkitPanel,#refinerPanel) .layer-actions > button { margin:0; }
-
-/* Headers and fixed action bars share their panel's white space. Inputs,
-   toggles and tab selection indicators keep their own interactive boundaries. */
-#contentScroll :is(.selection-footer,.sel-result-header,.result-header,.text-fixed-footer,.dup-subheader,
-    .smart-footer,.lint-footer-fixed,.res-header,.res-footer,.sub-header,.sub-footer,.bottom-action,
-    .size-panel-actions,.jumpback-header,.text-panel-header,.text-controls-content,.ppt-dashboard,.ppt-footer,
-    .smart-tabs,.refiner-tabs,.find-controls,.find-summary-bar,.comp-header,.detail-category,.diff-item,
-    .theory-input-section,.theory-chat-input,.theory-chat-header,.theory-detail-nav,.sel-result-item) {
-  border-block-width:0; box-shadow:none;
-}
-#refinerPanel #lintConfigPage { border-bottom:0; }
-#i18nPanel :is(#i18nExtractTargetSection,#i18nTargetConfigSection) { border-top:0; }
-#contentScroll :is(.config-label,.size-card-title,.skew-card-title,.layer-title,.section-title,.builder-card-head) {
-  color:var(--text-primary); font-size:13px; line-height:19px; font-weight:650;
-}
-#contentScroll :is(.layer-help,.builder-card-desc,.size-preset-note,.jumpback-tip) {
-  color:var(--text-secondary); line-height:1.5;
+  margin-top: 10px !important;
 }
 
-/* Selection is a rule editor. Align all type and state choices as checkable cells. */
-#selectionPanel .name-input-row { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:4px; }
-#selectionPanel :is(#typeGroup,#stateGroup) { display:grid; grid-template-columns:repeat(auto-fit,minmax(78px,1fr)); gap:4px; }
-#selectionPanel :is(#typeGroup,#stateGroup) .filter-tag { min-width:0; justify-content:flex-start; text-align:start; white-space:normal; }
-#selectionPanel :is(#typeGroup,#stateGroup) .filter-tag .ui-icon { flex:none; }
-#selectionPanel #propList { display:grid; gap:4px; }
-#selectionPanel .prop-row { align-items:center; margin:0; }
-#selectionPanel .sel-result-item { border:0; }
-#selectionPanel .sel-result-item:focus-visible { outline:2px solid var(--primary); outline-offset:-2px; }
-#selectionPanel .sel-result-item:focus::before { display:none; }
+:is(#selectionPanel, #duplicatePanel, #compkitPanel) .section-header,
+#componentBuilderPanel .builder-card-head,
+#skewPanel .skew-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  margin: 0 0 8px;
+  border: 0;
+}
 
-/* Find and replace has a shared label column so inputs remain easy to compare. */
-#textPanel #textControlsContent:not(.collapsed) { padding:12px 16px; }
-#textPanel #txtScopeGroup { margin:0 0 12px !important; }
-#textPanel .text-input-group { display:grid; grid-template-columns:minmax(48px,22%) minmax(0,1fr); align-items:center; gap:8px; margin:0 0 8px; }
-#textPanel .text-input-group > .input-label { margin:0; line-height:16px; }
-#textPanel #textControlsContent > button { margin:4px 0 0; }
-#textPanel .result-header { flex-wrap:wrap; gap:4px 8px; }
-#textPanel .text-result-row { margin:4px 0; border:0; border-radius:8px; padding:8px; }
-#textPanel #textResultList { padding:0 16px; }
+:is(#sizePanel .size-hero-title, #componentBuilderPanel .builder-hero, #iconfontTitle) { display: none; }
 
-/* Data types are a single directory; options stay beside their field name. */
-#smartFillPanel #smartBasicList { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 12px; align-content:start; padding:0 12px; }
-#smartFillPanel .smart-basic-tile { border:0; box-shadow:none; background:transparent; border-radius:0; padding:4px 0; min-width:0; }
-#smartFillPanel .smart-basic-heading { min-height:32px; display:flex; align-items:center; flex-wrap:wrap; gap:2px 4px; }
-#smartFillPanel .smart-basic-heading .smart-fill-trigger { min-width:0; }
-#smartFillPanel .smart-custom-row { margin:4px 0; border:0; border-radius:8px; box-shadow:none; }
-#smartFillPanel #smartAffixBar { align-items:center; flex-wrap:wrap; padding:8px 12px; gap:4px 8px; }
-#smartFillPanel #sfAffixText { flex:1 1 48px; min-width:36px; }
+:is(#componentBuilderPanel, #layerNamingPanel, #compkitPanel, #refinerPanel) .layer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 8px 0 0;
+}
+:is(#componentBuilderPanel, #layerNamingPanel, #compkitPanel, #refinerPanel) .layer-actions > button { margin: 0; }
 
-/* Size editing is a numeric inspector above a compact preset catalogue. */
-#sizePanel .size-hero { padding:0; border:0; margin:0 0 8px; background:transparent; box-shadow:none; }
-#sizePanel .size-hero-desc { margin:0; }
-#sizePanel #sizeSelectionStatus { display:block; padding:4px 0; border:none; background:transparent; }
-#sizePanel .size-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 12px; }
-#sizePanel .size-field { min-width:0; }
-#sizePanel .size-field :is(input,select) { width:100%; min-width:0; }
-#sizePanel :is(#sizeWidth,#sizeHeight) { font-size:20px; font-weight:600; font-variant-numeric:tabular-nums; height:36px; }
-#sizePanel .size-options { display:flex; flex-wrap:wrap; gap:4px 12px; margin:8px 0; }
-#sizePanel #sizeCategoryTabs { display:flex; flex-wrap:wrap; }
-#sizePanel #sizePresetList { margin-top:8px; gap:4px; }
-#sizePanel .size-preset { border:0; border-radius:10px; padding:8px; background:transparent; }
-#sizePanel .size-preset:hover { background:var(--bg-hover); }
-#sizePanel .size-preset.active { background:var(--primary-light); box-shadow:none; }
-#sizePanel .size-preset-row { align-items:baseline; flex-wrap:wrap; }
-#sizePanel .size-preset-note { margin-top:2px; }
-#sizePanel #sizeTargetSummary { font-variant-numeric:tabular-nums; font-weight:600; }
+/* Ambient bottom docks: zero hard gray lines — soft upward atmosphere shadow */
+#contentScroll :is(.selection-footer, .text-fixed-footer, .smart-footer, .lint-footer-fixed,
+    .res-footer, .sub-footer, .bottom-action, .size-panel-actions, .ppt-footer,
+    .theory-input-section, .theory-chat-input) {
+  background: var(--bg-surface);
+  border: 0 !important;
+  box-shadow: var(--shadow-dock);
+  padding: 9px 14px 10px;
+  z-index: 2;
+}
 
-/* Bookmark names, page names and drag handles form one reorderable list. */
-#jumpbackPanel .jumpback-header { display:flex; flex-wrap:wrap; gap:4px 8px; align-items:center; padding:12px 16px; }
-#jumpbackPanel .jumpback-hero { display:none; }
-#jumpbackPanel .jumpback-tip { flex:1 1 130px; min-width:0; margin:0; }
-#jumpbackPanel #spotList { padding:0 12px 8px; }
-#jumpbackPanel .spot-item { display:flex; align-items:center; gap:8px; margin:0 0 6px; padding:8px 6px; border:1px solid var(--border-light); border-radius:10px; box-shadow:none; background:var(--bg-surface); }
-#jumpbackPanel .bookmark-content { min-width:0; }
-#jumpbackPanel .spot-item:hover { background:var(--bg-hover); }
+#contentScroll :is(.sel-result-header, .result-header, .dup-subheader, .res-header, .sub-header,
+    .text-panel-header, .theory-chat-header, .theory-detail-nav) {
+  background: var(--bg-surface);
+  border: 0;
+  box-shadow: none;
+}
 
-/* Cleanup keeps rule groups and lint results in the same compact reading order. */
-#refinerPanel .config-label { margin:0 0 6px; }
-#refinerPanel .checkbox-grid-row { display:flex; flex-wrap:wrap; gap:4px; }
-#refinerPanel .checkbox-row { padding:4px 0; margin:0; align-items:center; }
-#refinerPanel #separatorOptions { gap:8px; }
-#refinerPanel .input-group-icon:has(#inpRep) .icon-prefix { color:var(--primary) !important; }
-#refinerPanel label:has(:is(#opt_unmark_hidden,#opt_unmark_hidden_find)) { color:var(--warning) !important; }
-#refinerPanel :is(#lintSuccess,#findSuccess) .success-emoji + div,
-#refinerPanel #successCount { color:var(--text-primary) !important; }
-#refinerPanel :is(#lintSuccess,#findSuccess) .success-emoji + div + div { color:var(--text-secondary) !important; }
-#refinerPanel :is(#lintList,#findList) { padding:0 12px; }
-#refinerPanel .res-row { margin:4px 0; border-radius:8px; border:0; padding:8px; }
+#contentScroll :is(.sub-header, .theory-detail-nav, .theory-chat-header) {
+  min-height: 40px;
+  padding: 6px 12px;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 650;
+  color: var(--text-primary);
+}
 
-#refinerTranslation .layer-actions { gap:8px; }
+#contentScroll :is(.config-label, .size-card-title, .skew-card-title, .layer-title, .section-title, .builder-card-title) {
+  color: var(--text-primary);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 650;
+  letter-spacing: -.01em;
+  text-transform: none;
+}
+#contentScroll :is(.layer-help, .builder-card-desc, .size-preset-note, .jumpback-tip) {
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.55;
+}
+#contentScroll :is(.size-field label, .sub-label, .input-label) {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
 
-/* Component creation keeps source objects ahead of modes and proposed groups. */
-#componentBuilderPanel #builderSelectionState { align-items:center; padding:8px 12px; margin:0 0 16px; background:var(--bg-surface); border:1px solid var(--border-light); border-radius:10px; }
-#componentBuilderPanel .builder-modes { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; margin:8px 0; }
-#componentBuilderPanel .builder-mode { min-width:0; min-height:44px; height:auto; align-items:center; justify-content:center; gap:4px; }
-#componentBuilderPanel .builder-mode-title { white-space:normal; line-height:15px; }
-#componentBuilderPanel .layer-plan-group { padding:8px 0; border:0; }
-#componentBuilderPanel .layer-plan-results:not(:empty) { margin:12px 0; }
-#componentBuilderPanel .builder-field label { margin-bottom:4px; }
+/* =========================================================
+   1. Super Select (#selectionPanel)
+   ========================================================= */
+#selectionPanel .name-input-row { display: grid; grid-template-columns: minmax(0,1fr) auto auto; align-items: center; gap: 6px; }
+#selectionPanel #scopeGroup { margin-top: 10px !important; }
+#selectionPanel :is(#typeGroup, #stateGroup) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(78px, 1fr));
+  gap: 4px;
+}
+#selectionPanel :is(#typeGroup, #stateGroup) .filter-tag {
+  min-width: 0;
+  justify-content: flex-start;
+  text-align: start;
+  white-space: normal;
+  padding: 4px 4.5px;
+  gap: 2.5px;
+  font-size: 10px;
+  letter-spacing: -.01em;
+}
+#selectionPanel :is(#typeGroup, #stateGroup) .filter-tag .ui-icon { flex: none; width: 12px; height: 12px; }
+#selectionPanel #propList { display: grid; gap: 6px; }
+#selectionPanel .prop-row { align-items: center; margin: 0; gap: 5px; }
+#selectionPanel .add-prop-link { color: var(--primary); font-size: 11px; font-weight: 600; cursor: pointer; }
+#selectionPanel .sel-result-list { padding: 6px 12px !important; }
+#selectionPanel .sel-result-item {
+  border: 0;
+  border-radius: var(--radius-md);
+  margin: 0 0 5px;
+  padding: 9px 11px;
+  background: var(--bg-well);
+}
+#selectionPanel .sel-result-item:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+#selectionPanel .sel-result-item:focus::before { display: none; }
 
-/* Naming has an editable mapping under its settings and a separate numbering form. */
-#layerNamingPanel .layer-title { margin:0 0 4px; }
-#layerNamingPanel #layerNameLanguage { width:100%; margin:4px 0; }
-#layerNamingPanel .layer-name-preview:not(:empty) { margin-top:12px; padding:0; }
-#layerNamingPanel .layer-name-row { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:8px; padding:8px 0; border:0; }
-#layerNamingPanel .layer-name-row > span { min-width:0; }
-#layerNamingPanel #manualLayerName { margin:4px 0; }
-#layerNamingPanel #manualLayerNaming button { margin:4px 4px 0 0; }
+/* =========================================================
+   2. Find & Replace (#textPanel)
+   ========================================================= */
+#textPanel .text-panel-header { padding: 6px 14px 8px; }
+#textPanel .header-title { font-size: 12px; font-weight: 650; color: var(--text-primary); }
+#textPanel .header-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  min-height: 25px; padding: 2px 9px;
+  border: 0; border-radius: var(--radius-sm);
+  background: var(--bg-well); color: var(--text-secondary); font-size: 11px; font-weight: 550;
+  cursor: pointer;
+}
+#textPanel .header-btn:hover { background: var(--primary-light); color: var(--primary); }
+#textPanel #textControlsContent {
+  background: var(--bg-well);
+  margin: 0 14px 10px;
+  border: 0;
+  border-radius: var(--radius-lg);
+  max-height: 56vh;
+  overflow: auto;
+}
+#textPanel #textControlsContent.collapsed { margin: 0; padding: 0; }
+#textPanel #textControlsContent:not(.collapsed) { padding: 12px 13px; }
+#textPanel #textControlsContent input { background-color: var(--input-on-well) !important; box-shadow: var(--shadow-input-well); }
+#textPanel #txtScopeGroup { margin: 0 0 10px !important; }
+#textPanel .text-input-group {
+  display: grid;
+  grid-template-columns: minmax(48px, 22%) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+#textPanel .text-input-group > .input-label { margin: 0; }
+#textPanel #textControlsContent > button { margin: 6px 0 0; }
+#textPanel .result-header { flex-wrap: wrap; gap: 4px 8px; padding: 6px 14px; }
+#textPanel #textResultList { padding: 4px 14px 10px; }
+#textPanel .text-result-row {
+  margin: 0 0 5px;
+  border: 0;
+  border-radius: var(--radius-md);
+  padding: 8px 11px;
+  background: var(--bg-well);
+}
 
-/* Duplicate pairs use equal A/B tracks with a fixed relationship marker. */
-#duplicatePanel #dupModeGroup { margin:4px 0 0; }
-#duplicatePanel #dupExcludeGroup { display:flex; flex-wrap:wrap; gap:4px; }
-#duplicatePanel #dupSubHeader, #duplicatePanel .dup-pair-item { display:grid; grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr); gap:0; min-width:0; }
-#duplicatePanel #dupResultList { padding:0 12px; }
-#duplicatePanel .dup-pair-item { border:0; border-radius:8px; margin:4px 0; box-shadow:none; }
-#duplicatePanel .dup-config-actions { display:flex; flex-wrap:wrap; gap:8px; }
+/* =========================================================
+   3. Smart Fill (#smartFillPanel)
+   ========================================================= */
+#smartFillPanel #smartBasicList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: max-content;
+  align-content: start;
+  gap: 5px 6px;
+  padding: 4px 14px 8px;
+}
+/* Soft borderless iris tiles with crisp white nested option pills */
+#smartFillPanel .smart-basic-tile {
+  display: block;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--bg-well);
+  box-shadow: none;
+  padding: 3px 9px;
+  margin: 0;
+  min-height: 32px;
+  min-width: 0;
+  transition: background-color 140ms ease;
+}
+#smartFillPanel .smart-basic-tile:hover { background: var(--bg-hover); }
+#smartFillPanel .smart-basic-heading {
+  min-height: 26px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px 4px;
+  min-width: 0;
+}
+#smartFillPanel .smart-basic-heading .smart-fill-trigger {
+  flex: 1 0 auto;
+  max-width: 100%;
+  min-width: 0;
+  padding: 3px 0;
+  min-height: 26px;
+  font-size: 12px;
+  font-weight: 550;
+}
+#smartFillPanel .smart-basic-heading .smart-fill-trigger:hover { color: var(--primary); }
+#smartFillPanel .smart-basic-heading .smart-setting-btn {
+  width: 22px; height: 22px; padding: 3px; color: var(--text-tertiary); background: transparent;
+}
+#smartFillPanel .smart-basic-heading .smart-setting-btn:hover { background: var(--bg-surface); color: var(--primary); }
+#smartFillPanel .smart-basic-heading .row-tags { flex: 0 1 auto; max-width: 100%; gap: 3px; padding: 0; }
+#smartFillPanel .smart-basic-tile .tag-btn {
+  min-height: 20px;
+  padding: 1px 6px;
+  font-size: 10px;
+  line-height: 15px;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border: 0;
+  border-radius: 5px;
+  box-shadow: var(--shadow-subtle);
+}
+#smartFillPanel .smart-basic-tile .tag-btn:hover { color: var(--primary); }
+#smartFillPanel .smart-basic-tile .tag-btn.active {
+  color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: inset 0 0 0 1px var(--selection-outline);
+  font-weight: 650;
+}
+#smartFillPanel #smartCustomList { padding: 6px 14px; }
+#smartFillPanel .smart-custom-row {
+  margin: 0 0 6px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--bg-well);
+  box-shadow: none;
+}
+#smartFillPanel #smartAffixBar { align-items: center; flex-wrap: wrap; padding: 8px 14px 9px; gap: 5px 8px; }
+#smartFillPanel #sfAffixText { flex: 1 1 48px; min-width: 36px; }
+#smartFillPanel .ai-result-box {
+  background: var(--bg-well);
+  border: 0;
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+}
+#smartFillPanel #pageAddCustom .settings-section {
+  background: transparent; border: 0; box-shadow: none; padding: 0; margin: 0 0 10px;
+}
+#smartFillPanel #pageAddCustom .settings-section-title {
+  border: 0; padding: 0; margin: 0 0 6px; font-size: 12px; font-weight: 650;
+  display: flex; align-items: center; gap: 6px;
+}
+#smartFillPanel #pageAddCustom .input-wrapper input { padding-inline: 10px 26px !important; }
 
-/* A repeated property→axis row links the layout settings to the output. */
-#compkitPanel .compkit-main { padding:12px 16px; }
-#compkitPanel #matrixAxes { box-shadow:none; padding:8px 0; margin:12px 0; border:0; border-radius:0; background:transparent; }
-#compkitPanel .matrix-axis-rows { margin:8px 0; }
-#compkitPanel .matrix-axis-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(80px,40%); align-items:center; padding:4px 0; margin:0; gap:8px; }
-#compkitPanel .matrix-axis-row + .matrix-axis-row { margin-top:4px; }
-#compkitPanel .matrix-axis-row select { width:100%; min-width:0; }
-#compkitPanel .compkit-action { margin-top:8px; }
+/* =========================================================
+   4. Size Assistant (#sizePanel)
+   ========================================================= */
+#sizePanel .size-hero { padding: 0; border: 0; margin: 0; background: transparent; box-shadow: none; }
+#sizePanel #sizeSelectionStatus {
+  display: block;
+  padding: 7px 11px;
+  background: var(--primary-lighter) !important;
+  color: var(--primary);
+  font-weight: 500;
+  border-radius: var(--radius-md);
+}
+#sizePanel .size-card-title { margin-bottom: 8px; }
+#sizePanel .size-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 10px; }
+#sizePanel .size-field { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+#sizePanel .size-field :is(input, select) { width: 100%; min-width: 0; }
+#sizePanel :is(#sizeWidth, #sizeHeight) {
+  font-size: 19px !important;
+  line-height: 24px !important;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  height: 38px;
+}
+#sizePanel .size-options { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 8px 0 6px; }
+#sizePanel .size-card > div:has(> #sizeSearch) { grid-template-columns: minmax(0, 1fr) 96px !important; gap: 6px !important; }
+#sizePanel #sizeGuidance { margin-top: 6px; padding: 7px 10px; background: var(--bg-surface) !important; }
+#sizePanel #sizePresetList { display: flex; flex-direction: column; margin-top: 8px; gap: 3px; max-height: none; overflow: visible; }
+#sizePanel .size-preset {
+  border: 0;
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+  background: transparent;
+  cursor: pointer;
+}
+#sizePanel .size-preset:hover { background: var(--bg-surface); box-shadow: var(--shadow-subtle); }
+#sizePanel .size-preset.active { background: var(--bg-surface); box-shadow: var(--shadow-pill), inset 3px 0 0 var(--primary); }
+#sizePanel .size-preset-row { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px; }
+#sizePanel .size-preset-name { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+#sizePanel .size-preset-dim { font-size: 11px; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--primary); }
+#sizePanel .size-preset-note { margin-top: 2px; font-size: 10.5px; line-height: 15px; color: var(--text-secondary); }
+#sizePanel .size-panel-actions {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 6px 8px;
+  flex: 0 0 auto;
+  margin: 0;
+}
+#sizePanel #sizeTargetSummary {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+#sizePanel .size-swap {
+  height: 31px;
+  border: 0;
+  border-radius: var(--control-radius);
+  background: var(--bg-well);
+  color: var(--primary);
+}
+#sizePanel .size-swap:hover { background: var(--primary-light); color: var(--primary-hover); }
 
-/* Repair scope, selection list, action pair and reports read as one transaction. */
-#iconfontPanel #iconfontMode { display:flex; flex-wrap:wrap; gap:0 12px; padding:0 0 8px; margin:8px 0 0; border:0; }
-#iconfontPanel #iconfontTargets { margin:12px 0; }
-#iconfontPanel .iconfont-target-head { min-height:28px; padding:0 8px; background:var(--bg-hover); border-radius:8px; }
-#iconfontPanel #iconfontTargetList { padding:0 8px; }
-#iconfontPanel #iconfontTargetList label { padding:5px 0; }
-#iconfontPanel #iconfontTargetList label:focus-within { color:var(--primary); }
-#iconfontPanel .iconfont-actions { gap:8px; }
-#iconfontPanel #iconfontReport { margin:20px 0 0; padding:0; }
-#iconfontIssues, #iconfontExports { margin-top:16px; }
+/* =========================================================
+   5. Viewport Bookmarks (#jumpbackPanel)
+   ========================================================= */
+#jumpbackPanel .jumpback-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 10px;
+  align-items: center;
+  padding: 6px 14px 10px;
+  background: var(--bg-surface);
+  border: 0;
+}
+#jumpbackPanel .btn-jumpback-save { width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; }
+#jumpbackPanel .jumpback-tip { flex: 1 1 130px; min-width: 0; margin: 0; text-align: center; font-size: 11px; color: var(--text-tertiary); }
+#jumpbackPanel #spotList { display: flex; flex-direction: column; gap: 7px; padding: 2px 14px 12px; }
+#jumpbackPanel .spot-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  min-height: 58px;
+  margin: 0;
+  padding: 7px 9px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  box-shadow: none;
+  background: var(--bg-well);
+  cursor: pointer;
+  transition: background-color 140ms ease, box-shadow 140ms ease;
+}
+#jumpbackPanel .spot-item:hover { background: var(--bg-surface); box-shadow: var(--shadow-pill); border-color: var(--border); }
+#jumpbackPanel .spot-item:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+#jumpbackPanel .bookmark-content { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 2px; }
+#jumpbackPanel .spot-page-title { font-size: 10px; line-height: 14px; color: var(--text-tertiary); margin: 0; }
+#jumpbackPanel .spot-name-input {
+  width: 100%; min-width: 0; height: 24px; padding: 2px 0; margin: 0;
+  font-size: 12px; font-weight: 600; color: var(--text-primary);
+  background: transparent; border: 1.5px solid transparent; border-radius: 6px;
+}
+#jumpbackPanel .spot-name-input:focus {
+  border-color: var(--primary);
+  background: var(--bg-surface);
+  padding: 2px 6px;
+}
+#jumpbackPanel .spot-actions { display: flex; width: auto; margin: 0; padding: 0; border: 0; }
+#jumpbackPanel .btn-spot-del { width: 26px; height: 28px; padding: 4px; background: transparent; color: var(--text-tertiary); border: 0; }
+
+/* =========================================================
+   6. Component Cleanup (#refinerPanel)
+   ========================================================= */
+#refinerPanel #lintConfigPage { border: 0; background: var(--bg-surface); }
+#refinerPanel .config-label { display: block; margin: 0 0 8px; }
+#refinerPanel .checkbox-grid-row { display: flex; flex-wrap: wrap; gap: 5px; }
+#refinerPanel .checkbox-row { padding: 3px 0; margin: 0; align-items: center; }
+#refinerPanel .style-section { display: flex; flex-direction: column; gap: 8px; }
+#refinerPanel #separatorOptions { gap: 8px; margin-top: 2px; }
+#refinerPanel .sub-label { margin-bottom: 4px; }
+#refinerPanel label:has(:is(#opt_unmark_hidden, #opt_unmark_hidden_find)) { color: var(--warning) !important; }
+#refinerPanel :is(#lintSuccess, #findSuccess) .success-emoji + div,
+#refinerPanel #successCount { color: var(--text-primary) !important; }
+#refinerPanel :is(#lintSuccess, #findSuccess) .success-emoji + div + div { color: var(--text-secondary) !important; }
+#refinerPanel .find-controls { padding: 6px 14px 10px; background: var(--bg-surface); }
+#refinerPanel .find-expanded {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px 13px; background: var(--bg-well);
+  border: 0; border-radius: var(--radius-lg); box-shadow: none;
+}
+#refinerPanel .filter-chips-row { display: flex; flex-wrap: wrap; gap: 5px; }
+#refinerPanel .find-options { gap: 4px; }
+#refinerPanel :is(#lintList, #findList) { padding: 6px 14px; }
+#refinerPanel .res-row { margin: 0 0 5px; border-radius: var(--radius-md); border: 0; padding: 8px 11px; background: var(--bg-well); }
+#refinerPanel #tabTranslate { padding: 6px 14px 14px; }
+#refinerTranslation .layer-actions { gap: 8px; }
+
+/* =========================================================
+   7. Component Builder (#componentBuilderPanel)
+   ========================================================= */
+#componentBuilderPanel #builderSelectionState {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 13px;
+  margin: 0;
+  background: var(--primary-lighter) !important;
+  border: 0 !important;
+  border-radius: var(--radius-lg);
+}
+#componentBuilderPanel .builder-card-index {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 20px; border-radius: 6px;
+  background: var(--primary-light); color: var(--primary);
+  font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+#componentBuilderPanel .builder-card-head { justify-content: flex-start; gap: 7px; }
+#componentBuilderPanel .builder-card-desc { margin: 0 0 10px; }
+#componentBuilderPanel .builder-modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 0 0 10px; }
+#componentBuilderPanel .builder-mode {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-width: 0; min-height: 52px; height: auto; padding: 8px 4px; gap: 4px;
+  border: 0; border-radius: var(--radius-md);
+  background: var(--bg-surface); color: var(--text-secondary);
+  box-shadow: var(--shadow-subtle); cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+#componentBuilderPanel .builder-mode:hover { background: var(--primary-lighter); color: var(--primary); }
+#componentBuilderPanel .builder-mode.active {
+  background: var(--primary-light);
+  color: var(--primary);
+  box-shadow: inset 0 0 0 1.5px var(--selection-outline);
+}
+#componentBuilderPanel .builder-mode svg { width: 16px; height: 16px; }
+#componentBuilderPanel .builder-mode-name { font-size: 11px; line-height: 15px; font-weight: 600; white-space: normal; }
+#componentBuilderPanel .builder-field { margin-bottom: 8px; }
+#componentBuilderPanel .builder-field label { display: block; margin-bottom: 4px; font-size: 11px; color: var(--text-secondary); }
+#componentBuilderPanel .builder-options { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+#componentBuilderPanel .builder-option {
+  display: flex; align-items: center; gap: 7px; padding: 3px 0; border: 0;
+  font-size: 11.5px; line-height: 16px; color: var(--text-primary); cursor: pointer;
+}
+#componentBuilderPanel .builder-action { width: 100%; margin-top: 10px !important; }
+#componentBuilderPanel .layer-plan-results:not(:empty) { margin: 10px 0; }
+
+/* =========================================================
+   8. Layer Naming (#layerNamingPanel)
+   ========================================================= */
+#layerNamingPanel #layerNameLanguage { width: 100%; margin: 6px 0 4px; }
+#layerNamingPanel .layer-name-preview:not(:empty) { margin-top: 10px; padding: 0; }
+#layerNamingPanel .layer-name-row { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px; padding: 7px 0; }
+#layerNamingPanel .layer-name-row > span { min-width: 0; }
+#layerNamingPanel #manualLayerName { margin: 4px 0 6px; }
+#layerNamingPanel #manualLayerNaming button { margin: 4px 6px 0 0; }
+
+/* =========================================================
+   9. Duplicate Finder (#duplicatePanel)
+   ========================================================= */
+#duplicatePanel .selector-card:first-child {
+  background: var(--primary-lighter);
+  padding: 10px 12px !important;
+}
+#duplicatePanel #dupModeGroup { margin: 2px 0 0; }
+#duplicatePanel #dupExcludeGroup { display: flex; flex-wrap: wrap; gap: 5px; }
+#duplicatePanel #dupExcludeGroup .filter-tag.active {
+  background: var(--primary-light);
+  color: var(--primary);
+  box-shadow: none;
+  font-weight: 600;
+}
+#duplicatePanel #dupCustomExclude { margin-top: 8px !important; }
+#duplicatePanel #dupSubHeader,
+#duplicatePanel .dup-pair-item { display: grid; grid-template-columns: minmax(0,1fr) 28px minmax(0,1fr); gap: 0; min-width: 0; }
+#duplicatePanel #dupResultList { padding: 6px 14px !important; }
+#duplicatePanel .dup-pair-item { border: 0; border-radius: var(--radius-md); margin: 0 0 5px; background: var(--bg-well); }
+#duplicatePanel .dup-config-actions { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
+#duplicatePanel .dup-config-actions > button { flex: 1; }
+
+/* =========================================================
+   10. CompKit (#compkitPanel)
+   ========================================================= */
+#compkitPanel #tabCompKitShowcase { padding: 6px 14px 14px !important; }
+#compkitPanel #matrixAxes {
+  margin: 10px 0 0;
+  padding: 10px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+#compkitPanel .matrix-axis-rows { margin: 6px 0; }
+#compkitPanel .matrix-axis-row select { width: 100%; min-width: 0; }
+#compkitPanel .compkit-action { width: 100%; margin-top: 10px; flex: 0 0 auto; }
+#compkitPanel #matrixDocumentation { margin-top: 8px; }
+#compkitPanel .section-title { display: inline-flex; align-items: center; gap: 6px; }
+#compkitPanel #showcaseAdvancedContent > div {
+  background: var(--bg-surface) !important;
+  border: 0;
+  border-radius: var(--radius-md) !important;
+}
+
+/* =========================================================
+   11. Iconfont Repair (#iconfontPanel)
+   ========================================================= */
+#iconfontPanel #iconfontMode { display: flex; flex-direction: column; gap: 2px; padding: 0; margin: 8px 0 0; border: 0; }
+#iconfontPanel #iconfontTargets { margin: 10px 0 0; }
+#iconfontPanel .iconfont-target-head {
+  min-height: 30px; padding: 2px 10px;
+  background: var(--bg-surface); border: 0;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-subtle);
+}
+#iconfontPanel #iconfontTargetList { padding: 4px 10px; }
+#iconfontPanel #iconfontTargetList label { padding: 4px 0; }
+#iconfontPanel #iconfontTargetList label:focus-within { color: var(--primary); }
+#iconfontPanel #iconfontReport { margin: 0; }
+#iconfontIssues, #iconfontExports { margin-top: 10px; }
 #iconfontPanel .iconfont-issue-tools, #iconfontIssuePages, #iconfontIndividual > div {
-  display:flex; align-items:center; flex-wrap:wrap; gap:4px 8px;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px;
 }
-#iconfontPanel .iconfont-issue-tools { justify-content:space-between; padding:4px 8px; border-radius:8px; background:var(--bg-hover); }
-#iconfontPanel .iconfont-issue-tools label { display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer; }
-#iconfontPanel #iconfontIssues input[type="checkbox"] { width:14px; height:14px; margin:0; flex:none; accent-color:var(--primary); }
-#iconfontPanel :is(.iconfont-issue-tools,#iconfontIssuePages,#iconfontIndividual) .secondary-btn { width:auto; margin:0; }
-#iconfontPanel .iconfont-results { margin:4px 0 0; padding:0; max-height:clamp(160px,38vh,320px); overflow:auto; }
-#iconfontPanel .iconfont-results li { gap:8px; padding:6px 8px; border:0; border-radius:8px; cursor:pointer; }
-#iconfontPanel .iconfont-results li:hover { background:var(--bg-hover); }
-#iconfontPanel .iconfont-issue-check { display:grid; place-items:center; min-width:24px; min-height:28px; margin-inline-start:-4px; cursor:pointer; }
-#iconfontIssueHelp { margin:4px 0 8px; }
+#iconfontPanel .iconfont-issue-tools {
+  justify-content: space-between; padding: 4px 10px;
+  border-radius: var(--radius-sm); background: var(--bg-surface); box-shadow: var(--shadow-subtle);
+}
+#iconfontPanel .iconfont-issue-tools label { display: flex; align-items: center; gap: 6px; font-size: 11px; cursor: pointer; }
+#iconfontPanel #iconfontIssues input[type="checkbox"] { width: 14px; height: 14px; margin: 0; flex: none; accent-color: var(--primary); }
+#iconfontPanel :is(.iconfont-issue-tools, #iconfontIssuePages, #iconfontIndividual) .secondary-btn { width: auto; margin: 0; }
+#iconfontPanel .iconfont-results { margin: 6px 0 0; padding: 0; max-height: clamp(160px, 38vh, 320px); overflow: auto; }
+#iconfontPanel .iconfont-results li { gap: 8px; padding: 6px 9px; border: 0; border-radius: var(--radius-sm); cursor: pointer; }
+#iconfontPanel .iconfont-results li:hover { background: var(--bg-surface); }
+#iconfontPanel .iconfont-issue-check { display: grid; place-items: center; min-width: 24px; min-height: 26px; margin-inline-start: -4px; cursor: pointer; }
+#iconfontIssueHelp { margin: 4px 0 8px; }
 #iconfontPanel .iconfont-results button {
-  display:block; max-width:100%; min-height:22px; padding:2px 0; border:0; color:var(--primary);
-  background:transparent; font:inherit; font-size:12px; font-weight:600; text-align:start; white-space:normal; overflow-wrap:anywhere; cursor:pointer;
+  display: block; max-width: 100%; min-height: 22px; padding: 2px 0; border: 0; color: var(--primary);
+  background: transparent; font: inherit; font-size: 12px; font-weight: 600; text-align: start;
+  white-space: normal; overflow-wrap: anywhere; cursor: pointer;
 }
-#iconfontPanel .iconfont-results small { line-height:1.45; }
-#iconfontIssuePages { justify-content:flex-end; margin-top:4px; font-size:11px; }
-#iconfontIndividual { margin-top:8px; font-size:12px; }
-#iconfontIndividual summary { width:fit-content; padding:4px 0; cursor:pointer; }
-#iconfontIndividual > div { margin-top:4px; }
-#iconfontPanel #iconfontFile { flex:1 1 100px; min-width:0; max-width:100%; }
+#iconfontPanel .iconfont-results small { line-height: 1.45; }
+#iconfontIssuePages { justify-content: flex-end; margin-top: 6px; font-size: 11px; }
+#iconfontIndividual { margin-top: 8px; font-size: 12px; }
+#iconfontIndividual summary { width: fit-content; padding: 4px 0; cursor: pointer; color: var(--text-secondary); font-weight: 550; }
+#iconfontIndividual > div { margin-top: 6px; }
+#iconfontPanel #iconfontFile { flex: 1 1 100px; min-width: 0; max-width: 100%; }
 
-/* Keep translation scope and language controls above the review ledger. */
-#i18nPanel #i18nViewConfig { padding:12px 16px !important; }
-#i18nPanel #i18nModeDesc { border:0; border-radius:8px; padding:8px; margin:8px 0 0; background:var(--primary-lighter); }
-#i18nPanel :is(#i18nExtractTargetSection,#i18nTargetConfigSection) { padding-top:8px; }
-#i18nPanel #i18nConfigAction { gap:8px !important; }
-#i18nPanel #i18nConfigAction > div:first-child { border:none !important; border-radius:0 !important; background:var(--bg-surface) !important; }
-#i18nPanel :is(#i18nTotalNodes,#i18nBoundCount,#i18nNewCount) { font-variant-numeric:tabular-nums; }
-#i18nPanel #i18nTransList { padding:0 12px; }
+/* =========================================================
+   12. Language Switch (#i18nPanel)
+   ========================================================= */
+#i18nPanel #i18nViewConfig { padding: 6px 14px 20px !important; }
+#i18nPanel .config-label { display: flex; align-items: center; margin-bottom: 8px; }
+#i18nPanel .seg-btn[data-key="i18n_action_replace"] { color: var(--text-secondary) !important; }
+#i18nPanel .seg-btn[data-key="i18n_action_replace"].active { color: var(--primary) !important; }
+#i18nPanel #i18nModeDesc {
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  margin: 8px 0 0;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+}
+#i18nPanel .settings-item {
+  border: 0 !important;
+  padding: 5px 0 !important;
+  margin-bottom: 4px !important;
+  background: transparent !important;
+}
+#i18nPanel #i18nConfigAction { gap: 8px !important; padding: 9px 14px 10px !important; }
+#i18nPanel #i18nConfigAction > div:first-child {
+  border: 0 !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--bg-well) !important;
+  padding: 7px 4px;
+}
+#i18nPanel #i18nConfigAction > div:last-child > div[style*="width: 1px"] { display: none !important; }
+#i18nPanel .bottom-action .secondary-btn {
+  border: 0 !important;
+  background: var(--bg-well) !important;
+  color: var(--text-primary) !important;
+  box-shadow: none !important;
+}
+#i18nPanel .bottom-action .secondary-btn:hover:not(:disabled) {
+  background: var(--primary-light) !important;
+  color: var(--primary) !important;
+}
+#i18nPanel :is(#i18nTotalNodes, #i18nBoundCount, #i18nNewCount) {
+  font-size: 17px !important;
+  line-height: 21px !important;
+  margin-bottom: 2px !important;
+  font-variant-numeric: tabular-nums;
+}
+#i18nPanel #i18nTransList { padding: 0; }
 
-/* Skew reserves a reference plane beside the numeric controls on wider panels. */
+/* =========================================================
+   13. Isometric Transform (#skewPanel)
+   ========================================================= */
 #skewPanel .skew-preview {
-  flex:none; height:clamp(108px,24vh,160px); min-height:0; background-color:var(--bg-surface);
-  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
-  background-size:16px 16px; border:0;
+  flex: none;
+  height: clamp(118px, 25vh, 162px);
+  min-height: 0;
+  margin: 6px 14px 0;
+  border: 0;
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(circle at 1px 1px, rgb(96 16 203 / 14%) 1px, transparent 0),
+    radial-gradient(circle at 50% 45%, #ffffff 0%, #f1eafc 100%);
+  background-size: 16px 16px, 100% 100%;
+  box-shadow: inset 0 0 0 1px rgb(96 16 203 / 7%);
 }
-#skewPanel .skew-preview::before { display:none; }
-#skewPanel .skew-preview-label { color:var(--text-secondary); letter-spacing:0; }
-#skewPanel .skew-proxy { box-shadow:none; border:1px solid var(--primary); background:var(--primary-light); }
-#skewPanel .skew-slider-row { display:grid; grid-template-columns:minmax(66px,27%) minmax(0,1fr); align-items:center; gap:8px; padding:4px 0; }
-#skewPanel .skew-slider-control { min-width:0; gap:8px; }
-#skewPanel .skew-value-input { flex:0 0 44px; width:44px; }
-#skewPanel .skew-range { min-width:24px; }
-#skewPanel .skew-presets { display:flex; align-items:stretch; gap:4px; flex-wrap:wrap; }
-#skewPanel .skew-preset-btn { flex:1 1 40px; min-width:0; }
-
-/* All stages remain visible as an ordered checklist. Only the active stage
-   exposes its controls, status and instructions. */
-#pptPanel .ppt-dashboard { padding:12px 16px 8px; background:var(--bg-surface); }
-#pptPanel .ppt-tips { padding:0; margin:0 0 8px; background:transparent; border:0; box-shadow:none; color:var(--text-secondary); }
-#pptPanel .ppt-dashboard:has(details[open]) { max-height:54%; overflow:auto; }
-#pptPanel .ppt-tips ul { display:block; margin:0; padding:0 0 0 16px; }
-#pptPanel .ppt-tips .ppt-prerequisite { list-style:none; padding:0; }
-#pptPanel .ppt-tips .ppt-prerequisite li { margin:0; }
-#pptPanel .ppt-tips details { margin-top:4px; }
-#pptPanel .ppt-tips summary { width:fit-content; padding:4px 0; cursor:pointer; color:var(--primary); }
-#pptPanel .ppt-tips summary b { display:inline; padding:0; }
-#pptPanel .ppt-tips details li { margin:0 0 4px; }
-#pptPanel .ppt-footer { flex:none; gap:8px; padding:8px 12px; }
-#pptPanel .ppt-footer button { height:auto; min-height:32px; margin:0; padding:4px 12px; }
-#pptPanel .ppt-content-area { align-items:stretch; padding:4px 16px 12px; gap:4px; }
-#pptPanel .ppt-step { display:grid; grid-template-columns:20px minmax(0,1fr); gap:0 8px; align-items:center; text-align:start; padding:8px; border:0; border-radius:10px; box-shadow:none; background:transparent; animation:none; }
-#pptPanel .ppt-step:not(.active) > :not(.ppt-icon,.ppt-title) { display:none; }
-#pptPanel .ppt-step.active { background:var(--primary-light); }
-#pptPanel .ppt-icon { width:20px; height:20px; margin:0; background:transparent; color:var(--text-tertiary); border:0; }
-#pptPanel .ppt-step.active .ppt-icon { color:var(--primary); }
-#pptPanel .ppt-title { font-size:12px; font-weight:600; line-height:18px; margin:0; }
-#pptPanel .ppt-step > :not(.ppt-title,.ppt-icon) { grid-column:2; margin:4px 0 0; justify-self:start; max-width:100%; }
-#pptPanel .ppt-status { font-variant-numeric:tabular-nums; }
-#pptPanel .ppt-status.is-done { color:var(--success); background:var(--success-light); }
-
-/* The topic catalogue and article share a reading column; topics are links
-   with consistent baselines rather than separately framed tiles. */
-#theoryPanel .theory-group { padding:0; margin:0 0 20px; }
-#theoryPanel .theory-group-title { padding:0; margin:0 0 6px; border:0; font-size:13px; line-height:19px; font-weight:650; }
-#theoryPanel .theory-capsule-list { grid-template-columns:repeat(auto-fit,minmax(106px,1fr)); gap:0 8px; }
-#theoryPanel .theory-capsule { min-width:0; min-height:32px; border:0; border-radius:8px; padding:4px; background:transparent; justify-content:flex-start; text-align:start; }
-#theoryPanel .theory-capsule:hover { color:var(--primary); background:var(--bg-hover); }
-#theoryPanel .theory-article-scroll { padding:12px 16px 24px; }
-#theoryPanel .theory-article-scroll > * { max-width:68ch; margin-inline:auto; }
-#theoryPanel .theory-principle { padding:0; margin:16px 0 0; border:0; }
-#theoryPanel .theory-composer { padding:4px; }
-
-@media (min-width:620px) {
-  #skewPanel { flex-direction:row !important; }
-  #skewPanel .skew-preview { flex:1; height:auto; }
-  #skewPanel .skew-content { flex:1; }
-  #smartFillPanel #smartBasicList { grid-template-columns:repeat(3,minmax(0,1fr)); }
+:root[data-theme="dark"] #skewPanel .skew-preview {
+  background:
+    radial-gradient(circle at 1px 1px, rgb(190 148 255 / 16%) 1px, transparent 0),
+    radial-gradient(circle at 50% 45%, #27203d 0%, #151122 100%);
+  background-size: 16px 16px, 100% 100%;
+  box-shadow: inset 0 0 0 1px rgb(190 148 255 / 10%);
 }
-@media (max-width:380px) {
-  :is(#selectionPanel,#duplicatePanel) .selection-scroll-area,
-  :is(#sizePanel .size-scroll,#componentBuilderPanel .builder-scroll,#skewPanel .skew-content,#refinerPanel .refiner-config,#i18nPanel .i18n-view,#theoryPanel .theory-capsule-container,#layerNamingPanel,#iconfontPanel) { padding-inline:8px; }
-  #smartFillPanel #smartBasicList { gap:0 8px; padding-inline:8px; }
-  #sizePanel :is(#sizeWidth,#sizeHeight) { font-size:17px; height:32px; }
+#skewPanel .skew-preview::before { display: none; }
+#skewPanel .skew-preview-label {
+  top: 9px; left: 10px;
+  font-size: 10px; font-weight: 650;
+  color: var(--primary);
+  letter-spacing: .02em;
+  background: var(--primary-light);
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+#skewPanel .skew-proxy {
+  width: 68px; height: 68px;
+  box-shadow: 0 8px 22px -4px rgb(96 16 203 / 28%);
+  border: 1.5px solid var(--primary);
+  background: linear-gradient(145deg, rgb(116 40 224 / 20%) 0%, rgb(168 112 224 / 12%) 100%);
+  border-radius: 10px;
+}
+#skewPanel .skew-proxy-top { background: var(--primary); height: 3.5px; }
+#skewPanel .skew-proxy-arrow { color: var(--primary); font-weight: 700; }
+#skewPanel .skew-slider-row {
+  display: grid;
+  grid-template-columns: minmax(62px, 27%) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+#skewPanel .skew-slider-label { font-size: 11.5px; color: var(--text-secondary); font-weight: 500; }
+#skewPanel .skew-slider-control { display: flex; align-items: center; min-width: 0; gap: 8px; }
+#skewPanel .skew-value-input { flex: 0 0 54px; width: 54px; }
+#skewPanel .skew-value-input input { width: 100%; height: 28px; min-height: 28px; text-align: center; padding-inline: 4px !important; }
+#skewPanel .skew-range {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  min-width: 24px;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--bg-well-deep);
+  outline: none;
+}
+#skewPanel .skew-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 2.5px solid var(--primary);
+  box-shadow: 0 2px 6px rgb(96 16 203 / 28%);
+  cursor: pointer;
+}
+#skewPanel .skew-presets { display: flex; align-items: stretch; gap: 5px; flex-wrap: wrap; }
+#skewPanel .skew-preset-btn { flex: 1 1 42px; min-width: 0; text-align: center; font-weight: 550; }
+
+/* =========================================================
+   14. PPT Export (#pptPanel)
+   ========================================================= */
+#pptPanel .ppt-dashboard {
+  padding: 6px 14px 8px;
+  background: var(--bg-surface);
+  border: 0 !important;
+  box-shadow: none !important;
+}
+#pptPanel .ppt-tips {
+  padding: 10px 12px;
+  margin: 0 0 10px;
+  background: var(--bg-well) !important;
+  border: 0 !important;
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+}
+#pptPanel .ppt-dashboard:has(details[open]) { max-height: 54%; overflow: auto; }
+#pptPanel .ppt-tips ul { display: block; margin: 0; padding: 0 0 0 16px; }
+#pptPanel .ppt-tips .ppt-prerequisite { list-style: none; padding: 0; }
+#pptPanel .ppt-tips .ppt-prerequisite li { margin: 0; }
+#pptPanel .ppt-tips details { margin-top: 6px; }
+#pptPanel .ppt-tips summary { width: fit-content; padding: 2px 0; cursor: pointer; color: var(--primary); font-weight: 600; }
+#pptPanel .ppt-tips summary b { display: inline; padding: 0; }
+#pptPanel .ppt-tips details li { margin: 2px 0; }
+#pptPanel .btn-auto-run { width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; }
+#pptPanel .ppt-content-area { align-items: stretch; padding: 4px 14px 12px; gap: 4px; }
+#pptPanel .ppt-step {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 0 8px;
+  align-items: center;
+  text-align: start;
+  padding: 9px 11px;
+  border: 0;
+  border-radius: var(--radius-lg);
+  box-shadow: none;
+  background: transparent;
+  animation: none;
+}
+#pptPanel .ppt-step:not(.active) > :not(.ppt-icon, .ppt-title) { display: none; }
+#pptPanel .ppt-step.active { background: var(--primary-lighter); }
+#pptPanel .ppt-icon { width: 20px; height: 20px; margin: 0; background: transparent; color: var(--text-tertiary); border: 0; }
+#pptPanel .ppt-step.active .ppt-icon { color: var(--primary); }
+#pptPanel .ppt-title { font-size: 12px; font-weight: 650; line-height: 18px; color: var(--text-primary); margin: 0; }
+#pptPanel .ppt-step:not(.active) .ppt-title { color: var(--text-secondary); font-weight: 500; }
+#pptPanel .ppt-step > :not(.ppt-title, .ppt-icon) { grid-column: 2; margin: 4px 0 0; justify-self: start; max-width: 100%; }
+#pptPanel .ppt-desc { font-size: 11px; line-height: 16px; color: var(--text-secondary); }
+#pptPanel .ppt-status { font-variant-numeric: tabular-nums; background: var(--bg-surface); }
+#pptPanel .ppt-status.is-done { color: var(--success); background: var(--success-light); }
+#pptPanel .ppt-progress-track { height: 3px; background: var(--bg-well); }
+#pptPanel .ppt-progress-fill { background: var(--action-gradient); }
+#pptPanel .ppt-footer { display: flex; flex: none; gap: 8px; padding: 9px 14px 10px; }
+#pptPanel .ppt-reset-btn {
+  width: auto; flex: 0 0 auto; min-height: 31px; padding: 4px 12px !important;
+  border: 0; border-radius: var(--control-radius);
+  background: var(--bg-well); color: var(--text-secondary); font-size: 11.5px; font-weight: 550;
+}
+#pptPanel .ppt-reset-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+#pptPanel .ppt-action-btn { flex: 1; min-height: 31px; margin: 0; }
+
+/* =========================================================
+   15. Design Theory (#theoryPanel)
+   ========================================================= */
+#theoryPanel .theory-group {
+  padding: 11px 12px;
+  margin: 0 0 10px;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--bg-well);
+  box-shadow: none;
+}
+#theoryPanel .theory-group:last-child { margin-bottom: 0; }
+#theoryPanel .theory-group-title {
+  padding: 0 2px; margin: 0 0 6px; border: 0;
+  font-size: 11px; line-height: 16px; font-weight: 650;
+  color: var(--text-tertiary);
+}
+#theoryPanel .theory-capsule-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  gap: 2px 6px;
+}
+#theoryPanel .theory-capsule {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 30px;
+  gap: 7px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 4px 7px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 11.5px;
+  font-weight: 500;
+  justify-content: flex-start;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color 130ms ease, color 130ms ease, box-shadow 130ms ease;
+}
+#theoryPanel .theory-capsule:hover { color: var(--primary); background: var(--bg-surface); box-shadow: var(--shadow-subtle); }
+#theoryPanel .theory-capsule-icon { display: flex; flex: 0 0 15px; color: var(--primary-soft); transition: color 130ms ease; }
+#theoryPanel .theory-capsule:hover .theory-capsule-icon { color: var(--primary); }
+
+#theoryPanel .btn-back-theory {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 9px; min-height: 26px; font-size: 11.5px; font-weight: 550;
+  border: 0; border-radius: var(--control-radius);
+  background: var(--bg-well); color: var(--text-primary); cursor: pointer;
+}
+#theoryPanel .btn-back-theory:hover { background: var(--primary-light); color: var(--primary); }
+#theoryPanel .btn-back-theory > span:first-child { display: flex; }
+#theoryPanel .detail-cat-badge { max-width: 50%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#theoryPanel .theory-article-scroll {
+  position: relative; min-height: 0; min-width: 0;
+  padding: 10px 16px 24px; background: var(--bg-surface); overscroll-behavior: contain;
+}
+#theoryPanel .theory-article-scroll > * { max-width: 68ch; margin-inline: auto; }
+#theoryPanel .theory-hero { margin: 0 0 14px; padding: 0; border: 0; background: transparent; box-shadow: none !important; text-align: left; }
+#theoryPanel .theory-title-row { display: flex; align-items: flex-start; gap: 8px; }
+#theoryPanel .theory-title-row .t-icon-large { display: flex; flex: 0 0 22px; width: 22px; height: 22px; color: var(--primary); }
+#theoryPanel .theory-title-row .ui-icon { width: 20px; height: 20px; }
+#theoryPanel .theory-hero h1 { min-width: 0; margin: 0; font-size: 16px; line-height: 22px; font-weight: 700; letter-spacing: -.02em; color: var(--text-primary); }
+#theoryPanel .theory-hero .t-subtitle { margin: 5px 0 0; font-size: 11.5px; line-height: 16px; color: var(--text-secondary); }
+#theoryPanel .theory-hero .t-desc-main { margin: 8px 0 0; font-size: 12px; line-height: 19px; color: var(--text-primary); }
+#theoryPanel .theory-outline { display: block; margin: 0 0 12px; }
+#theoryPanel .theory-outline-label { display: block; margin-bottom: 4px; font-size: 10.5px; color: var(--text-secondary); font-weight: 550; }
+#theoryPanel .theory-outline select { width: 100%; }
+#theoryPanel .theory-principle { padding: 12px 0 0; margin: 12px 0 0; border: 0; }
+#theoryPanel .theory-principle:first-child { padding-top: 0; margin-top: 0; }
+#theoryPanel .theory-principle-head { display: flex; align-items: baseline; gap: 7px; margin: 0 0 6px; }
+#theoryPanel .theory-principle-number { font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--primary); }
+#theoryPanel .theory-principle-title { margin: 0; font-size: 12.5px; line-height: 18px; font-weight: 650; color: var(--text-primary); }
+#theoryPanel .theory-principle-lead { margin: 0 0 8px; padding: 8px 10px; border-radius: var(--radius-md); background: var(--bg-well); font-size: 11.5px; line-height: 18px; color: var(--text-primary); }
+#theoryPanel .theory-principle-row { margin: 6px 0 0; }
+#theoryPanel .theory-row-label { display: inline-block; margin-bottom: 2px; font-size: 10px; font-weight: 650; color: var(--text-tertiary); }
+#theoryPanel .theory-row-copy { margin: 0; font-size: 11.5px; line-height: 18px; color: var(--text-secondary); overflow-wrap: anywhere; }
+
+#theoryPanel .theory-composer {
+  display: flex; align-items: flex-end; gap: 6px; width: 100%;
+  padding: 4px 4px 4px 11px;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-lg);
+  background: var(--bg-well);
+  box-shadow: none;
+  transition: background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+#theoryPanel .theory-composer:focus-within {
+  border-color: var(--primary);
+  background: var(--bg-surface);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+#theoryPanel .theory-composer textarea {
+  display: block; flex: 1; width: 0 !important; min-width: 0;
+  min-height: 28px; max-height: 96px; height: 28px;
+  margin: 0; padding: 5px 0 !important; border: 0 !important; resize: none;
+  background: transparent !important; font-size: 12px !important; line-height: 18px !important;
+  color: var(--text-primary); box-shadow: none; overflow-y: auto;
+}
+#theoryPanel .theory-composer textarea:focus { outline: none; box-shadow: none; }
+#theoryPanel .theory-composer button {
+  position: static !important; inset: auto !important;
+  display: flex; align-items: center; justify-content: center;
+  flex: 0 0 28px; width: 28px; min-width: 28px; height: 28px; min-height: 28px;
+  margin: 0; padding: 5px !important; border: 0; border-radius: var(--control-radius) !important;
+  background: var(--action-gradient); color: var(--action-text);
+  box-shadow: var(--shadow-cta);
+}
+#theoryPanel .theory-composer button:hover:not(:disabled) { background: var(--action-gradient-hover); }
+#theoryPanel .theory-composer button:disabled { opacity: .45; background: var(--bg-well-deep); color: var(--text-disabled); box-shadow: none; cursor: default; }
+#theoryPanel .theory-chat-header .chat-title { font-size: 12.5px; line-height: 18px; font-weight: 650; }
+#theoryPanel .theory-chat-messages { padding: 10px 14px; gap: 8px; overscroll-behavior: contain; background: var(--bg-surface); }
+#theoryPanel .theory-chat-message { padding: 9px 11px; font-size: 12px; line-height: 18px; border-radius: var(--radius-lg); white-space: pre-wrap; overflow-wrap: anywhere; }
+#theoryPanel .theory-chat-message.user { background: var(--primary-light); color: var(--text-primary); }
+#theoryPanel .theory-chat-message.ai { max-width: 100%; padding: 9px 12px; border: 0; background: var(--bg-well); color: var(--text-primary); }
+
+/* Responsive panel refinements */
+@media (min-width: 620px) {
+  #skewPanel { flex-direction: row !important; }
+  #skewPanel .skew-preview { flex: 1; height: auto; margin: 6px 0 12px 14px; }
+  #skewPanel .skew-content { flex: 1; }
+  #smartFillPanel #smartBasicList { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 380px) {
+  :is(#selectionPanel, #duplicatePanel) .selection-scroll-area,
+  :is(#sizePanel .size-scroll, #componentBuilderPanel .builder-scroll, #skewPanel .skew-content,
+      #refinerPanel .refiner-config, #i18nPanel .i18n-view, #theoryPanel .theory-capsule-container,
+      #layerNamingPanel, #iconfontPanel) { padding-inline: 10px; }
+  #smartFillPanel #smartBasicList { gap: 4px 5px; padding-inline: 10px; }
+  #smartFillPanel .smart-tabs, #refinerPanel .refiner-tabs { margin-inline: 10px; }
+  #sizePanel :is(#sizeWidth, #sizeHeight) { font-size: 16px !important; height: 34px; }
 }

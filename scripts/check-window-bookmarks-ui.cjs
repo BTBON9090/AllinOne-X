@@ -77,7 +77,64 @@ async function checkBrandImage(locator) {
         swatch.remove();
         return {sidebar:color('.sidebar'), main:color('.main-content'), primary};
       });
-      assert.deepEqual(colors, {sidebar:'rgb(255, 255, 255)', main:'rgb(255, 255, 255)', primary:'rgb(94, 0, 194)'});
+      assert.deepEqual(colors, {sidebar:'rgb(243, 239, 250)', main:'rgb(255, 255, 255)', primary:'rgb(96, 16, 203)'});
+      for (const theme of ['light', 'dark']) {
+        await page.evaluate(theme => changeTheme(theme), theme);
+        const ratios = await page.evaluate(() => {
+          const resolve = expr => {
+            const probe = document.createElement('span');
+            probe.style.color = expr;
+            document.body.append(probe);
+            const rgb = getComputedStyle(probe).color.match(/\d+/g).map(Number);
+            probe.remove();
+            return rgb;
+          };
+          const lum = ([r, g, b]) => [r, g, b].map(v => {
+            const s = v / 255;
+            return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+          }).reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i], 0);
+          const ratio = (fg, bg) => {
+            const [a, b] = [lum(resolve(fg)), lum(resolve(bg))].sort((x, y) => y - x);
+            return (a + 0.05) / (b + 0.05);
+          };
+          return {
+            secondaryOnSurface: ratio('var(--text-secondary)', 'var(--bg-surface)'),
+            tertiaryOnRail: ratio('var(--text-tertiary)', 'var(--bg-rail)'),
+            tertiaryOnSurface: ratio('var(--text-tertiary)', 'var(--bg-surface)'),
+            tertiaryOnWell: ratio('var(--text-tertiary)', 'var(--bg-well)'),
+            primaryOnHover: ratio('var(--primary)', 'var(--bg-hover)'),
+            primaryOnLight: ratio('var(--primary)', 'var(--primary-light)'),
+            onPrimary: ratio('var(--on-primary)', 'var(--primary)'),
+            actionText: ratio('var(--action-text)', 'var(--action-fill)')
+          };
+        });
+        for (const [pair, value] of Object.entries(ratios)) {
+          assert(value >= 4.5, `${platform}/${theme} contrast ${pair} (${value.toFixed(2)}:1) must meet WCAG AA >= 4.5:1`);
+        }
+        // Verify actual hovered control computed colors on #sfAffixApply and .ppt-action-btn
+        await page.evaluate(() => PluginWorkspace.navigate('smartFill'));
+        await page.locator('#sfAffixApply').hover();
+        const affixHover = await page.locator('#sfAffixApply').evaluate(el => {
+          const s = getComputedStyle(el);
+          const parse = v => v.match(/\d+/g).map(Number);
+          const lum = ([r, g, b]) => [r, g, b].map(v => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; }).reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i], 0);
+          const [a, b] = [lum(parse(s.color)), lum(parse(s.backgroundColor) || [96, 16, 203])].sort((x, y) => y - x);
+          return (a + 0.05) / (b + 0.05);
+        });
+        assert(affixHover >= 4.5, `${platform}/${theme} #sfAffixApply:hover contrast (${affixHover.toFixed(2)}:1) must be >= 4.5:1`);
+        await page.evaluate(() => PluginWorkspace.navigate('ppt'));
+        await page.locator('#pptActionBtn').hover();
+        const pptHover = await page.locator('#pptActionBtn').evaluate(el => {
+          const s = getComputedStyle(el);
+          const parse = v => v.match(/\d+/g).map(Number);
+          const lum = ([r, g, b]) => [r, g, b].map(v => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; }).reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i], 0);
+          const [a, b] = [lum(parse(s.color)), lum(parse(s.backgroundColor))].sort((x, y) => y - x);
+          return (a + 0.05) / (b + 0.05);
+        });
+        assert(pptHover >= 4.5, `${platform}/${theme} #pptActionBtn:hover contrast (${pptHover.toFixed(2)}:1) must be >= 4.5:1`);
+        await page.evaluate(() => PluginWorkspace.navigate('simple'));
+      }
+      await page.evaluate(() => changeTheme('light'));
       assert.equal(await page.locator('.nav-group').count(),3);
       assert.equal(await page.locator('.nav-item').count(),16);
       assert(await page.locator('.nav-item').last().evaluate(el => {

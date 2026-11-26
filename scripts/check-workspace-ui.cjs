@@ -82,14 +82,22 @@ async function checkViewportSelectAndTranslationActions(page) {
           assert.equal(bounds.panels.length, 1, `${key}: exactly one panel`);
           for (const box of bounds.panels) assert(box.right <= bounds.width + 1 && box.bottom <= bounds.height + 1, `${mode}/${key}: panel overflow`);
           if (key === 'simple') {
-            const shellRules = await page.locator('.sidebar, .workbench-brand, .workbench-heading, .sidebar-footer, .nav-group-label').evaluateAll(nodes =>
-              nodes.filter(node => node.getClientRects().length).flatMap(node => {
-                const style = getComputedStyle(node);
-                return ['Top','Right','Bottom','Left'].filter(side =>
-                  parseFloat(style['border' + side + 'Width']) > 0 && style['border' + side + 'Color'] !== 'rgba(0, 0, 0, 0)'
-                ).map(side => node.className + ' ' + side);
-              }));
-            assert.deepEqual(shellRules, [], mode + ': rail, header and navigation groups have no structural rules');
+            const shellMetrics = await page.evaluate(() => {
+              const sidebar = getComputedStyle(document.querySelector('.sidebar'));
+              const heading = getComputedStyle(document.querySelector('.workbench-heading'));
+              const main = getComputedStyle(document.querySelector('.main-content'));
+              return {
+                sidebarBg: sidebar.backgroundColor,
+                mainBg: main.backgroundColor,
+                sidebarRightBorder: parseFloat(sidebar.borderRightWidth),
+                headingBottomBorder: parseFloat(heading.borderBottomWidth),
+                mainRadius: parseFloat(main.borderTopLeftRadius)
+              };
+            });
+            assert.notEqual(shellMetrics.sidebarBg, shellMetrics.mainBg, mode + ': rail ambient surface is visually distinct from floating workspace sheet');
+            assert.equal(shellMetrics.sidebarRightBorder, 0, mode + ': rail uses tonal separation instead of heavy divider lines');
+            assert.equal(shellMetrics.headingBottomBorder, 0, mode + ': top header stays clean and borderless');
+            assert(shellMetrics.mainRadius >= 10, mode + ': floating workspace sheet keeps sculpted rounded corners');
             assert.equal(await page.locator('#toolGrid .tool-card').count(), 22);
             if (mode !== 'small-english-dark') assert(await page.locator('.tool-card').last().evaluate(el => el.getBoundingClientRect().bottom <= innerHeight), 'All quick tools fit in the normal and compact Chinese first screen');
           }
@@ -116,8 +124,8 @@ async function checkViewportSelectAndTranslationActions(page) {
             await screenshot({ path:path.join(output, `${platform}-fill-${mode}.png`) });
           }
           if (key === 'select') {
-            assert.equal(await page.locator('.selector-card').first().evaluate(el => getComputedStyle(el).padding), '0px');
-            assert.equal(await page.locator('.selector-card').first().evaluate(el => getComputedStyle(el).borderTopWidth), '0px');
+            assert.equal(await page.locator('.selector-card').first().evaluate(el => getComputedStyle(el).borderTopWidth), '0px', 'Section groups use borderless tonal wells instead of gray outlines');
+            assert(await page.locator('#filterNameInput').evaluate(el => parseFloat(getComputedStyle(el).paddingLeft) >= 28), 'Search input leaves clear room for its leading icon');
           }
           if (key === 'size') {
             const presets = page.locator('#sizePanel .size-preset:visible');
