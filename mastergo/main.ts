@@ -2,6 +2,10 @@ declare function layerSelectSearch(nodes: any[]): void;
 declare const LayerRules: any;
 declare function handleLayerToolsMessage(message: any): Promise<boolean>;
 declare function installLayerTools(): void;
+declare function handleContextFillMessage(message: any): Promise<boolean>;
+declare function sendContextFillSelection(): void;
+declare function handleMediaMessage(message: any): Promise<boolean>;
+declare function sendMediaSelection(): void;
 declare function sendIconfontSelection(): void;
 declare function handleIconfontMessage(message: any): Promise<void>;
 declare function layerSearchRoots(): any[];
@@ -2827,7 +2831,7 @@ const sendComponentBuilderSelection = () => {
   });
 };
 
-mg.on('selectionchange', () => {try{sendComponentBuilderSelection();sendIconfontSelection()}catch(error){console.warn('Selection refresh deferred:',String(error));}});
+mg.on('selectionchange', () => {try{sendComponentBuilderSelection();sendIconfontSelection();sendContextFillSelection();sendMediaSelection();}catch(error){console.warn('Selection refresh deferred:',String(error));}});
 let componentReverseRunning = false;
 
 // 监听选择变化，主动推送 CompKit 属性更新
@@ -2923,6 +2927,8 @@ const handleUiMessage = async (rawMessage: any) => {
     return;
   }
   if (await handleLayerToolsMessage(msg)) return;
+  if (await handleContextFillMessage(msg)) return;
+  if (await handleMediaMessage(msg)) return;
   if (msg.type === 'mg-image-size-result') {
     const resolve = imageSizeWaiters.get(msg.reqId);
     if (resolve) {

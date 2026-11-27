@@ -2,12 +2,13 @@
    component properties and message history retain their original content. */
 (() => {
   const reviewedEnglish = {
-    nav_simple:'Quick Tools', nav_text:'Find & Replace', nav_ppt:'PPT Export',
-    nav_refiner:'Component Cleanup', nav_jumpback:'Viewport Bookmarks',
-    nav_skew:'Isometric Transform', nav_i18n:'Language Switch', nav_component_builder:'Component Builder',
+    nav_simple:'Quick Tools', nav_text:'Find & Replace', nav_layer_naming:'Visual Naming', nav_image_export:'Image Compression', nav_ppt:'PPT Export',
+    about_lead:'Less repetition. More time to design.',
+    nav_refiner:'Organize Components', nav_jumpback:'Viewport Bookmarks',
+    nav_skew:'Isometric Transform', nav_i18n:'Language Switch', nav_component_builder:'AI Component Builder',
     skew_left_wall:'Right vertical', skew_right_wall:'Left vertical',
     skew_left_lie:'Right horizontal', skew_right_lie:'Left horizontal',
-    sf_tab_ai:'AI Generation', sf_btn_seq:'Fill in Order', sf_btn_rnd:'Fill Randomly',
+    sf_tab_ai:'AI List', sf_tab_custom:'Custom', sf_btn_seq:'Fill in Order', sf_btn_rnd:'Fill Randomly',
     sf_btn_save_list:'Save as Custom List', sf_sub_cfg_title:'AI Settings',
     sf_tag_zip:'Include postal code', sf_tag_comma:'Thousands separator',
     sf_tag_noproto:'No protocol', sf_tag_long:'Long path', sf_tag_port:'With port',
@@ -70,7 +71,28 @@
   Object.assign(i18n.en, reviewedEnglish);
   i18n.zh.sf_prefix = '前缀'; i18n.zh.sf_suffix = '后缀';
   i18n.zh.sel_scope_page = '全页';
-  i18n.zh.sel_t_section = '❏ 区域 Section';
+  const selectorLabels = {
+    type_all:['全部类型','All types'],t_frame:['画板','Frame'],t_group:['组','Group'],t_section:['区域','Section'],
+    t_auto:['自动布局','Auto layout'],t_comp:['组件','Component'],t_compset:['组件集','Component set'],t_slot:['插槽','Slot'],
+    t_inst:['实例','Instance'],t_rect:['矩形','Rectangle'],t_ell:['椭圆','Ellipse'],t_line:['直线','Line'],
+    t_vect:['矢量','Vector'],t_star:['星形','Star'],t_poly:['多边形','Polygon'],t_bool:['布尔运算','Boolean operation'],
+    t_text:['文本','Text'],t_img:['图片','Image'],t_slice:['切片','Slice'],t_conn:['连接线','Connector'],
+    t_shape_text:['形状文字','Shape with text'],t_sticky:['便签','Sticky note'],t_widget:['小部件','Widget'],t_stamp:['图章','Stamp'],t_washi:['胶带','Washi tape'],
+    state_all:['全部状态','All states'],s_hidden:['隐藏','Hidden'],s_lock:['锁定','Locked'],s_mask:['蒙版','Mask'],s_export:['可导出','Exportable'],
+    s_nofill:['无填充','No fill'],s_nostroke:['无描边','No stroke'],s_clip:['裁剪内容','Clips content'],s_nochild:['无子图层','No children']
+  };
+  const slot = document.querySelector('#typeGroup [data-val="SLOT"]');
+  if (slot) slot.dataset.key = 'sel_t_slot';
+  for (const [suffix,[zh,en]] of Object.entries(selectorLabels)) {
+    i18n.zh['sel_'+suffix]=zh; i18n.en['sel_'+suffix]=en;
+  }
+  document.querySelector('[data-nav="layerNaming"] .nav-text').dataset.key='nav_layer_naming';
+  Object.assign(i18n.zh,{
+    nav_text:'查文替字',nav_component_builder:'智建组件',nav_layer_naming:'识图命名',nav_image_export:'导图压缩',
+    about_lead:'少些重复操作，多些时间设计。',
+    cb_selection_hint:'选择一个或多个画板',cb_selection_frames:'已选中 {count} 个画板',cb_subtitle:'将所选画板创建为组件。',
+    cb_create_desc:'选择一个或多个画板，再决定生成单个组件、多个组件或组件集。',cb_name_placeholder:'留空则沿用画板名称',cb_err_frames:'请选择一个或多个画板'
+  });
   i18n.zh.sf_cfg_time_help = '支持时、分、秒；随机模式会在指定范围内生成。';
   i18n.en.sf_cfg_time_help = 'Supports hours, minutes and seconds. Random mode uses the selected time range.';
   i18n.zh.refiner_fix_count_suffix = '项。点击继续，返回列表处理剩余项。';

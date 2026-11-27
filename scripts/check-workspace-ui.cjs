@@ -59,7 +59,8 @@ async function checkViewportSelectAndTranslationActions(page) {
       await checkViewportSelectAndTranslationActions(page);
       await screenshot({ path:path.join(output, `${platform}-tools.png`) });
       const routes = await page.locator('.nav-item').evaluateAll(items => items.map(item => item.dataset.nav));
-      assert.equal(routes.length, 16);
+      assert.equal(routes.length, 17);
+      assert(routes.includes('imageExport') && routes.includes('shadow') && !routes.includes('compkit'));
       for (const mode of ['normal','compact','small-english-dark']) {
         await page.setViewportSize(mode === 'normal' ? { width:440,height:600 } : mode === 'compact' ? { width:360,height:520 } : { width:340,height:440 });
         await page.evaluate(mode => {
@@ -72,6 +73,18 @@ async function checkViewportSelectAndTranslationActions(page) {
           assert.equal(await page.locator('.nav-item.active').count(), 1, `${mode} ${key}: active navigation`);
           assert.equal(await page.locator(`.nav-item[data-nav="${key}"]`).getAttribute('aria-current'), 'page');
           assert(await page.locator('#contentScroll > [role="region"]:visible').getAttribute('aria-label'));
+          assert(await page.locator('.workbench-route-icon svg').evaluate(svg=>svg.innerHTML===document.querySelector('.nav-item.active .nav-icon-slot svg').innerHTML),key+' title repeats its navigation icon');
+          if(key==='select'){
+            const internals=await page.locator('#typeGroup').evaluate(group=>{
+              const styles=getComputedStyle(group),chips=[...group.querySelectorAll('.filter-tag')];
+              return {display:styles.display,wrap:styles.flexWrap,widths:new Set(chips.map(chip=>Math.round(chip.getBoundingClientRect().width))).size,
+                selected:getComputedStyle(document.getElementById('filterNameInput'),'::selection').backgroundColor,
+                normal:getComputedStyle(document.getElementById('filterNameInput')).backgroundColor,
+                mixed:chips.some(chip=>/[A-Za-z]/.test(chip.textContent)&&/[\u3400-\u9fff]/.test(chip.textContent))};
+            });
+            assert.equal(internals.display,'flex');assert.equal(internals.wrap,'wrap');assert(internals.widths>=4);
+            assert(!internals.mixed);assert.notEqual(internals.selected,internals.normal);
+          }
           const bounds = await page.evaluate(() => ({
             rootX:document.documentElement.scrollWidth > innerWidth,
             rootY:document.documentElement.scrollHeight > innerHeight,
@@ -375,7 +388,7 @@ async function checkViewportSelectAndTranslationActions(page) {
       await page.evaluate(() => changeLanguage('zh'));
       assert((await page.locator('#i18nModeDesc').innerText()).startsWith('更新 Mode：'), 'Changing UI language preserves the current action explanation');
       assert.deepEqual(errors, [], `${platform}: browser errors`);
-      console.log(`${platform}: 16 routes × 3 sizes, shared affixes (basic/AI/custom/characters), dense layouts, greeting cache/fallback, keyboard, scrolling, size actions, fill preview and safe titles passed.`);
+      console.log(`${platform}: ${routes.length} routes × 3 sizes, shared affixes (basic/AI/custom/characters), dense layouts, greeting cache/fallback, keyboard, scrolling, size actions, fill preview and safe titles passed.`);
       await page.close();
     }
   } finally { await browser.close(); }

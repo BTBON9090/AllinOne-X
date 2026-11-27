@@ -3,6 +3,10 @@ declare function createAITransport(send: (message: any) => void, fetcher: any): 
 declare const LayerRules: any;
 declare function handleLayerToolsMessage(message: any): Promise<boolean>;
 declare function installLayerTools(): void;
+declare function handleContextFillMessage(message: any): Promise<boolean>;
+declare function sendContextFillSelection(): void;
+declare function handleMediaMessage(message: any): Promise<boolean>;
+declare function sendMediaSelection(): void;
 declare function sendIconfontSelection(): void;
 declare function handleIconfontMessage(message: any): Promise<void>;
 declare const __html__: string;
@@ -1053,7 +1057,7 @@ const sendComponentBuilderSelection = () => {
   });
 };
 
-figma.on('selectionchange', () => {try{sendComponentBuilderSelection();sendIconfontSelection()}catch(error){console.warn('Selection refresh deferred:',String(error));}});
+figma.on('selectionchange', () => {try{sendComponentBuilderSelection();sendIconfontSelection();sendContextFillSelection();sendMediaSelection();}catch(error){console.warn('Selection refresh deferred:',String(error));}});
 let componentReverseRunning = false;
 
 // 监听选择变化，主动推送 CompKit 属性更新
@@ -1148,6 +1152,8 @@ const handleUiMessage = async (msg: any) => {
     return;
   }
   if (await handleLayerToolsMessage(msg)) return;
+  if (await handleContextFillMessage(msg)) return;
+  if (await handleMediaMessage(msg)) return;
   // 新增：专治跨域不服！拦截 'do-fetch' 指令，由后台沙箱代发请求
   // =======================================================
   if (msg.type === 'do-fetch') { void pluginAITransport.request(msg); return; }

@@ -188,7 +188,10 @@ body {
 
 button, input, select, textarea { font-family: inherit; }
 input:is([type="checkbox"], [type="radio"], [type="range"]) { accent-color: var(--primary); }
-::selection { color: var(--text-primary); background: var(--primary-light); }
+html.workbench body { user-select:text; }
+html.workbench :is(button,select,[role="tab"],[role="button"],.sidebar,.workbench-heading) { user-select:none; }
+html.workbench :is(input,textarea,[contenteditable="true"]) { user-select:text; }
+::selection { color:var(--on-primary); background-color:var(--primary); text-shadow:none; }
 
 * { scrollbar-width: thin; scrollbar-color: var(--border-control) transparent; }
 ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -693,7 +696,38 @@ html .checkbox-row:hover { background: transparent; color: var(--primary); }
 }
 #settingsPanel .about-row b { color: var(--text-primary); font-variant-numeric: tabular-nums; font-weight: 600; }
 #settingsPanel .about-row a { color: var(--primary); text-decoration: none; font-weight: 600; overflow-wrap: anywhere; }
-#settingsPanel .about-row a:hover { text-decoration: underline; text-underline-offset: 2px; }
+#settingsPanel .about-row button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  font-weight: 600;
+  text-align: end;
+  cursor: pointer;
+}
+#settingsPanel .about-row :is(a, button):hover { text-decoration: underline; text-underline-offset: 2px; }
+#aboutWechatDialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  box-sizing: border-box;
+  width: min(280px, calc(100% - 24px));
+  height: fit-content;
+  max-height: calc(100% - 24px);
+  padding: 18px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--elevation);
+  text-align: center;
+}
+#aboutWechatDialog::backdrop { background: var(--overlay); }
+#aboutWechatTitle { margin: 0; font-size: 15px; line-height: 20px; font-weight: 650; }
+#aboutWechatHint { margin: 4px 0 10px; color: var(--text-secondary); font-size: 12px; line-height: 18px; }
+#aboutWechatImage { display: block; width: min(100%, 240px); height: auto; margin: 0 auto 12px; border-radius: var(--radius-md); background: #fff; }
+#aboutWechatClose { width: 100%; }
 
 @media (prefers-contrast: more) {
   :root, :root[data-theme="dark"] {

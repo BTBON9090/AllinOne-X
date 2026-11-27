@@ -46,7 +46,7 @@ try{for(const platform of ['figma','mastergo']){
   };
  });
  const route=key=>page.evaluate(key=>PluginWorkspace.navigate(key),key),idle=()=>page.waitForFunction(()=>!document.querySelector('.layer-job-banner'));
- await route('componentBuilder');await page.getByRole('button',{name:'AI 读取并建议',exact:true}).click();await idle();
+ await route('componentBuilder');await page.locator('#builderAiVision').check();await page.getByRole('button',{name:'AI 读取并建议',exact:true}).click();await idle();
  assert.match(await page.locator('#builderAiCard .layer-feedback').innerText(),/429/);assert.equal(await page.locator('#builderAiCard .layer-locate').count(),5);assert(await page.getByRole('button',{name:'按方案构建',exact:true}).isDisabled());
  assert.deepEqual(await page.evaluate(()=>__calls.map(c=>c.imageCount)),[20,10,5,5]);
  await page.locator('#builderContinue').click();await idle();assert(await page.locator('#builderContinue').isHidden());assert.equal(await page.locator('#builderAiCard .layer-locate').count(),150);

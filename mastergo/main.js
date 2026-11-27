@@ -8400,6 +8400,81 @@ function layerSummary(root) {
   if(root.type==='COMPONENT')result.values=layerVariantValues(root);
   return result;
 }
+function layerIsNamingScreen(node) {
+  return ['FRAME','GROUP','SECTION','COMPONENT','COMPONENT_SET','INSTANCE','INTELLIGENT_CONTAINER'].includes(node.type) && 'children' in node;
+}
+function layerNamingScreen(root) {
+  const trim = (value, limit) => typeof value === 'string' ? value.replace(/\s+/g,' ').trim().slice(0,limit) : '';
+  const origin = root.absoluteBoundingBox;
+  const outline = [], textSnippets = [], seenText = new Set();
+  const queue = [{node:root, depth:0, x:0, y:0, clip:null}];
+  let outlineTruncated = false, visited = 0;
+  // Read across the screen before drilling into one detailed icon or list row.
+  // Snippets have a separate budget so early decorative layers cannot crowd out labels.
+  for (let index=0; index<queue.length; index++) {
+    const {node,depth,x,y,clip} = queue[index];
+    if (node.visible === false || node.isVisible === false || node.opacity === 0) continue;
+    const absolute = node.absoluteBoundingBox;
+    const box = absolute && origin
+      ? {x:absolute.x-origin.x, y:absolute.y-origin.y, width:absolute.width, height:absolute.height}
+      : {x, y, width:node.width, height:node.height};
+    const bounds = Object.values(box).every(Number.isFinite) ? box : undefined;
+    let visibleBox = bounds;
+    if (clip && bounds) {
+      const left=Math.max(clip.x,bounds.x), top=Math.max(clip.y,bounds.y);
+      const right=Math.min(clip.x+clip.width,bounds.x+bounds.width), bottom=Math.min(clip.y+clip.height,bounds.y+bounds.height);
+      if(right<left || bottom<top)continue;
+      visibleBox={x:left,y:top,width:right-left,height:bottom-top};
+    }
+    visited++;
+    const text = node.type === 'TEXT' ? trim(node.characters,120) : '';
+    if (text && !seenText.has(text) && textSnippets.length<56) { seenText.add(text);textSnippets.push(text); }
+    if (outline.length<80) {
+      let role = node.type.toLowerCase();
+      if (Array.isArray(node.fills) && node.fills.some(p=>p.type==='IMAGE' && p.visible!==false && p.isVisible!==false)) role='image';
+      const record={name:trim(node.name,80), type:node.type,role,depth,bounds};
+      if(depth)record.parentName=trim(node.parent?.name,80);
+      if(text)record.text=text;
+      if(node.type==='TEXT'&&Number.isFinite(node.fontSize))record.fontSize=node.fontSize;
+      const layout=node.layoutMode||node.flexMode;
+      if(layout && layout!=='NONE')record.layout=layout;
+      outline.push(record);
+    }
+    if ('children' in node) {
+      const children=node.children, childClip=node.clipsContent && bounds ? visibleBox : clip;
+      for(let j=0;j<children.length;j++) {
+        if(queue.length>=2000){outlineTruncated=true;break;}
+        const child=children[j];
+        if(child.visible===false || child.isVisible===false || child.opacity===0)continue;
+        queue.push({node:child,depth:depth+1,x:box.x+(child.x||0),y:box.y+(child.y||0),clip:childClip});
+      }
+    }
+  }
+  return {id:root.id,name:root.name,type:root.type,width:root.width,height:root.height,pageName:layerPage().name,
+    outline,textSnippets,outlineTruncated:outlineTruncated||visited>outline.length};
+}
+
+async function layerPreviewPng(root, screen) {
+  const maxBytes = screen ? 1500000 : 600000;
+  const scales = new Set((screen ? [1280,960,720,512,384] : [384]).map(size=>Math.min(1,size/Math.max(root.width,root.height,1))));
+  let failure;
+  for (const value of scales) {
+    try {
+      const png=await root.exportAsync({format:'PNG',constraint:{type:'SCALE',value}});
+      let data, size;
+      if(typeof png==='string') {
+        const prefix='data:image/png;base64,';
+        if(png.startsWith('data:') && !png.startsWith(prefix))throw new Error('预览图片格式无效');
+        data=png.startsWith(prefix)?png.slice(prefix.length):png;
+        size=Math.floor(data.length*3/4)-(data.endsWith('==')?2:data.endsWith('=')?1:0);
+      } else { size=png?.length; }
+      if(!size || size<0)throw new Error('预览图片为空');
+      if(size>maxBytes)throw new Error('预览图片过大');
+      return {size, image:'data:image/png;base64,'+(data ?? layerBase64(png))};
+    } catch(error){failure=error;}
+  }
+  throw failure;
+}
 function layerVariantValues(node) {
   try{const properties=node.variantProperties;if(Array.isArray(properties))return Object.fromEntries(properties.map(p=>[p.property,String(p.value)]));if(properties&&typeof properties==='object')return Object.fromEntries(Object.entries(properties).map(([k,v])=>[k,String(v)]));}catch(_){}
   return Object.fromEntries(String(node.name).split(',').map(p=>p.split('=').map(s=>s.trim())).filter(p=>p.length===2));
@@ -8411,7 +8486,8 @@ function layerApplyVariantValues(owner,components,variants) {
   if(expected.size&&Array.isArray(owner.componentPropertyValues)&&typeof owner.deleteVariantProperty==='function')for(const p of owner.componentPropertyValues.filter(p=>p.type==='VARIANT'&&!expected.has(p.name)))owner.deleteVariantProperty(p.name);
 }
 async function layerSnapshot(msg) {
-  const selected=[...layerPage().selection];
+  const page=layerPage(), selected=[...page.selection];
+  const visionNaming=msg.purpose==='naming'&&msg.visionNaming===true;
   let roots=selected, limit=800,consolidate=false; const sides=new Map(),destinations=[],sourceSets=[];
   if (msg.purpose==='build') {
     if(selected.some(n=>!['FRAME','COMPONENT','COMPONENT_SET'].includes(n.type)))throw new Error('请选择 Frame、独立组件，或组件集与待补入对象');
@@ -8454,13 +8530,15 @@ async function layerSnapshot(msg) {
   for(let i=0;i<roots.length;i++) {
     if(layerCancelled.has(msg.requestId))throw new Error('已取消');
     const root=roots[i],target=layerSummary(root);total++;stamps.push(layerHash(target));
+    if(visionNaming && layerIsNamingScreen(root))target.isScreen=true;
     if(consolidate){const set=sourceSets.find(s=>s.id===root.parent?.id);target.sourceSetId=set?.id;target.buildParentId=sourceSets[0].parentId;}
     if(msg.purpose==='duplicate')target.side=sides.get(root.id);
     context.push(target);
     if(i%8===0||i===roots.length-1){layerSend({type:'layer-ai-progress',requestId:msg.requestId,done:i+1,total:roots.length,layers:total});await new Promise(r=>setTimeout(r,0));}
   }
   const token=msg.requestId;
-  layerSnapshots.set(token,{roots:roots.map(n=>n.id),page:layerPage().id,stamps,purpose:msg.purpose,sides,destinations,sourceSets,consolidate,buildParentId:sourceSets[0]?.parentId});
+  if(page.id!==layerPage().id)throw new Error('当前页面已变化，请重新分析');
+  layerSnapshots.set(token,{roots:roots.map(n=>n.id),page:page.id,stamps,purpose:msg.purpose,visionNaming,screenStamps:new Map(),sides,destinations,sourceSets,consolidate,buildParentId:sourceSets[0]?.parentId});
   while(layerSnapshots.size>8)layerSnapshots.delete(layerSnapshots.keys().next().value);
   if(!paged&&msg.images){const records=await layerChunk({token,offset:0,limit:20,images:true,requestId:msg.requestId});return {token,targets:records.targets,totalLayers:total,destinations,sourceSets,consolidate,paged:false};}
   return {token,targets:context,totalLayers:total,destinations,sourceSets,consolidate,paged};
@@ -8476,16 +8554,32 @@ async function layerChunk(msg) {
     if(!root||root.removed)throw new Error('图层已删除，请重新分析');
     const record=layerSummary(root);
     if(layerHash(record)!==snapshot.stamps[i])throw new Error('图层在分析后发生变化，请重新读取');
+    let screenStamp;
+    if(snapshot.visionNaming && layerIsNamingScreen(root)) {
+      record.isScreen=true;
+      record.screen=layerNamingScreen(root);
+      const saved=snapshot.screenStamps.get(root.id);
+      screenStamp=layerHash(record.screen);
+      if(saved && saved!==screenStamp)throw new Error('画板内容在分析后发生变化，请重新读取');
+    }
     const length=JSON.stringify(record).length;
     if(length>1500000)throw new Error(`“${root.name}”单个图层树数据过大，请拆分此 Frame 后重试`);
     if(targets.length&&bytesUsed+length>1500000)break;
     bytesUsed+=length;record.parentId=root.parent?.id;
     if(snapshot.consolidate){record.sourceSetId=snapshot.sourceSets.find(s=>s.id===root.parent?.id)?.id;record.buildParentId=snapshot.buildParentId;}
     if(snapshot.purpose==='duplicate')record.side=snapshot.sides.get(root.id);
-    if(msg.images){try{const bytes=await root.exportAsync({format:'PNG',constraint:{type:'SCALE',value:Math.min(1,384/Math.max(root.width,root.height,1))}});if(bytes.length>600000)throw new Error('预览图片过大');if(targets.length&&imageBytes+bytes.length>6*1024*1024)break;imageBytes+=bytes.length;record.image='data:image/png;base64,'+layerBase64(bytes);}catch(error){record.imageError=String(error.message||error);}}
+    if(msg.images) {
+      try {
+        const preview=await layerPreviewPng(root,record.isScreen);
+        if(targets.length && imageBytes+preview.size>6*1024*1024)break;
+        imageBytes+=preview.size;record.image=preview.image;
+      } catch(error) { record.imageError=String(error.message||error); }
+    }
+    if(screenStamp)snapshot.screenStamps.set(root.id,screenStamp);
     targets.push(record);await new Promise(r=>setTimeout(r,0));
     layerSend({type:'layer-ai-progress',requestId:msg.requestId,done:i+1,total:snapshot.roots.length,layers:0});
   }
+  if(snapshot.page!==layerPage().id)throw new Error('当前页面已变化，请重新分析');
   return {targets,nextOffset:offset+targets.length};
 }
 
@@ -8493,7 +8587,12 @@ async function layerResolveSnapshot(token,purpose) {
   const snapshot=layerSnapshots.get(token);
   if (!snapshot || snapshot.purpose!==purpose || snapshot.page!==layerPage().id) throw new Error('读取记录已失效，请重新分析');
   const roots=await Promise.all(snapshot.roots.map(layerGet));
-  for(let i=0;i<roots.length;i++){if(!roots[i]||roots[i].removed||layerHash(layerSummary(roots[i]))!==snapshot.stamps[i])throw new Error('图层在分析后发生变化，请重新读取，避免套用旧方案');if(i%8===0)await new Promise(r=>setTimeout(r,0));}
+  for(let i=0;i<roots.length;i++){
+    const root=roots[i];
+    if(!root||root.removed||layerHash(layerSummary(root))!==snapshot.stamps[i])throw new Error('图层在分析后发生变化，请重新读取，避免套用旧方案');
+    if(snapshot.screenStamps.has(root.id) && layerHash(layerNamingScreen(root))!==snapshot.screenStamps.get(root.id))throw new Error('画板内容在分析后发生变化，请重新读取');
+    if(i%8===0)await new Promise(r=>setTimeout(r,0));
+  }
   if(snapshot.page!==layerPage().id)throw new Error('当前页面已变化，请重新分析');
   return roots;
 }
@@ -8723,10 +8822,12 @@ async function layerBuildManual(msg) {
 async function handleLayerToolsMessage(msg) {
   if(msg.type==='layer-job-state'){if(layerPlatform==='mastergo')try{layerHost.ui.setCloseConfirm({enabled:!!msg.busy,message:'AI 分析尚未完成，关闭插件将中断当前任务。'})}catch(_){}return true;}
   if(msg.type==='layer-ai-cancel'){layerCancelled.add(msg.requestId);if(layerCancelled.size>100)layerCancelled.delete(layerCancelled.values().next().value);return true;}
-  if(!['layer-ai-read','layer-ai-chunk','layer-ai-rename','layer-ai-build','layer-ai-references','layer-focus','layer-matrix'].includes(msg.type))return false;
+  if(!['layer-ai-read','layer-ai-chunk','layer-ai-rename','layer-ai-build','layer-ai-references','layer-focus','layer-matrix','layer-create-example'].includes(msg.type))return false;
   const reply={type:'layer-ai-response',requestId:msg.requestId};
   try {
-    if(msg.type==='layer-focus') {
+    if(msg.type==='layer-create-example') {
+      layerSend({...reply,ok:true,...await createComponentDemo(layerHost,layerPlatform,msg)});
+    }else if(msg.type==='layer-focus') {
       const node=await layerGet(msg.id);if(!node||node.removed)throw new Error('图层已删除');
       let page=node;while(page&&page.type!=='PAGE')page=page.parent;
       if(page?.id!==layerPage().id)throw new Error('请返回该图层所在页面后定位');
@@ -8751,6 +8852,13 @@ async function handleLayerToolsMessage(msg) {
       const previous=names.map(n=>({node:allowed.get(n.id),name:allowed.get(n.id).name}));
       try{names.forEach(n=>{allowed.get(n.id).name=String(n.name).trim().slice(0,180);});}catch(error){previous.forEach(n=>{try{n.node.name=n.name}catch(_){}});throw error;}
       const snapshot=layerSnapshots.get(msg.token);snapshot.stamps=roots.map(n=>layerHash(layerSummary(n)));
+      if(snapshot.screenStamps.size) {
+        const updated=new Set();
+        for(const {node} of previous)for(let parent=node;parent&&parent.type!=='PAGE';parent=parent.parent) {
+          if(snapshot.screenStamps.has(parent.id))updated.add(parent);
+        }
+        for(const root of updated)snapshot.screenStamps.set(root.id,layerHash(layerNamingScreen(root)));
+      }
       try{layerHost.commitUndo()}catch(_){}
       try{layerHost.notify(`已命名 ${names.length} 个图层`)}catch(_){}
       layerSend({...reply,ok:true,message:`已命名 ${names.length} 个图层`});
@@ -8766,6 +8874,761 @@ async function handleLayerToolsMessage(msg) {
       try{layerHost.commitUndo()}catch(_){}layerSend({...reply,ok:true,message:`已排列 ${plans.length} 个组件集；剩余属性自动分组`});
     }
   }catch(error){layerSend({...reply,ok:false,message:String(error.message||error)});}
+  return true;
+}
+
+/* Build practice material from native, editable nodes. Every selected target
+   is inside a new board, including the two independent sides of a comparison. */
+async function createComponentDemo(host, platform, msg) {
+  const figmaHost = platform === 'figma';
+  const currentPage = () => figmaHost ? host.currentPage : host.document.currentPage;
+  const page = currentPage();
+  const local = (zh, en) => msg.uiLanguage === 'en' ? en : zh;
+  const titles = {
+    lint: local('组件命名检查', 'Component name cleanup'),
+    find: local('组件名称替换', 'Find and replace component names'),
+    translate: local('组件名称翻译', 'Translate component names'),
+    compkit: local('组件变体矩阵', 'Component variant matrix'),
+    build: local('构建按钮组件', 'Build a button family'),
+    naming: local('图标图层命名', 'Name icon layers'),
+    duplicate: local('比较两个画板', 'Compare two frames')
+  };
+  if (!Object.prototype.hasOwnProperty.call(titles, msg.kind)) {
+    throw new Error(local('未知的示例类型。', 'Unknown example type.'));
+  }
+  let font = { family: 'Inter', style: 'Regular' };
+  try {
+    if (await host.loadFontAsync(font) === false) throw new Error();
+  } catch (_) {
+    const fonts = (await host.listAvailableFontsAsync()).map(entry => entry.fontName);
+    font = fonts.find(f => f.style === 'Regular' && ['Roboto', 'Arial', 'Noto Sans', 'Noto Sans SC'].includes(f.family))
+      || fonts.find(f => f.style === 'Regular' && f.family !== 'Inter');
+    if (!font || await host.loadFontAsync(font) === false) {
+      throw new Error(local('无法加载示例所需的文字字体。', 'Could not load a font for the example labels.'));
+    }
+  }
+  if (page.id !== currentPage().id) {
+    throw new Error(local('页面已切换，请在当前页重新生成。', 'The page changed. Create the example on the current page.'));
+  }
+
+  const created = [];
+  const oldSelection = [...page.selection];
+  const oldCenter = host.viewport.center;
+  const oldZoom = host.viewport.zoom;
+  const ink = 0x28233d, purple = 0x5632a0, soft = 0xede8f9;
+  const paper = 0xffffff, muted = 0x5d566e;
+
+  function remember(node) {
+    created.push(node);
+    return node;
+  }
+  function fill(node, hex) {
+    const rgb = { r: ((hex >> 16) & 255) / 255, g: ((hex >> 8) & 255) / 255, b: (hex & 255) / 255 };
+    node.fills = [{ type: 'SOLID', color: figmaHost ? rgb : { ...rgb, a: 1 } }];
+  }
+  function place(parent, node, name, x, y) {
+    parent.appendChild(node);
+    node.name = name;
+    node.x = x;
+    node.y = y;
+    return node;
+  }
+  function surface(parent, type, name, x, y, width, height, color, radius = 0) {
+    const node = remember(host[type]());
+    node.resize(width, height);
+    fill(node, color);
+    if (radius) node.cornerRadius = radius;
+    return place(parent, node, name, x, y);
+  }
+  function label(parent, name, content, x, y, size, color) {
+    const text = remember(host.createText());
+    if (figmaHost) {
+      text.fontName = font;
+      text.fontSize = size;
+      text.characters = content;
+    } else {
+      text.characters = content;
+      text.setRangeFontName(0, content.length, font);
+      text.setRangeFontSize(0, content.length, size);
+    }
+    fill(text, color);
+    return place(parent, text, name, x, y);
+  }
+  function button(parent, type, name, x, y, small, state, tone, caption, textName = 'Label') {
+    const height = small ? 32 : 40;
+    const bg = state === 'Disabled' ? 0xe6e3eb : tone === 'Secondary' ? soft : purple;
+    const fg = state === 'Disabled' ? muted : tone === 'Secondary' ? purple : paper;
+    const node = surface(parent, type, name, x, y, small ? 104 : 122, height, bg, 8);
+    const text = label(node, textName, caption, 12, 0, small ? 12 : 14, fg);
+    text.x = Math.round((node.width - text.width) / 2);
+    text.y = Math.round((height - text.height) / 2);
+    return node;
+  }
+  function buildButtons(board, variantSet) {
+    const entries = [];
+    for (const tone of (variantSet ? ['Primary', 'Secondary'] : ['Primary'])) {
+      for (const size of ['Small', 'Large']) {
+        for (const state of ['Default', 'Disabled']) {
+          const i = entries.length;
+          const values = { Size: size, State: state, Tone: tone };
+          const name = variantSet ? `Size=${size}, State=${state}, Tone=${tone}` : `Button / ${size} / ${state}`;
+          const node = button(board, variantSet ? 'createComponent' : 'createFrame', name,
+            24 + (i % 2) * 144, 64 + Math.floor(i / 2) * 54,
+            size === 'Small', state, tone, local('继续', 'Continue'));
+          entries.push({ node, values });
+        }
+      }
+    }
+    const nodes = entries.map(entry => entry.node);
+    if (!variantSet) return nodes;
+    const set = remember(figmaHost ? host.combineAsVariants(nodes, board) : host.combineAsVariants(nodes));
+    if (set.parent?.id !== board.id) board.appendChild(set);
+    if (figmaHost) set.layoutMode = 'NONE';
+    else {
+      set.flexMode = 'NONE';
+      const keys = Object.keys(entries[0].values);
+      const existing = set.componentPropertyValues.filter(p => p.type === 'VARIANT').map(p => p.name);
+      const missing = keys.filter(key => !existing.includes(key));
+      if (missing.length) set.createVariantProperties(missing);
+      for (const { node, values } of entries) node.setVariantPropertyValues(values);
+      for (const name of existing.filter(name => !keys.includes(name))) set.deleteVariantProperty(name);
+    }
+    set.name = 'Button';
+    set.resize(296, 230);
+    entries.forEach(({node}, i) => {
+      node.x = 12 + (i % 2) * 144;
+      node.y = 12 + Math.floor(i / 2) * 54;
+    });
+    set.x = 20;
+    set.y = 50;
+    return [set];
+  }
+  function refiner(board, kind) {
+    const samples = {
+      lint: ['primary__button', 'BUTTON--secondary', 'button  Disabled'],
+      find: ['Legacy / Save', 'Legacy / Cancel', 'Legacy / Archive'],
+      translate: ['状态标签 / 可用', '状态标签 / 草稿', '状态标签 / 停用']
+    };
+    const captions = kind === 'translate' ? ['可用', '草稿', '停用'] : kind === 'find'
+      ? [local('保存', 'Save'), local('取消', 'Cancel'), local('归档', 'Archive')]
+      : [local('提交', 'Submit'), local('取消', 'Cancel'), local('停用', 'Disabled')];
+    return samples[kind].map((name, i) => button(board, 'createComponent', name,
+      24 + 124 * i, 58, true, i === 2 ? 'Disabled' : 'Default', i === 1 ? 'Secondary' : 'Primary', captions[i]));
+  }
+  function iconLayers(board) {
+    return ['01', '02', '03'].map((number, i) => {
+      const tile = surface(board, 'createFrame', 'Frame ' + number, 24 + i * 76, 58, 56, 56, soft, 12);
+      function bar(x, y, w, h) {
+        surface(tile, 'createRectangle', 'Rectangle', x, y, w, h, purple, 2);
+      }
+      if (i === 0) { bar(16, 26, 24, 4); bar(26, 16, 4, 24); }
+      else if (i === 1) { for (const y of [18, 26, 34]) bar(16, y, 24, 4); }
+      else { for (const x of [16, 25, 34]) surface(tile, 'createEllipse', 'Ellipse', x, 25, 6, 6, purple); }
+      return tile;
+    });
+  }
+  function compareFrames(board) {
+    return ['Cart', 'Receipt'].map((name, i) => {
+      const frame = surface(board, 'createFrame', name, 20 + 204 * i, 54, 186, 134, 0xf3f1f7, 12);
+      label(frame, name, i ? local('收据', 'Receipt') : local('购物车', 'Cart'), 14, 12, 16, ink);
+      // Identical label and geometry on both sides; the second action differs.
+      button(frame, 'createFrame', 'Status / Verified', 14, 42, true, 'Default', 'Secondary', local('已验证', 'Verified'), 'Verification');
+      const action = i ? 'Download' : 'Checkout';
+      button(frame, 'createFrame', action, 14, 84, true, 'Default', i ? 'Secondary' : 'Primary',
+        i ? local('下载', 'Download') : local('结算', 'Checkout'), action);
+      return frame;
+    });
+  }
+  const sizes = { compkit: [336, 300], build: [320, 180], naming: [256, 138], duplicate: [430, 210] };
+  const [width, height] = sizes[msg.kind] || [400, 116];
+  const y = Math.round(oldCenter.y - height / 2);
+  let x = Math.round(oldCenter.x - width / 2);
+  // Only inspect top-level bounds. Place the demo in the closest clear gap to
+  // the right, including when a user generates another demo in the same view.
+  const blockers = page.children.map(node => node.absoluteBoundingBox || node)
+    .filter(box => Number.isFinite(box.x) && box.y < y + height + 32 && box.y + box.height + 32 > y)
+    .sort((a, b) => a.x - b.x);
+  for (const box of blockers) {
+    if (x + width + 32 <= box.x) break;
+    if (x < box.x + box.width + 32) x = Math.ceil(box.x + box.width + 32);
+  }
+  let focusing = false;
+  try {
+    host.commitUndo();
+    const board = surface(page, 'createFrame', local('AllinOne 示例 · ', 'AllinOne example · ') + titles[msg.kind],
+      x, y, width, height, paper, 14);
+    // Subsequent build and matrix commands can put their results beside the
+    // originals inside this board. Let those editable results remain visible.
+    board.clipsContent = false;
+    label(board, titles[msg.kind], titles[msg.kind], 20, 16, 17, ink);
+    let selection;
+    if (msg.kind === 'build' || msg.kind === 'compkit') selection = buildButtons(board, msg.kind === 'compkit');
+    else if (msg.kind === 'duplicate') selection = compareFrames(board);
+    else if (msg.kind === 'naming') selection = iconLayers(board);
+    else selection = refiner(board, msg.kind);
+    page.selection = selection;
+    focusing = true;
+    host.viewport.scrollAndZoomIntoView([board]);
+    host.commitUndo();
+    return { count: selection.length };
+  } catch (error) {
+    for (const node of created.reverse()) {
+      try { if (!node.removed) node.remove(); } catch (_) {}
+    }
+    try { page.selection = oldSelection.filter(node => !node.removed); } catch (_) {}
+    if (focusing) {
+      try { host.viewport.zoom = oldZoom; host.viewport.center = oldCenter; } catch (_) {}
+    }
+    throw error;
+  }
+}
+
+/* Snapshot one frame locally. The model sees temporary field IDs; only this
+ * host can resolve them to writable text layers. */
+let contextFillSnapshot = null;
+let contextFillApplying = false;
+const contextFillLimit = 400;
+
+function contextFillSelectedFrame() {
+  const selection = layerPage().selection;
+  return selection.length === 1 && ['FRAME','INSTANCE'].includes(selection[0].type) ? selection[0] : null;
+}
+
+function sendContextFillSelection() {
+  const frame = contextFillSelectedFrame();
+  layerSend({type:'context-fill-selection', frame:frame && {id:frame.id, name:frame.name, type:frame.type}});
+}
+
+function contextFillProtected(node) {
+  for (let current = node; current && current.type !== 'PAGE'; current = current.parent) {
+    if (current.removed || current.visible === false || current.isVisible === false || current.opacity === 0 ||
+        current.locked || current.isLocked || current.type === 'COMPONENT' || current.type === 'COMPONENT_SET') return true;
+  }
+  const glyph=/^[\s\uE000-\uF8FF☐☑☒✓✔]+$/u.test(node.characters) && node.characters.trim();
+  return Boolean(glyph || node.boundVariables?.characters ||
+    (layerPlatform === 'mastergo' && typeof getNodeI18nBinding === 'function' && getNodeI18nBinding(node)));
+}
+
+function contextFillBinding(node, frame, instances) {
+  let reference = node.componentPropertyReferences?.characters;
+  const outer = frame.parent, path = [];
+  for (let child=node, owner=node.parent; owner && owner.id !== outer?.id; child=owner, owner=owner.parent) {
+    path.unshift(child);
+    if (owner.type !== 'INSTANCE') continue;
+    if (!instances.has(owner.id)) {
+      let properties={};
+      try { properties=owner.componentProperties || {}; } catch (_) {}
+      // MasterGo's map for setProperties is keyed by property ID, even though
+      // the instance getter returns an array of named records.
+      const entries=Array.isArray(properties) ? properties.filter(p=>p.id).map(p=>[p.id,p]) : Object.entries(properties);
+      let main;
+      if (layerPlatform==='mastergo') { try { main=owner.mainComponent; } catch (_) {} }
+      const definitions=[...(main?.componentPropertyValues||[]),...(main?.parent?.componentPropertyValues||[])];
+      instances.set(owner.id,{properties:new Map(entries),main,definitions});
+    }
+    const {properties,main,definitions}=instances.get(owner.id);
+    if (!reference && main) {
+      // Some MasterGo instances expose the reference only on the matching
+      // main-component layer. It is inspected solely to resolve the property ID.
+      let original=main;
+      for (const step of path) {
+        original=original.children?.[step.parent.children.findIndex(n=>n.id===step.id)];
+        if (!original || original.type!==step.type) { original=null;break; }
+      }
+      reference=original?.componentPropertyReferences?.characters;
+    }
+    if (!reference) return null;
+    const property=properties.get(reference);
+    if (property) {
+      const blocked=property.type!=='TEXT' || typeof property.value!=='string' || property.value!==node.characters ||
+        typeof owner.setProperties!=='function' || property.boundVariables?.value || property.variableId ||
+        (Array.isArray(definitions) && definitions.some(p=>p.id===reference && p.variableId));
+      return {owner,key:reference,blocked:!!blocked};
+    }
+  }
+  return reference ? {blocked:true} : null;
+}
+
+function contextFillCollect(frame, l, live = new Map()) {
+  const transform = frame.absoluteTransform;
+  const origin = frame.absoluteBoundingBox || (transform && {x:transform[0][2],y:transform[1][2]}) || frame.absoluteRenderBounds;
+  const groups = new Map();
+  const targets = [], instances=new Map(), shared=new Map(), readOnly=[];
+  let skipped = 0;
+  function number(value) { return Number.isFinite(value) ? Math.round(value * 10) / 10 : null; }
+  function box(node) {
+    const bounds = node.absoluteBoundingBox;
+    const transform = node.absoluteTransform;
+    const x = bounds?.x ?? transform?.[0]?.[2], y = bounds?.y ?? transform?.[1]?.[2];
+    if(origin && Number.isFinite(x) && Number.isFinite(y))return [number(x-origin.x),number(y-origin.y),number(bounds?.width??node.width),number(bounds?.height??node.height)];
+    let left=0,top=0;
+    for(let p=node;p&&p.id!==frame.id;p=p.parent){left+=p.x||0;top+=p.y||0;}
+    return [number(left),number(top),number(node.width),number(node.height)];
+  }
+  function group(node) {
+    if (!node || node.id === frame.id) return 'frame';
+    if (groups.has(node.id)) return groups.get(node.id)[0];
+    const parent = group(node.parent);
+    const tag = 'g' + (groups.size + 1);
+    groups.set(node.id, [tag, parent, String(node.name || '').slice(0,100), node.type, box(node), node.layoutMode || node.flexMode || null]);
+    return tag;
+  }
+  let visited = 0;
+  const stack = [...frame.children].reverse();
+  while (stack.length) {
+    const node = stack.pop();
+    if (++visited > 12000) throw new Error(l('画板层级过大，请拆分后填充。','Split this frame into smaller sections to fill it.'));
+    if (node.type !== 'TEXT') {
+      if (node.children) for (let i = node.children.length - 1; i >= 0; i--) stack.push(node.children[i]);
+      continue;
+    }
+    const binding=contextFillBinding(node,frame,instances);
+    const key=binding?.owner ? JSON.stringify([binding.owner.id,binding.key]) : node.id;
+    const protectedText=contextFillProtected(node) || node.hasMissingFont || binding?.blocked;
+    if (protectedText) {
+      skipped++;
+      if (binding?.owner) shared.set(key,false);
+      let visible=true;
+      for(let p=node;p&&p.type!=='PAGE';p=p.parent)if(p.visible===false||p.isVisible===false||p.opacity===0){visible=false;break;}
+      if (visible && readOnly.length<400)readOnly.push({name:String(node.name||'').slice(0,100),before:node.characters.slice(0,120),parent:group(node.parent),box:box(node)});
+      continue;
+    }
+    if (shared.has(key)) {
+      const linked=live.get(key);
+      if(linked)linked.nodes.push(node);
+      continue;
+    }
+    const font = node.fontName?.style || node.textStyles?.[0]?.textStyle?.fontName?.style || '';
+    shared.set(key,true);
+    live.set(key,{nodes:[node],binding});
+    targets.push({key,nodeId:node.id, name:String(node.name || '').slice(0,100), before:node.characters,
+      parent:group(node.parent), box:box(node), size:number(node.fontSize ?? node.textStyles?.[0]?.textStyle?.fontSize),
+      style:font, align:node.textAlignHorizontal, resize:node.textAutoResize});
+  }
+  const editable=targets.filter(target=>shared.get(target.key));
+  skipped+=targets.length-editable.length;
+  if (editable.length>contextFillLimit)throw new Error(l('选区中超过 400 个可编辑字段，请按区域填充。','This selection has over 400 editable fields. Fill it by section.'));
+  if (!editable.length) throw new Error(l('选区里没有可编辑的可见文本。','This selection has no visible, editable text fields.'));
+  editable.sort((a,b) => a.box[1] - b.box[1] || a.box[0] - b.box[0]);
+  for (const target of editable)target.linkedIds=live.get(target.key).nodes.map(n=>n.id);
+  return {targets:editable, groups:[...groups.entries()],readOnly, skipped, geometry:[frame.name,frame.width,frame.height]};
+}
+
+function contextFillRead(message) {
+  const frame = contextFillSelectedFrame();
+  const l = (zh, en) => message.uiLanguage === 'en' ? en : zh;
+  if (!frame) throw new Error(l('请选择一个画板或组件实例。','Select one frame or component instance on the canvas.'));
+  const data = contextFillCollect(frame,l);
+  const {targets, groups, skipped} = data;
+  const fields = targets.map(({nodeId,key,linkedIds, ...data}, index) => ({...data, id:'t' + (index + 1)}));
+  const token = 'context-fill-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+  contextFillSnapshot = {token, frameId:frame.id, pageId:layerPage().id,
+    shape:JSON.stringify(data), targets:new Map(fields.map((field,i) => [field.id, targets[i]]))};
+  return {token, frame:{id:frame.id,name:frame.name,type:frame.type,width:frame.width,height:frame.height},
+    groups:groups.map(([,group]) => group), fields,readOnly:data.readOnly, skipped};
+}
+
+function contextFillRuns(node, before) {
+  if (!before.length) return [];
+  if (layerPlatform === 'mastergo') return node.textStyles || [];
+  if (typeof node.getStyledTextSegments !== 'function') return [];
+  return node.getStyledTextSegments(['fontName','fontSize','fills','textCase','textDecoration',
+    'letterSpacing','lineHeight','textStyleId','fillStyleId','hyperlink']);
+}
+
+function contextFillWriteText(node, before, after, runs, markWritten = () => {}) {
+  // Insert before removing the original characters to keep native range styles.
+  if (!before.length || typeof node.insertCharacters !== 'function' || typeof node.deleteCharacters !== 'function') {
+    node.characters = after;
+    markWritten();
+    return;
+  }
+  const chars = Array.from(after);
+  const ranges = runs.length && runs[0].start === 0 && runs[runs.length - 1].end === before.length
+    ? runs : [{start:0,end:before.length}];
+  for (let i = ranges.length - 1; i >= 0; i--) {
+    const {start, end} = ranges[i];
+    const value = chars.slice(Math.round(start / before.length * chars.length),
+      Math.round(end / before.length * chars.length)).join('');
+    if (value) { node.insertCharacters(end, value); markWritten(); }
+    try { node.deleteCharacters(start, end); markWritten(); }
+    catch (error) {
+      if (value) node.deleteCharacters(end, end + value.length);
+      throw error;
+    }
+  }
+}
+
+async function contextFillApply(message) {
+  const l = (zh, en) => message.uiLanguage === 'en' ? en : zh;
+  const stale = l('画板内容或选区已变化，请重新生成预览。','The frame or its content changed. Generate a new preview.');
+  const snapshot = contextFillSnapshot;
+  const frame = contextFillSelectedFrame();
+  if (!snapshot || snapshot.token !== message.token || snapshot.frameId !== frame?.id ||
+      snapshot.pageId !== layerPage().id) throw new Error(stale);
+  const edits = message.edits;
+  if (!Array.isArray(edits) || !edits.length || edits.length > snapshot.targets.size) throw new Error(stale);
+
+  const ids = new Set(), prepared = [], fonts = new Map(), live=new Map();
+  // Resolve through this selected subtree, including virtual instance text nodes.
+  // Some hosts cannot look up an instance sublayer by a document-global ID.
+  if(JSON.stringify(contextFillCollect(frame,l,live))!==snapshot.shape)throw new Error(stale);
+  for (const edit of edits) {
+    const target = snapshot.targets.get(edit?.id);
+    if (!target || ids.has(edit.id) || typeof edit.text !== 'string' || !edit.text.trim() ||
+        edit.text.length > Math.max(4000, target.before.length * 2)) throw new Error(stale);
+    ids.add(edit.id);
+    const group=live.get(target.key);
+    if(!group)throw new Error(stale);
+    for(const node of group.nodes)await loadSmartFillFonts(node,fonts);
+    prepared.push({key:target.key,before:target.before,after:edit.text});
+  }
+
+  // Loading fonts can yield; check every target again before the first edit.
+  live.clear();
+  if (contextFillSnapshot !== snapshot || contextFillSelectedFrame()?.id !== frame.id ||
+      layerPage().id !== snapshot.pageId || JSON.stringify(contextFillCollect(frame,l,live)) !== snapshot.shape) throw new Error(stale);
+  const changes = prepared.filter(item => item.before !== item.after);
+  const applied = [];
+  const hasNativeUndo = typeof layerHost.commitUndo === 'function' && typeof layerHost.triggerUndo === 'function';
+  let wrote = false;
+  if (changes.length && hasNativeUndo) layerHost.commitUndo();
+  try {
+    for (const item of changes) {
+      const {nodes,binding}=live.get(item.key);
+      const node=nodes[0];
+      if(binding) {
+        applied.push({...item,binding});
+        const current=()=>{
+          const props=binding.owner.componentProperties;
+          return (Array.isArray(props)?props.find(p=>p.id===binding.key):props[binding.key])?.value;
+        };
+        try { binding.owner.setProperties({[binding.key]:item.after}); }
+        finally { if(current()!==item.before)wrote=true; }
+        if(current()!==item.after)throw new Error(l('实例文本属性未能写入。','The instance text override could not be applied.'));
+      } else {
+        const runs = contextFillRuns(node, item.before);
+        applied.push({...item,node,autoRename:node.autoRename,name:node.name});
+        contextFillWriteText(node, item.before, item.after, runs, () => { wrote = true; });
+      }
+    }
+  } catch (error) {
+    if (wrote && hasNativeUndo) {
+      try { layerHost.triggerUndo(); contextFillSnapshot = null; }
+      catch (undoError) { console.warn('Context Fill native rollback failed:', String(undoError)); }
+      if (!contextFillSnapshot) throw error;
+    }
+    for (const item of applied.reverse()) {
+      try {
+        if(item.binding){item.binding.owner.setProperties({[item.binding.key]:item.before});continue;}
+        const current = item.node.characters;
+        if (current !== item.before) contextFillWriteText(item.node, current, item.before, contextFillRuns(item.node, current));
+        if (!item.autoRename && item.node.name !== item.name) item.node.name = item.name;
+      } catch (rollbackError) { console.warn('Context Fill rollback failed:', String(rollbackError)); }
+    }
+    throw error;
+  }
+  if (changes.length) {
+    try { layerHost.commitUndo?.(); }
+    catch (error) { console.warn('Context Fill undo checkpoint unavailable:', String(error)); }
+  }
+  contextFillSnapshot = null;
+  return {count:changes.length};
+}
+
+async function handleContextFillMessage(message) {
+  if (message.type === 'context-fill-selection-request') { sendContextFillSelection(); return true; }
+  if (!['context-fill-read','context-fill-apply'].includes(message.type)) return false;
+  const reply = {type:'context-fill-response', requestId:message.requestId};
+  if (contextFillApplying) {
+    layerSend({...reply,ok:false,message:message.uiLanguage === 'en' ? 'A fill is being applied.' : '正在应用填充。'});
+    return true;
+  }
+  const applying = message.type === 'context-fill-apply';
+  if (applying) contextFillApplying = true;
+  try {
+    const result = applying ? await contextFillApply(message) : contextFillRead(message);
+    layerSend({...reply,ok:true,...result});
+  } catch (error) {
+    layerSend({...reply,ok:false,message:String(error?.message || error)});
+  } finally {
+    if (applying) contextFillApplying = false;
+  }
+  return true;
+}
+
+// Image bytes and native shadow samples are read only on an explicit UI request.
+let mediaWatching = false;
+
+function mediaImageFills(node) {
+  if (!Array.isArray(node.fills)) return [];
+  return node.fills.flatMap((paint, index) =>
+    paint.type === 'IMAGE' && (layerPlatform === 'figma' ? paint.imageHash : paint.imageRef) ? [{ index, name: paint.name || '' }] : []);
+}
+
+function sendMediaSelection() {
+  if (!mediaWatching) return;
+  const items = Array.from(layerPage().selection, node => ({
+    id: node.id, name: node.name, renderable: typeof node.exportAsync === 'function',
+    imageFills: mediaImageFills(node), hasChildren: 'children' in node && node.children.length > 0, shadowable: 'effects' in node
+  }));
+  layerSend({ type: 'media-selection', items });
+}
+
+function mediaImageTarget(id, en) {
+  const node = layerPage().selection.find(item => !item.removed && item.id === id);
+  if (!node) throw new Error(en ? 'Select the layer again.' : '请重新选择该图层。');
+  return node;
+}
+
+async function mediaImageSources(msg, en) {
+  const root=mediaImageTarget(msg.nodeId,en), imageFills=mediaImageFills(root);
+  const pending=Array.from(root.children||[]).reverse();
+  let visited=0;
+  while(pending.length) {
+    if(++visited%256===0){await new Promise(resolve=>setTimeout(resolve,0));mediaImageTarget(msg.nodeId,en);}
+    const child=pending.pop();
+    if(child.removed || child.visible===false || child.isVisible===false || child.opacity===0)continue;
+    for(const fill of mediaImageFills(child)) {
+      const path=[];
+      for(let node=child;node&&node.id!==root.id;node=node.parent)path.unshift(node.name);
+      const paint=child.fills[fill.index];
+      if(paint.visible===false || paint.isVisible===false)continue;
+      imageFills.push({...fill,sourceNodeId:child.id,name:[path.join(' / '),fill.name].filter(Boolean).join(' · ')});
+    }
+    if(child.children)for(let i=child.children.length-1;i>=0;i--)pending.push(child.children[i]);
+  }
+  return {nodeId:root.id,imageFills};
+}
+
+async function mediaReadImage(msg, en) {
+  const node=mediaImageTarget(msg.nodeId,en);
+  let bytes;
+  if (msg.source === 'fill') {
+    const owner=msg.sourceNodeId && msg.sourceNodeId!==node.id ? await layerGet(msg.sourceNodeId) : node;
+    let parent=owner;
+    while(parent && !parent.removed && parent.id!==node.id && parent.visible!==false && parent.isVisible!==false && parent.opacity!==0)parent=parent.parent;
+    if(!parent || parent.removed || parent.id!==node.id)throw new Error(en ? 'The image source moved or was hidden. Refresh the layer.' : '原图所在图层已移动或隐藏，请刷新。');
+    mediaImageTarget(msg.nodeId,en);
+    const paint = owner && Array.isArray(owner.fills) && owner.fills[msg.fillIndex];
+    if (!paint || paint.type !== 'IMAGE') throw new Error(en ? 'The image fill has changed.' : '图片填充已发生变化。');
+    const image = layerPlatform === 'figma' ? layerHost.getImageByHash(paint.imageHash) : layerHost.getImageByHref(paint.imageRef);
+    if (!image) throw new Error(en ? 'The image fill is unavailable.' : '暂时无法读取原始图片。');
+    bytes = await image.getBytesAsync();
+  } else if (msg.source === 'render' && typeof node.exportAsync === 'function') {
+    bytes = await node.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 1 } });
+  } else {
+    throw new Error(en ? 'This layer cannot be exported.' : '此图层无法导出。');
+  }
+  if (typeof bytes === 'string') {
+    if (!bytes.length) throw new Error(en ? 'The image is empty.' : '导出的图片为空。');
+    return { dataUrl: bytes.startsWith('data:image/') ? bytes : 'data:image/png;base64,' + bytes };
+  }
+  if (!bytes || !bytes.length) throw new Error(en ? 'The image is empty.' : '导出的图片为空。');
+  return { bytes };
+}
+
+const mediaShadowKinds = ['DROP_SHADOW', 'INNER_SHADOW'];
+
+function mediaShadowBudget(en) {
+  return en ? 'Use up to 8 drop shadows and 8 inner shadows per layer.' : '每个图层最多支持 8 层外阴影和 8 层内阴影。';
+}
+
+function mediaShadowVisible(effect) {
+  return layerPlatform === 'figma' ? effect.visible !== false : effect.isVisible !== false;
+}
+
+function mediaShadowOrder(samples) {
+  // CSS lists the frontmost shadow first. Figma stacks the last native effect
+  // in front. MasterGo's CSS importer maps the list directly to node.effects.
+  return layerPlatform === 'figma' ? samples.slice().reverse() : samples;
+}
+
+function mediaReadShadows(msg, en) {
+  const selection = layerPage().selection;
+  if (selection.length !== 1) throw new Error(en ? 'Select exactly one layer to pick its shadows.' : '请选择一个图层以拾取阴影。');
+  const node = selection[0];
+  if (node.removed || (msg.nodeId != null && node.id !== msg.nodeId)) {
+    throw new Error(en ? 'The selection changed. Pick the shadows again.' : '选区已变化，请重新拾取阴影。');
+  }
+  const result = { name: node.name, kinds: [], shadows: [] };
+  if (!Array.isArray(node.effects)) {
+    return { ...result, error: en ? 'This layer does not support effects.' : '此图层不支持效果。' };
+  }
+  const visible = node.effects.filter(effect => mediaShadowKinds.includes(effect.type) && mediaShadowVisible(effect));
+  result.kinds = mediaShadowKinds.filter(kind => visible.some(effect => effect.type === kind));
+  if (!result.kinds.length) {
+    return { ...result, error: en ? 'This layer has no visible shadows.' : '此图层没有可见的阴影。' };
+  }
+  const kind = result.kinds.includes(msg.kind) ? msg.kind : result.kinds[0];
+  const matching = visible.filter(effect => effect.type === kind);
+  if (matching.length > 8) return { ...result, kind, error: mediaShadowBudget(en) };
+  const samples = matching.map(effect => {
+    const { r, g, b, a } = effect.color;
+    const sample = { x: effect.offset.x, y: effect.offset.y, blur: effect.radius, spread: effect.spread || 0, color: { r, g, b, a } };
+    if (effect.blendMode) sample.blendMode = effect.blendMode;
+    if (typeof effect.showShadowBehindNode === 'boolean') sample.showShadowBehindNode = effect.showShadowBehindNode;
+    if (layerPlatform === 'mastergo' && typeof effect.isEffectShow === 'boolean') sample.isEffectShow = effect.isEffectShow;
+    return sample;
+  });
+  return { ...result, kind, shadows: mediaShadowOrder(samples) };
+}
+
+function mediaNativeShadows(kind, samples, en) {
+  if (!mediaShadowKinds.includes(kind) || !Array.isArray(samples) || !samples.length) {
+    throw new Error(en ? 'Invalid shadow settings.' : '阴影参数无效。');
+  }
+  if (samples.length > 8) throw new Error(mediaShadowBudget(en));
+  return mediaShadowOrder(samples.map(sample => {
+    const { x, y, blur, spread, color } = sample;
+    if (![x, y, blur, spread].every(Number.isFinite) || blur < 0 ||
+        !color || !['r','g','b','a'].every(key => Number.isFinite(color[key]) && color[key] >= 0 && color[key] <= 1)) {
+      throw new Error(en ? 'Invalid shadow settings.' : '阴影参数无效。');
+    }
+    const effect = { type: kind, color: { r:color.r, g:color.g, b:color.b, a:color.a },
+      offset: { x, y }, radius: blur, blendMode: sample.blendMode || 'NORMAL' };
+    if (layerPlatform === 'mastergo') {
+      return { ...effect, spread, isVisible: true, showShadowBehindNode: sample.showShadowBehindNode === true,
+        isEffectShow: sample.isEffectShow !== false };
+    }
+    if (spread !== 0) effect.spread = spread;
+    if (kind === 'DROP_SHADOW' && typeof sample.showShadowBehindNode === 'boolean') {
+      effect.showShadowBehindNode = sample.showShadowBehindNode;
+    }
+    return { ...effect, visible: true };
+  }));
+}
+
+function mediaSameShadow(old, next) {
+  const previousColor = old.color;
+  return previousColor && old.offset &&
+    old.offset.x === next.offset.x && old.offset.y === next.offset.y &&
+    old.radius === next.radius && (old.spread || 0) === (next.spread || 0) &&
+    ['r','g','b','a'].every(channel => previousColor[channel] === next.color[channel]) &&
+    (old.blendMode || 'NORMAL') === next.blendMode &&
+    !!old.showShadowBehindNode === !!next.showShadowBehindNode &&
+    (layerPlatform !== 'mastergo' || (old.isEffectShow !== false) === next.isEffectShow);
+}
+
+function mediaReplaceShadows(effects, kind, next) {
+  // Reuse the visible shadow positions so interleaved blurs and other effects
+  // stay in the same compositing order when a picked stack is applied again.
+  const result = [];
+  let used = 0;
+  let insertAt = -1;
+  for (const effect of effects) {
+    if (effect.type !== kind) {
+      result.push(effect);
+    } else if (mediaShadowVisible(effect)) {
+      if (used < next.length) {
+        const replacement = next[used++];
+        // Retain native variable bindings and optional fields on an unchanged effect.
+        result.push(mediaSameShadow(effect, replacement) ? effect : replacement);
+      }
+      insertAt = result.length;
+    } else if (insertAt < 0) {
+      insertAt = result.length;
+    }
+  }
+  const remaining = next.slice(used);
+  result.splice(insertAt < 0 ? result.length : insertAt, 0, ...remaining);
+  return result;
+}
+
+function mediaSelectedEffectNodes(nodeIds, en) {
+  const nodes = Array.from(layerPage().selection);
+  const ids = new Set(Array.isArray(nodeIds) ? nodeIds : []);
+  if (!ids.size || ids.size !== nodes.length || nodeIds.length !== nodes.length ||
+      nodes.some(node => node.removed || !ids.has(node.id))) {
+    throw new Error(en ? 'The selection changed. Review the layers and try again.' : '选区已变化，请核对图层后重试。');
+  }
+  return nodes;
+}
+
+function mediaEditableEffects(node, en) {
+  const effects = node.effects;
+  if (!Array.isArray(effects)) throw new Error(en ? 'This layer does not support effects.' : '此图层不支持效果。');
+  for (let parent = node; parent && parent.type !== 'PAGE'; parent = parent.parent) {
+    if (parent.locked || parent.isLocked) throw new Error(en ? 'The layer is locked.' : '图层已锁定。');
+  }
+  return effects;
+}
+
+function mediaCommitEffects(applied) {
+  if (applied && typeof layerHost.commitUndo === 'function') {
+    try { layerHost.commitUndo(); } catch (_) { /* The native effects have already been written. */ }
+  }
+}
+
+function mediaApplyShadows(msg, en) {
+  const next = mediaNativeShadows(msg.kind, msg.shadows, en);
+  const nodes = mediaSelectedEffectNodes(msg.nodeIds, en);
+  const issues = [];
+  let applied = 0;
+  for (const node of nodes) {
+    try {
+      node.effects = mediaReplaceShadows(mediaEditableEffects(node, en), msg.kind, next);
+      applied++;
+    } catch (error) {
+      issues.push({ name: node.name, reason: String(error.message || error) });
+    }
+  }
+  mediaCommitEffects(applied);
+  return { applied, issues };
+}
+
+function mediaClearShadows(msg, en) {
+  const nodes = mediaSelectedEffectNodes(msg.nodeIds, en);
+  const results = [], issues = [];
+  let applied = 0, removed = 0, unchanged = 0;
+  for (const node of nodes) {
+    const result = {id:node.id, name:node.name, status:'unchanged', removed:0};
+    try {
+      const effects = mediaEditableEffects(node, en);
+      const kept = effects.filter(effect => !mediaShadowKinds.includes(effect.type));
+      const count = effects.length - kept.length;
+      if (count) {
+        node.effects = kept;
+        result.status = 'cleared';
+        result.removed = count;
+        applied++;
+        removed += count;
+      } else {
+        unchanged++;
+      }
+    } catch (error) {
+      result.status = 'skipped';
+      result.reason = String(error.message || error);
+      issues.push({name:result.name,reason:result.reason});
+    }
+    results.push(result);
+  }
+  mediaCommitEffects(applied);
+  return {applied,removed,unchanged,issues,results};
+}
+
+async function handleMediaMessage(msg) {
+  if (msg.type === 'media-inspect') {
+    mediaWatching = true;
+    sendMediaSelection();
+    return true;
+  }
+  const commands = {
+    'media-image-sources': [mediaImageSources, 'media-image-sources-result'],
+    'media-image-read': [mediaReadImage, 'media-image-result'],
+    'media-shadow-read': [mediaReadShadows, 'media-shadow-read-result'],
+    'media-shadow-apply': [mediaApplyShadows, 'media-shadow-result'],
+    'media-shadow-clear': [mediaClearShadows, 'media-shadow-clear-result']
+  };
+  if (!Object.prototype.hasOwnProperty.call(commands, msg.type)) return false;
+  const [handler, type] = commands[msg.type];
+  const reply = { type, requestId: msg.requestId };
+  try {
+    const result = await handler(msg, msg.uiLanguage === 'en');
+    layerSend({ ...reply, ...result });
+  } catch (error) {
+    layerSend({ ...reply, error: String(error.message || error) });
+  }
   return true;
 }
 
@@ -12538,6 +13401,8 @@ const sendComponentBuilderSelection = () => {
 mg.on('selectionchange', () => { try {
     sendComponentBuilderSelection();
     sendIconfontSelection();
+    sendContextFillSelection();
+    sendMediaSelection();
 }
 catch (error) {
     console.warn('Selection refresh deferred:', String(error));
@@ -12642,6 +13507,10 @@ const handleUiMessage = async (rawMessage) => {
         return;
     }
     if (await handleLayerToolsMessage(msg))
+        return;
+    if (await handleContextFillMessage(msg))
+        return;
+    if (await handleMediaMessage(msg))
         return;
     if (msg.type === 'mg-image-size-result') {
         const resolve = imageSizeWaiters.get(msg.reqId);

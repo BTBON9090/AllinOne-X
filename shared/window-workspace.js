@@ -23,8 +23,7 @@
       for (const [el,top,left] of scrollSnapshot) { el.scrollTop = top; el.scrollLeft = left; }
       scrollSnapshot = [];
       if (previousFocus) {
-        const brand = document.querySelector('.workbench-brand');
-        const fallback = brand?.getClientRects().length ? brand : document.querySelector('.workbench-brand-header');
+        const fallback = [...document.querySelectorAll('[data-window-collapse]')].find(button=>button.getClientRects().length);
         const target = previousFocus !== document.body && previousFocus.getClientRects().length ? previousFocus : fallback;
         target?.focus({ preventScroll:true });
         previousFocus = null;
@@ -113,7 +112,11 @@
     if (!collapsed && wasCollapsed) restoreScroll();
     refresh();
   });
-  window.PluginWindow = { refresh, bindBrand:button => bindControl(button, minimize) };
+  function bindCollapse(button) {
+    button.dataset.windowCollapse='';
+    bindControl(button,minimize);
+  }
+  window.PluginWindow = { refresh, bindCollapse };
   refresh();
   send('window-init');
 })();

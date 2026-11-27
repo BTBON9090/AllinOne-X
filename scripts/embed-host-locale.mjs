@@ -14,7 +14,7 @@ const clipperLicense = fs.readFileSync(path.join(root, 'shared/CLIPPER-LICENSE.t
 // Number.toInteger browser probe locally instead of modifying host intrinsics.
 const clipper = clipperLicense + '\nconst iconfontClipper = (() => {\nconst module = { exports: {} };\nconst Number = { toInteger: null };\n' +
   clipperSource + '\nmodule.exports.Error = message => { throw new Error(message); };\nreturn module.exports;\n})();';
-const layers = ['ai-transport.js', 'layer-core.js', 'layer-host.js', 'iconfont-boolean.js', 'iconfont-geometry.js', 'iconfont-host.js', 'iconfont-inplace.js',
+const layers = ['ai-transport.js', 'layer-core.js', 'layer-host.js', 'component-demos-host.js', 'context-fill-host.js', 'media-host.js', 'iconfont-boolean.js', 'iconfont-geometry.js', 'iconfont-host.js', 'iconfont-inplace.js',
   ...(platform === 'mastergo' ? ['iconfont-inplace-mastergo.js'] : []),
   'iconfont-batch.js'].map(file => fs.readFileSync(path.join(root,'shared',file),'utf8')).join('\n').replaceAll('__PLUGIN_HOST__', platform === 'figma' ? 'figma' : 'mg').replaceAll('__PLUGIN_PLATFORM__', JSON.stringify(platform));
 const windowHost = fs.readFileSync(path.join(root,'shared/window-host.js'),'utf8');

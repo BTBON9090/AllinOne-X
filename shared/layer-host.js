@@ -80,6 +80,81 @@ function layerSummary(root) {
   if(root.type==='COMPONENT')result.values=layerVariantValues(root);
   return result;
 }
+function layerIsNamingScreen(node) {
+  return ['FRAME','GROUP','SECTION','COMPONENT','COMPONENT_SET','INSTANCE','INTELLIGENT_CONTAINER'].includes(node.type) && 'children' in node;
+}
+function layerNamingScreen(root) {
+  const trim = (value, limit) => typeof value === 'string' ? value.replace(/\s+/g,' ').trim().slice(0,limit) : '';
+  const origin = root.absoluteBoundingBox;
+  const outline = [], textSnippets = [], seenText = new Set();
+  const queue = [{node:root, depth:0, x:0, y:0, clip:null}];
+  let outlineTruncated = false, visited = 0;
+  // Read across the screen before drilling into one detailed icon or list row.
+  // Snippets have a separate budget so early decorative layers cannot crowd out labels.
+  for (let index=0; index<queue.length; index++) {
+    const {node,depth,x,y,clip} = queue[index];
+    if (node.visible === false || node.isVisible === false || node.opacity === 0) continue;
+    const absolute = node.absoluteBoundingBox;
+    const box = absolute && origin
+      ? {x:absolute.x-origin.x, y:absolute.y-origin.y, width:absolute.width, height:absolute.height}
+      : {x, y, width:node.width, height:node.height};
+    const bounds = Object.values(box).every(Number.isFinite) ? box : undefined;
+    let visibleBox = bounds;
+    if (clip && bounds) {
+      const left=Math.max(clip.x,bounds.x), top=Math.max(clip.y,bounds.y);
+      const right=Math.min(clip.x+clip.width,bounds.x+bounds.width), bottom=Math.min(clip.y+clip.height,bounds.y+bounds.height);
+      if(right<left || bottom<top)continue;
+      visibleBox={x:left,y:top,width:right-left,height:bottom-top};
+    }
+    visited++;
+    const text = node.type === 'TEXT' ? trim(node.characters,120) : '';
+    if (text && !seenText.has(text) && textSnippets.length<56) { seenText.add(text);textSnippets.push(text); }
+    if (outline.length<80) {
+      let role = node.type.toLowerCase();
+      if (Array.isArray(node.fills) && node.fills.some(p=>p.type==='IMAGE' && p.visible!==false && p.isVisible!==false)) role='image';
+      const record={name:trim(node.name,80), type:node.type,role,depth,bounds};
+      if(depth)record.parentName=trim(node.parent?.name,80);
+      if(text)record.text=text;
+      if(node.type==='TEXT'&&Number.isFinite(node.fontSize))record.fontSize=node.fontSize;
+      const layout=node.layoutMode||node.flexMode;
+      if(layout && layout!=='NONE')record.layout=layout;
+      outline.push(record);
+    }
+    if ('children' in node) {
+      const children=node.children, childClip=node.clipsContent && bounds ? visibleBox : clip;
+      for(let j=0;j<children.length;j++) {
+        if(queue.length>=2000){outlineTruncated=true;break;}
+        const child=children[j];
+        if(child.visible===false || child.isVisible===false || child.opacity===0)continue;
+        queue.push({node:child,depth:depth+1,x:box.x+(child.x||0),y:box.y+(child.y||0),clip:childClip});
+      }
+    }
+  }
+  return {id:root.id,name:root.name,type:root.type,width:root.width,height:root.height,pageName:layerPage().name,
+    outline,textSnippets,outlineTruncated:outlineTruncated||visited>outline.length};
+}
+
+async function layerPreviewPng(root, screen) {
+  const maxBytes = screen ? 1500000 : 600000;
+  const scales = new Set((screen ? [1280,960,720,512,384] : [384]).map(size=>Math.min(1,size/Math.max(root.width,root.height,1))));
+  let failure;
+  for (const value of scales) {
+    try {
+      const png=await root.exportAsync({format:'PNG',constraint:{type:'SCALE',value}});
+      let data, size;
+      if(typeof png==='string') {
+        const prefix='data:image/png;base64,';
+        if(png.startsWith('data:') && !png.startsWith(prefix))throw new Error('预览图片格式无效');
+        data=png.startsWith(prefix)?png.slice(prefix.length):png;
+        size=Math.floor(data.length*3/4)-(data.endsWith('==')?2:data.endsWith('=')?1:0);
+      } else { size=png?.length; }
+      if(!size || size<0)throw new Error('预览图片为空');
+      if(size>maxBytes)throw new Error('预览图片过大');
+      return {size, image:'data:image/png;base64,'+(data ?? layerBase64(png))};
+    } catch(error){failure=error;}
+  }
+  throw failure;
+}
 function layerVariantValues(node) {
   try{const properties=node.variantProperties;if(Array.isArray(properties))return Object.fromEntries(properties.map(p=>[p.property,String(p.value)]));if(properties&&typeof properties==='object')return Object.fromEntries(Object.entries(properties).map(([k,v])=>[k,String(v)]));}catch(_){}
   return Object.fromEntries(String(node.name).split(',').map(p=>p.split('=').map(s=>s.trim())).filter(p=>p.length===2));
@@ -91,7 +166,8 @@ function layerApplyVariantValues(owner,components,variants) {
   if(expected.size&&Array.isArray(owner.componentPropertyValues)&&typeof owner.deleteVariantProperty==='function')for(const p of owner.componentPropertyValues.filter(p=>p.type==='VARIANT'&&!expected.has(p.name)))owner.deleteVariantProperty(p.name);
 }
 async function layerSnapshot(msg) {
-  const selected=[...layerPage().selection];
+  const page=layerPage(), selected=[...page.selection];
+  const visionNaming=msg.purpose==='naming'&&msg.visionNaming===true;
   let roots=selected, limit=800,consolidate=false; const sides=new Map(),destinations=[],sourceSets=[];
   if (msg.purpose==='build') {
     if(selected.some(n=>!['FRAME','COMPONENT','COMPONENT_SET'].includes(n.type)))throw new Error('请选择 Frame、独立组件，或组件集与待补入对象');
@@ -134,13 +210,15 @@ async function layerSnapshot(msg) {
   for(let i=0;i<roots.length;i++) {
     if(layerCancelled.has(msg.requestId))throw new Error('已取消');
     const root=roots[i],target=layerSummary(root);total++;stamps.push(layerHash(target));
+    if(visionNaming && layerIsNamingScreen(root))target.isScreen=true;
     if(consolidate){const set=sourceSets.find(s=>s.id===root.parent?.id);target.sourceSetId=set?.id;target.buildParentId=sourceSets[0].parentId;}
     if(msg.purpose==='duplicate')target.side=sides.get(root.id);
     context.push(target);
     if(i%8===0||i===roots.length-1){layerSend({type:'layer-ai-progress',requestId:msg.requestId,done:i+1,total:roots.length,layers:total});await new Promise(r=>setTimeout(r,0));}
   }
   const token=msg.requestId;
-  layerSnapshots.set(token,{roots:roots.map(n=>n.id),page:layerPage().id,stamps,purpose:msg.purpose,sides,destinations,sourceSets,consolidate,buildParentId:sourceSets[0]?.parentId});
+  if(page.id!==layerPage().id)throw new Error('当前页面已变化，请重新分析');
+  layerSnapshots.set(token,{roots:roots.map(n=>n.id),page:page.id,stamps,purpose:msg.purpose,visionNaming,screenStamps:new Map(),sides,destinations,sourceSets,consolidate,buildParentId:sourceSets[0]?.parentId});
   while(layerSnapshots.size>8)layerSnapshots.delete(layerSnapshots.keys().next().value);
   if(!paged&&msg.images){const records=await layerChunk({token,offset:0,limit:20,images:true,requestId:msg.requestId});return {token,targets:records.targets,totalLayers:total,destinations,sourceSets,consolidate,paged:false};}
   return {token,targets:context,totalLayers:total,destinations,sourceSets,consolidate,paged};
@@ -156,16 +234,32 @@ async function layerChunk(msg) {
     if(!root||root.removed)throw new Error('图层已删除，请重新分析');
     const record=layerSummary(root);
     if(layerHash(record)!==snapshot.stamps[i])throw new Error('图层在分析后发生变化，请重新读取');
+    let screenStamp;
+    if(snapshot.visionNaming && layerIsNamingScreen(root)) {
+      record.isScreen=true;
+      record.screen=layerNamingScreen(root);
+      const saved=snapshot.screenStamps.get(root.id);
+      screenStamp=layerHash(record.screen);
+      if(saved && saved!==screenStamp)throw new Error('画板内容在分析后发生变化，请重新读取');
+    }
     const length=JSON.stringify(record).length;
     if(length>1500000)throw new Error(`“${root.name}”单个图层树数据过大，请拆分此 Frame 后重试`);
     if(targets.length&&bytesUsed+length>1500000)break;
     bytesUsed+=length;record.parentId=root.parent?.id;
     if(snapshot.consolidate){record.sourceSetId=snapshot.sourceSets.find(s=>s.id===root.parent?.id)?.id;record.buildParentId=snapshot.buildParentId;}
     if(snapshot.purpose==='duplicate')record.side=snapshot.sides.get(root.id);
-    if(msg.images){try{const bytes=await root.exportAsync({format:'PNG',constraint:{type:'SCALE',value:Math.min(1,384/Math.max(root.width,root.height,1))}});if(bytes.length>600000)throw new Error('预览图片过大');if(targets.length&&imageBytes+bytes.length>6*1024*1024)break;imageBytes+=bytes.length;record.image='data:image/png;base64,'+layerBase64(bytes);}catch(error){record.imageError=String(error.message||error);}}
+    if(msg.images) {
+      try {
+        const preview=await layerPreviewPng(root,record.isScreen);
+        if(targets.length && imageBytes+preview.size>6*1024*1024)break;
+        imageBytes+=preview.size;record.image=preview.image;
+      } catch(error) { record.imageError=String(error.message||error); }
+    }
+    if(screenStamp)snapshot.screenStamps.set(root.id,screenStamp);
     targets.push(record);await new Promise(r=>setTimeout(r,0));
     layerSend({type:'layer-ai-progress',requestId:msg.requestId,done:i+1,total:snapshot.roots.length,layers:0});
   }
+  if(snapshot.page!==layerPage().id)throw new Error('当前页面已变化，请重新分析');
   return {targets,nextOffset:offset+targets.length};
 }
 
@@ -173,7 +267,12 @@ async function layerResolveSnapshot(token,purpose) {
   const snapshot=layerSnapshots.get(token);
   if (!snapshot || snapshot.purpose!==purpose || snapshot.page!==layerPage().id) throw new Error('读取记录已失效，请重新分析');
   const roots=await Promise.all(snapshot.roots.map(layerGet));
-  for(let i=0;i<roots.length;i++){if(!roots[i]||roots[i].removed||layerHash(layerSummary(roots[i]))!==snapshot.stamps[i])throw new Error('图层在分析后发生变化，请重新读取，避免套用旧方案');if(i%8===0)await new Promise(r=>setTimeout(r,0));}
+  for(let i=0;i<roots.length;i++){
+    const root=roots[i];
+    if(!root||root.removed||layerHash(layerSummary(root))!==snapshot.stamps[i])throw new Error('图层在分析后发生变化，请重新读取，避免套用旧方案');
+    if(snapshot.screenStamps.has(root.id) && layerHash(layerNamingScreen(root))!==snapshot.screenStamps.get(root.id))throw new Error('画板内容在分析后发生变化，请重新读取');
+    if(i%8===0)await new Promise(r=>setTimeout(r,0));
+  }
   if(snapshot.page!==layerPage().id)throw new Error('当前页面已变化，请重新分析');
   return roots;
 }
@@ -403,10 +502,12 @@ async function layerBuildManual(msg) {
 async function handleLayerToolsMessage(msg) {
   if(msg.type==='layer-job-state'){if(layerPlatform==='mastergo')try{layerHost.ui.setCloseConfirm({enabled:!!msg.busy,message:'AI 分析尚未完成，关闭插件将中断当前任务。'})}catch(_){}return true;}
   if(msg.type==='layer-ai-cancel'){layerCancelled.add(msg.requestId);if(layerCancelled.size>100)layerCancelled.delete(layerCancelled.values().next().value);return true;}
-  if(!['layer-ai-read','layer-ai-chunk','layer-ai-rename','layer-ai-build','layer-ai-references','layer-focus','layer-matrix'].includes(msg.type))return false;
+  if(!['layer-ai-read','layer-ai-chunk','layer-ai-rename','layer-ai-build','layer-ai-references','layer-focus','layer-matrix','layer-create-example'].includes(msg.type))return false;
   const reply={type:'layer-ai-response',requestId:msg.requestId};
   try {
-    if(msg.type==='layer-focus') {
+    if(msg.type==='layer-create-example') {
+      layerSend({...reply,ok:true,...await createComponentDemo(layerHost,layerPlatform,msg)});
+    }else if(msg.type==='layer-focus') {
       const node=await layerGet(msg.id);if(!node||node.removed)throw new Error('图层已删除');
       let page=node;while(page&&page.type!=='PAGE')page=page.parent;
       if(page?.id!==layerPage().id)throw new Error('请返回该图层所在页面后定位');
@@ -431,6 +532,13 @@ async function handleLayerToolsMessage(msg) {
       const previous=names.map(n=>({node:allowed.get(n.id),name:allowed.get(n.id).name}));
       try{names.forEach(n=>{allowed.get(n.id).name=String(n.name).trim().slice(0,180);});}catch(error){previous.forEach(n=>{try{n.node.name=n.name}catch(_){}});throw error;}
       const snapshot=layerSnapshots.get(msg.token);snapshot.stamps=roots.map(n=>layerHash(layerSummary(n)));
+      if(snapshot.screenStamps.size) {
+        const updated=new Set();
+        for(const {node} of previous)for(let parent=node;parent&&parent.type!=='PAGE';parent=parent.parent) {
+          if(snapshot.screenStamps.has(parent.id))updated.add(parent);
+        }
+        for(const root of updated)snapshot.screenStamps.set(root.id,layerHash(layerNamingScreen(root)));
+      }
       try{layerHost.commitUndo()}catch(_){}
       try{layerHost.notify(`已命名 ${names.length} 个图层`)}catch(_){}
       layerSend({...reply,ok:true,message:`已命名 ${names.length} 个图层`});

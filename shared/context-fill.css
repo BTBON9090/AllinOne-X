@@ -1,0 +1,81 @@
+#smartContext { min-height: 0; }
+#smartFillPanel:has(#smartContext.active) .smart-footer { display: none !important; }
+#smartFillPanel .smart-tab-item { min-width: 0; padding-inline: 3px; white-space: nowrap; }
+.context-fill-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px 14px 14px;
+}
+.context-fill-input, .context-fill-preview {
+  padding: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  background: var(--bg-surface);
+}
+.context-fill-input {
+  display: grid;
+  gap: 8px;
+}
+#contextFillIntro, #contextFillPreviewSummary, .context-fill-feedback {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.context-fill-feedback:empty { display: none; }
+.context-fill-feedback.has-error { color: var(--danger); }
+.context-fill-selection {
+  padding: 7px 9px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-well);
+  color: var(--text-secondary);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+#contextFillLabel, #contextFillPreviewTitle {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 650;
+}
+#contextFillPrompt {
+  width: 100%;
+  min-height: 78px;
+  max-height: 180px;
+  resize: vertical;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.context-fill-examples, .context-fill-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.context-fill-examples button { min-height: 24px; padding: 3px 8px; font-size: 11px; }
+.context-fill-actions #contextFillGenerate { flex: 1; }
+.context-fill-preview > button { width: 100%; }
+#contextFillPreviewSummary { margin-top: 3px; }
+#contextFillResults {
+  display: grid;
+  gap: 6px;
+  max-height: 300px;
+  overflow: auto;
+  margin: 10px 0;
+  padding: 0;
+  list-style: none;
+}
+#contextFillResults:empty { display: none; }
+#contextFillResults li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 3px 10px;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  background: var(--bg-well);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.context-fill-role { grid-column: 1 / -1; color: var(--text-tertiary); font-size: 11px; font-weight: 600; }
+.context-fill-before, .context-fill-after { white-space: pre-wrap; overflow-wrap: anywhere; }
+.context-fill-before { color: var(--text-secondary); }
+.context-fill-after { color: var(--text-primary); font-weight: 550; }

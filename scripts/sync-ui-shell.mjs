@@ -4,12 +4,14 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const logo = fs.readFileSync(path.join(root, 'mastergo/assets/all-in-one-logo.png')).toString('base64');
-const css = ['ui-shell.css', 'panel-system.css', 'workbench.css', 'tool-layouts.css', 'tool-home.css']
+const authorWechatQr = fs.readFileSync(path.join(root, 'shared/assets/author-wechat-qr.jpg')).toString('base64');
+const css = ['ui-shell.css', 'panel-system.css', 'workbench.css', 'tool-layouts.css', 'context-fill.css', 'media-workspace.css', 'tool-home.css']
   .map(file => fs.readFileSync(path.join(root, 'shared', file), 'utf8')).join('\n');
 const catalog = JSON.parse(fs.readFileSync(path.join(root, 'shared/tabler-icons.json'), 'utf8'));
 const icons = Object.fromEntries(Object.entries(catalog.icons).map(([name, data]) => [name, data.body]));
 const componentSkill = fs.readFileSync(path.join(root, 'shared/skills/component-family-synthesis/SKILL.md'), 'utf8');
 const js = 'const pluginLogoUrl = "data:image/png;base64,' + logo + '";\n'
+  + 'const authorWechatQrUrl = "data:image/jpeg;base64,' + authorWechatQr + '";\n'
   + fs.readFileSync(path.join(root, 'shared/ui-shell.js'), 'utf8').replace('__TABLER_ICONS__', () => JSON.stringify(icons))
   + '\n' + fs.readFileSync(path.join(root, 'shared/fill-generators.js'), 'utf8')
   + '\n' + fs.readFileSync(path.join(root, 'shared/chinese-names.js'), 'utf8')
@@ -25,7 +27,11 @@ const js = 'const pluginLogoUrl = "data:image/png;base64,' + logo + '";\n'
   + '\n' + fs.readFileSync(path.join(root, 'shared/layer-ai-core.js'), 'utf8')
   + '\nconst ComponentFamilySkill = ' + JSON.stringify(componentSkill).replace(/</g, '\\u003c') + ';'
   + '\n' + fs.readFileSync(path.join(root, 'shared/layer-workspace.js'), 'utf8')
+  + '\n' + fs.readFileSync(path.join(root, 'shared/ai-model-discovery.js'), 'utf8')
+  + '\n' + fs.readFileSync(path.join(root, 'shared/context-fill-workspace.js'), 'utf8')
   + '\n' + fs.readFileSync(path.join(root, 'shared/iconfont-workspace.js'), 'utf8')
+  + '\n' + fs.readFileSync(path.join(root, 'shared/image-export-workspace.js'), 'utf8')
+  + '\n' + fs.readFileSync(path.join(root, 'shared/shadow-workspace.js'), 'utf8')
   + '\n' + fs.readFileSync(path.join(root, 'shared/workspace.js'), 'utf8')
   + '\n' + fs.readFileSync(path.join(root, 'shared/tool-layouts.js'), 'utf8')
   + '\n' + fs.readFileSync(path.join(root, 'shared/tool-home.js'), 'utf8');

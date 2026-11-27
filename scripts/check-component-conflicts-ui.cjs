@@ -46,7 +46,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE_PATH||'playwright');
   });
   const idle=()=>page.waitForFunction(()=>!document.querySelector('.layer-job-banner'));
   const feedback=page.locator('#builderAiCard .layer-feedback'),apply=page.getByRole('button',{name:'按方案构建',exact:true});
-  await page.getByRole('button',{name:'AI 读取并建议',exact:true}).click();await idle();
+  await page.locator('#builderAiVision').check();await page.getByRole('button',{name:'AI 读取并建议',exact:true}).click();await idle();
   assert.match(await feedback.innerText(),/80\/150/);assert(await apply.isDisabled());
   await page.locator('#builderContinue').click();await idle();
   assert.match(await feedback.innerText(),/100\/150/,'duplicate draft must commit instead of pausing at 80');

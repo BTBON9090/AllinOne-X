@@ -164,13 +164,61 @@ const LayerAI = (() => {
     });
     return validate({summary:value.summary,suggestions:Array.isArray(value.suggestions)?value.suggestions.map(String):[],groups},targets,options);
   }
+  function namingSuggestion(record,multiple) {
+    const raw=[record.name,...(multiple&&Array.isArray(record.meanings)?record.meanings:[])];
+    const artboard=record.scope==='artboard';
+    const terms=[],seen=new Set();
+    for(const value of raw){
+      if(typeof value!=='string')continue;
+      for(const part of value.split(/[、，,；;]/)){
+        const term=(artboard?part.trim().replace(/\s{2,}/g,' '):semanticName(part)).slice(0,180),key=term.toLowerCase();
+        if(!term||seen.has(key))continue;
+        terms.push(term);seen.add(key);
+        if(terms.length===(multiple?6:1))break;
+      }
+      if(terms.length===(multiple?6:1))break;
+    }
+    if(!terms.length)return null;
+    return {id:record.id,name:terms[0],...(multiple?{meanings:terms.slice(1)}:{}),...(artboard?{scope:'artboard'}:{})};
+  }
+  function namingLabel(suggestion) {
+    const terms=[suggestion.name,...(suggestion.meanings||[])],label=terms.join('、');
+    if(label.length<=180)return label;
+    // Reserve room for every meaning when a model supplies overly long phrases.
+    const clipped=terms.slice(),shortest=terms.map((_,i)=>i).sort((a,b)=>terms[a].length-terms[b].length);
+    let available=180-(terms.length-1);
+    shortest.forEach((index,i)=>{
+      clipped[index]=terms[index].slice(0,Math.floor(available/(terms.length-i))).replace(/[\uD800-\uDBFF]$/,'');
+      available-=clipped[index].length;
+    });
+    return clipped.join('、');
+  }
   function synthesizeNames(value,names) {
     reviewed(value,names.length);
     if(!Array.isArray(value.renames)||!Array.isArray(value.overrides))throw new Error('AI 命名统筹格式不完整');
-    const replacements=new Map(),overrides=new Map(),known=new Set(names.map(n=>n.name)),ids=new Set(names.map(n=>n.id));
-    for(const change of value.renames){const name=typeof change.to==='string'?semanticName(change.to):'';if(!known.has(change.from)||replacements.has(change.from)||!name)throw new Error('AI 命名统筹包含无效术语');replacements.set(change.from,name.slice(0,180));}
-    for(const change of value.overrides){const name=typeof change.name==='string'?semanticName(change.name):'';if(!ids.has(change.id)||overrides.has(change.id)||!name)throw new Error('AI 命名统筹包含无效对象');overrides.set(change.id,name.slice(0,180));}
-    return names.map(n=>({id:n.id,name:overrides.get(n.id)||replacements.get(n.name)||n.name}));
+    const replacements=new Map(),overrides=new Map(),byId=new Map(names.map(n=>[n.id,n]));
+    const known=new Set(names.flatMap(n=>[n.name,namingLabel(n)]));
+    const elementNames=new Set(names.filter(n=>n.scope!=='artboard').flatMap(n=>[n.name,namingLabel(n)]));
+    for(const change of value.renames){
+      if(known.has(change?.from)&&!elementNames.has(change.from))continue;
+      const revised=namingSuggestion({name:change?.to},false);
+      if(!known.has(change?.from)||replacements.has(change.from)||!revised)throw new Error('AI 命名统筹包含无效术语');
+      replacements.set(change.from,revised.name);
+    }
+    for(const change of value.overrides){
+      const target=byId.get(change?.id);
+      const revised=namingSuggestion({name:change?.name,scope:target?.scope},false);
+      if(!target||overrides.has(change.id)||!revised)throw new Error('AI 命名统筹包含无效对象');
+      overrides.set(change.id,revised.name);
+    }
+    return names.map(n=>{
+      const revised=overrides.get(n.id)||(n.scope!=='artboard'&&(replacements.get(namingLabel(n))||replacements.get(n.name)));
+      if(!revised)return n;
+      if(!n.meanings)return {...n,name:revised};
+      // When a reviewed name promotes an existing alternative, retain the original primary in its place.
+      const meanings=n.meanings.map(term=>term.toLowerCase()===revised.toLowerCase()?n.name:term);
+      return namingSuggestion({id:n.id,name:revised,meanings,scope:n.scope},true);
+    });
   }
   function synthesizePairs(value,units) {
     reviewed(value,units.length);
@@ -201,5 +249,5 @@ const LayerAI = (() => {
     if(left.length>=right.length){const mid=Math.floor(left.length/2);return [[left.slice(0,mid),right],[left.slice(mid),right]];}
     const mid=Math.floor(right.length/2);return [[left,right.slice(0,mid)],[left,right.slice(mid)]];
   }
-  return {LIMIT,BATCH_SIZE,responseText,adaptive,splitComparison,parse,validate,buildConflicts,finalizeBuild,merge,semanticName,checkImages,reviewed,familySchema,consolidateFamilies,synthesizeBuild,synthesizeNames,synthesizePairs};
+  return {LIMIT,BATCH_SIZE,responseText,adaptive,splitComparison,parse,validate,buildConflicts,finalizeBuild,merge,semanticName,checkImages,reviewed,familySchema,consolidateFamilies,synthesizeBuild,namingSuggestion,namingLabel,synthesizeNames,synthesizePairs};
 })();

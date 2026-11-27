@@ -67,6 +67,18 @@ fs.mkdirSync(output, { recursive:true });
       await page.evaluate(() => changeLanguage('zh'));
       await page.evaluate(() => changeLanguage('en'));
       assert.equal(await page.locator('#sizeWidth').inputValue(),targetBefore,'Changing language does not apply a size preset');
+      for(const key of ['componentBuilder','layerNaming']){
+        await page.evaluate(key=>PluginWorkspace.navigate(key),key);
+        const panel=key==='componentBuilder'?'#componentBuilderPanel':'#layerNamingPanel';
+        await noChinese(panel);
+        await page.evaluate(()=>changeLanguage('zh'));
+        assert.doesNotMatch(await page.locator(panel).innerText(),/\b(?:Frame|English names|AutoLayout)\b/i);
+        await page.evaluate(()=>changeLanguage('en'));
+        await noChinese(panel);
+        assert.equal(await page.locator('.workbench-location h1').textContent(),await page.locator('.nav-item.active .nav-text').textContent());
+      }
+      await page.evaluate(()=>PluginWorkspace.navigate('settings'));
+      assert(await page.locator('.workbench-route-icon svg').evaluate(svg=>svg.innerHTML===document.querySelector('.sidebar-footer .btn-icon svg').innerHTML),'Settings title uses the footer gear');
       await page.evaluate(() => PluginWorkspace.navigate('smartFill'));
       for (const key of ['number','date','time']) {
         await page.evaluate(key => openBasicSetting(key,new Event('click')),key);

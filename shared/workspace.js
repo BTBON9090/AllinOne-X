@@ -5,15 +5,16 @@
     simple: ['toolPanel', 'efficiency', '选中画布图层，再选择要执行的工具。', 'Select canvas layers, then choose a tool.'],
     select: ['selectionPanel', 'efficiency', '先确定查找范围，再组合类型、名称和高级属性筛选。', 'Choose a scope, then combine type, name and property filters.'],
     text: ['textPanel', 'efficiency', '查找后勾选结果再替换。默认仅处理选中图层；替换前可在画布定位。', 'Find text, select matches, then replace. The default scope is the selection.'],
-    smartFill: ['smartFillPanel', 'efficiency', '先选择文本或画板，点击字段名称填充。标签和设置只调整规则。', 'Select text or frames, then click a field name to fill. Tags and settings only change the rules.'],
-    size: ['sizePanel', 'efficiency', '编辑目标尺寸或选择预设，再应用到选中画板或矩形。设计视口用于界面，原生分辨率用于像素对照。', 'Edit dimensions or pick a preset, then apply to selected frames or rectangles. Design viewport and native resolution serve different purposes.'],
-    refiner: ['refinerPanel', 'components', '检查组件与属性名称的格式，查找替换名称，或用 AI 翻译成英文；先预览后修改。', 'Check and replace component/property names, or translate names with AI. Preview before applying.'],
-    componentBuilder: ['componentBuilderPanel', 'components', 'AI 读取 Frame 的图层结构与截图，建议组件分组、属性和命名；预览后构建。也支持普通构建。', 'Analyze Frame structure and screenshots, preview AI suggestions, then build components. Manual creation remains available.'],
-    layerNaming: ['layerNamingPanel', 'components', 'AI 识图建议图层名称与图标含义；预览后批量命名，也支持普通编号命名。', 'Preview AI names from layer screenshots, or use ordinary numbered names.'],
+    smartFill: ['smartFillPanel', 'efficiency', '为文本图层生成数据，或用情景填充为整个画板生成一套内容。', 'Generate data for text layers or use Context Fill to complete an entire frame.'],
+    size: ['sizePanel', 'extensions', '编辑目标尺寸或选择预设，再应用到选中画板或矩形。设计视口用于界面，原生分辨率用于像素对照。', 'Edit dimensions or pick a preset, then apply to selected frames or rectangles. Design viewport and native resolution serve different purposes.'],
+    refiner: ['refinerPanel', 'components', '检查、替换或翻译组件名称，也可以用 CompKit 整理变体和生成说明书。', 'Check, replace or translate component names, and organize or document variants in CompKit.'],
+    componentBuilder: ['componentBuilderPanel', 'components', '根据所选画板分析组件分组、属性和名称，可先预览再构建，也可手动创建组件。', 'Analyze Frame structure and screenshots, preview AI suggestions, then build components. Manual creation remains available.'],
+    layerNaming: ['layerNamingPanel', 'components', '按业务用途命名所选画板，也可识别图标和图层。先预览，再应用。', 'Name selected artboards by workflow, or identify icons and layers. Preview names before applying.'],
     duplicate: ['duplicatePanel', 'components', '选择两个画板，对比重复元素并定位结果。', 'Select two frames to compare repeated elements and locate matches.'],
-    compkit: ['compkitPanel', 'components', '将所选组件集按多个属性排列成行、列和分组，可用 AI 建议维度；开启底部开关生成说明书。', 'Arrange selected component sets by rows, columns and groups. AI can suggest dimensions; enable documentation at the bottom to add a showcase.'],
     i18n: ['i18nPanel', 'extensions', '先确认范围和源语言。直接替换会修改文本；Mode 用于保存可切换的语言版本。', 'Confirm scope and source language. Replace changes text; modes preserve switchable language versions.'],
-    iconfont: ['iconfontPanel', 'extensions', '勾选图标，批量修复原图层或生成可下载 SVG 的副本。', 'Repair checked layers in place, or create copies with downloadable SVGs.'],
+    iconfont: ['iconfontPanel', 'extensions', '导入 iconfont 前批量整理 SVG 路径，减少镂空被填平、轮廓填错等问题。', 'Prepare SVG paths before importing into iconfont to reduce filled holes and incorrect contours.'],
+    imageExport: ['imageExportPanel', 'extensions', '将所选设计或图像压缩成 WebP，下载文件或复制 Base64。', 'Compress the selection as WebP, download a file or copy Base64.'],
+    shadow: ['shadowPanel', 'extensions', '预览并调节阴影，再写入所选图层的原生效果。', 'Tune shadows in a preview, then apply native effects to selected layers.'],
     skew: ['skewPanel', 'extensions', '预览倾斜与等轴效果，再应用到选中图层。', 'Preview skew and isometric transforms, then apply to selected layers.'],
     ppt: ['pptPanel', 'extensions', '建议先复制页面；按步骤预处理后导出。首次使用请查看面板内的导出说明。', 'Duplicate the page first. Follow the preparation steps and review the export notes.'],
     jumpback: ['jumpbackPanel', 'extensions', '保存当前视角后可一键返回。每个文件最多保存 5 个位置。', 'Save the current viewport to return later. Up to five locations per file.'],
@@ -51,7 +52,7 @@
   sidebar.prepend(brand);
   const heading = document.createElement('header');
   heading.className = 'workbench-heading';
-  heading.innerHTML = '<button type="button" class="workbench-menu" aria-controls="sidebar"><span data-smart-icon="list"></span></button><div class="workbench-location"><h1></h1></div><button type="button" class="workbench-back" hidden><span data-smart-icon="chevron-left"></span><span class="back-label"></span></button>';
+  heading.innerHTML = '<button type="button" class="workbench-menu" aria-controls="sidebar"><span data-smart-icon="list"></span></button><div class="workbench-location"><span class="workbench-route-icon" aria-hidden="true"></span><h1></h1></div><button type="button" class="workbench-back" hidden><span data-smart-icon="chevron-left"></span><span class="back-label"></span></button>';
   $('contentScroll').before(heading);
   const menu = heading.querySelector('.workbench-menu');
   const headerBrand = document.createElement('button');
@@ -59,11 +60,25 @@
   headerBrand.className = 'workbench-brand-header';
   headerBrand.append(brand.firstElementChild.cloneNode(true));
   heading.prepend(headerBrand);
-  PluginWindow.bindBrand(brand);
-  PluginWindow.bindBrand(headerBrand);
+  PluginWindow.bindCollapse(brand);
+  PluginWindow.bindCollapse(headerBrand);
   const back = heading.querySelector('.workbench-back');
   back.onclick = () => navigate(previous);
   $('settingsPanel').querySelector(':scope > .sub-header')?.remove();
+  const aboutLead = $('settingsPanel').querySelector('.about-lead');
+  const aboutBrand = document.createElement('div');
+  aboutBrand.className = 'about-brand';
+  const logo = document.createElement('img');
+  logo.className = 'about-logo'; logo.alt = ''; logo.src = pluginLogoUrl;
+  const brandText = document.createElement('div'), brandName = document.createElement('strong');
+  brandName.textContent = 'AllinOne';
+  aboutLead.before(aboutBrand); brandText.append(brandName,aboutLead); aboutBrand.append(logo,brandText);
+  const wechatDialog = $('aboutWechatDialog');
+  $('aboutWechatOpen').addEventListener('click', () => {
+    $('aboutWechatImage').src = authorWechatQrUrl;
+    wechatDialog.showModal();
+  });
+  $('aboutWechatClose').addEventListener('click', () => wechatDialog.close());
   const scrim = document.createElement('button');
   scrim.className = 'workbench-scrim';
   scrim.type = 'button';
@@ -100,10 +115,15 @@
   });
 
   function refreshLocation() {
-    for (const button of [brand, headerBrand]) {
-      button.title = l('将 AllinOne 收起为气泡', 'Minimize AllinOne to a bubble');
-      button.setAttribute('aria-label', button.title);
+    for(const button of [brand,headerBrand]){
+      button.title=l('将 AllinOne 收起为气泡','Minimize AllinOne to a bubble');
+      button.setAttribute('aria-label',button.title);
     }
+    back.setAttribute('aria-label', l('返回上一个工具', 'Back to previous tool'));
+    const sourceIcon = current === 'settings' ? sidebar.querySelector('.sidebar-footer .btn-icon svg') : nav(current).querySelector('.nav-icon-slot svg');
+    const routeIcon = heading.querySelector('.workbench-route-icon');
+    if (sourceIcon) routeIcon.replaceChildren(sourceIcon.cloneNode(true));
+    else routeIcon.replaceChildren();
     heading.querySelector('h1').textContent = label(current);
     back.hidden = current !== 'settings';
     back.querySelector('.back-label').textContent = l('返回', 'Back');
@@ -112,11 +132,14 @@
     currentPanel().setAttribute('role', 'region');
     currentPanel().setAttribute('aria-label', label(current));
     Object.entries(routes).forEach(([key, route]) => {
-      nav(key).title = label(key) + ' — ' + route[english() ? 3 : 2];
+      const entry = nav(key), name = label(key);
+      entry.title = name + ' — ' + route[english() ? 3 : 2];
+      entry.setAttribute('aria-label', name);
     });
   }
 
   function navigate(key) {
+    if (key === 'compkit') { navigate('refiner'); switchRefinerTab('compkit'); return; }
     if (key !== 'settings' && !routes[key]) return;
     setDirectory(false, document.body.classList.contains('directory-open'));
     rememberScroll();
@@ -138,7 +161,9 @@
     window.PluginLocalization?.refresh();
     if (key === 'settings') initSettingsPanel();
     if (key === 'iconfont') IconfontWorkspace.inspect();
-    if (key === 'compkit') { requestCompKitProps(); window.LayerWorkspace?.refreshAxes(); }
+    if (key === 'smartFill' && $('smartContext').classList.contains('active')) window.ContextFillWorkspace?.inspect();
+    if (key === 'imageExport') window.ImageExportWorkspace?.inspect();
+    if (key === 'shadow') window.ShadowWorkspace?.inspect();
     if (key === 'componentBuilder') requestComponentBuilderSelection();
     if (key === 'size') { initSizeAssistant(); updateSizeSummary(); postMsg('size-assistant-inspect'); }
     for (const [el, top] of scrollPositions.get(key) || []) if (el.isConnected) el.scrollTop = top;
@@ -150,9 +175,9 @@
   navScroll.setAttribute('aria-label', 'AllinOne');
   navScroll.querySelectorAll('.nav-section-label').forEach(el => el.remove());
   const navGroups = [
-    ['效率工具', 'Productivity', ['simple','select','text','smartFill','size','jumpback']],
-    ['组件与图层', 'Components & Layers', ['refiner','componentBuilder','layerNaming','duplicate','compkit']],
-    ['设计拓展', 'Design Extras', ['iconfont','i18n','skew','ppt','theory']]
+    ['效率工具', 'Productivity', ['simple','select','text','smartFill','jumpback','imageExport','skew','shadow','ppt']],
+    ['组件与图层', 'Components & Layers', ['refiner','componentBuilder','layerNaming','duplicate']],
+    ['设计拓展', 'Design Extras', ['size','iconfont','i18n','theory']]
   ].map(([zh, en, keys], index) => {
     const group = document.createElement('section');
     group.className = 'nav-group';
@@ -260,10 +285,14 @@
       card.title = tip?.textContent || '';
       if (tip) { tip.id = 'tool-help-' + card.dataset.key; card.setAttribute('aria-describedby', tip.id); }
     });
-    refreshLocation();
     window.PluginLocalization?.refresh();
     window.TheoryWorkspace?.refresh();
     window.LayerWorkspace?.refresh();
+    window.ContextFillWorkspace?.refresh();
+    window.ImageExportWorkspace?.refresh();
+    window.ShadowWorkspace?.refresh();
+    window.AiModelDiscovery?.refresh();
+    refreshLocation();
     if (sizeAssistantState.initialized) {
       renderSizePresets();
       const preset = SIZE_ASSISTANT_PRESETS.find(item => item.id === sizeAssistantState.selectedId);

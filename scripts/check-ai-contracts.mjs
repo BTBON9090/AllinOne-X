@@ -61,6 +61,25 @@ const suggested=[{id:'1',name:'搜索'},{id:'2',name:'搜索'}];
 const unified=ai.synthesizeNames({reviewedCount:2,summary:'Canonical terms',renames:[{from:'搜索',to:'蓝色查找'}],overrides:[{id:'2',name:'返回'}]},suggested);assert.equal(unified[0].name,'查找');assert.equal(unified[1].name,'返回');
 assert.throws(()=>ai.synthesizeNames({reviewedCount:2,summary:'Wrong ID',renames:[],overrides:[{id:'3',name:'未知'}]},suggested));
 assert.throws(()=>ai.synthesizeNames({reviewedCount:2,summary:'Bad term',renames:[{from:'搜索',to:'蓝色'}],overrides:[]},suggested));
+const multiple=[
+ ai.namingSuggestion({id:'a',name:'蓝色搜索',meanings:['查找','放大镜','查找']},true),
+ ai.namingSuggestion({id:'b',name:'搜索',meanings:['定位']},true),
+ ai.namingSuggestion({id:'c',name:'上一步',meanings:[]},true)
+];
+const multiReview=ai.synthesizeNames({reviewedCount:3,summary:'统一首选词',renames:[{from:'搜索',to:'查找'}],overrides:[{id:'b',name:'检索'}]},multiple);
+assert.deepEqual(Array.from(multiReview,n=>ai.namingLabel(n)),['查找、搜索、放大镜','检索、定位','上一步']);
+const joinedReview=ai.synthesizeNames({reviewedCount:3,summary:'完整名称映射',renames:[{from:'搜索、查找、放大镜',to:'检索'}],overrides:[]},multiple);
+assert.equal(ai.namingLabel(joinedReview[0]),'检索、查找、放大镜');
+assert.equal(ai.namingLabel(ai.namingSuggestion({name:'Search',meanings:['search','Find','find']},true)),'Search、Find');
+assert.equal(ai.namingLabel(ai.namingSuggestion({name:'Search、Find',meanings:['Magnifier']},false)),'Search');
+const artboard=ai.namingSuggestion({id:'design',scope:'artboard',name:'样式管理',meanings:['渐变资源管理']},true);
+assert.equal(ai.namingLabel(artboard),'样式管理、渐变资源管理');
+const mixedNames=[artboard,ai.namingSuggestion({id:'icon',name:'蓝色样式管理'},false)];
+const mixedReview=ai.synthesizeNames({reviewedCount:2,summary:'Different scopes',renames:[{from:'样式管理',to:'设置'}],overrides:[{id:'design',name:'渐变样式管理'}]},mixedNames);
+assert.equal(ai.namingLabel(mixedReview[0]),'渐变样式管理、渐变资源管理');
+assert.equal(mixedReview[1].name,'管理');
+const longLabel=ai.namingLabel(ai.namingSuggestion({name:'A'.repeat(180),meanings:['B'.repeat(80),'Find']},true));
+assert.equal(longLabel.length,180);assert.equal(longLabel.split('、').length,3);
 const units=[{id:'first',pairs:[1,2]},{id:'second',pairs:[3]}];assert.equal(ai.synthesizePairs({reviewedCount:2,summary:'Remove false match',rejected:['second']},units).length,2);assert.throws(()=>ai.synthesizePairs({reviewedCount:2,summary:'Unknown',rejected:['unknown']},units));
 // The final recipe stays compact with 800 objects and still proves exact source coverage.
 const manyTargets=Array.from({length:800},(_,i)=>({id:String(i)})),manyPlans=Array.from({length:40},(_,i)=>({groups:[{name:'Icon',variants:manyTargets.slice(i*20,i*20+20).map(t=>({id:t.id,values:{Content:t.id}}))}]}));

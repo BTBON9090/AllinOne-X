@@ -100,6 +100,58 @@ for(const platform of ['figma','mastergo']){
  await call('handleLayerToolsMessage',{type:'layer-ai-read',purpose:'naming',paged:true,requestId:'partial-names'});
  for(const [i,n] of [firstName,secondName].entries()){await call('handleLayerToolsMessage',{type:'layer-ai-rename',purpose:'naming',token:'partial-names',requestId:'partial-'+i,names:[{id:n.id,name:'Done '+i}]});assert.equal(messages.at(-1).ok,true,messages.at(-1).message);}
  assert.equal(firstName.name,'Done 0');assert.equal(secondName.name,'Done 1');
+ // A selected business artboard is one nameable target. Its visible labels,
+ // geometry and high-resolution preview are evidence, never extra rename IDs.
+ const rpc=async(type,data)=>{await call('handleLayerToolsMessage',{type,requestId:type,...data});return messages.at(-1);};
+ const title=make('TEXT','Title');title.characters='采购审批';title.fontSize=32;title.x=16;title.y=12;
+ const details=make('FRAME','Approval header',[title]);details.x=30;details.y=40;
+ const confidential=make('TEXT','private');confidential.characters='Private hidden label';
+ const hidden=make('GROUP','Hidden',[confidential]);hidden[platform==='figma'?'visible':'isVisible']=false;
+ const clipped=make('TEXT','Off-screen');clipped.characters='Off-screen label';clipped.y=1005;
+ const zero=make('TEXT','Transparent');zero.characters='Transparent label';zero.opacity=0;
+ const canvas=make('FRAME','Frame 9',[details,hidden,clipped,zero]);canvas.resize(1600,1000);canvas.clipsContent=true;
+ const sibling=make('FRAME','Frame 10');sibling.resize(1400,1000);
+ const attempts=[];
+ canvas.exportAsync=async settings=>{
+   attempts.push(settings.constraint.value);
+   if(attempts.length===1)return new Uint8Array(1500001);
+   return platform==='figma'?Uint8Array.of(1,2,3):'data:image/png;base64,AQID';
+ };
+ sibling.exportAsync=async()=>platform==='figma'?Uint8Array.of(4,5,6):'BAUG';
+ page.appendChild(canvas);page.appendChild(sibling);page.selection=[canvas,sibling];
+ const namingRead=await rpc('layer-ai-read',{purpose:'naming',visionNaming:true,paged:true,requestId:'ui-frames'});
+ assert.deepEqual(Array.from(namingRead.context.targets,n=>n.id),[canvas.id,sibling.id]);
+ assert(namingRead.context.targets[0].isScreen);assert(!namingRead.context.targets[0].screen,'Outline is paged on demand');
+ const uiChunk=await rpc('layer-ai-chunk',{token:'ui-frames',images:true});
+ assert.equal(uiChunk.ok,true,uiChunk.message);
+ const [frame,siblingFrame]=uiChunk.targets;
+ assert.deepEqual(attempts,[1280/1600,960/1600]);
+ assert.equal(frame.image,'data:image/png;base64,AQID');assert.equal(siblingFrame.image,'data:image/png;base64,BAUG');
+ assert.equal(frame.screen.pageName,page.name);assert.deepEqual(Array.from(frame.screen.textSnippets),['采购审批']);
+ const titleRecord=frame.screen.outline.find(r=>r.text==='采购审批');
+ assert.equal(titleRecord.depth,2);assert.equal(titleRecord.parentName,details.name);assert.equal(titleRecord.fontSize,32);
+ assert.deepEqual({...titleRecord.bounds},{x:46,y:52,width:80,height:40});
+ assert(!JSON.stringify(frame.screen).includes('Private hidden label'));
+ page.selection=[details];
+ const rename=(token,names)=>rpc('layer-ai-rename',{token,purpose:'naming',names});
+ assert.equal((await rename('ui-frames',[{id:title.id,name:'Injected child'}])).ok,false);
+ assert.equal((await rename('ui-frames',[{id:canvas.id,name:'采购审批详情'}])).ok,true);
+ assert.equal(title.name,'Title');assert.equal(details.name,'Approval header');assert.equal(sibling.name,'Frame 10');
+ assert.equal((await rename('ui-frames',[{id:sibling.id,name:'报销审批详情'}])).ok,true);
+ title.characters='采购审批历史';
+ assert.equal((await rename('ui-frames',[{id:canvas.id,name:'Stale'}])).ok,false);
+ assert.equal(canvas.name,'采购审批详情');
+ page.selection=[canvas];canvas.exportAsync=async()=>{throw new Error('Native export failed')};
+ await rpc('layer-ai-read',{purpose:'naming',visionNaming:true,paged:true,requestId:'ui-error'});
+ const fallback=await rpc('layer-ai-chunk',{token:'ui-error',images:true});
+ assert.match(fallback.targets[0].imageError,/Native export failed/);assert(fallback.targets[0].screen.textSnippets.includes(title.characters));
+ // Deep and busy screens keep evidence compact. Manual naming remains shallow.
+ for(let i=0;i<125;i++){const t=make('TEXT','Cell');t.characters='Cell '+i;canvas.appendChild(t);}
+ await rpc('layer-ai-read',{purpose:'naming',visionNaming:true,paged:true,requestId:'ui-busy'});
+ const busy=(await rpc('layer-ai-chunk',{token:'ui-busy'})).targets[0].screen;
+ assert(busy.outlineTruncated);assert(busy.outline.length<=80&&busy.textSnippets.length<=56);
+ await rpc('layer-ai-read',{purpose:'naming',paged:true,requestId:'ordinary-name'});
+ assert.equal((await rpc('layer-ai-chunk',{token:'ordinary-name'})).targets[0].screen,undefined);
  // A selected root can have arbitrarily deep content: analysis must not read its children.
  const shallow=make('FRAME','Shallow only');page.appendChild(shallow);Object.defineProperty(shallow,'children',{get(){throw new Error('Descendant traversal forbidden during AI read')}});page.selection=[shallow];
  await call('handleLayerToolsMessage',{type:'layer-ai-read',purpose:'build',paged:true,requestId:'shallow'});assert.equal(messages.at(-1).ok,true,messages.at(-1).message);

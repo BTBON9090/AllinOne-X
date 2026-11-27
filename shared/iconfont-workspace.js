@@ -272,7 +272,7 @@
   function refresh() {
     nav.querySelector('.nav-text').textContent = l('图标修复', 'Iconfont');
     $('iconfontTitle').textContent = l('Iconfont 图标修复', 'Iconfont repair');
-    $('iconfontIntro').textContent = l('仅修复会更新勾选的原图层。创建副本后修复会生成单色副本，可下载 SVG。', 'Repair in place updates checked layers. Create and repair copies makes monochrome copies with downloadable SVGs.');
+    $('iconfontIntro').textContent = l('在 SVG 导入 iconfont 前，批量整理单色图标的轮廓方向与填充路径，减少镂空被填平、形状填错的问题。可修复原图层，也可生成副本并下载 SVG。', 'Before importing SVGs into iconfont, normalize monochrome contour direction and fill paths to prevent filled holes and incorrect shapes. Fix original layers or make copies and download their SVGs.');
     mode.querySelector('legend').textContent = l('图标来源', 'Icon source');
     mode.querySelector('[value="selection"] + span').textContent = l('每个选中图层作为一个图标', 'One icon per selected layer');
     mode.querySelector('[value="children"] + span').textContent = l('每个直接子图层作为一个图标', 'One icon per direct child of a selected container');
